@@ -8,3 +8,8 @@ message passing primitives and supports the construction of first-class
 synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are
 created using techniques similar to the F# Async framework.  Hopac runs
 parallel jobs using a work distributing scheduler in a non-preemptive fashion.
+
+Licensing
+---------
+
+Hopac is licensed under a MIT-style license.  See LICENSE.md for the license.
