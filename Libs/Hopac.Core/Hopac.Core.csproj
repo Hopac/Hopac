@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Hopac</RootNamespace>
+    <AssemblyName>Hopac.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>420</NoWarn>
+    <DocumentationFile>bin\Debug\Hopac.Core.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>AGGRESSIVE_INLINING</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>420</NoWarn>
+    <DocumentationFile>bin\Release\Hopac.Core.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Core" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assembly.cs" />
+    <Compile Include="Communication\Ch.cs" />
+    <Compile Include="Communication\IVar.cs" />
+    <Compile Include="Communication\Lock.cs" />
+    <Compile Include="Communication\Mailbox.cs" />
+    <Compile Include="Communication\MVar.cs" />
+    <Compile Include="Communication\Promise.cs" />
+    <Compile Include="Communication\WaitQueue.cs" />
+    <Compile Include="Engine\Scheduler.cs" />
+    <Compile Include="Engine\Work.cs" />
+    <Compile Include="Engine\Worker.cs" />
+    <Compile Include="Engine\WorkTimed.cs" />
+    <Compile Include="External\Tasks.cs" />
+    <Compile Include="External\WorkWithReady.cs" />
+    <Compile Include="Flow\Cont.cs" />
+    <Compile Include="Engine\Handler.cs" />
+    <Compile Include="Flow\Job.cs" />
+    <Compile Include="Flow\Combinators\ParTuple.cs" />
+    <Compile Include="Selective\Alt.cs" />
+    <Compile Include="Selective\Always.cs" />
+    <Compile Include="Selective\Nack.cs" />
+    <Compile Include="Selective\Pick.cs" />
+    <Compile Include="Util\AggressiveInlining.cs" />
+    <Compile Include="Util\SpinlockWithOwner.cs" />
+    <Compile Include="Util\SpinlockTTAS.cs" />
+    <Compile Include="Util\SpinlockMCS.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
