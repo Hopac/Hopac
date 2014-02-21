@@ -9,7 +9,117 @@ synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are
 created using techniques similar to the F# Async framework.  Hopac runs
 parallel jobs using a work distributing scheduler in a non-preemptive fashion.
 
+Rationale: Why Hopac?
+---------------------
+
+The .Net framework already provides several layers of support for parallel,
+asynchronous, and concurrent (PAC) programming.  Do we really need another
+library?  In here I will try to briefly highlight some problems with some of
+those existing layers.
+
+One of the most basic ways .Net enables PAC is via threads, synchronization
+primitives and concurrent data structures.  Perhaps the biggest problem with
+.Net threads is that .Net threads are heavy weight.  Every thread has its own
+dedicated stack and other runtime structures taking up memory.  Spawning a new
+thread is expensive and thread switches are expensive.  Threads are such a
+scarce resource that arbitrary modules in a large program simply cannot spawn
+new threads whenever an opportunity for PAC exists.  This severely limits the
+modularity of programs written using just threads.
+
+Another problem is that writing correct, let alone modular and high
+performance, PAC programs using just basic locking primitives can be rather
+challenging as has been widely recognized.  This is very much a separate
+problem, because if threads were extremely cheap, one could easily build
+higher-level synchronous abstractions on top of such threads using only the
+basic synchronization primitives.
+
+To alleviate the costs of threads, .Net provides the thread pool.  Instead of
+spawning new threads, program modules can queue user work items to be processed
+using a small number of worker threads managed by the thread pool.  Queuing
+user work items is several orders of magnitude cheaper than spawning new
+threads.
+
+One aspect of the thread pool that is not discussed often is that the thread
+pool tends to process work items in FIFO order.  Suppose you have a DAG
+(directed acyclic graph), like in a parallel build system, where the vertices
+of the graph represent computations and edges represent dependencies between
+computations.  Simple use of the thread pool to execute those computations
+leads to a BFS (breadth first search) traversal of the graph.  The problem is
+that a BFS traversal of a graph tends to use much more memory than a DFS
+(depth first search) of the same graph.  DFS uses O(depth) space, while BFS
+uses O(width) space.  In many practical situations graphs are expected to be
+wide (lots of data), but shallow (not many layers of data).
+
+Other problems with the thread pool are better recognized.  For example, one
+should avoid blocking within a user work item, but at the same time, the thread
+pool provides very little help to coordinate multiple work items with
+dependencies.  Once a work item is queued, there is no built in notification
+when it starts executing, it cannot be removed from the queue and there is no
+built in notication when it has run to completion.  There is no mechanism for
+the thread pool to notify the module that queued a work item when the execution
+of the work item terminated with an unhandled exception.
+
+To help with parallel and asynchonous programming, the .Net framework provides
+the task parallel library and (the C# and) the F# async mechanisms.  For simple
+parallel programming tasks, that do not require complex communication patterns,
+the task parallel library does quite well.  The task parallel library supports
+continuation tasks and the async mechanisms makes working with continuations
+even easier than with just tasks.  For a particular kind of communication
+pattern, the F# library provides the mailbox processor abstraction.
+
+On the other hand, aside from supporting task continuations and the mailbox
+processor abstraction, those systems still provide very little in terms of
+communicating and coordinating between tasks and one must fall back to using
+locking primitives to implement those when needed.  Also, it seems that the
+task and async mechanism built on top of the thread pool include some
+significant implementation overheads and design weaknesses.  For example, the
+Task<T> type of the task parallel library acts both as a representation of an
+operation (comparable to a first-class function) and as a container for the
+result of the operation (comparable to a write-once ref cell).  Frankly, those
+are two separate responsibilities and combining them into one type is
+questionable design.  The F# async design recognizes this issue at the type
+level, while the C# async design does not, and as a result the C# async design
+suffers from "gotchas" as has been recognized.
+
+The thread pool, the task parallel library and the async frameworks were not
+initially designed as a coherent whole.  As a result, there seem to be some
+significant overheads when those systems are taken as a whole.  The Task<T>
+class, for example, has significantly more fields than a Hopac job (or
+continuation) and, while tasks are very light-weight when compared to native
+threads, as a result, Hopac jobs are even more light-weight than async tasks.
+In Hopac, jobs are rather intimately tied to the work distributing scheduler.
+This allows operations such as suspending and resuming jobs to be done with
+an order of magnitude lower overhead than what tasks and async can do at the
+moment.
+
+For the kind of programming that Hopac is designed for, some of the things that
+tasks and async provide are not necessary and would increase overheads.  These
+include cancellation and the preservation of synchronization contexts and Hopac
+has therefore eliminated those.  (Support for synchronization contexts is
+somewhat in conflict with the goals of Hopac (minimize overheads and maximize
+parallel performance) and it is unlikely that such support would be added to
+Hopac.  If preservation of synchronization contexts is necessary, you should
+stick to tasks and/or async.  Some form of support for cancellation might be
+added in the future.)
+
+Finally, where Hopac goes much further is in providing support for message
+passing primitives and the construction of first-class synchronous abstractions
+for coordinating and communicating between separate parallel jobs.  The goal
+is that using the high-level primitives supported by Hopac it should be
+possible to program a wide range of PAC architectures with good performance
+without resorting to low level locking primitives.
+
 Licensing
 ---------
 
 Hopac is licensed under a MIT-style license.  See LICENSE.md for the license.
+
+Further Reading
+---------------
+
+* [Async in C# and F#: Asynchronous gotchas in C#](http://tomasp.net/blog/csharp-async-gotchas.aspx/)
+* [Concurrent ML home page](http://cml.cs.uchicago.edu/)
+* [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
+* [Composable Asynchronous Events](http://multimlton.cs.purdue.edu/mML/Publications_files/pldi11.pdf)
+* [Parallel Concurrent ML](http://manticore.cs.uchicago.edu/papers/icfp09-parallel-cml.pdf)
+* [TaskCreationOptions.PreferFairness](http://blogs.msdn.com/b/pfxteam/archive/2009/07/07/9822857.aspx)
