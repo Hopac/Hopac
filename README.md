@@ -14,7 +14,7 @@ Rationale: Why Hopac?
 
 The .Net framework already provides several layers of support for parallel,
 asynchronous, and concurrent (PAC) programming.  Do we really need another
-library?  In here I will try to briefly highlight some problems with some of
+library?  In here, I will try to briefly highlight some problems with some of
 those existing layers.
 
 One of the most basic ways .Net enables PAC is via threads, synchronization
@@ -73,17 +73,17 @@ communicating and coordinating between tasks and one must fall back to using
 locking primitives to implement those when needed.  Also, it seems that the
 task and async mechanism built on top of the thread pool include some
 significant implementation overheads and design weaknesses.  For example, the
-Task<T> type of the task parallel library acts both as a representation of an
-operation (comparable to a first-class function) and as a container for the
-result of the operation (comparable to a write-once ref cell).  Frankly, those
-are two separate responsibilities and combining them into one type is
+Task&lt;T&gt; type of the task parallel library acts both as a representation
+of an operation (comparable to a first-class function) and as a container for
+the result of the operation (comparable to a write-once ref cell).  Frankly,
+those are two separate responsibilities and combining them into one type is
 questionable design.  The F# async design recognizes this issue at the type
 level, while the C# async design does not, and as a result the C# async design
 suffers from "gotchas" as has been recognized.
 
 The thread pool, the task parallel library and the async frameworks were not
 initially designed as a coherent whole.  As a result, there seem to be some
-significant overheads when those systems are taken as a whole.  The Task<T>
+significant overheads when those systems are taken as a whole.  The Task
 class, for example, has significantly more fields than a Hopac job (or
 continuation) and, while tasks are very light-weight when compared to native
 threads, as a result, Hopac jobs are even more light-weight than async tasks.
@@ -108,6 +108,9 @@ for coordinating and communicating between separate parallel jobs.  The goal
 is that using the high-level primitives supported by Hopac it should be
 possible to program a wide range of PAC architectures with good performance
 without resorting to low level locking primitives.
+
+This rationale became much longer that I hoped for.  Hopefully you got
+something out of reading it. :)
 
 Licensing
 ---------
