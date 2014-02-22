@@ -120,9 +120,23 @@ Hopac is licensed under a MIT-style license.  See LICENSE.md for the license.
 Further Reading
 ---------------
 
+This section contains a list of blog posts, articles, books and other resources
+that may be of interest.  The most comprehensive introduction to Concurrent ML
+style programming is John Reppy's book [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).
+
 * [Async in C# and F#: Asynchronous gotchas in C#](http://tomasp.net/blog/csharp-async-gotchas.aspx/)
+* [Concurrent ML as a Discrete Event Simulation Language](http://www.eecs.wsu.edu/~hauser/Publications/CMLSim.pdf)
 * [Concurrent ML home page](http://cml.cs.uchicago.edu/)
+* [A Concurrent ML Library in Concurrent Haskell](http://www.cs.umd.edu/~avik/projects/cmllch/)
 * [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
 * [Composable Asynchronous Events](http://multimlton.cs.purdue.edu/mML/Publications_files/pldi11.pdf)
+* [Dynamic Circular Work-Stealing Deque](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.170.1097&rep=rep1&type=pdf)
+* [The Implementation of the Cilk-5 Multithreaded Language](http://supertech.csail.mit.edu/papers/cilk5.pdf)
+* [Higher-Order Concurrency in Java](http://erikdemaine.org/papers/WoTUG20/)
+* [Kill-Safe Synchronization Abstractions](http://www.cs.utah.edu/plt/publications/pldi04-ff.pdf)
+* [Lwt and Concurrent ML](http://ambassadortothecomputers.blogspot.fi/2009/05/lwt-and-concurrent-ml.html)
 * [Parallel Concurrent ML](http://manticore.cs.uchicago.edu/papers/icfp09-parallel-cml.pdf)
+* [Prototyping Application Models in Concurrent ML](http://privatewww.essex.ac.uk/~fleum/typeinst.pdf)
+* [Scheduling Parallel Programs by Work Stealing with Private Deques](http://chargueraud.org/research/2013/ppopp/full.pdf)
 * [TaskCreationOptions.PreferFairness](http://blogs.msdn.com/b/pfxteam/archive/2009/07/07/9822857.aspx)
+* [Transactional Events](http://www.cs.rit.edu/~mtf/research/tx-events/ICFP06/icfp06.pdf)
