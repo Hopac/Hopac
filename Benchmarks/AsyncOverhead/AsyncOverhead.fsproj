@@ -48,6 +48,7 @@
     <None Include="App.config" />
     <Compile Include="AsyncOverhead.fs" />
     <Content Include="Results.txt" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">

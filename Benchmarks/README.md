@@ -1,3 +1,6 @@
+Here you will find several benchmark programs using the Hopac library.  See the
+individual project directories for more details.
+
 DON'T BE FOOLED!
 ================
 
