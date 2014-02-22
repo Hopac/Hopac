@@ -18,9 +18,11 @@ easy to get very close to C++ performance.)
 
 The program here actually contains multiple implementations utilizing different
 mechanisms provided by Hopac:
+
 * One implementation is written using locks.
 * Another is written using synchronous variables.
 * And another is written using a kind of swap channels.
+
 What is important to realize is that, while these solutions have obviously
 different performance characteristics, they also have different modularity and
 symmetry characteristics.  The version written using swap channels is both
