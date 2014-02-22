@@ -9,6 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", 
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{43B5134E-89E6-411E-A492-6FDA8BD441FB}"
+	ProjectSection(SolutionItems) = preProject
+		Libs\README.md = Libs\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{24B2ECA5-6A25-48E3-942E-D7559D4F8C3B}"
 EndProject
