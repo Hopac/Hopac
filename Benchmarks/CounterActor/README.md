@@ -11,7 +11,7 @@ shared variable is lock-free, the fact that the variable is shared means that
 the shared variable is a sequential bottleneck.  There are, in fact, locking
 algorithms (e.g. MCS locks) that are basically just as scalable (require
 asymptotically same amount of memory transfers) as such a shared variable.  You
-can find more details in book [The Art of Multiprocessor
+can find more details in the book [The Art of Multiprocessor
 Programming](http://people.csail.mit.edu/shanir/), for example.  Similarly, it
 is important to understand that lock-free and wait-free algorithms are not
 necessarily faster than blocking algorithms.
