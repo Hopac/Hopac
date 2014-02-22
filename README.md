@@ -65,7 +65,8 @@ parallel programming tasks, that do not require complex communication patterns,
 the task parallel library does quite well.  The task parallel library supports
 continuation tasks and the async mechanisms makes working with continuations
 even easier than with just tasks.  For a particular kind of communication
-pattern, the F# library provides the mailbox processor abstraction.
+pattern (many-to-one actor), the F# library provides the mailbox processor
+abstraction.
 
 On the other hand, aside from supporting task continuations and the mailbox
 processor abstraction, those systems still provide very little in terms of
