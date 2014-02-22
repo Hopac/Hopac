@@ -42,6 +42,7 @@
     <None Include="App.config" />
     <Compile Include="ThreadRing.fs" />
     <Content Include="Results.txt" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
