@@ -56,11 +56,13 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  /// Schedules the given job to be executed as a separate parallel job and
-  /// returns immediately.  The result, if any, of the job is ignored.  Note
+  /// Creates a job that schedules the given job to be executed as a separate
+  /// parallel job.  The result, if any, of the separate job is ignored.  Note
   /// that it is guaranteed that the job is executed as a separate job.  This
   /// means that a job such as "let c = Ch.Now.create () in Job.start
-  /// (Ch.give c ()) >>. Ch.take c" will not deadlock.
+  /// (Ch.give c ()) >>. Ch.take c" will not deadlock.  The cost of starting a
+  /// job should be comparable to the costs of allocating a couple of small
+  /// objects and inserting those objects to a queue.
   val start: Job<'a> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
