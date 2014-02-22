@@ -31,3 +31,31 @@ version of the recursive algorithm faster when using two or more cores than a
 sequential function using one core.  For more complex programs than these
 benchmarks, however, it quickly becomes rather difficult to write such manually
 specialized code.
+
+Benchmarking Pitfalls
+---------------------
+
+If you are interested in writing benchmarks of your own to test the performance
+of Hopac it is important to be aware a number of pitfalls.
+
+The first pitfall when trying to benchmark parallel code with .Net is that, by
+default, .Net uses single-threaded workstation garbage collection.  Parallel
+programs using single-threaded garbage collection cannot possibly scale.  So,
+make sure you configure your program to use server garbage collection.  See
+[&lt;gcServer&gt; Element](http://msdn.microsoft.com/en-us/library/ms229357%28v=vs.110%29.aspx)
+for details.
+
+Another common pitfall when benchmarking code on .Net is that, due to the JIT,
+the first time a particular section of code is run, it incurs the JIT costs.
+You probably want to both make a warm-up run of the code and run the code with
+sufficiently many iterations to hide those costs.
+
+Running benchmark code compiled with Debug rather than Release settings is also
+a surprisingly common mistake.
+
+The most important thing about benchmarking is to understand what you are
+actually measuring and what insights, if any, can be drawn from the resulting
+numbers.  What is or what are the constants that you are trying to measure?
+Pretty much all benchmarks comparing different implementations of similar
+algorithms are biased.  When comparing different implementations, you often
+change several variables and you are no longer measuring the same constants.
