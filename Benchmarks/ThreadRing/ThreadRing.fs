@@ -99,6 +99,7 @@ module MbPr =
     let mbprs = Array.zeroCreate n
     for i = 0 to n-1 do
       mbprs.[i] <- new MbPr<_>(fun inbox ->
+        let name = i+1
         let nextPr = mbprs.[(i+1) % n]
         async {
           while true do
@@ -106,7 +107,7 @@ module MbPr =
             do if n <> 0 then
                  nextPr.Post (n-1)
                else
-                 finishPr.Post i
+                 finishPr.Post name
         })
     mbprs |> Array.iter (fun mbpr -> mbpr.Start ())
     mbprs
