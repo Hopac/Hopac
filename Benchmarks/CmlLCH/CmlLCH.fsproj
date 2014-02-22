@@ -59,6 +59,7 @@
     <None Include="App.config" />
     <Compile Include="CmlCH.fs" />
     <Content Include="Results.txt" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj">

@@ -25,5 +25,5 @@ mechanisms provided by Hopac:
 
 What is important to realize is that, while these solutions have obviously
 different performance characteristics, they also have different modularity and
-symmetry characteristics.  The version written using swap channels is both
-modular and symmetric.
+symmetry characteristics.  The version written using swap channels is arguably
+both modular and symmetric.
