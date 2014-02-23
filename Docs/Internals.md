@@ -48,3 +48,55 @@ of success, the job can then immediately call **DoCont**, or, in case of
 failure, it can immediately call **DoHandle**, or, in case the job needs to
 block, it can efficiently add the continuation, as a **Work** item (remember
 the **Next** field), into a relevant queue.
+
+In order to make the work item aspect really useful, the **Cont** class also
+contains the **Value** field.  The **Value** field is there so that when a
+blocked job is finally resumed, the value that the continuation is expecting
+can be written to the **Value** field, and the continuation object can be
+pushed to a **WorkStack** as a work item.  And all of this can be done without
+having to allocate a new **Work** object.
+
+Let's make this more concrete by looking at the implementations of the Job
+monad operations, **result** and **&gt;&gt;=** (or bind).  The **result**
+operation is quite straightforward:
+
+```fsharp
+let result (x: 'x) =
+  {new Job<'x> () with
+    override self.DoJob (wr, xK) =
+     xK.DoCont (&wr, x)}
+```
+
+**result x** is a job that simply calls the **DoCont** method of the
+continuation **xK** with value **x** and the worker reference **wr** it
+was given.
+
+The **&gt;&gt;=** (or bind) operation, is considerably more complicated:
+
+```fsharp
+let (>>=) (aJ: Job<'a>) (a2bJ: 'a -> Job<'b>) : Job<'b> =
+  {new Job<_>() with
+    override self.DoJob (wr, bK) =
+      aJ.DoJob (&wr, {new Cont<_>() with
+      override self.DoHandle (wr, e) = bK.DoHandle (&wr, e)
+      override self.DoWork (wr) = (a2bJ self.Value).DoJob (&wr, bK)
+      override self.DoCont (wr, a) = (a2bJ a).DoJob (&wr, bK)})}
+```
+
+**aJ &gt;&gt;= a2bJ** is a job that first executes the **aJ** job.  In order
+to do that, it needs to allocate a new continuation object, which it passes to
+the **DoJob** method of **aJ**.  That continuation object needs to properly
+implement all that the **Cont** class represents.  In particular,
+
+* the **DoHandle** method implements the failure (or exception) continuation,
+* the **DoCont** method implements the success continuation, and, interestingly,
+* the **DoWork** method *also* implements the success continuation for the case
+  that the job was suspended, and in that case, the **Value** field of the
+  continuation object contains the result of the job.
+
+Now, take a look at **DoCont** method above.  It simply calls the **a2bJ**
+function with **a**, which is the result of the **aJ** job and then the
+**DoJob** method of the resulting object.  There is no need to wrap the call
+with an exception handling block.  If the expression **a2bJ a** throws an
+exception, it will be handled by the worker thread and the exception will be
+passed to the current handler.
