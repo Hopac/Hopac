@@ -4,10 +4,13 @@ Notes on the Internal Implementation of Hopac
 At the moment, this document contains some quickly written random notes on the
 internal implementation details of Hopac.  It will probably help if the reader
 is already familiar with many of the basic ideas and issues in the
-implementation of something like Hopac.  Many of the code snippets in here are
-illustrative and might not be valid F# code.  The actual definitions may be
-written in C# and contain implementation details not discussed here.  Also note
-that these are internal implementation details and subject to change.
+implementation of something like Hopac.
+
+> The code snippets in here are illustrative and not necessarily valid F# code.
+
+The actual definitions may be written in C# and contain implementation details
+not discussed here.  Also note that these are internal implementation details
+and subject to change.
 
 The **Work** class represents a work item.
 
@@ -171,12 +174,14 @@ continuation and that, due to the forwarding, calling the exception handler is
 then an **O(n)** operation, where **n** is the depth of the success continuation
 (or number of stack of frames in a more traditional implementation).
 
-Let's then consider a slightly simplified implementation of a write once
-variable or **IVar**.  The signature for working with IVars could look like
-this:
+Let's then consider a somewhat simplified implementation of a write once
+variable or **IVar**.  While this implementation is simplified, it makes use
+of implementation tricks that are used in the actual Hopac implementation.  The
+signature for IVars could look like roughly like this:
 
 ```fsharp
 module IVar =
+  type IVar<'x>
   val create: unit -> IVar<'x>
   val fill: IVar<'x> -> 'x -> Job<unit>
   val read: IVar<'x> -> Job<'x>
@@ -193,3 +198,89 @@ this case, a fill operation actually never blocks, but it may *unblock* other
 jobs that attempted to read the IVar earlier.  In order to efficiently unblock
 jobs, the fill operation needs access to a work item stack into which the
 blocked jobs can then be pushed.
+
+Another important detail is that type of the **read** operation.  It is
+essentially a function that converts an **IVar** into a **Job**.  Operations
+with a type like this can be found in most Hopac communication primitives.
+A naive implementation would actually need to allocate a new object.  In this
+case we can avoid that by simply inheriting IVar from Job.
+
+The **read** and **create** operations are entirely trivial:
+
+```fsharp
+let read (xV: IVar<'x>) : Job<'x> = xV :> Job<'x>
+let create () = IVar<'x> ()
+```
+
+The implementation of the read operation is then in the **DoJob** method that
+needs to be implemented in the IVar class:
+
+```fsharp
+type IVar<'x> () = class
+  inherit Job<'x>
+  val mutable IsFull: bool
+  val mutable Value: 'x
+  val mutable Readers: Cont<'x>
+  override xV.DoJob (wr, xK) =
+    if xV.IsFull then
+      xK.DoCont (&wr, xV.Value)
+    else
+      Monitor.Enter xV
+      if xV.IsFull then
+        Monitor.Exit xV
+        xK.DoCont (&wr, xV.Value)
+      else
+        xK.Next <- xV.Readers
+        xV.Readers <- xK
+        Monitor.Exit xV
+end
+```
+
+For efficiency, the above illustrative implementation uses double checked
+locking.  As you can see, the entire operation can be implemented without
+additional allocations; the caller of the read operation has already allocated
+the continuation object, that also includes the **Next** field that we use to
+implement a linked list.  The lock is only held for the duration of a few
+machine instructions.  The same goes for the actual implementation of channels,
+for example.
+
+The **fill** operation is not much more complex.  For simplicity, the
+illustrative code below omits any error checking (trying to fill an IVar twice
+would be bad).  It also skips the proper protocol for pushing items to the
+work item stack.
+
+```fsharp
+let fill (xV: IVar<'x>) (x: 'x) : Job<unit> =
+  {new Job<unit> () with
+    override xF.DoJob (wr, uK) =
+     Monitor.Enter xV
+     xV.Value <- x
+     xV.IsFull <- true
+     Monitor.Exit xV
+
+     let readers = xV.Readers :> Work
+     xV.Readers <- null
+
+     let rec loop readers =
+       match readers with
+        | null -> uK.DoCont (&wr, ())
+        | reader ->
+          let next = reader.Next :?> Cont<'x>
+          reader.Value <- x
+          reader.Next <- wr.WorkStack
+          wr.WorkStack <- reader
+          loop next
+
+     loop readers}
+```
+
+As you can see, the **fill** operation also holds the lock for only a few
+machine instructions.  After the state is update and the lock released,
+subsequent read operations finish immediately.  The read operations that
+have executed before have been pushed to the Readers stack, which must now
+be cleared by the fill operation.  The clearing loop makes use of the **Value**
+field to store the result of the **read** operation.  That was not a slip.
+The **Value** field is written the result of the **read** operation that was
+blocked in the **Readers** stack.  The continuation of the read operation is
+then pushed to the work item stack of the worker thread.  Finally, the **fill**
+operation is complete and the continuation **uK** is invoked.
