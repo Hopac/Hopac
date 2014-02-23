@@ -121,11 +121,11 @@ operation is quite straightforward:
 ```fsharp
 let result (x: 'x) =
   {new Job<'x> () with
-    override self.DoJob (wr, xK) =
+    override xJ.DoJob (wr, xK) =
      xK.DoCont (&wr, x)}
 ```
 
-**result x** is a job that simply calls the **DoCont** method of the
+**result x** is a job **xJ** that simply calls the **DoCont** method of the
 continuation **xK** with value **x** and the worker reference **wr** it
 was given.
 
@@ -134,27 +134,31 @@ The **&gt;&gt;=** (or bind) operation, is considerably more complicated:
 ```fsharp
 let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) : Job<'y> =
   {new Job<'y>() with
-    override self.DoJob (wr, yK) =
+    override yJ.DoJob (wr, yK) =
       xJ.DoJob (&wr, {new Cont<'x>() with
-      override self.DoHandle (wr, e) = yK.DoHandle (&wr, e)
-      override self.DoWork (wr) = self.DoCont (&wr, self.Value)
-      override self.DoCont (wr, x) = let yJ = x2yJ x in yJ.DoJob (&wr, yK)})}
+       override xK.DoHandle (wr, e) =
+        yK.DoHandle (&wr, e)
+       override xK.DoWork (wr) =
+        xK.DoCont (&wr, xK.Value)
+       override xK.DoCont (wr, x) =
+        let yJ' = x2yJ x
+        yJ'.DoJob (&wr, yK)})}
 ```
 
-**xJ &gt;&gt;= x2yJ** is a job that first executes the **xJ** job.  In order
-to do that, it needs to allocate a new continuation object, which it passes to
-the **DoJob** method of **xJ**.  That continuation object needs to properly
-implement all that the **Cont** class represents.  In particular,
+**xJ &gt;&gt;= x2yJ** is a job **yJ** that first executes the **xJ** job.  In
+order to do that, it needs to allocate a new continuation object **xK**, which it
+passes to the **DoJob** method of **xJ**.  That continuation object needs to
+properly implement all that the **Cont** class represents.  In particular,
 
 * the **DoHandle** method implements the failure (or exception) continuation,
 * the **DoCont** method implements the success continuation, and, interestingly,
 * the **DoWork** method *also* implements the success continuation for the case
   that the job was suspended, and in that case, the **Value** field of the
-  continuation object contains the result of the job.
+  continuation object **xK** contains the result of the job.
 
 Take a look at the **DoCont** method above.  It simply calls **x2yJ** with
-**x**, which is the result of the **xJ** job and gets a new job **yJ** as
-the result.  It then calls the **DoJob** method of **yJ**.  There is no need to
+**x**, which is the result of the **xJ** job and gets a new job **yJ'** as
+the result.  It then calls the **DoJob** method of **yJ'**.  There is no need to
 wrap the call with an exception handling block.  If the user defined code
 evaluted with the expression **x2yJ x** throws an exception, it will be handled
 by the worker thread and the exception will be passed to the current handler.
