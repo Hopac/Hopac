@@ -1,16 +1,19 @@
 Notes on the Internal Implementation of Hopac
 =============================================
 
-At the moment, this document contains some quickly written random notes on the
-internal implementation details of Hopac.  It will probably help if the reader
-is already familiar with many of the basic ideas and issues in the
-implementation of something like Hopac.
-
-> The code snippets in here are illustrative and not necessarily valid F# code.
-
+This document describes some aspects of the internal implementation of Hopac.
+This document is not meant to be something that a user of Hopac would need to
+understand, but potential users might find this interesting nevertheless.
+The code snippets in here are illustrative and not necessarily valid F# code.
 The actual definitions may be written in C# and contain implementation details
 not discussed here.  Also note that these are internal implementation details
-and subject to change.
+and subject to change.  The internal design of Hopac has evolved considerably
+during the course of developing it.  This document makes mention of "tricks"
+or techniques used in the implementation.  The possibility of using many of
+these techniques in the implementation is something that was not a priori
+obvious when I started working on the implementation and the discovery and
+subsequent incorporation of some of these techniques into the implementation
+has improved the performance of Hopac significantly.
 
 The **Work** class represents a work item.
 
@@ -180,11 +183,10 @@ of implementation tricks that are used in the actual Hopac implementation.  The
 signature for IVars could look like roughly like this:
 
 ```fsharp
-module IVar =
-  type IVar<'x>
-  val create: unit -> IVar<'x>
-  val fill: IVar<'x> -> 'x -> Job<unit>
-  val read: IVar<'x> -> Job<'x>
+type IVar<'x>
+val create: unit -> IVar<'x>
+val fill: IVar<'x> -> 'x -> Job<unit>
+val read: IVar<'x> -> Job<'x>
 ```
 
 Briefly, the idea is that an IVar is initially created as empty and the program
@@ -212,8 +214,8 @@ let read (xV: IVar<'x>) : Job<'x> = xV :> Job<'x>
 let create () = IVar<'x> ()
 ```
 
-The implementation of the read operation is then in the **DoJob** method that
-needs to be implemented in the IVar class:
+The implementation of the read operation is in the **DoJob** method that needs
+to be implemented in the IVar class:
 
 ```fsharp
 type IVar<'x> () = class
@@ -239,7 +241,7 @@ end
 For efficiency, the above illustrative implementation uses double checked
 locking.  As you can see, the entire operation can be implemented without
 additional allocations; the caller of the read operation has already allocated
-the continuation object, that also includes the **Next** field that we use to
+the continuation object, which also includes the **Next** field that we use to
 implement a linked list.  The lock is only held for the duration of a few
 machine instructions.  The same goes for the actual implementation of channels,
 for example.
