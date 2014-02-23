@@ -15,6 +15,36 @@ obvious when I started working on the implementation and the discovery and
 subsequent incorporation of some of these techniques into the implementation
 has improved the performance of Hopac significantly.
 
+Scheduler and Workers
+---------------------
+
+At the core of Hopac is a work distributing scheduler.  In the current
+implementation, the scheduler is only a conceptual entity.  In other words,
+there is no single class or module that would implement the whole of the
+scheduler.  However, it is likely that the internals will be refactored to make
+the scheduler into something that can be largely replaced and/or configured to
+better suit the needs of particular applications.
+
+The scheduler basically consists of a bit of global state, defined in the
+**Scheduler** class, and a number of worker threads and their associated internal
+data structures (**Worker** struct).  One worker thread per hardware thread
+(Environment.ProcessorCount) is used.  The worker threads execute work items,
+described in the next section, very much like the .Net thread pool does, and
+collaborate to distribute those work items among the worker threads.
+
+This is not all, however, because other components of Hopac can also
+*effectively* make scheduling decisions.  For example, when a new lightweight
+thread is spawned, there are multiple alternatives:
+
+* The new thread is queued via the scheduler and the current thread is continued.
+* The current thread is queued via the scheduler and the new thread is started immediately.
+* Both the new and current threads are queued and some previously queued thread is started instead.
+* ...
+
+Choices like these are not made by a single specific component in Hopac.
+Instead, these decisions are made on a case by case basis in the various
+primitives of Hopac.
+
 Work items and Worker threads
 -----------------------------
 
@@ -345,3 +375,4 @@ operations such as the **read** and **fill** operations on IVars.
 Selective message passing primitives
 ------------------------------------
 
+TBD
