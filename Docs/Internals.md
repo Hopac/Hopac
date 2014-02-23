@@ -14,6 +14,7 @@ The **Work** class represents a work item.
 ```fsharp
 type Work = class
   inherit Handler
+  val mutable Next: Work
   abstract DoWork: byref<Worker> -> unit
 end
 ```
@@ -51,9 +52,10 @@ purpose as the work item stack is implemented as a linked list.
 The worker thread is responsible for catching any unhandled exceptions raised
 by the execution of a work item and passing them to the current exception
 handler.  This way individual work items do not generally need to implement
-try-catch blocks.  The current handler is referenced by the **Handler** field
-of the **Worker** struct and is updated by both the worker thread loop and
-individual work items that specifically want to install a new handler.
+try-catch blocks (and there is a little less overhead to executing a work
+item).  The current handler is referenced by the **Handler** field of the
+**Worker** struct and is updated by both the worker thread loop and individual
+work items that specifically want to install a new handler.
 
 While the **Work** class has support for exception handling, it does not have
 support for success continuations.  That is the domain of the **Job** and
@@ -87,7 +89,7 @@ if we ignore the selective communication mechanism for now, then, in fact,
 
 * a success continuation (**DoCont**),
 * a failure continuation (**DoHandle**), and
-* a work item (**DoWork**).
+* a work item or lightweight thread (**DoWork**).
 
 This is one of many tricks used in Hopac to reduce allocations and copying of
 data and improve performance.  So, when a **DoJob** method is passed a **Cont**
@@ -144,9 +146,17 @@ implement all that the **Cont** class represents.  In particular,
   that the job was suspended, and in that case, the **Value** field of the
   continuation object contains the result of the job.
 
-Now, take a look at **DoCont** method above.  It simply calls the **a2bJ**
-function with **a**, which is the result of the **aJ** job and then the
-**DoJob** method of the resulting object.  There is no need to wrap the call
-with an exception handling block.  If the expression **a2bJ a** throws an
-exception, it will be handled by the worker thread and the exception will be
-passed to the current handler.
+Take a look at the **DoCont** method above.  It simply calls **a2bJ** with
+**a**, which is the result of the **aJ** job and then the **DoJob** method of
+the resulting object.  There is no need to wrap the call with an exception
+handling block.  If the expression **a2bJ a** throws an exception, it will be
+handled by the worker thread and the exception will be passed to the current
+handler.
+
+Take a look at the **DoHandle** method above.  It simply forwards the exception
+**e** to the handler of **bK**.  This is another trick that basically makes it
+zero cost, **O(0)**, to pass around the exception handler with the tradeoff that
+every success continuation must also implement such a forwarding failure
+continuation and that, due to the forwarding, calling the exception handler is
+then an **O(n)** operation, where **n** is the size of the success continuation
+(or stack of frames in a more traditional implementation).
