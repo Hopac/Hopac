@@ -316,6 +316,32 @@ complex due to the support for selective communication and use of further low
 level optimizations such as taking advantage of volatile reads and writes and
 interlocked operations.
 
+Why is Hopac so slow then?
+--------------------------
+
+The previous sections basically showed what makes Hopac fast: the primitive
+operations within Hopac are designed to avoid memory allocations, locks are
+only held for extremely short periods and many operations, such as suspending
+and resuming a lightweight thread, require only a few machine instructions
+and many operations can be done without locking.  (Note that by "locks" and
+"locking" I mean both actual locks and other synchronization objects as well
+as lower level techniques using volatile and interlocked operations.)
+
+Indeed, I believe that it is not possible to do much better on the .Net
+platform and in the F# and C# languages as they stand today.  According to my
+tests, even the async state machines that the C# compiler generates, run slower
+than similar Hopac code - even when running only sequential code.  In Hopac,
+there is no overhead from having to cross abstraction boundaries between the
+.Net thread pool, the tasks parallel library and the async framework.
+
+On the other hand, the .Net platform seems to be extremely weak when it comes
+to eliminating certain forms of abstraction penalty.  Take a look at the IVar
+operations implemented in the previous section.  They would be prime candidates
+for inlining.  But the current .Net runtimes do not seem to be able to do that.
+As a result, the job monad incurs an order of magnitude overhead compared to
+what would be possible in an implementation that would be able to inline
+operations such as the **read** and **fill** operations on IVars.
+
 Selective message passing primitives
 ------------------------------------
 
