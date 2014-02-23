@@ -41,7 +41,7 @@ end
 
 A worker thread executes a loop that runs work items that are obtained by
 popping them from the work item stack, **WorkStack**.  When a work item is
-executed, by calling its **DoWork** method it is passed a reference to the
+executed, by calling its **DoWork** method, it is passed a reference to the
 **Worker** struct of the worker thread that calls it.  The main purpose of this
 convention is to make it possible to access the work item stack of the worker
 thread as efficiently as possible.  By pushing work items to the work item
@@ -49,13 +49,13 @@ stack of a worker thread, a work item can effectively spawn new lightweight
 threads.  The **Work** class also contains a **Next** field (mainly) for this
 purpose as the work item stack is implemented as a linked list.
 
-The worker thread is responsible for catching any unhandled exceptions raised
-by the execution of a work item and passing them to the current exception
-handler.  This way individual work items do not generally need to implement
-try-catch blocks (and there is a little less overhead to executing a work
-item).  The current handler is referenced by the **Handler** field of the
-**Worker** struct and is updated by both the worker thread loop and individual
-work items that specifically want to install a new handler.
+The loop in a worker thread is responsible for catching any unhandled
+exceptions raised by the execution of a work item and passing them to the
+current exception handler.  This way individual work items do not generally
+need to implement try-catch blocks (and there is a little less overhead to
+executing a work item).  The current handler is referenced by the **Handler**
+field of the **Worker** struct and is updated by both the worker thread loop
+and individual work items that specifically want to install a new handler.
 
 While the **Work** class has support for exception handling, it does not have
 support for success continuations.  That is the domain of the **Job** and
@@ -72,6 +72,11 @@ end
 It contains a single method **DoJob** that is passed both a reference to the
 current worker, and a **Cont** object, whose **DoCont** method the job may (or
 may not) ultimately arrange to be called with the result computed by the job.
+
+Note the throughout the documentation the term job is used, depending on
+context, to refer to either a class that inherits from **Job** or to the kind
+of lightweight threads (runtime objects) that one can define using **Job** and
+**Cont** objects.
 
 The **Cont** class represents a continuation.
 
@@ -91,21 +96,22 @@ if we ignore the selective communication mechanism for now, then, in fact,
 * a failure continuation (**DoHandle**), and
 * a work item or lightweight thread (**DoWork**).
 
-This is one of many tricks used in Hopac to reduce allocations and copying of
+This is one of many "tricks" used in Hopac to reduce allocations and copying of
 data and improve performance.  So, when a **DoJob** method is passed a **Cont**
-object, it actually receives all three of those "properties".  In case of
-success, the job can then immediately call **DoCont**, or, in case of failure,
-it can immediately call **DoHandle**, or, in case the job needs to block, it
-can efficiently add the continuation, as a **Work** item (remember the **Next**
-field), into a relevant queue.
+object, it actually receives all three of those "capabilities".  In case of
+success, the job can call **DoCont**, or, in case of failure, it can call
+**DoHandle**, or, in case the job needs to block, it can add the continuation,
+as a **Work** item (remember the **Next** field), into a relevant queue and
+return, which returns control to the worker thread loop, which then continues
+with another work item.
 
 In order to make the work item aspect really useful, the **Cont** class also
 contains the **Value** field.  The **Value** field is there so that when a
 blocked job is finally resumed, the value that the continuation is expecting
 can be written to the **Value** field, and the continuation object can be
-pushed to a work item stack.  And all of this can be done without having to
-allocate a new **Work** object.  (On the other hand, this means that
-continuations are single threaded - one must be careful not to queue a single
+pushed to a work item stack.  And this can be done without having to allocate
+a new **Work** object.  (On the other hand, this means that continuations are
+one-shot or single threaded - one must be careful not to try to queue a single
 continuation object into multiple queues at the same time.)
 
 Let's make some of this more concrete by looking at the implementations of the
@@ -126,18 +132,18 @@ was given.
 The **&gt;&gt;=** (or bind) operation, is considerably more complicated:
 
 ```fsharp
-let (>>=) (aJ: Job<'a>) (a2bJ: 'a -> Job<'b>) : Job<'b> =
-  {new Job<_>() with
-    override self.DoJob (wr, bK) =
-      aJ.DoJob (&wr, {new Cont<_>() with
-      override self.DoHandle (wr, e) = bK.DoHandle (&wr, e)
-      override self.DoWork (wr) = (a2bJ self.Value).DoJob (&wr, bK)
-      override self.DoCont (wr, a) = (a2bJ a).DoJob (&wr, bK)})}
+let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) : Job<'y> =
+  {new Job<'y>() with
+    override self.DoJob (wr, yK) =
+      xJ.DoJob (&wr, {new Cont<'x>() with
+      override self.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+      override self.DoWork (wr) = self.DoCont (&wr, self.Value)
+      override self.DoCont (wr, x) = let yJ = x2yJ x in yJ.DoJob (&wr, yK)})}
 ```
 
-**aJ &gt;&gt;= a2bJ** is a job that first executes the **aJ** job.  In order
+**xJ &gt;&gt;= x2yJ** is a job that first executes the **xJ** job.  In order
 to do that, it needs to allocate a new continuation object, which it passes to
-the **DoJob** method of **aJ**.  That continuation object needs to properly
+the **DoJob** method of **xJ**.  That continuation object needs to properly
 implement all that the **Cont** class represents.  In particular,
 
 * the **DoHandle** method implements the failure (or exception) continuation,
@@ -146,17 +152,40 @@ implement all that the **Cont** class represents.  In particular,
   that the job was suspended, and in that case, the **Value** field of the
   continuation object contains the result of the job.
 
-Take a look at the **DoCont** method above.  It simply calls **a2bJ** with
-**a**, which is the result of the **aJ** job and then the **DoJob** method of
-the resulting object.  There is no need to wrap the call with an exception
-handling block.  If the expression **a2bJ a** throws an exception, it will be
-handled by the worker thread and the exception will be passed to the current
-handler.
+Take a look at the **DoCont** method above.  It simply calls **x2yJ** with
+**x**, which is the result of the **xJ** job and gets a new job **yJ** as
+the result.  It then calls the **DoJob** method of **yJ**.  There is no need to
+wrap the call with an exception handling block.  If the user defined code
+evaluted with the expression **x2yJ x** throws an exception, it will be handled
+by the worker thread and the exception will be passed to the current handler.
 
 Take a look at the **DoHandle** method above.  It simply forwards the exception
-**e** to the handler of **bK**.  This is another trick that basically makes it
+**e** to the handler of **yK**.  This is another trick that basically makes it
 zero cost, **O(0)**, to pass around the exception handler with the tradeoff that
 every success continuation must also implement such a forwarding failure
 continuation and that, due to the forwarding, calling the exception handler is
-then an **O(n)** operation, where **n** is the size of the success continuation
-(or stack of frames in a more traditional implementation).
+then an **O(n)** operation, where **n** is the depth of the success continuation
+(or number of stack of frames in a more traditional implementation).
+
+Let's then consider a slightly simplified implementation of a write once
+variable or **IVar**.  The signature for working with IVars could look like
+this:
+
+```fsharp
+module IVar =
+  val create: unit -> IVar<'x>
+  val fill: IVar<'x> -> 'x -> Job<unit>
+  val read: IVar<'x> -> Job<'x>
+```
+
+Briefly, the idea is that an IVar is initially created as empty and the program
+is organized so that only the owner of the IVar is allowed to **fill** the IVar
+with a value.  An attempt to **read** an empty IVar blocks until the IVar is
+filled.
+
+An important detail in the above signature is that the **fill** operation is
+implemented as a job.  Remember that a job is an operation that may block.  In
+this case, a fill operation actually never blocks, but it may *unblock* other
+jobs that attempted to read the IVar earlier.  In order to efficiently unblock
+jobs, the fill operation needs access to a work item stack into which the
+blocked jobs can then be pushed.
