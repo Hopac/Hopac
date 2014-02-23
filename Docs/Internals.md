@@ -15,6 +15,9 @@ obvious when I started working on the implementation and the discovery and
 subsequent incorporation of some of these techniques into the implementation
 has improved the performance of Hopac significantly.
 
+Work items and Worker threads
+-----------------------------
+
 The **Work** class represents a work item.
 
 ```fsharp
@@ -63,9 +66,12 @@ executing a work item).  The current handler is referenced by the **Handler**
 field of the **Worker** struct and is updated by both the worker thread loop
 and individual work items that specifically want to install a new handler.
 
+Lightweight threads: Job and Cont objects
+-----------------------------------------
+
 While the **Work** class has support for exception handling, it does not have
 support for success continuations.  That is the domain of the **Job** and
-**Cont** classes.
+**Cont** classes, which allow one to express lightweight threads.
 
 The **Job** class represents an operation that may block.
 
@@ -120,9 +126,16 @@ a new **Work** object.  (On the other hand, this means that continuations are
 one-shot or single threaded - one must be careful not to try to queue a single
 continuation object into multiple queues at the same time.)
 
-Let's make some of this more concrete by looking at the implementations of the
-Job monad operations, **result** and **&gt;&gt;=** (or bind).  The **result**
-operation is quite straightforward:
+The Job Monad
+-------------
+
+To program lightweight threads directly in terms of **Job**, **Cont**,
+**Handler** and **Work** objects as well as worker threads would be rather
+cumbersome.  Fortunately the underlying mechanisms can be abstract away in the
+form of a **Job** monad with the usual **result** and **&gt;&gt;=** (or bind)
+operations.
+
+The **result** operation is quite straightforward:
 
 ```fsharp
 let result (x: 'x) =
@@ -176,6 +189,9 @@ every success continuation must also implement such a forwarding failure
 continuation and that, due to the forwarding, calling the exception handler is
 then an **O(n)** operation, where **n** is the depth of the success continuation
 (or number of stack of frames in a more traditional implementation).
+
+Non selective, synchronous message passing primitives
+-----------------------------------------------------
 
 Let's then consider a somewhat simplified implementation of a write once
 variable or **IVar**.  While this implementation is simplified, it makes use
@@ -242,9 +258,10 @@ For efficiency, the above illustrative implementation uses double checked
 locking.  As you can see, the entire operation can be implemented without
 additional allocations; the caller of the read operation has already allocated
 the continuation object, which also includes the **Next** field that we use to
-implement a linked list.  The lock is only held for the duration of a few
-machine instructions.  The same goes for the actual implementation of channels,
-for example.
+implement a linked list.  The lock is held for the duration of only a few
+machine instructions.  In a non-contrived application, the scope for lock
+contention is extremely small.  The same goes for the actual implementation of
+channels, for example.
 
 The **fill** operation is not much more complex.  The illustrative code below
 omits any error checking (trying to fill an IVar twice would be bad).  It also
@@ -286,10 +303,19 @@ be cleared by the fill operation.  The clearing loop makes use of the **Value**
 field to store the result of the *read* operation.  That was not a slip.
 The **Value** field is written the result of the *read* operation that was
 blocked in the **Readers** stack.  The continuation of the read operation is
-then pushed to the work item stack of the worker thread.  Finally, the **fill**
-operation is complete and the continuation **uK** is invoked.
+then pushed to the work item stack of the worker thread.  Note that there is
+no need to use locks at this point.  The work item stack is owned by the thread
+and can be accessed without locking.  Finally, the **fill** operation is
+complete and the continuation **uK** is invoked.  Note that aside from the Job
+object that represents the fill operation itself, no other objects need to be
+allocated.  All the blocked lightweight threads can be resumed without any
+additional allocations using only a few machine instructions.
 
-The actual implementions of these operations in Hopac are somewhat more complex,
-due to the support for selective communication, and use further low level
-optimizations such as taking advantage of volatile reads and writes and
+The actual implementions of these operations in Hopac are somewhat more
+complex due to the support for selective communication and use of further low
+level optimizations such as taking advantage of volatile reads and writes and
 interlocked operations.
+
+Selective message passing primitives
+------------------------------------
+
