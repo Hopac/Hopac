@@ -199,13 +199,13 @@ jobs that attempted to read the IVar earlier.  In order to efficiently unblock
 jobs, the fill operation needs access to a work item stack into which the
 blocked jobs can then be pushed.
 
-Another important detail is that type of the **read** operation.  It is
+Another important detail is the type of the **read** operation.  It is
 essentially a function that converts an **IVar** into a **Job**.  Operations
 with a type like this can be found in most Hopac communication primitives.
 A naive implementation would actually need to allocate a new object.  In this
-case we can avoid that by simply inheriting IVar from Job.
+case we can avoid that by simply inheriting **IVar** from **Job**.
 
-The **read** and **create** operations are entirely trivial:
+The **read** and **create** functions are therefore entirely trivial:
 
 ```fsharp
 let read (xV: IVar<'x>) : Job<'x> = xV :> Job<'x>
@@ -244,10 +244,9 @@ implement a linked list.  The lock is only held for the duration of a few
 machine instructions.  The same goes for the actual implementation of channels,
 for example.
 
-The **fill** operation is not much more complex.  For simplicity, the
-illustrative code below omits any error checking (trying to fill an IVar twice
-would be bad).  It also skips the proper protocol for pushing items to the
-work item stack.
+The **fill** operation is not much more complex.  The illustrative code below
+omits any error checking (trying to fill an IVar twice would be bad).  It also
+skips the proper protocol for pushing items to the work item stack.
 
 ```fsharp
 let fill (xV: IVar<'x>) (x: 'x) : Job<unit> =
@@ -279,8 +278,13 @@ machine instructions.  After the state is update and the lock released,
 subsequent read operations finish immediately.  The read operations that
 have executed before have been pushed to the Readers stack, which must now
 be cleared by the fill operation.  The clearing loop makes use of the **Value**
-field to store the result of the **read** operation.  That was not a slip.
-The **Value** field is written the result of the **read** operation that was
+field to store the result of the *read* operation.  That was not a slip.
+The **Value** field is written the result of the *read* operation that was
 blocked in the **Readers** stack.  The continuation of the read operation is
 then pushed to the work item stack of the worker thread.  Finally, the **fill**
 operation is complete and the continuation **uK** is invoked.
+
+The actual implementions of these operations in Hopac are somewhat more complex,
+due to the support for selective communication, and use further low level
+optimizations such as taking advantage of volatile reads and write and
+interlocked primitives.
