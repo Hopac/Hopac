@@ -64,11 +64,11 @@ queues can collect arbitrary numbers of messages when there are differences in
 speed between producer and consumer threads.  Synchronous channels do not work
 like that.  A synchronous channel doesn't hold a buffer of messages.  When a
 producer job tries to give a message to a consumer job via synchronous channels,
-the producer is suspended until the producer is ready to take the message.  A
+the producer is suspended until a consumer job is ready to take the message.  A
 synchronous channel provides something that is much more like a control flow
-mechanism, like a procedure call, rather than a buffer for passing data between
-threads.  This property can make it easier to understand the behaviour of
-concurrent programs.
+mechanism, like a procedure call, rather than a passive buffer for passing data
+between threads.  This property can make it easier to understand the behaviour
+of concurrent programs.
 
 Of course, the bound **Theta(m + n)** does not take into account space that the
 jobs otherwise accumulate in the form of data structures other than the
@@ -83,7 +83,7 @@ unlike the
 [MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), for
 example, which is disposable.)  What this means in practise is that most jobs do
 not necessarily need to implement any special kill protocol.  A job that is
-blocked waiting for communication on a channel that is no longer reachable is
-garbage collected.  Only jobs that explicitly hold onto some resource that needs
-to be disposed must explicitly make sure that the resource gets properly
-disposed.
+blocked waiting for communication on a channel that is no longer reachable can
+(and will be) be garbage collected.  Only jobs that explicitly hold onto some
+resource that needs to be disposed must implement a kill protocol to explicitly
+make sure that the resource gets properly disposed.
