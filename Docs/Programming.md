@@ -19,7 +19,7 @@ jobs in a second.  Because a job takes only a very small amount of memory,
 starting from tens of bytes, a program may have millions of jobs on a modern
 machine at any moment.  Of course, at any moment, most of those jobs are
 suspended, because modern machines still only have a few, or at most a few
-dozen, processors cores.  When programming in Hopac, one can therefore start new
+dozen, processor cores.  When programming in Hopac, one can therefore start new
 jobs in situations where it would simply be unthinkable when using heavyweight
 threads.
 
@@ -40,7 +40,7 @@ That is a mouthful!  Let's open it up a bit.
   becomes available at runtime.
 * **Synchronous** means that rather than building up a queue of messages for
   another job to examine, jobs can communicate via rendezvous.  Two jobs can
-  meet so that one job can give a message to the another job.
+  meet so that one job can give a message to another job that takes the message.
 * **Lightweight** means that creating a new synchronous channel takes very
   little time (a single memory allocation) and a channel takes very little
   memory on its own.
@@ -57,8 +57,8 @@ synchronous channels (and no other primitives) requires **Theta(m + n)** space
 for the jobs and channels.
 
 That may sound obvious, but many concurrent systems,
-e.g. [Erlang](http://www.erlang.org/ and F#'s
-[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx)), are
+e.g. [Erlang](http://www.erlang.org/) and F#'s
+[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), are
 built upon asynchronous message passing primitives and in such systems message
 queues can collect arbitrary numbers of messages when there are differences in
 speed between producer and consumer threads.  Synchronous channels do not work
