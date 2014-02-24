@@ -30,6 +30,7 @@ namespace Hopac.Core {
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(ref Worker wr, Work work) {
+      Debug.Assert(null == work.Next);
       var older = wr.WorkStack;
       wr.WorkStack = work;
       if (null != older)
