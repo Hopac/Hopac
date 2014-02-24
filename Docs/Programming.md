@@ -100,7 +100,9 @@ Concurrent ML channels and threads.  While this example is not exactly something
 that one would do in practise, it does a fairly nice job of illustrating some
 core aspects of Concurrent ML.  So, let's reproduce the same example with Hopac.
 
-First, here is the signature for our updatable storage cells:
+Let's first go quickly through the implementation and then elaborate on some of
+the more important details.  First, here is the signature for our updatable
+storage cells:
 
 ```fsharp
 type Cell<'a>
@@ -124,8 +126,8 @@ type Request<'a> =
 ```
 
 To communicate with the outside world, the server presents two channels: one
-channel for requests and another channel for replies, that is required by the
-get operation.  The **Cell** type then is a record of those two channels:
+channel for requests and another channel for replies required by the get
+operation.  The **Cell** type is a record of those two channels:
 
 ```fsharp
 type Cell<'a> = {
@@ -143,7 +145,7 @@ let put (c: Cell<'a>) (x: 'a) : Job<unit> =
 ```
 
 The **get** operation gives the **Get** request to the server via the request
-channel and then takes the server's reply from the reply channels:
+channel and then takes the server's reply from the reply channel:
 
 ```fsharp
 let get (c: Cell<'a>) : Job<'a> = job {
@@ -163,7 +165,7 @@ let create (x: 'a) : Job<Cell<'a>> = job {
         let! req = Ch.take reqCh
         match req with
          | Get ->
-           do! Ch.give replyCh
+           do! Ch.give replyCh x
            return! server x
          | Put x ->
            return! server x
@@ -178,3 +180,9 @@ request channel.  When the server receives a **Get** request, it gives the
 current value of the cell on the reply channel and then loops to take another
 request.  When the server receives a **Put** request, the server loops with the
 new value to take another request.
+
+Inspired by this example there is benchmark program that creates large numbers
+of cells and large numbers of jobs running in parallel that perform updates on
+randomly chosen cells.  While the benchmark program is not terribly exiting, it
+nicely substantiates the claims made in the first section about the lightweight
+nature of Hopac jobs and channels.
