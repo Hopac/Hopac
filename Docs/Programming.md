@@ -35,9 +35,9 @@ That is a mouthful!  Let's open it up a bit.
   extended with user defined procedures to build more complex alternatives.
 * **Selective** means that a form of choice or disjunction between alternatives
   is supported.  An alternative can be constructed that, for example, offers to
-  give a message to another job or take a message from another job.  The choice
-  of which operation is performed then depends on whichever alternative becomes
-  available at runtime.
+  give a message to another job *or* take a message from another job.  The
+  choice of which operation is performed then depends on whichever alternative
+  becomes available at runtime.
 * **Synchronous** means that rather than building up a queue of messages for
   another job to examine, jobs can communicate via rendezvous.  Two jobs can
   meet so that one job can give a message to the another job.
@@ -48,8 +48,8 @@ That is a mouthful!  Let's open it up a bit.
 What this all boils down to is that Hopac basically provides a kind of language
 for expressing concurrent control flow.
 
-On the Memory Usage of Synchronous Message Passing
---------------------------------------------------
+On Memory Usage
+---------------
 
 An important property of Hopac jobs and synchronous channels is that a system
 that consist of **m** jobs that communication with each other using **n**
@@ -57,17 +57,33 @@ synchronous channels (and no other primitives) requires **Theta(m + n)** space
 for the jobs and channels.
 
 That may sound obvious, but many concurrent systems,
-e.g. [Erlang](http://www.erlang.org/), are built upon asynchronous message
-passing primitives and in such systems message queues can collect arbitrary
-numbers of messages when there are differences in speed between producer and
-consumer threads.  Synchronous channels do not work like that.  A synchronous
-channel doesn't hold a buffer of messages.  When a producer job tries to give a
-message to a consumer job via synchronous channels, the producer is suspended
-until the producer is ready to take the message.  A synchronous channel provides
-something that is much more like a control flow mechanism, like a procedure
-call, rather than a buffer for passing data between threads.  This property can
-make it easier to understand the behaviour of concurrent programs.
+e.g. [Erlang](http://www.erlang.org/ and F#'s
+[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx)), are
+built upon asynchronous message passing primitives and in such systems message
+queues can collect arbitrary numbers of messages when there are differences in
+speed between producer and consumer threads.  Synchronous channels do not work
+like that.  A synchronous channel doesn't hold a buffer of messages.  When a
+producer job tries to give a message to a consumer job via synchronous channels,
+the producer is suspended until the producer is ready to take the message.  A
+synchronous channel provides something that is much more like a control flow
+mechanism, like a procedure call, rather than a buffer for passing data between
+threads.  This property can make it easier to understand the behaviour of
+concurrent programs.
 
 Of course, the bound **Theta(m + n)** does not take into account space that the
 jobs otherwise accumulate in the form of data structures other than the
 synchronous channels.
+
+### Garbage Collection
+
+Another aspect that is important to understand is that Hopac jobs and channels
+are basic simple .Net objects and can be garbage collected.  Specifically, jobs
+and channels do not inherently hold onto disposable system resources.  (This is
+unlike the
+[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), for
+example, which is disposable.)  What this means in practise is that most jobs do
+not necessarily need to implement any special kill protocol.  A job that is
+blocked waiting for communication on a channel that is no longer reachable is
+garbage collected.  Only jobs that explicitly hold onto some resource that needs
+to be disposed must explicitly make sure that the resource gets properly
+disposed.
