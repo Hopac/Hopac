@@ -28,12 +28,14 @@ your own benchmark, on your multicore machine and see for yourself?
 Programming in Hopac
 --------------------
 
-Hopac provides a programming model that is heavily inspired by John Reppy's
-*Concurrent ML* language.  The book [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
-is the most comprehensive introduction to Concurrent ML style programming.
-The *Further Reading* section at the end of this document contains links to
-some articles and blog posts that discuss programming in Concurrent ML or
-languages inspired by it.
+Hopac provides a programming model that is heavily inspired by [John
+Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.  The
+book [Concurrent Programming in
+ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
+is the most comprehensive introduction to Concurrent ML style programming.  The
+*Further Reading* section at the end of this document contains links to some
+articles and blog posts that discuss programming in Concurrent ML or languages
+inspired by it.
 
 Rationale: Why Hopac?
 ---------------------
@@ -144,7 +146,9 @@ Further Reading
 
 This section contains a list of blog posts, articles, books and other resources
 that may be of interest.  The most comprehensive introduction to Concurrent ML
-style programming is John Reppy's book [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).
+style programming is [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s book
+[Concurrent Programming in
+ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).
 
 * [The Art of Multiprocessor Programming](http://people.csail.mit.edu/shanir/)
 * [Async in C# and F#: Asynchronous gotchas in C#](http://tomasp.net/blog/csharp-async-gotchas.aspx/)
