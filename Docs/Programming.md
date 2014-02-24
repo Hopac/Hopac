@@ -96,8 +96,9 @@ In the book [Concurrent Programming in
 ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
 [John Reppy](http://people.cs.uchicago.edu/~jhr/) presents as the first
 programming example an implementation of updatable storage cells using
-Concurrent ML channels and threads.  Let's reproduce the same example with
-Hopac.
+Concurrent ML channels and threads.  While this example is not exactly something
+that one would do in practise, it does a fairly nice job of illustrating some
+core aspects of Concurrent ML.  So, let's reproduce the same example with Hopac.
 
 First, here is the signature for our updatable storage cells:
 
@@ -112,16 +113,37 @@ The **create** function creates a job that creates a new storage cell.  The
 **get** function creates a job that returns the contents of the cell and the
 **put** function creates a job that updates the contents of the cell.
 
+The basic idea behind the implementation is that the cell is a concurrent
+*server* job that responds to **Get** and **Put** request.  We represent the
+requests using the **Request** discriminated union type:
+
 ```fsharp
 type Request<'a> =
  | Get
  | Put of 'a
+```
 
+To communicate with the outside world, the server presents two channels: one
+channel for requests and another channel for replies, that is required by the
+get operation.  The **Cell** type then is a record of those two channels:
+
+```fsharp
 type Cell<'a> = {
   reqCh: Ch<Request<'a>>
   replyCh: Ch<'a>
 }
 ```
+
+The **put** operation simply gives the **Put** request to the server via the
+request channel:
+
+```fsharp
+let put (c: Cell<'a>) (x: 'a) : Job<unit> =
+  Ch.give c.reqCh (Put x)
+```
+
+The **get** operation gives the **Get** request to the server via the request
+channel and then takes the server's reply from the reply channels:
 
 ```fsharp
 let get (c: Cell<'a>) : Job<'a> = job {
@@ -130,10 +152,8 @@ let get (c: Cell<'a>) : Job<'a> = job {
 }
 ```
 
-```fsharp
-let put (c: Cell<'a>) (x: 'a) : Job<unit> =
-  Ch.give c.reqCh (Put x)
-```
+Finally, the **create** operation actually creates the channels and starts the
+concurrent server job:
 
 ```fsharp
 let create (x: 'a) : Job<Cell<'a>> = job {
@@ -146,9 +166,15 @@ let create (x: 'a) : Job<Cell<'a>> = job {
            do! Ch.give replyCh
            return! server x
          | Put x ->
-           return! server c
+           return! server x
       }
   do! Job.start (server x)
   return {reqCh = reqCh; replyCh = replyCh}
 }
 ```
+
+The concurrent server is a job that loops indefinitely taking requests from the
+request channel.  When the server receives a **Get** request, it gives the
+current value of the cell on the reply channel and then loops to take another
+request.  When the server receives a **Put** request, the server loops with the
+new value to take another request.
