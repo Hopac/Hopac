@@ -143,8 +143,8 @@ let create (x: 'a) : Job<Cell<'a>> = job {
          | Get ->
            do! Ch.give replyCh
            return! server x
-         | Put x -> 
-           server c
+         | Put x ->
+           return! server c
       }
   do! Job.start (server x)
   return {reqCh = reqCh; replyCh = replyCh}
