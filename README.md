@@ -37,6 +37,15 @@ is the most comprehensive introduction to Concurrent ML style programming.  The
 articles and blog posts that discuss programming in Concurrent ML or languages
 inspired by it.
 
+Documentation on Hopac is minimal at the moment, but hopefully this will be
+rectified shortly.  In particular, the document [Programming in
+Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
+will hopefully grow to a proper introduction to programming in Hopac.  In
+addition, the Hopac library code contains documentation comments on individual
+Hopac primitives.  The
+[Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
+signature file contains most of those documentation comments.
+
 Rationale: Why Hopac?
 ---------------------
 
