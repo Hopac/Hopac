@@ -181,8 +181,9 @@ current value of the cell on the reply channel and then loops to take another
 request.  When the server receives a **Put** request, the server loops with the
 new value to take another request.
 
-Inspired by this example there is benchmark program that creates large numbers
-of cells and large numbers of jobs running in parallel that perform updates on
-randomly chosen cells.  While the benchmark program is not terribly exiting, it
-nicely substantiates the claims made in the first section about the lightweight
-nature of Hopac jobs and channels.
+Inspired by this example there is benchmark program, named
+[Cell](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Cell), that
+creates large numbers of cells and large numbers of jobs running in parallel
+that perform updates on randomly chosen cells.  While the benchmark program is
+not terribly exiting, it nicely substantiates the claims made in the first
+section about the lightweight nature of Hopac jobs and channels.
