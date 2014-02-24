@@ -84,6 +84,69 @@ unlike the
 example, which is disposable.)  What this means in practise is that most jobs do
 not necessarily need to implement any special kill protocol.  A job that is
 blocked waiting for communication on a channel that is no longer reachable can
-(and will be) be garbage collected.  Only jobs that explicitly hold onto some
+(and will) be garbage collected.  Only jobs that explicitly hold onto some
 resource that needs to be disposed must implement a kill protocol to explicitly
 make sure that the resource gets properly disposed.
+
+Example: Updatable Storage Cells
+--------------------------------
+
+In the book [Concurrent Programming in
+ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
+John Reppy presents as the first programming example an implementation of
+updatable storage cells using Concurrent ML channels and threads.  Let's
+reproduce the same example with Hopac.
+
+First, here is the signature for our updatable storage cells:
+
+```fsharp
+type Cell<'a>
+val create: 'a -> Job<Cell<'a>>
+val get: Cell<'a> -> Job<'a>
+val put: Cell<'a> -> 'a -> Job<unit>
+```
+
+The **create** function creates a job that creates a new storage cell.  The
+**get** function create a job that returns the contents of the cell and the
+**put** function creates a job that updates the contents of the cell.
+
+```fsharp
+type Request<'a> =
+ | Get
+ | Put of 'a
+
+type Cell<'a> = {
+  reqCh: Ch<Request<'a>>
+  replyCh: Ch<'a>
+}
+```
+
+```fsharp
+let get (c: Cell<'a>) : Job<'a> = job {
+  do! Ch.give c.reqCh Get
+  return! Ch.take c.replyCh
+}
+```
+
+```fsharp
+let put (c: Cell<'a>) (x: 'a) : Job<unit> =
+  Ch.give c.reqCh (Put x)
+```
+
+```fsharp
+let create (x: 'a) : Job<Cell<'a>> = job {
+  let reqCh = Ch.Now.create ()
+  let replyCh = Ch.Now.create ()
+  let rec server x = job {
+        let! req = Ch.take reqCh
+        match req with
+         | Get ->
+           do! Ch.give replyCh
+           return! server x
+         | Put x -> 
+           server c
+      }
+  do! Job.start (server x)
+  return {reqCh = reqCh; replyCh = replyCh}
+}
+```
