@@ -24,9 +24,9 @@ jobs in situations where it would simply be unthinkable when using heavyweight
 threads.
 
 The other aspect is that Hopac provides first-class, higher-order, selective,
-synchronous, message passing primitives in the form of channels (Ch) and
-alternatives (Alt) for coordinating and communicating between jobs.  That is a
-mouthful!  Let's open it up a bit.
+synchronous, lightweight, message passing primitives in the form of channels
+(Ch) and alternatives (Alt) for coordinating and communicating between jobs.
+That is a mouthful!  Let's open it up a bit.
 
 * **First-class** means that channels and alternatives are ordinary values.
   They can be bound to variables, passed to and returned from functions and can
@@ -41,12 +41,15 @@ mouthful!  Let's open it up a bit.
 * **Synchronous** means that rather than building up a queue of messages for
   another job to examine, jobs can communicate via rendezvous.  Two jobs can
   meet so that one job can give a message to the another job.
+* **Lightweight** means that creating a new synchronous channel takes very
+  little time (a single memory allocation) and a channel takes very little
+  memory on its own.
 
 What this all boils down to is that Hopac basically provides a kind of language
 for expressing concurrent control flow.
 
-Memory Usage of Hopac
----------------------
+On the Memory Usage of Synchronous Message Passing
+--------------------------------------------------
 
 An important property of Hopac jobs and synchronous channels is that a system
 that consist of **m** jobs that communication with each other using **n**
@@ -57,10 +60,13 @@ That may sound obvious, but many concurrent systems,
 e.g. [Erlang](http://www.erlang.org/), are built upon asynchronous message
 passing primitives and in such systems message queues can collect arbitrary
 numbers of messages when there are differences in speed between producer and
-consumer threads.  Synchronous channels do not work like that.  When a producer
-job tries to give a message to a consumer job via synchronous channels, the
-producer is suspended until the producer is ready to take the message.  This
-property can make it easier to understand the behaviour of concurrent programs.
+consumer threads.  Synchronous channels do not work like that.  A synchronous
+channel doesn't hold a buffer of messages.  When a producer job tries to give a
+message to a consumer job via synchronous channels, the producer is suspended
+until the producer is ready to take the message.  A synchronous channel provides
+something that is much more like a control flow mechanism, like a procedure
+call, rather than a buffer for passing data between threads.  This property can
+make it easier to understand the behaviour of concurrent programs.
 
 Of course, the bound **Theta(m + n)** does not take into account space that the
 jobs otherwise accumulate in the form of data structures other than the
