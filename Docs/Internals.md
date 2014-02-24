@@ -304,12 +304,13 @@ and the F# async framework would need to do.)
 let fill (xV: IVar<'x>) (x: 'x) : Job<unit> =
   {new Job<unit> () with
     override xF.DoJob (wr, uK) =
-     Monitor.Enter xV
      xV.Value <- x
      xV.IsFull <- true
+
+     Monitor.Enter xV
+     let readers = xV.Readers :> Work
      Monitor.Exit xV
 
-     let readers = xV.Readers :> Work
      xV.Readers <- null
 
      let rec loop readers =
