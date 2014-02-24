@@ -266,7 +266,7 @@ to be implemented in the IVar class:
 ```fsharp
 type IVar<'x> () = class
   inherit Job<'x>
-  val mutable IsFull: bool
+  val volatile IsFull: bool
   val mutable Value: 'x
   val mutable Readers: Cont<'x>
   override xV.DoJob (wr, xK) =
