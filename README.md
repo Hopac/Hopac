@@ -9,6 +9,32 @@ synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are
 created using techniques similar to the F# Async framework.  Hopac runs
 parallel jobs using a work distributing scheduler in a non-preemptive fashion.
 
+Licensing
+---------
+
+Hopac is licensed under a MIT-style license.  See LICENSE.md for the license.
+
+Performance
+-----------
+
+How fast is Hopac?  How well does it scale to multicore machines?  In order to
+measure and improve the performance of Hopac, several benchmark programs have
+been written and some of these programs also test similar algorithms written
+using the .Net thread pool, tasks and async.  Those benchmarks are readily
+available in this project and they should be very easy to compile and run on
+your machine.  So, why don't you try and run those benchmark programs, or write
+your own benchmark, on your multicore machine and see for yourself?
+
+Programming in Hopac
+--------------------
+
+Hopac provides a programming model that is heavily inspired by John Reppy's
+*Concurrent ML* language.  The book [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
+is the most comprehensive introduction to Concurrent ML style programming.
+The *Further Reading* section at the end of this document contains links to
+some articles and blog posts that discuss programming in Concurrent ML or
+languages inspired by it.
+
 Rationale: Why Hopac?
 ---------------------
 
@@ -112,11 +138,6 @@ without resorting to low level locking primitives.
 
 This rationale became much longer that I hoped for.  Hopefully you got
 something out of reading it. :)
-
-Licensing
----------
-
-Hopac is licensed under a MIT-style license.  See LICENSE.md for the license.
 
 Further Reading
 ---------------
