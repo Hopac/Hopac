@@ -1,5 +1,7 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
+#if ENABLE_MCS
+
 namespace Hopac.Core {
   using System;
   using System.Diagnostics;
@@ -51,3 +53,5 @@ namespace Hopac.Core {
     }
   }
 }
+
+#endif

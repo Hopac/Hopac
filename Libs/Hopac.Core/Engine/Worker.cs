@@ -20,11 +20,15 @@ namespace Hopac.Core {
   internal struct Worker {
     internal Work WorkStack;
     internal Handler Handler;
+#if ENABLE_MCS
     internal SpinlockMCS.Node Node;
+#endif
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal void Init() {
+#if ENABLE_MCS
       Node.Init();
+#endif
     }
 
     /// Internal implementation detail.
