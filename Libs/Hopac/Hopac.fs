@@ -566,21 +566,18 @@ module Job =
   let start (aJ: Job<'a>) : Job<unit> =
     {new Job<unit>() with
       override self.DoJob (wr, uK) =
-       // XXX This wastes one pointer worth of memory, but avoids one alloc.
-       Worker.Push (&wr, {new Cont_State<_, _> (aJ) with
-         override self.DoHandle (_, e) = Handler.doHandle e
-         override self.DoWork (wr) =
-          match self.State with
-           | null -> ()
-           | aJ ->
-             self.State <- null
-             aJ.DoJob (&wr, self)
-         override self.DoCont (_, _) = ()})
+       let aK = {new Cont<_> () with
+         override aK.DoHandle (_, e) = Handler.doHandle e
+         override aK.DoWork (_) = ()
+         override aK.DoCont (_, _) = ()}
+       Worker.Push (&wr, {new Work () with
+         override w.DoHandle (_, e) = Handler.doHandle e
+         override w.DoWork (wr) = aJ.DoJob (&wr, aK)})
        uK.DoCont (&wr, ())}
 
   ///////////////////////////////////////////////////////////////////////
 
-  let inSeq (xJs: seq<Job<'x>>) : Job<seq<'x>> =
+  let seqCollect (xJs: seq<Job<'x>>) : Job<seq<'x>> =
     {new Job<_>() with
       override self.DoJob (wr, xsK) =
        let xJs = xJs.GetEnumerator ()
@@ -599,14 +596,14 @@ module Job =
        else
          xsK.DoCont (&wr, xs)}
 
-  type [<Sealed>] InPar<'y> =
+  type [<Sealed>] ParCollect<'y> =
     inherit Handler
     val mutable Lock: SpinlockWithOwner
     val mutable n: int
     val ys: ResizeArray<'y>
     val ysK: Cont<seq<'y>>
     val mutable es: ResizeArray<exn>
-    static member inline Dec (self: InPar<_>, owner: Work, wr: byref<Worker>) : unit =
+    static member inline Dec (self: ParCollect<_>, owner: Work, wr: byref<Worker>) : unit =
       if Util.dec &self.n = 0 then
         let ysK = self.ysK
         wr.Handler <- ysK
@@ -615,10 +612,10 @@ module Job =
          | es -> self.ysK.DoHandle (&wr, AggregateException es)
       else
         SpinlockWithOwner.Exit (owner)
-    static member inline Add (self: InPar<_>, visitor: Work, wr: byref<Worker>, i, y) =
+    static member inline Add (self: ParCollect<_>, visitor: Work, wr: byref<Worker>, i, y) =
       self.Lock.Enter (visitor)
       self.ys.[i] <- y
-      InPar<_>.Dec (self, visitor, &wr)
+      ParCollect<_>.Dec (self, visitor, &wr)
     override self.DoHandle (wr, e) =
      let owner = SpinlockWithOwner.Owner ()
      self.Lock.Enter (owner)
@@ -643,10 +640,10 @@ module Job =
       es = null
     }
 
-  let inPar (xJs: seq<Job<'a>>) : Job<seq<'a>> =
+  let parCollect (xJs: seq<Job<'a>>) : Job<seq<'a>> =
     {new Job<_>() with
       override self.DoJob (wr, xsK) =
-       let st = InPar<_>(xsK)
+       let st = ParCollect<_>(xsK)
        let owner = st.Lock.Init ()
        let mutable nth = 0
        wr.Handler <- st
@@ -656,20 +653,64 @@ module Job =
          st.Lock.ExitAndEnter (owner)
          st.n <- st.n + 1
          st.ys.Add Unchecked.defaultof<_>
-         //st.Lock.Exit ()
          let i = nth
          nth <- i + 1
          Worker.Push (&wr, {new Cont_State<_, _>(xJ) with
           override self.DoHandle (wr, e) = st.DoHandle (&wr, e)
-          override self.DoCont (wr, y) = InPar<_>.Add (st, self, &wr, i, y)
+          override self.DoCont (wr, y) = ParCollect<_>.Add (st, self, &wr, i, y)
           override self.DoWork (wr) =
            match self.State with
-            | null -> InPar<_>.Add (st, self, &wr, i, self.Value)
+            | null -> ParCollect<_>.Add (st, self, &wr, i, self.Value)
             | xJ ->
               self.State <- null
               xJ.DoJob (&wr, self)})
-       //st.Lock.Enter ()
-       InPar<_>.Dec (st, owner, &wr)}
+       ParCollect<_>.Dec (st, owner, &wr)}
+
+  type ParIgnore =
+    val mutable n: int
+    val mutable exns: ResizeArray<exn> 
+    val uK: Cont<unit>
+    new (uK) = {n = 1; exns = null; uK = uK}
+    static member inline Inc (self: ParIgnore) =
+      Interlocked.Increment &self.n |> ignore
+    static member inline Dec (self: ParIgnore, wr: byref<Worker>) =
+      if 0 = Interlocked.Decrement &self.n then
+        match self.exns with
+         | null ->
+           self.uK.DoCont (&wr, ())
+         | exns ->
+           self.uK.DoHandle (&wr, AggregateException exns)
+    static member inline Exn (self: ParIgnore, wr: byref<Worker>, e: exn) =
+      lock self <| fun () ->
+        let exns =
+          match self.exns with
+           | null ->
+             let exns = ResizeArray<_>()
+             self.exns <- exns
+             exns
+           | exns -> exns
+        exns.Add e
+      ParIgnore.Dec (self, &wr)
+
+  let parIgnore (xJs: seq<Job<'a>>) : Job<unit> =
+    {new Job<unit>() with
+      override self.DoJob (wr, uK) =
+       let join = ParIgnore (uK)
+       let xJs = xJs.GetEnumerator ()
+       while xJs.MoveNext () do
+         let xJ = xJs.Current
+         ParIgnore.Inc join
+         Worker.Push (&wr, {new Cont_State<_, _>(xJ) with
+          override self.DoHandle (wr, e) = ParIgnore.Exn (join, &wr, e)
+          override self.DoCont (wr, y) = self.DoWork (&wr)
+          override self.DoWork (wr) =
+           match self.State with
+            | null ->
+              ParIgnore.Dec (join, &wr)
+            | xJ ->
+              self.State <- null
+              xJ.DoJob (&wr, self)})
+       ParIgnore.Dec (join, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -825,56 +866,29 @@ module Extensions =
            xK.DoCont (&wr, x)}
 
     module Parallel =
-      type Barrier  =
-        inherit Handler
-        val mutable Exns: ResizeArray<exn>
-        val mutable N: int
-        val Cont: Cont<unit>
-        static member inline Inc (self: Barrier) =
-          Interlocked.Increment &self.N |> ignore
-        static member inline Dec (self: Barrier, wr: byref<Worker>) =
-          if 0 = Interlocked.Decrement &self.N then
-            match self.Exns with
-             | null ->
-               self.Cont.DoCont (&wr, ())
-             | exns ->
-               self.Cont.DoHandle (&wr, AggregateException (exns))
-        override self.DoHandle (wr, e) =
-          lock self <| fun () ->
-            let exns =
-              match self.Exns with
-               | null ->
-                 let exns = ResizeArray<_>(1)
-                 self.Exns <- exns
-                 exns
-               | exns -> exns
-            exns.Add (e)
-          Barrier.Dec (self, &wr)
-        new (cont) = {Exns = null; N = 1; Cont = cont}
-
       let iterJ (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) : Job<unit> =
         {new Job<_>() with
           override self.DoJob (wr, uK) =
-           let barrier = Barrier (uK)
+           let join = ParIgnore (uK)
            let xs = xs.GetEnumerator ()
            while xs.MoveNext () do
              let x = xs.Current
-             Barrier.Inc barrier
+             ParIgnore.Inc join
              Worker.Push (&wr, {new Cont_State<_, _> () with
-              override self.DoHandle (wr, e) = barrier.DoHandle (&wr, e)
-              override self.DoCont (wr, _) = Barrier.Dec (barrier, &wr)
+              override self.DoHandle (wr, e) = ParIgnore.Exn (join, &wr, e)
+              override self.DoCont (wr, _) = ParIgnore.Dec (join, &wr)
               override self.DoWork (wr) =
                if self.State then
-                 Barrier.Dec (barrier, &wr)
+                 ParIgnore.Dec (join, &wr)
                else
                  self.State <- true
                  (x2yJ x).DoJob (&wr, self)})
-           Barrier.Dec (barrier, &wr)}
+           ParIgnore.Dec (join, &wr)}
 
       let mapJ (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) : Job<seq<'b>> =
         {new Job<_>() with
           override self.DoJob (wr, ysK) =
-           let st = InPar (ysK)
+           let st = ParCollect (ysK)
            let owner = st.Lock.Init ()
            let xs = xs.GetEnumerator ()
            wr.Handler <- st
@@ -884,12 +898,11 @@ module Extensions =
              st.Lock.ExitAndEnter (owner)
              st.n <- st.n + 1
              st.ys.Add Unchecked.defaultof<_>
-             //st.Lock.Exit ()
              let i = nth
              nth <- i + 1
              Worker.Push (&wr, {new Cont_State<_, _, _> (x, true) with
               override self.DoHandle (wr, e) = st.DoHandle (&wr, e)
-              override self.DoCont (wr, y) = InPar<_>.Add (st, self, &wr, i, y)
+              override self.DoCont (wr, y) = ParCollect<_>.Add (st, self, &wr, i, y)
               override self.DoWork (wr) =
                if self.State2 then
                  let x = self.State1
@@ -897,9 +910,8 @@ module Extensions =
                  self.State2 <- false
                  (x2yJ x).DoJob (&wr, self)
                else
-                 InPar<_>.Add (st, self, &wr, i, self.Value)})
-           //st.Lock.Enter ()
-           InPar<_>.Dec (st, owner, &wr)}
+                 ParCollect<_>.Add (st, self, &wr, i, self.Value)})
+           ParCollect<_>.Dec (st, owner, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
   

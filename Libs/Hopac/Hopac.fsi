@@ -192,12 +192,18 @@ module Job =
 
   /// Creates a job that runs all of the jobs in sequence and returns a
   /// sequence of the results.
-  val inSeq: seq<Job<'a>> -> Job<seq<'a>>
+  val seqCollect: seq<Job<'a>> -> Job<seq<'a>>
 
   /// Creates a job that runs all of the jobs potentially in parallel and
   /// returns a sequence of the results.  It is not guaranteed that the jobs
   /// would be run as separate parallel jobs.
-  val inPar: seq<Job<'a>> -> Job<seq<'a>>
+  val parCollect: seq<Job<'a>> -> Job<seq<'a>>
+
+  /// Creates a job that runs all of the jobs potentially in parallel and then
+  /// waits for all of the jobs to finish.  The results of the jobs are
+  /// ignored.  It is not guaranteed that the jobs would be run as separate
+  /// parallel jobs.
+  val parIgnore: seq<Job<'a>> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
 
