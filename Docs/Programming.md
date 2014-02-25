@@ -18,9 +18,9 @@ The first aspect is that, threads, which are called *jobs*, in Hopac are
 extremely lightweight.  On modern machines you can spawn tens of millions of new
 jobs in a second.  Because a job takes only a very small amount of memory,
 starting from tens of bytes, a program may have millions of jobs on a modern
-machine at any moment.  Of course, at any moment, most of those jobs are
+machine at any moment.  (Of course, at any moment, most of those jobs are
 suspended, because modern machines still only have a few, or at most a few
-dozen, processor cores.  When programming in Hopac, one can therefore start new
+dozen, processor cores.)  When programming in Hopac, one can therefore start new
 jobs in situations where it would simply be unthinkable when using heavyweight
 threads.
 
@@ -100,23 +100,21 @@ Concurrent ML channels and threads.  While this example is not exactly something
 that one would do in practise, it does a fairly nice job of illustrating some
 core aspects of Concurrent ML.  So, let's reproduce the same example with Hopac.
 
-Let's first go quickly through the implementation and then elaborate on some of
-the more important details.  First, here is the signature for our updatable
-storage cells:
+Here is the signature for our updatable storage cells:
 
 ```fsharp
 type Cell<'a>
-val create: 'a -> Job<Cell<'a>>
+val cell: 'a -> Job<Cell<'a>>
 val get: Cell<'a> -> Job<'a>
 val put: Cell<'a> -> 'a -> Job<unit>
 ```
 
-The **create** function creates a job that creates a new storage cell.  The
+The **cell** function creates a job that creates a new storage cell.  The
 **get** function creates a job that returns the contents of the cell and the
 **put** function creates a job that updates the contents of the cell.
 
 The basic idea behind the implementation is that the cell is a concurrent
-*server* job that responds to **Get** and **Put** request.  We represent the
+*server* that responds to **Get** and **Put** request.  We represent the
 requests using the **Request** discriminated union type:
 
 ```fsharp
@@ -154,11 +152,11 @@ let get (c: Cell<'a>) : Job<'a> = job {
 }
 ```
 
-Finally, the **create** operation actually creates the channels and starts the
+Finally, the **cell** operation actually creates the channels and starts the
 concurrent server job:
 
 ```fsharp
-let create (x: 'a) : Job<Cell<'a>> = job {
+let cell (x: 'a) : Job<Cell<'a>> = job {
   let reqCh = Ch.Now.create ()
   let replyCh = Ch.Now.create ()
   let rec server x = job {
@@ -185,5 +183,11 @@ Inspired by this example there is benchmark program, named
 [Cell](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Cell), that
 creates large numbers of cells and large numbers of jobs running in parallel
 that perform updates on randomly chosen cells.  While the benchmark program is
-not terribly exiting, it nicely substantiates the claims made in the first
+not terribly exciting, it nicely substantiates the claims made in the first
 section about the lightweight nature of Hopac jobs and channels.
+
+
+
+
+
+
