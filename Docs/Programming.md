@@ -53,7 +53,7 @@ On Memory Usage
 ---------------
 
 An important property of Hopac jobs and synchronous channels is that a system
-that consist of **m** jobs that communication with each other using **n**
+that consist of **m** jobs that communicate with each other using **n**
 synchronous channels (and no other primitives) requires **Theta(m + n)** space
 for the jobs and channels.
 

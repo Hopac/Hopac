@@ -19,8 +19,10 @@ details.
 Performance
 -----------
 
-How fast is Hopac?  How well does it scale to multicore machines?  In order to
-measure and improve the performance of Hopac, several benchmark programs have
+How fast is Hopac?  How well does it scale to multicore machines?  How much
+memory do Hopac primitives take?  In order to measure and improve the
+performance of Hopac, several [benchmark
+programs](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks) have
 been written and some of these programs also test similar algorithms written
 using the .Net thread pool, tasks and async.  Those benchmarks are readily
 available in this project and they should be very easy to compile and run on
