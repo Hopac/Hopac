@@ -1,10 +1,10 @@
 Programming in Hopac
 ====================
 
-Hopac provides a programming model that is heavily inspired by [John
-Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.  The
-book [Concurrent Programming in
-ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
+Hopac provides a programming model that is heavily inspired by
+[John Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.
+The book
+[Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
 is the most comprehensive introduction to Concurrent ML style programming.  This
 document contains some discussion and examples on Hopac programming techniques.
 In the future, this document might grow to a proper introduction to Hopac.
@@ -92,8 +92,8 @@ make sure that the resource gets properly disposed.
 Example: Updatable Storage Cells
 --------------------------------
 
-In the book [Concurrent Programming in
-ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
+In the book
+[Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
 [John Reppy](http://people.cs.uchicago.edu/~jhr/) presents as the first
 programming example an implementation of updatable storage cells using
 Concurrent ML channels and threads.  While this example is not exactly something
@@ -203,6 +203,129 @@ section about the lightweight nature of Hopac jobs and channels.
 Example: Kismet
 ---------------
 
+The updatable storage cell example in the previous section may have seemed
+rather unrealistic.  The server job of a storage cell doesn't do much and it
+probably doesn't seem like something for which you'd even consider starting a
+separate thread, no matter how lightweight such a thread would be.  In this
+section we'll sketch an example that might be a bit more compelling, although in
+a way it is also quite unreal.
 
+[UnrealScript](http://en.wikipedia.org/wiki/UnrealScript) is the scripting
+language of the [Unreal Engine](http://en.wikipedia.org/wiki/Unreal_Engine) and
+is used for making games.
+[Kismet](http://en.wikipedia.org/wiki/UnrealEd#Kismet) is a tool that enables
+artists to create scripts in UnrealScript using a visual interface.  Working
+with Kismet, artists can basically creates games by combining building blocks
+created by programmers.  Those building blocks can be seen as black boxes that
+have some inputs, outputs and have some interesting behaviour mapping the inputs
+to outputs.
 
+On the Wikipedia page on [UnrealEd]((http://en.wikipedia.org/wiki/UnrealEd))
+there is a screenshot of a simple system built using Kismet.  Take a moment to
+look at the screenshot:
+[Roboblitz](http://upload.wikimedia.org/wikipedia/en/e/e6/Kismet_Roboblitz.PNG).
+As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
+**Delay**, and **Matinee** that have some inputs, outputs and some behaviour.
 
+Kismet, UnrealScript and Unreal Engine, in general, have semantics that have
+been designed for making games.  In fact, I've never actually programmed in
+UnrealScript or used Kismet, but a curious mind might wonder how could black
+boxes like that could be implemented?
+
+Let's first consider the **Compare Bool** box.  Looking at the screenshot and
+making an educated guess, it seems to define an input event **In** and two
+output events **True** and **False** and it also seems to a **Bool** value as a
+kind of configuration.  It would seem that idea is that when the box receives
+the *In* event, it signals either the **True** or the **False** event depending
+on the current **Bool** value.  Something like that can be quite concisely
+expressed a Hopac job:
+
+```fsharp
+let CompareBool (comparand: ref<bool>)
+                (inCh: Ch<'a>)
+                (onTrueCh: Ch<'a>)
+                (onFalseCh: Ch<'a>) : Job<_> =
+  Job.forever
+   (Ch.take inCh >>= fun x ->
+    Ch.give (if !comparand then onTrueCh else onFalseCh) x)
+```
+
+The **CompareBool** function creates a job that loops indefinitely taking
+messages from the given **inCh** channel and then giving those messages away on
+either the **onTrueCh** or the **onFalseCh** channel depending on the value held
+by the **comparand** ref cell.  As you can see, the above **CompareBool** job
+doesn't care about the type of the signals being sent on the channels.  It just
+copies the received value **x** to the chosen output.
+
+Let's then consider the **Delay** box.  Making another educated guess and
+simplifying a bit, it takes as input events **Start** and **Stop** (I leave
+**Pause** as an exercise for the reader), output events **Finished** and
+**Aborted** and also a time value **Duration**.  It would seem that the idea is
+that when the box receives the **Start** event, it starts a timer that counts
+down for the specified **Duration** after which the **Finished** event is
+signaled.  Also, if during the countdown a **Stop** signal is received then the
+**Aborted** signal is signaled instead.  Here is how something like that could
+be expressed as a Hopac job:
+
+```fsharp
+let Delay (duration: ref<TimeSpan>)
+          (startCh: Ch<'a>)
+          (stopCh: Ch<'b>)
+          (finishedCh: Ch<'a>)
+          (abortedCh: Ch<'b>) : Job<_> =
+  let rec initial () = Ch.take startCh >>= started
+  and started x =
+    Alt.pick (Ch.Alt.take stopCh      >=> Ch.give abortedCh
+          <|> Alt.timeOut (!duration) >=> fun () -> Ch.give finishedCh x) >>= initial
+  initial ()
+```
+
+The **Delay** function creates a job that, using a pair of mutually recursive
+functions, representing two different states of the Delay job, loops
+indefinitely.  In the **initial** state it takes an input from the **startCh**
+channel and then transfers to the **started** state.  In the **started** state
+it sets up two alternatives.  The first alternative takes a messages from the
+**stopCh** channel and then gives the message on the **abortedCh** channel.  The
+second alternative starts a **timeout** alternative for the current value of
+**duration** and then gives the message taken in the **initial** state on the
+**finishedCh** channel.  Whichever of those alternatives becomes enabled first
+will then be committed to during runtime and the other will be discarded.
+
+Those previous snippets are just two of the necessary building blocks.  Assuming
+we would have all of the building blocks packaged in similar style, what remains
+is translation of the configuration specified in the screenshot into code.  Here
+is a small snippet of a sketch of how what the end result could look like:
+
+```fsharp
+let ch_1 = Ch.Now.create ()
+let ch_2 = Ch.Now.create ()
+let ch_3 = Ch.Now.create ()
+// ...
+let bMoved = ref false
+// ...
+do! Job.start <| CompareBool bMoved ch_1 ch_2 ch_3
+do! Job.start <| Sink ch_2
+do! Job.start <| Delay (ref (TimeSpan.FromSeconds 3.14)) ch_3 ch_4 ch_5 ch_6
+// ...
+```
+
+The above initialization code sketch first creates shared channels and
+variables.  Then the desired jobs are created and started passing to them the
+previously created channels.  One more thing in the above is the use of a
+**Sink** job to take messages from output channels that are not explicitly
+connected to any other box.  The **Sink** could be implemented like this:
+
+```fsharp
+let Sink inCh = Job.forever (Ch.take inCh)
+```
+
+Now, games often have their own specific notion of time, different from
+wall-clock time, which means that for programming games, the sketched
+implementation of **Delay** would not give the desired meaning of time for
+programming games.  Also, the way variables are represented as mutable ref cells
+is a bit naive.  In a real system, one would probably also want to specify boxes
+using
+[directional channels](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac.Extra/DirCh.fsi),
+which would allow an editor to automatically understand input-output
+relationships.  Hopefully this sketch has given you something interesting to
+think about.
