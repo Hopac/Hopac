@@ -215,7 +215,7 @@ language of the [Unreal Engine](http://en.wikipedia.org/wiki/Unreal_Engine) and
 is used for making games.
 [Kismet](http://en.wikipedia.org/wiki/UnrealEd#Kismet) is a tool that enables
 artists to create scripts in UnrealScript using a visual interface.  Working
-with Kismet, artists can basically creates games by combining building blocks
+with Kismet, artists can basically create games by combining building blocks
 created by programmers.  Those building blocks can be seen as black boxes that
 have some inputs, outputs and have some interesting behaviour mapping the inputs
 to outputs.
@@ -230,15 +230,14 @@ As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
 Kismet, UnrealScript and Unreal Engine, in general, have semantics that have
 been designed for making games.  In fact, I've never actually programmed in
 UnrealScript or used Kismet, but a curious mind might wonder how could black
-boxes like that could be implemented?  Could we build something similar using
-Hopac?
+boxes like that be implemented?  Could we build something similar using Hopac?
 
 Let's first consider the **Compare Bool** box.  Looking at the screenshot and
 making an educated guess, it seems to define an input event **In** and two
-output events **True** and **False** and it also seems to a **Bool** value as a
-kind of configuration.  It would seem that the idea is that when the box
-receives the **In** event, it signals either the **True** or the **False** event
-depending on the current **Bool** value.  Something like that can be quite
+output events **True** and **False** and it also seems to read a **Bool**
+variable.  It would seem that the idea is that when the box receives the **In**
+event, it signals either the **True** or the **False** event depending on the
+current value of the **Bool** variable.  Something like that can be quite
 concisely expressed a Hopac job:
 
 ```fsharp
@@ -323,7 +322,7 @@ let Sink inCh = Job.forever (Ch.take inCh)
 Now, games often have their own specific notion of time, different from
 wall-clock time, which means that for programming games, the sketched
 implementation of **Delay** would not give the desired meaning of time.  (But
-you can certainly implement a notion of time more suitable for gameson top of
+you can certainly implement a notion of time more suitable for games on top of
 Hopac.)  Also, the way variables are represented as mutable ref cells is a bit
 naive.  In a real system, one would probably also want to specify boxes using
 [directional channels](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac.Extra/DirCh.fsi),
