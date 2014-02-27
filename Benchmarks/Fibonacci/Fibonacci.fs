@@ -49,7 +49,7 @@ module SerialJob =
 
   let run () =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (fib n)
+    let r = run (fib n)
     let d = timer.Elapsed
     let m = sprintf "SerJob: %d - %fs\n" r d.TotalSeconds
     printf "%s" m
@@ -67,7 +67,7 @@ module SerialOpt =
 
   let run () =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (fib n)
+    let r = run (fib n)
     let d = timer.Elapsed
     let m = sprintf "SerOpt: %d - %fs\n" r d.TotalSeconds
     printf "%s" m
@@ -85,7 +85,7 @@ module ParallelJob =
 
   let run () =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (fib n)
+    let r = run (fib n)
     let d = timer.Elapsed
     let m = sprintf "ParJob: %d - %fs (%f jobs/s)\n"
              r d.TotalSeconds (float numSpawns / d.TotalSeconds)
@@ -106,7 +106,7 @@ module ParallelOpt =
 
   let run () =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (fib n)
+    let r = run (fib n)
     let d = timer.Elapsed
     let m = sprintf "ParOpt: %d - %fs (%f jobs/s)\n"
              r d.TotalSeconds (float numSpawns / d.TotalSeconds)

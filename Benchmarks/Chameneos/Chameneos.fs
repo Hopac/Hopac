@@ -95,7 +95,7 @@ module HopacLock =
     GC.Collect ()
     let timer = Stopwatch.StartNew ()
     let numMeets = 6000000
-    do Job.Now.run
+    do run
         (bench colorsAll numMeets <*>
          bench colors10 numMeets |>> ignore)
     let d = timer.Elapsed
@@ -151,7 +151,7 @@ module HopacMV =
     GC.Collect ()
     let timer = Stopwatch.StartNew ()
     let numMeets = 6000000
-    do Job.Now.run
+    do run
         (bench colorsAll numMeets <*>
          bench colors10 numMeets |>> ignore)
     let d = timer.Elapsed
@@ -229,7 +229,7 @@ module HopacAlt =
     GC.Collect ()
     let timer = Stopwatch.StartNew ()
     let numMeets = 6000000
-    do Job.Now.run <| job {
+    do run <| job {
          let finishCh = Ch.Now.create ()
          do! Job.start (bench colors10 numMeets finishCh)
          do! Job.start (bench colorsAll numMeets finishCh)
@@ -244,7 +244,7 @@ module HopacAlt =
 
 /////////////////////////////////////////////////////////////////////////
 
-do Job.Now.run
+do run
     (Job.start
       (Job.delay <| fun () ->
        let delay = Job.sleep (TimeSpan.FromSeconds 1.0)

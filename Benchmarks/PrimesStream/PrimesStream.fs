@@ -82,7 +82,7 @@ module HopacCh =
 
   let run () =
     let timer = Stopwatch.StartNew ()
-    let ps = Job.Now.run (primes n)
+    let ps = run (primes n)
     let d = timer.Elapsed
     printf "Primes are %A\n\nLast prime is %A\n\nHopacCh time %fs\n" ps ps.[ps.Length-1] d.TotalSeconds
     
@@ -126,7 +126,7 @@ module HopacPromise =
 
   let run () =
     let timer = Stopwatch.StartNew ()
-    let ps = Job.Now.run (primes n)
+    let ps = run (primes n)
     let d = timer.Elapsed
     printf "Primes are %A\n\nLast prime is %A\n\nHopacPromise time %fs\n" ps ps.[ps.Length-1] d.TotalSeconds
     

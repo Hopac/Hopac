@@ -33,7 +33,7 @@ module EgPaper =
 
   let run n =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (Job.forN n egpaper)
+    let r = run (Job.forN n egpaper)
     let d = timer.Elapsed
     let m = sprintf "EgPaper: %d: %fs (%d threads)\n" n d.TotalSeconds System.Environment.ProcessorCount
     do use w = new System.IO.StreamWriter ("Results.txt", true)
@@ -61,7 +61,7 @@ module SwapCh =
 
   let run n =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (Job.forN n bench)
+    let r = run (Job.forN n bench)
     let d = timer.Elapsed
     let m = sprintf "SwapCh %d: %fs (%d threads)\n" n d.TotalSeconds System.Environment.ProcessorCount
     do use w = new System.IO.StreamWriter ("Results.txt", true)
@@ -99,7 +99,7 @@ module BufferedCh =
 
   let run n =
     let timer = Stopwatch.StartNew ()
-    let r = Job.Now.run (Job.forN n bench)
+    let r = run (Job.forN n bench)
     let d = timer.Elapsed
     let m = sprintf "BufferedCh %d: %fs (%d threads)\n" n d.TotalSeconds System.Environment.ProcessorCount
     do use w = new System.IO.StreamWriter ("Results.txt", true)

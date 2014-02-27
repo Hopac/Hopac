@@ -35,6 +35,7 @@ module Async =
 
 module HopacMb =
   open Hopac
+  open Hopac.Job.Infixes
   open Hopac.Extensions
 
   let run data =
@@ -43,12 +44,11 @@ module HopacMb =
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
     let mb = Mailbox.Now.create ()
-    do Job.Now.run <| job {
-         do! Job.start <| job {
-               while true do
-                 let! msg = Mailbox.take mb
-                 if msg = max then ping.Set () else ()
-             }
+    do run <| job {
+         do! Job.start
+              (Job.forever
+                (Mailbox.take mb |>> fun msg ->
+                 if msg = max then ping.Set ()))
          do! data |> Array.iterJ (fun i -> Mailbox.send mb i)
        }
     let d1 = timer.Elapsed
@@ -59,6 +59,7 @@ module HopacMb =
 
 module HopacCh =
   open Hopac
+  open Hopac.Job.Infixes
   open Hopac.Extensions
 
   let run data =
@@ -67,12 +68,11 @@ module HopacCh =
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
     let mb = Ch.Now.create ()
-    do Job.Now.run <| job {
-         do! Job.start <| job {
-               while true do
-                 let! msg = Ch.take mb
-                 if msg = max then ping.Set () else ()
-             }
+    do run <| job {
+         do! Job.start 
+              (Job.forever
+                (Ch.take mb |>> fun msg ->
+                 if msg = max then ping.Set ()))
          do! data |> Array.iterJ (fun i -> Ch.give mb i)
        }
     let d1 = timer.Elapsed
@@ -82,9 +82,13 @@ module HopacCh =
     printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
     
 do HopacCh.run dataWarmUp
-   HopacCh.run data
    HopacMb.run dataWarmUp
-   HopacMb.run data
    Async.run dataWarmUp
+
+   HopacCh.run data
+   HopacCh.run data
+   HopacMb.run data
+   HopacMb.run data
+   Async.run data
    Async.run data
    

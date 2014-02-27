@@ -13,7 +13,7 @@ type Msg<'a> = Msg of Ch<Msg<'a>> * 'a
 let run numPairs numMsgsPerPair =
   GC.Collect ()
   let timer = Stopwatch.StartNew ()
-  Job.Now.run <| job {
+  run <| job {
     let chEnd = Ch.Now.create ()
     do! Job.forN numPairs <| job {
       let chPing = Ch.Now.create ()

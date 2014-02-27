@@ -32,7 +32,7 @@ module Ch =
     GC.Collect ()
     let timer = Stopwatch.StartNew ()
     let i =
-      Job.Now.run
+      run
        (Job.delay <| fun () ->
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()
@@ -75,7 +75,7 @@ module Mailbox =
     GC.Collect ()
     let timer = Stopwatch.StartNew ()
     let i =
-      Job.Now.run
+      run
        (Job.delay <| fun () ->
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()

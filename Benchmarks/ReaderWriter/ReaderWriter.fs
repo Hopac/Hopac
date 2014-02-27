@@ -12,7 +12,7 @@ module Literal =
   let run n =
     let timer = Stopwatch.StartNew ()
     let i =
-      Job.Now.run <| job {
+      run <| job {
         let ch = Ch.Now.create ()
         let rec writer i = job {
           if i = 0 then
@@ -39,7 +39,7 @@ module Tweaked =
   let run n =
     let timer = Stopwatch.StartNew ()
     let i =
-      Job.Now.run <| job {
+      run <| job {
         let ch = Ch.Now.create ()
         let rec writer i =
           Ch.give ch i >>= fun () ->

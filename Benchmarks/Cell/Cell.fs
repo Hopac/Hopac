@@ -40,7 +40,7 @@ module HopacReq =
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
-    Job.Now.run <| job {
+    run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
             create i |>> fun cell -> cells.[i] <- cell
       do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
@@ -80,7 +80,7 @@ module HopacAlt =
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
-    Job.Now.run <| job {
+    run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
             create i |>> fun cell -> cells.[i] <- cell
       do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)

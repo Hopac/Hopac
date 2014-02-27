@@ -46,7 +46,7 @@ module CounterActorChMsg =
 
 let run numPerThread =
   let timer = Stopwatch.StartNew ()
-  let r = Job.Now.run <| job {
+  let r = run <| job {
     let! actor = CounterActorChMsg.create
     do! seq {1 .. Environment.ProcessorCount}
         |> Seq.Parallel.iterJ

@@ -18,7 +18,7 @@ let runHopac numOps n =
       let! n = Task.awaitJ task
       return! loop n
   }
-  do Job.Now.run (Array.create n (loop numOps) |> Job.parIgnore)
+  do run (Array.create n (loop numOps) |> Job.parIgnore)
   let d = timer.Elapsed
   let m = sprintf "Hopac: %d*%d %fs - %f ops/s\n"
            numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
