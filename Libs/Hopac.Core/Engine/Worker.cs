@@ -34,7 +34,13 @@ namespace Hopac.Core {
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(ref Worker wr, Work work) {
-      Debug.Assert(null == work.Next);
+      Push(ref wr, work, work);
+    }
+
+    /// Internal implementation detail.
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Push(ref Worker wr, Work work, Work last) {
+      Debug.Assert(null == last.Next);
       var older = wr.WorkStack;
       wr.WorkStack = work;
       if (null != older)
@@ -44,7 +50,7 @@ namespace Hopac.Core {
       if (0 <= Scheduler.Waiters) // null == Scheduler.WorkStack)
         goto MaybePushToScheduler;
     Contention:
-      work.Next = older;
+      last.Next = older;
     Exit:
       return;
 
@@ -56,7 +62,7 @@ namespace Hopac.Core {
       if (null == Scheduler.WorkStack)
         goto PushToScheduler;
       SpinlockTTAS.Exit(ref Scheduler.Lock);
-      work.Next = older;
+      last.Next = older;
       return;
 
     PushToScheduler:

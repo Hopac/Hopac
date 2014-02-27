@@ -34,9 +34,6 @@ module Util =
     override self.DoCont (wr, x) =
      wr.Handler <- yK
      (x2yJ x).DoJob (&wr, yK)
-    override self.TryNext (wr, i, pk) =
-     wr.Handler <- yK // XXX
-     yK.TryNext (&wr, i, pk)
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -119,7 +116,7 @@ module Alt =
   let never () =
     {new Alt<'x> () with
       override self.DoJob (wr, _) = ()
-      override self.TryAlt (wr, i, pk, aK) = aK.TryNext (&wr, i, pk)}
+      override self.TryAlt (wr, i, pk, aK, aE) = aE.TryElse (&wr, i, pk, aK)}
 
   let inline GuardJobCont (xK: Cont<'x>) =
     {new Cont<Alt<'x>> () with
@@ -131,119 +128,121 @@ module Alt =
     {new Alt<'x>() with
       override self.DoJob (wr, xK) =
        xAJ.DoJob (&wr, GuardJobCont xK)
-      override self.TryAlt (wr, i, pk, xK) =
+      override self.TryAlt (wr, i, pk, xK, xE) =
        xAJ.DoJob (&wr, {new Cont<_>() with
         override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-        override self.DoWork (wr) = self.Value.TryAlt (&wr, i, pk, xK)
-        override self.DoCont (wr, xA) = xA.TryAlt (&wr, i, pk, xK)})}
+        override self.DoWork (wr) = self.Value.TryAlt (&wr, i, pk, xK, xE)
+        override self.DoCont (wr, xA) = xA.TryAlt (&wr, i, pk, xK, xE)})}
 
   let delay (u2xA: unit -> Alt<'x>) =
     {new Alt<'x>() with
       override self.DoJob (wr, xK) = (u2xA ()).DoJob (&wr, xK)
-      override self.TryAlt (wr, i, pk, xK) = (u2xA ()).TryAlt (&wr, i, pk, xK)}
+      override self.TryAlt (wr, i, pk, xK, xE) = (u2xA ()).TryAlt (&wr, i, pk, xK, xE)}
 
   let inline pick (xA: Alt<'x>) : Job<'x> =
     xA :> Job<'x>
 
-  let WithNackCont (pk: Pick, xK: Cont<'x>) =
+  let WithNackCont (pk: Pick, xK: Cont<'x>, xE: Else<'x>) =
     {new Cont<Alt<'x>> () with
       override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-      override self.DoCont (wr, xE) =
+      override self.DoCont (wr, xA) =
        let nk = pk.Nacks;
-       xE.TryAlt (&wr, nk.I0, pk, {new Cont<_>() with
-        override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-        override self.DoWork (wr) = xK.DoCont (&wr, self.Value)
-        override self.DoCont (wr, x) = xK.DoCont (&wr, x)
-        override self.TryNext (wr, i, pk) =
+       xA.TryAlt (&wr, nk.I0, pk, xK, {new Else<_>() with
+        override self.TryElse (wr, i, pk, xK) =
          nk.I1 <- i
-         xK.TryNext (&wr, i, pk)})}
+         xE.TryElse (&wr, i, pk, xK)})}
 
   let withNack (nack2xAJ: Alt<unit> -> Job<Alt<'x>>) : Alt<'x> =
     {new Alt<'x>() with
       override self.DoJob (wr, xK) =
        (nack2xAJ (never ())).DoJob (&wr, GuardJobCont xK)
-      override self.TryAlt (wr, i, pk, xK) =
+      override self.TryAlt (wr, i, pk, xK, xE) =
        match Pick.AddNack (pk, i) with
         | null -> ()
-        | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (pk, xK))}
+        | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (pk, xK, xE))}
 
   module Infixes =
-    type ChoiceCont<'x> (xA2: Alt<'x>, xK: Cont<'x>) =
-      inherit Cont<'x> ()
-      override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-      override self.DoWork (wr) = xK.DoCont (&wr, self.Value)
-      override self.DoCont (wr, x) = xK.DoCont (&wr, x) 
-      override self.TryNext (wr, i, pk) = xA2.TryAlt (&wr, i, pk, xK)
-
     let (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
-      {new Alt<_>() with
+      {new Alt<'x>() with
         override self.DoJob (wr, xK) =
-         xA1.TryAlt (&wr, 0, Pick (), ChoiceCont (xA2, xK))
-        override self.TryAlt (wr, i, pk, xK) =
-         xA1.TryAlt (&wr, i, pk, ChoiceCont (xA2, xK))}
+         xA1.TryAlt (&wr, 0, Pick (), xK, {new Else_State<'x, _> (xA2) with
+          override self.TryElse (wr, i, pk, xK) =
+           match self.State with
+            | null -> ()
+            | xA2 ->
+              self.State <- null
+              xA2.TryAlt (&wr, i, pk, xK, self)})
+        override self.TryAlt (wr, i, pk, xK, xE) =
+         xA1.TryAlt (&wr, i, pk, xK, {new Else<'x> () with
+          override self.TryElse (wr, i, pk, xK) =
+           xA2.TryAlt (&wr, i, pk, xK, xE)})}
 
     let inline MapCont (x2y: 'x -> 'y, yK: Cont<'y>) =
       {new Cont<'x> () with
         override self.DoHandle (wr, e) = yK.DoHandle (&wr, e)
         override self.DoWork (wr) = yK.DoCont (&wr, x2y self.Value)
-        override self.DoCont (wr, x) = yK.DoCont (&wr, x2y x)
-        override self.TryNext (wr, i, pk) = yK.TryNext (&wr, i, pk)}
+        override self.DoCont (wr, x) = yK.DoCont (&wr, x2y x)}
 
     let (>->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new Alt<_>() with
         override self.DoJob (wr, yK) =
          xA.DoJob (&wr, MapCont (x2y, yK))
-        override self.TryAlt (wr, i, pk, yK) =
-         xA.TryAlt (&wr, i, pk, MapCont (x2y, yK))}
+        override self.TryAlt (wr, i, pk, yK, yE) =
+         xA.TryAlt (&wr, i, pk, MapCont (x2y, yK), {new Else<'x> () with
+          override self.TryElse (wr, i, pk, _) =
+           yE.TryElse (&wr, i, pk, yK)})}
 
     let inline BindCont (x2yJ: 'x -> Job<'y>, yK: Cont<'y>) =
       {new Cont<'x> () with
         override self.DoHandle (wr, e) = yK.DoHandle (&wr, e)
         override self.DoWork (wr) = (x2yJ self.Value).DoJob (&wr, yK)
-        override self.DoCont (wr, x) = (x2yJ x).DoJob (&wr, yK)
-        override self.TryNext (wr, i, pk) = yK.TryNext (&wr, i, pk)}
+        override self.DoCont (wr, x) = (x2yJ x).DoJob (&wr, yK)}
 
     let (>=>) (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) =
       {new Alt<_>() with
         override self.DoJob (wr, yK) =
          xA.DoJob (&wr, BindCont (x2yJ, yK))
-        override self.TryAlt (wr, i, pk, yK) =
-         xA.TryAlt (&wr, i, pk, BindCont (x2yJ, yK))}
-
-  type ChooseCont<'x> (xAs: System.Collections.Generic.IEnumerator<Alt<'x>>, xK: Cont<'x>) =
-    inherit Cont<'x> ()
-    override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-    override self.DoWork (wr) = xK.DoCont (&wr, self.Value)
-    override self.DoCont (wr, x) = xK.DoCont (&wr, x)
-    override self.TryNext (wr, i, pk) =
-     if xAs.MoveNext () then
-       xAs.Current.TryAlt (&wr, i, pk, self)
-     else
-       xK.TryNext (&wr, i, pk)
+        override self.TryAlt (wr, i, pk, yK, yE) =
+         xA.TryAlt (&wr, i, pk, BindCont (x2yJ, yK), {new Else<'x> () with
+          override self.TryElse (wr, i, pk, _) =
+           yE.TryElse (&wr, i, pk, yK)})}
 
   let choose (xAs: seq<Alt<'x>>) : Alt<'x> =
-    {new Alt<_>() with
+    {new Alt<'x>() with
       override self.DoJob (wr, xK) =
        let xAs = xAs.GetEnumerator ()
        if xAs.MoveNext () then
-         xAs.Current.TryAlt (&wr, 0, Pick (), ChooseCont (xAs, xK))
-      override self.TryAlt (wr, i, pk, xK) =
+         xAs.Current.TryAlt (&wr, 0, Pick (), xK, {new Else<'x> () with
+          override self.TryElse (wr, i, pk, xK) =
+           if xAs.MoveNext () then
+             xAs.Current.TryAlt (&wr, i, pk, xK, self)})
+      override self.TryAlt (wr, i, pk, xK, xE) =
        let xAs = xAs.GetEnumerator ()
        if xAs.MoveNext () then
-         xAs.Current.TryAlt (&wr, i, pk, ChooseCont (xAs, xK))
+         xAs.Current.TryAlt (&wr, i, pk, xK, {new Else<'x> () with
+          override self.TryElse (wr, i, pk, xK) =
+           if xAs.MoveNext () then
+             xAs.Current.TryAlt (&wr, i, pk, xK, self)
+           else
+             xE.TryElse (&wr, i, pk, xK)})
        else
-         xK.TryNext (&wr, i, pk)}
+         xE.TryElse (&wr, i, pk, xK)}
+
+  let select xAs = choose xAs :> Job<'a>
 
   let tryIn (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) (e2yJ: exn -> Job<'y>) : Alt<'y> =
-    {new Alt<_>() with
+    {new Alt<'y>() with
       override self.DoJob (wr, yK) =
        let xK = TryInCont (x2yJ, e2yJ, yK)
        wr.Handler <- xK
        xA.DoJob (&wr, xK)
-      override self.TryAlt (wr, i, pk, yK) =
+      override self.TryAlt (wr, i, pk, yK, yE) =
        let xK = TryInCont (x2yJ, e2yJ, yK)
        wr.Handler <- xK
-       xA.TryAlt (&wr, i, pk, xK)}
+       xA.TryAlt (&wr, i, pk, xK, {new Else<'x> () with
+        override self.TryElse (wr, i, pk, _) =
+         wr.Handler <- yK
+         yE.TryElse (&wr, i, pk, yK)})}
 
   type [<AllowNullLiteral>] WorkTimedUnitCont =
     inherit WorkTimed
@@ -257,14 +256,14 @@ module Alt =
     if ms < 0L || 2147483647L < ms then
       failwith "TimeSpan out of allowed range"
     let ms = int ms
-    {new Alt<_>() with
+    {new Alt<unit>() with
       override self.DoJob (wr, uK) =
        Scheduler.SynchronizedPushTimed
         (&wr, WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
-      override self.TryAlt (wr, i, pk, uK) =
+      override self.TryAlt (wr, i, pk, uK, uE) =
        Scheduler.SynchronizedPushTimed
         (&wr, WorkTimedUnitCont (Environment.TickCount + ms, i, pk, uK))
-       uK.TryNext (&wr, i+1, pk)}
+       uE.TryElse (&wr, i+1, pk, uK)}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -927,7 +926,7 @@ module Extensions =
 open Extensions
 open Job.Infixes
 
-type [<Sealed>] JobBuilder () =
+type JobBuilder () =
   member inline x.Bind (aJ: Job<'a>, a2bJ: 'a -> Job<'b>) : Job<'b> =
     aJ >>= a2bJ
   member inline x.Combine (uJ: Job<unit>, aJ: Job<'a>) : Job<'a> = uJ >>. aJ

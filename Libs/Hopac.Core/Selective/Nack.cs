@@ -45,7 +45,7 @@ namespace Hopac.Core {
     }
 
     /// <summary>Internal implementation detail.</summary>
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK) {
+    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
     Spin:
       var state = this.State;
       if (state > Initial) goto TryPick;
@@ -54,7 +54,7 @@ namespace Hopac.Core {
 
       WaitQueue.AddTaker(ref this.Takers, i, pkSelf, uK);
       this.State = Initial;
-      uK.TryNext(ref wr, i + 1, pkSelf);
+      uE.TryElse(ref wr, i + 1, pkSelf, uK);
       return;
 
     TryPick:

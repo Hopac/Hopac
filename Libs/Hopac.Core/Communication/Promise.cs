@@ -81,7 +81,7 @@ namespace Hopac {
     }
 
     /// Internal implementation detail.
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK) {
+    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
     Spin:
       var state = this.State;
       if (state < Running) goto Completed;
@@ -102,13 +102,13 @@ namespace Hopac {
       this.State = Running;
 
       Worker.Push(ref wr, job);
-      aK.TryNext(ref wr, i + 1, pkSelf);
+      aE.TryElse(ref wr, i + 1, pkSelf, aK);
       return;
 
     Running:
       WaitQueue.AddTaker(ref this.Readers, i, pkSelf, aK);
       this.State = Running;
-      aK.TryNext(ref wr, i + 1, pkSelf);
+      aE.TryElse(ref wr, i + 1, pkSelf, aK);
       return;
 
     Completed:

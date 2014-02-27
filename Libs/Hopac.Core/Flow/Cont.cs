@@ -21,9 +21,6 @@ namespace Hopac {
 
     /// Internal implementation detail.
     internal abstract void DoCont(ref Worker wr, T value);
-
-    /// Internal implementation detail.
-    internal virtual void TryNext(ref Worker wr, int i, Pick pk) { }
   }
 
   namespace Core {

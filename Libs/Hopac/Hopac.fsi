@@ -8,7 +8,7 @@ open System
 
 /// Expression builder type for jobs.  Note that the Job module provides
 /// more combinators for building jobs.
-type [<Sealed>] JobBuilder =
+type JobBuilder =
   new : unit -> JobBuilder
   member inline Bind: Job<'a> * ('a -> Job<'b>) -> Job<'b>
   member inline Combine: Job<unit> * Job<'a> -> Job<'a>
@@ -254,6 +254,9 @@ module Alt =
   /// "delay (fun () -> Seq.foldBack (<|>) alts never)", given Seq.foldBack
   /// with the obvious meaning.
   val choose: seq<Alt<'a>> -> Alt<'a>
+
+  /// "select xAs" is equivalent to "pick (choose xJs)".
+  val select: seq<Alt<'a>> -> Job<'a>
 
   ///////////////////////////////////////////////////////////////////////
 

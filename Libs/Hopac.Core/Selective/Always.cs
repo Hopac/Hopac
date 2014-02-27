@@ -19,7 +19,7 @@ namespace Hopac.Core {
     }
 
     /// Internal implementation detail.
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK) {
+    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
     TryPick:
       var stSelf = Pick.TryPick(pkSelf);
       if (stSelf > 0) goto AlreadyPicked;
@@ -27,7 +27,7 @@ namespace Hopac.Core {
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
-      aK.DoCont(ref wr, this.value);
+      xK.DoCont(ref wr, this.value);
 
     AlreadyPicked:
       return;

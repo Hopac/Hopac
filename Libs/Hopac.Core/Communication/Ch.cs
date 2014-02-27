@@ -52,7 +52,7 @@ namespace Hopac {
     }
 
     /// Internal implementation detail.
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK) {
+    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
       this.Lock.Enter();
       var tail = this.Givers;
       if (null == tail) goto TryTaker;
@@ -86,9 +86,9 @@ namespace Hopac {
       }
       Pick.SetNacks(ref wr, i, pkSelf);
       var uK = giver.Cont;
-      uK.Next = null;
-      Worker.Push(ref wr, uK);
-      xK.DoCont(ref wr, giver.Value);
+      uK.Next = xK;
+      xK.Value = giver.Value;
+      Worker.Push(ref wr, uK, xK);
       return;
 
     BackOff:
@@ -110,7 +110,7 @@ namespace Hopac {
     TryTaker:
       WaitQueue.AddTaker(ref this.Takers, i, pkSelf, xK);
       this.Lock.Exit();
-      xK.TryNext(ref wr, i + 1, pkSelf);
+      xE.TryElse(ref wr, i + 1, pkSelf, xK);
       return;
 
     SelfAlreadyPicked:
@@ -180,7 +180,7 @@ namespace Hopac {
       }
 
       /// Internal implementation detail.
-      internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK) {
+      internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
         var ch = this.Ch;
         ch.Lock.Enter();
         var tail = ch.Takers;
@@ -207,19 +207,16 @@ namespace Hopac {
         if (stSelf > 0) goto SelfAlreadyPicked;
         if (stSelf < 0) goto BackOff;
 
-        //GotTaker:
         WaitQueue.ReplaceRange(ref ch.Takers, taker, cache);
         ch.Lock.Exit();
         if (null != pkOther) {
           Pick.PickClaimed(pkOther);
           Pick.SetNacks(ref wr, me, pkOther);
-          //taker = (taker as Taker<T>).Cont;
         }
         Pick.SetNacks(ref wr, i, pkSelf);
         taker.Value = this.X;
-        taker.Next = null;
-        Worker.Push(ref wr, taker);
-        uK.DoCont(ref wr, null);
+        taker.Next = uK;
+        Worker.Push(ref wr, taker, uK);
         return;
 
       BackOff:
@@ -241,7 +238,7 @@ namespace Hopac {
       TryGiver:
         WaitQueue.AddGiver(ref ch.Givers, this.X, i, pkSelf, uK);
         ch.Lock.Exit();
-        uK.TryNext(ref wr, i + 1, pkSelf);
+        uE.TryElse(ref wr, i + 1, pkSelf, uK);
         return;
 
       SelfAlreadyPicked:
