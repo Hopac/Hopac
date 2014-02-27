@@ -220,9 +220,9 @@ created by programmers.  Those building blocks can be seen as black boxes that
 have some inputs, outputs and have some interesting behaviour mapping the inputs
 to outputs.
 
-On the Wikipedia page on [UnrealEd]((http://en.wikipedia.org/wiki/UnrealEd))
-there is a screenshot of a simple system built using Kismet.  Take a moment to
-look at the screenshot:
+On the Wikipedia page on [UnrealEd](http://en.wikipedia.org/wiki/UnrealEd) there
+is a screenshot of a simple system built using Kismet.  Take a moment to look at
+the screenshot:
 [Roboblitz](http://upload.wikimedia.org/wikipedia/en/e/e6/Kismet_Roboblitz.PNG).
 As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
 **Delay**, and **Matinee** that have some inputs, outputs and some behaviour.
@@ -230,15 +230,16 @@ As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
 Kismet, UnrealScript and Unreal Engine, in general, have semantics that have
 been designed for making games.  In fact, I've never actually programmed in
 UnrealScript or used Kismet, but a curious mind might wonder how could black
-boxes like that could be implemented?
+boxes like that could be implemented?  Could we build something similar using
+Hopac?
 
 Let's first consider the **Compare Bool** box.  Looking at the screenshot and
 making an educated guess, it seems to define an input event **In** and two
 output events **True** and **False** and it also seems to a **Bool** value as a
-kind of configuration.  It would seem that idea is that when the box receives
-the *In* event, it signals either the **True** or the **False** event depending
-on the current **Bool** value.  Something like that can be quite concisely
-expressed a Hopac job:
+kind of configuration.  It would seem that the idea is that when the box
+receives the **In** event, it signals either the **True** or the **False** event
+depending on the current **Bool** value.  Something like that can be quite
+concisely expressed a Hopac job:
 
 ```fsharp
 let CompareBool (comparand: ref<bool>)
@@ -321,11 +322,11 @@ let Sink inCh = Job.forever (Ch.take inCh)
 
 Now, games often have their own specific notion of time, different from
 wall-clock time, which means that for programming games, the sketched
-implementation of **Delay** would not give the desired meaning of time for
-programming games.  Also, the way variables are represented as mutable ref cells
-is a bit naive.  In a real system, one would probably also want to specify boxes
-using
+implementation of **Delay** would not give the desired meaning of time.  (But
+you can certainly implement a notion of time more suitable for gameson top of
+Hopac.)  Also, the way variables are represented as mutable ref cells is a bit
+naive.  In a real system, one would probably also want to specify boxes using
 [directional channels](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac.Extra/DirCh.fsi),
 which would allow an editor to automatically understand input-output
-relationships.  Hopefully this sketch has given you something interesting to
-think about.
+relationships.  Unrealistic as it may be, this sketch has hopefully given you
+something interesting to think about!
