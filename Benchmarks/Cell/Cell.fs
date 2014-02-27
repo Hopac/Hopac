@@ -2,13 +2,14 @@
 
 open Hopac
 open Hopac.Job.Infixes
+open Hopac.Alt.Infixes
 open Hopac.Extensions
 open System
 open System.IO
 open System.Diagnostics
 open System.Threading.Tasks
 
-module HopacCell =
+module HopacReq =
   type Request<'a> =
    | Get
    | Put of 'a
@@ -24,18 +25,58 @@ module HopacCell =
   let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
 
   let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
-    let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()} // 32 + 2 * 40 = 112 bytes
+    let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
     let rec server c x =
-      Ch.take c.reqCh >>= function // + 32 + 16 + 32 = 192 bytes
+      Ch.take c.reqCh >>= function
        | Get ->
          Ch.give c.replyCh x >>.
          server c x
        | Put x ->
          server c x
-    Job.start (server c x) >>% c // + 32 = 224 bytes total for the cell server (64-bit).  That could be reduced a bit by inlining >>=.
+    Job.start (server c x) >>% c
 
   let run nCells nJobs nUpdates =
-    printf "Hopac: "
+    printf "HopacReq: "
+    let timer = Stopwatch.StartNew ()
+    let cells = Array.zeroCreate nCells
+    let before = GC.GetTotalMemory true
+    Job.Now.run <| job {
+      do! Job.forUpTo 0 (nCells-1) <| fun i ->
+            create i |>> fun cell -> cells.[i] <- cell
+      do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
+      return!
+        seq {1 .. nJobs}
+        |> Seq.map (fun _ ->
+           let rnd = Random ()
+           Job.forUpTo 1 nUpdates <| fun _ ->
+             let c = rnd.Next (0, nCells)
+             get cells.[c] >>= fun x ->
+             put cells.[c] (x+1))
+        |> Job.parIgnore
+    }
+    let d = timer.Elapsed
+    let m = sprintf "%8.5f s to %d c * %d p * %d u\n"
+             d.TotalSeconds nCells nJobs nUpdates
+    printf "%s" m
+
+module HopacAlt =
+  type Cell<'a> = {
+    getCh: Ch<'a>
+    putCh: Ch<'a>
+  }
+
+  let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
+  let put (c: Cell<'a>) (x: 'a) : Job<unit> = Ch.give c.putCh x
+
+  let create x = Job.delay <| fun () ->
+    let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
+    let rec server c x =
+      Alt.pick ((Ch.Alt.take c.putCh   >=> fun x -> server c x)
+            <|> (Ch.Alt.give c.getCh x >=> fun () -> server c x))
+    Job.start (server c x) >>% c
+
+  let run nCells nJobs nUpdates =
+    printf "HopacAlt: "
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
@@ -83,7 +124,7 @@ module AsyncCell =
   let get (c: Cell<'a>) : Async<'a> = c.PostAndAsyncReply Get
 
   let run nCells nJobs nUpdates =
-    printf "Async: "
+    printf "Async:    "
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
@@ -115,13 +156,15 @@ let tick () =
     Threading.Thread.Sleep 50
 
 let test m n p =
-  HopacCell.run m n p ; tick ()
+  HopacReq.run m n p ; tick ()
+  HopacAlt.run m n p ; tick ()
   AsyncCell.run m n p ; tick ()
 
 do tick ()
    test 10 10 10
    test 100 100 100
    test 1000 1000 1000
+   test 10 10 1000000
    test 1000 1000 10000
    test 10000 1000 1000
    test 1000 10000 1000
