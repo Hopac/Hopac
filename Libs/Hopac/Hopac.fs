@@ -951,3 +951,4 @@ type JobBuilder () =
 [<AutoOpen>]
 module TopLevel =
   let job = JobBuilder ()
+  let inline run x = Job.Now.run x
