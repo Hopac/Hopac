@@ -97,8 +97,9 @@ ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-n
 [John Reppy](http://people.cs.uchicago.edu/~jhr/) presents as the first
 programming example an implementation of updatable storage cells using
 Concurrent ML channels and threads.  While this example is not exactly something
-that one would do in practise, it does a fairly nice job of illustrating some
-core aspects of Concurrent ML.  So, let's reproduce the same example with Hopac.
+that one would do in practise, because F# lready provides ref cells, it does a
+fairly nice job of illustrating some core aspects of Concurrent ML.  So, let's
+reproduce the same example with Hopac.
 
 Here is the signature for our updatable storage cells:
 
@@ -179,6 +180,19 @@ current value of the cell on the reply channel and then loops to take another
 request.  When the server receives a **Put** request, the server loops with the
 new value to take another request.
 
+Here is sample output of an interactive session using a cell: 
+
+```fsharp
+> let c = run (cell 1) ;;
+val c : Cell<int> = ...
+> run (get c) ;;
+val it : int = 1
+> run (put c 2) ;;
+val it : unit = ()
+> run (get c) ;;
+val it : int = 2
+```
+
 Inspired by this example there is benchmark program, named
 [Cell](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Cell), that
 creates large numbers of cells and large numbers of jobs running in parallel
@@ -186,7 +200,8 @@ that perform updates on randomly chosen cells.  While the benchmark program is
 not terribly exciting, it nicely substantiates the claims made in the first
 section about the lightweight nature of Hopac jobs and channels.
 
-
+Example: Kismet
+---------------
 
 
 
