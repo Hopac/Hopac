@@ -258,6 +258,12 @@ As you can see above, I've used **delay** only once and if you count the number
 of words and lines, you'll find out that that the code is more concise.  I
 personally find the monadic code roughly as readable as the workflow notation.
 
+**Exercise:** As an alternative to having two preallocated channels **reqCh**
+and **replyCh** one could also make it so that the reply channel required by a
+**get** operation allocates a new channel for the reply and passes it to the
+server.  Change the implementation to use this technique.  Explain what
+performance advantages and disadvantages such an implementation might have?
+
 Example: Storage Cells Using Alternatives
 -----------------------------------------
 
@@ -350,6 +356,14 @@ creates large numbers of cells and large numbers of jobs running in parallel
 that perform updates on randomly chosen cells.  While the benchmark program is
 not terribly exciting, it nicely substantiates the claims made in the first
 section about the lightweight nature of Hopac jobs and channels.
+
+**Exercise:** It may seem odd that two bidirectional channels are needed to
+implement the protocol.  Couldn't we use just a single channel and change the
+server loop to give and take on that single channel.  Note that this is allowed
+in Hopac and poses no problem.  A job cannot send itself a message using a
+channel in a single synchronous operation.  Explain what would go wrong if there
+was only one channel instead of separate **getCh** and **putCh** channels.
+Hint: Consider a situation with multiple clients.
 
 Example: Kismet
 ---------------
