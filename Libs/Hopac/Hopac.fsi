@@ -30,7 +30,7 @@ module TopLevel =
   /// Default expression builder for jobs.
   val job: JobBuilder
 
-  /// Convenience binding for running Hopac jobs.  This is same as function
+  /// Convenience binding for running Hopac jobs.  This is the same function
   /// as Job.Now.run.
   val inline run: Job<'a> -> 'a
 
