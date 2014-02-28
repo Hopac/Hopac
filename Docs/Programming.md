@@ -207,13 +207,6 @@ val it : unit = ()
 val it : int = 2
 ```
 
-Inspired by this example there is benchmark program, named
-[Cell](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Cell), that
-creates large numbers of cells and large numbers of jobs running in parallel
-that perform updates on randomly chosen cells.  While the benchmark program is
-not terribly exciting, it nicely substantiates the claims made in the first
-section about the lightweight nature of Hopac jobs and channels.
-
 On Notation
 -----------
 
@@ -227,7 +220,7 @@ excursion with the workflow notation.  I have a number of reasons for this:
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
 * There are many very commonly used monadic combinators, e.g. **|>>** and
-  **>>&amp;**, that do not have a corresponding workflow builder function and
+  **>>%**, that do not have a corresponding workflow builder function and
   notation and use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary **delay**
   operations the workflow notation introduces for safety reasons.
@@ -251,19 +244,112 @@ let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
 
 let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
   let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
-  let rec server c x =
+  let rec server x =
     Ch.take c.reqCh >>= function
      | Get ->
        Ch.give c.replyCh x >>.
-       server c x
+       server x
      | Put x ->
-       server c x
-  Job.start (server c x) >>% c
+       server x
+  Job.start (server x) >>% c
 ```
 
 As you can see above, I've used **delay** only once and if you count the number
 of words and lines, you'll find out that that the code is more concise.  I
 personally find the monadic code roughly as readable as the workflow notation.
+
+Example: Storage Cells Using Alternatives
+-----------------------------------------
+
+The updatable storage cells in the previous section were built using only
+channels and jobs.  In order to allow for the two different kind of requests,
+**Get** and **Put**, the union type **Request** and pattern matching were used.
+In this section we look at an alternative implementation of storage cells using
+selective communication.
+
+As a remainder, here is the abstract signature that we'd like to implement:
+
+```fsharp
+type Cell<'a>
+val cell: 'a -> Job<Cell<'a>>
+val get: Cell<'a> -> Job<'a>
+val put: Cell<'a> -> 'a -> Job<unit>
+```
+
+The idea for this implementation is that the server loop of storage cells
+creates an alternative that either takes a new value on a channel for **put**
+operations or gives the current value on a channel for **get** operations.  The
+cell type just consists of these channels:
+
+```fsharp
+type Cell<'a> = {
+  getCh: Ch<'a>
+  putCh: Ch<'a>
+}
+```
+
+The **get** operation then simply takes a value on the **getCh** channel from
+the server of a cell:
+
+```fsharp
+let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
+```
+
+And the **put** operations gives a value to the server on the **putCh** channel
+of the cell server:
+
+```fsharp
+let put (c: Cell<'a>) (x: 'a) : Job<unit> = Ch.give c.putCh x
+```
+
+The **cell** constructor then creates the channels and starts the server loop:
+
+```fsharp
+let cell x = Job.delay <| fun () ->
+  let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
+  let rec server x =
+    Alt.pick ((Ch.Alt.take c.putCh   >=> server)
+          <|> (Ch.Alt.give c.getCh x >=> fun () -> server x))
+  Job.start (server x) >>% c
+```
+
+In the server loop, the above implementation uses selective communication.  It
+creates a combined alternative, using the binary choice combinator
+**&lt;|&gt;**, of two primitive alternatives:
+
+* The first alternative takes a value on the **putCh** channel from a client and
+  then loops.
+* The second alternative gives a value on the **getCh** channel to a client and
+  the loops.
+
+The combined alternative is then instantiated using **pick**.  This means that
+the server makes an offer to perform the alternatives.  Of the two offered
+alternatives, the alternative that becomes available for picking first will then
+be committed to.  The other offer will be withdrawn.
+
+This pattern of carrying some value from one iteration of a server loop to the
+next is common enough that there is a combinator **iterate** for that purpose.
+Using **iterate** we would write:
+
+```fsharp
+let cell x = Job.delay <| fun () ->
+  let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
+  Job.start
+   (Job.iterate x (fun x ->
+      Alt.pick ((Ch.Alt.take c.putCh)
+            <|> (Ch.Alt.give c.getCh x >-> fun () -> x)))) >>% c
+```
+
+At this point you might want to try out the snippets of code from this section
+in the F# interactive and verify that the alternative implementation of cells
+works the same way as the previous version.
+
+Inspired by these cell examples there is benchmark program, named
+[Cell](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Cell), that
+creates large numbers of cells and large numbers of jobs running in parallel
+that perform updates on randomly chosen cells.  While the benchmark program is
+not terribly exciting, it nicely substantiates the claims made in the first
+section about the lightweight nature of Hopac jobs and channels.
 
 Example: Kismet
 ---------------
