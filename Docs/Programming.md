@@ -67,7 +67,7 @@ On Memory Usage
 
 An important property of Hopac jobs and synchronous channels is that a system
 that consist of **m** jobs that communicate with each other using **n**
-synchronous channels (and no other primitives) requires **Theta(m + n)** space
+synchronous channels (and no other primitives) requires **&Theta;(m + n)** space
 for the jobs and channels.
 
 That may sound obvious, but many concurrent systems,
@@ -84,8 +84,8 @@ mechanism, like a procedure call, rather than a passive buffer for passing data
 between threads.  This property can make it easier to understand the behaviour
 of concurrent programs.
 
-Of course, the bound **Theta(m + n)** does not take into account space that the
-jobs otherwise accumulate in the form of data structures other than the
+Of course, the bound **&Theta;(m + n)** does not take into account space that
+the jobs otherwise accumulate in the form of data structures other than the
 synchronous channels.
 
 ### Garbage Collection
@@ -217,18 +217,18 @@ section about the lightweight nature of Hopac jobs and channels.
 On Notation
 -----------
 
-There are two ways to write jobs in Hopac.  One ways is to use the **job**
+There are two ways to write jobs in Hopac.  One way is to use the **job**
 workflow builder like we did in the previous section.  The other way is to
 directly use the monadic combinators that the workflow builder abstracts away.
 I personally mostly prefer using the monadic combinators with an occasional
 excursion with the workflow notation.  I have a number of reasons for this:
 
 * Using the combinators directly usually leads to more concise code.
-* I find that I often find it easier to understad the code when it is written
+* I find that I often find it easier to understand the code when it is written
   with the monadic combinators.
-* There are many monadic combinators, e.g. **|>>** that do not have a
-  corresponding workflow notation and use of those combinators leads to more
-  concise and faster code.
+* There are many very commonly used monadic combinators, e.g. **|>>** that do
+  not have a corresponding workflow builder function and notation and use of
+  those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary **delay**
   operations the workflow notation introduces for safety reasons.
 
@@ -263,8 +263,7 @@ let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
 
 As you can see above, I've used **delay** only once and if you count the number
 of words and lines, you'll find out that that the code is more concise.  I
-personally find that code roughly as readable as the versions using the workflow
-notation.
+personally find the monadic code roughly as readable as the workflow notation.
 
 Example: Kismet
 ---------------
@@ -272,7 +271,7 @@ Example: Kismet
 The updatable storage cell example in the previous sections may have seemed
 rather unrealistic.  The server job of a storage cell doesn't do much and it
 probably doesn't seem like something for which you'd even consider starting a
-separate thread---no matter how lightweight such a thread would be.  In this
+separate thread&mdash;no matter how lightweight such a thread would be.  In this
 section we'll sketch an example that might be a bit more compelling, although in
 a way it is also quite unreal.
 
