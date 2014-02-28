@@ -224,21 +224,21 @@ I personally mostly prefer using the monadic combinators with an occasional
 excursion with the workflow notation.  I have a number of reasons for this:
 
 * Using the combinators directly usually leads to more concise code.
-* I find that I often find it easier to understand the code when it is written
-  with the monadic combinators.
-* There are many very commonly used monadic combinators, e.g. **|>>** that do
-  not have a corresponding workflow builder function and notation and use of
-  those combinators leads to faster code.
+* I often find it easier to understand the code when it is written with the
+  monadic combinators.
+* There are many very commonly used monadic combinators, e.g. **|>>** and
+  **>>&amp;**, that do not have a corresponding workflow builder function and
+  notation and use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary **delay**
   operations the workflow notation introduces for safety reasons.
 
 I'm afraid that to fully explain all of these issues would require quite a bit
 of writing and I think that there are more interesting things to tell about
 Hopac, so I'll skip it for now.  In the remainder of this document I will be
-writing Hopac code in the way that I prefer to write it.  If you prefer to make
-more use of the workflow notation, you could consider it as an exercise to
-convert the examples to use the workflow notation.  If you do that, make sure
-that you properly retain tailcall properties of the original snippets.
+writing Hopac code in my preferred way.  If you prefer to make more use of the
+workflow notation, you could consider it as an exercise to convert the examples
+to use the workflow notation.  If you do that, make sure that you properly
+retain tailcall properties of the original snippets.
 
 Before we continue, I'd just like to show you the below rewrite of the updatable
 storage cells using those monadic combinators directly.
