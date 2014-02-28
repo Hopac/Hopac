@@ -373,9 +373,13 @@ module Job =
     {new Job<_>() with
       override self.DoJob (wr, bK) =
        (a2aJ a).DoJob (&wr, {new Cont<_>() with
-         override self.DoHandle (wr, e) = bK.DoHandle (&wr, e)
-         override self.DoWork (wr) = (a2aJ self.Value).DoJob (&wr, self)
-         override self.DoCont (wr, a) = (a2aJ a).DoJob (&wr, self)})}
+         override aK.DoHandle (wr, e) = bK.DoHandle (&wr, e)
+         override aK.DoWork (wr) =
+          aK.Next <- null
+          (a2aJ aK.Value).DoJob (&wr, aK)
+         override aK.DoCont (wr, a) =
+          aK.Next <- null
+          (a2aJ a).DoJob (&wr, aK)})}
 
   let whileDo (cond: unit -> bool) (body: Job<'a>) =
     {new Job<_>() with
