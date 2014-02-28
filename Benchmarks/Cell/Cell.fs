@@ -24,16 +24,13 @@ module HopacReq =
 
   let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
 
-  let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
+  let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
-    let rec server c x =
-      Ch.take c.reqCh >>= function
-       | Get ->
-         Ch.give c.replyCh x >>.
-         server c x
-       | Put x ->
-         server c x
-    Job.start (server c x) >>% c
+    Job.start
+     (Job.iterate x (fun x ->
+       Ch.take c.reqCh >>= function
+        | Get   -> Ch.give c.replyCh x >>% x
+        | Put x -> Job.result x)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacReq: "
@@ -42,7 +39,7 @@ module HopacReq =
     let before = GC.GetTotalMemory true
     run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
-            create i |>> fun cell -> cells.[i] <- cell
+            cell i |>> fun cell -> cells.[i] <- cell
       do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
       return!
         seq {1 .. nJobs}
@@ -68,12 +65,12 @@ module HopacAlt =
   let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
   let put (c: Cell<'a>) (x: 'a) : Job<unit> = Ch.give c.putCh x
 
-  let create x = Job.delay <| fun () ->
+  let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
-    let rec server c x =
-      Alt.pick ((Ch.Alt.take c.putCh   >=> fun x -> server c x)
-            <|> (Ch.Alt.give c.getCh x >=> fun () -> server c x))
-    Job.start (server c x) >>% c
+    Job.start
+     (Job.iterate x (fun x ->
+       Alt.pick ((Ch.Alt.take c.putCh)
+             <|> (Ch.Alt.give c.getCh x >-> fun () -> x)))) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "
@@ -82,7 +79,7 @@ module HopacAlt =
     let before = GC.GetTotalMemory true
     run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
-            create i |>> fun cell -> cells.[i] <- cell
+            cell i |>> fun cell -> cells.[i] <- cell
       do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
       return!
         seq {1 .. nJobs}
@@ -106,7 +103,7 @@ module AsyncCell =
 
   type Cell<'a> = MailboxProcessor<Request<'a>>
 
-  let create (x: 'a) : Cell<'a> = MailboxProcessor.Start <| fun inbox ->
+  let cell (x: 'a) : Cell<'a> = MailboxProcessor.Start <| fun inbox ->
     let rec server x = async {
       let! req = inbox.Receive ()
       match req with
@@ -129,7 +126,7 @@ module AsyncCell =
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
     for i=0 to nCells-1 do
-      cells.[i] <- create i
+      cells.[i] <- cell i
     printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
     seq {1 .. nJobs}
     |> Seq.map (fun _ -> async {
