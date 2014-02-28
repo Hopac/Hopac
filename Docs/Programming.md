@@ -2,12 +2,25 @@ Programming in Hopac
 ====================
 
 Hopac provides a programming model that is heavily inspired by
-[John Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.
+[John Reppy](http://people.cs.uchicago.edu/~jhr/)'s **Concurrent ML** language.
 The book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
 is the most comprehensive introduction to Concurrent ML style programming.  This
 document contains some discussion and examples on Hopac programming techniques.
 In the future, this document might grow to a proper introduction to Hopac.
+
+The
+[Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
+signature contains documentation comments on the Hopac primitives used in this
+document.  It is recommended that you open the Hopac solution in Visual Studio,
+or otherwise open Hopac.fsi in whatever editor or IDE you prefer (I'm writing
+this in [Emacs](http://www.gnu.org/software/emacs/)) and start the F#
+interactive shell so that you can look at the documentation comments and quickly
+try out examples from this document.  You can use the
+[Hopac.fsx](https://github.com/VesaKarvonen/Hopac/blob/master/Hopac.fsx) script
+to prepare an environment in which you should be able to directly evaluate
+example code from this document.
+
 
 The Hopac Programming Model
 ---------------------------
@@ -97,7 +110,7 @@ In the book
 [John Reppy](http://people.cs.uchicago.edu/~jhr/) presents as the first
 programming example an implementation of updatable storage cells using
 Concurrent ML channels and threads.  While this example is not exactly something
-that one would do in practise, because F# lready provides ref cells, it does a
+that one would do in practise, because F# already provides ref cells, it does a
 fairly nice job of illustrating some core aspects of Concurrent ML.  So, let's
 reproduce the same example with Hopac.
 
@@ -139,8 +152,9 @@ The **put** operation simply gives the **Put** request to the server via the
 request channel:
 
 ```fsharp
-let put (c: Cell<'a>) (x: 'a) : Job<unit> =
-  Ch.give c.reqCh (Put x)
+let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
+  return! Ch.give c.reqCh (Put x)
+}
 ```
 
 The **get** operation gives the **Get** request to the server via the request
@@ -200,13 +214,65 @@ that perform updates on randomly chosen cells.  While the benchmark program is
 not terribly exciting, it nicely substantiates the claims made in the first
 section about the lightweight nature of Hopac jobs and channels.
 
+On Notation
+-----------
+
+There are two ways to write jobs in Hopac.  One ways is to use the **job**
+workflow builder like we did in the previous section.  The other way is to
+directly use the monadic combinators that the workflow builder abstracts away.
+I personally mostly prefer using the monadic combinators with an occasional
+excursion with the workflow notation.  I have a number of reasons for this:
+
+* Using the combinators directly usually leads to more concise code.
+* I find that I often find it easier to understad the code when it is written
+  with the monadic combinators.
+* There are many monadic combinators, e.g. **|>>** that do not have a
+  corresponding workflow notation and use of those combinators leads to more
+  concise and faster code.
+* Using the combinators directly I can often avoid some unnecessary **delay**
+  operations the workflow notation introduces for safety reasons.
+
+I'm afraid that to fully explain all of these issues would require quite a bit
+of writing and I think that there are more interesting things to tell about
+Hopac, so I'll skip it for now.  In the remainder of this document I will be
+writing Hopac code in the way that I prefer to write it.  If you prefer to make
+more use of the workflow notation, you could consider it as an exercise to
+convert the examples to use the workflow notation.  If you do that, make sure
+that you properly retain tailcall properties of the original snippets.
+
+Before we continue, I'd just like to show you the below rewrite of the updatable
+storage cells using those monadic combinators directly.
+
+```fsharp
+let put (c: Cell<'a>) (x: 'a) : Job<unit> =
+  Ch.give c.reqCh (Put x)
+
+let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
+
+let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
+  let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
+  let rec server c x =
+    Ch.take c.reqCh >>= function
+     | Get ->
+       Ch.give c.replyCh x >>.
+       server c x
+     | Put x ->
+       server c x
+  Job.start (server c x) >>% c
+```
+
+As you can see above, I've used **delay** only once and if you count the number
+of words and lines, you'll find out that that the code is more concise.  I
+personally find that code roughly as readable as the versions using the workflow
+notation.
+
 Example: Kismet
 ---------------
 
-The updatable storage cell example in the previous section may have seemed
+The updatable storage cell example in the previous sections may have seemed
 rather unrealistic.  The server job of a storage cell doesn't do much and it
 probably doesn't seem like something for which you'd even consider starting a
-separate thread, no matter how lightweight such a thread would be.  In this
+separate thread---no matter how lightweight such a thread would be.  In this
 section we'll sketch an example that might be a bit more compelling, although in
 a way it is also quite unreal.
 
@@ -227,18 +293,19 @@ the screenshot:
 As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
 **Delay**, and **Matinee** that have some inputs, outputs and some behaviour.
 
-Kismet, UnrealScript and Unreal Engine, in general, have semantics that have
-been designed for making games.  In fact, I've never actually programmed in
-UnrealScript or used Kismet, but a curious mind might wonder how could black
-boxes like that be implemented?  Could we build something similar using Hopac?
+Kismet, UnrealScript and the Unreal Engine, in general, have components and
+semantics that have been designed for making games.  In fact, I've never
+actually programmed in UnrealScript or used Kismet, but a curious mind might
+wonder how could black boxes like that be implemented?  Could we build something
+similar using Hopac?
 
 Let's first consider the **Compare Bool** box.  Looking at the screenshot and
-making an educated guess, it seems to define an input event **In** and two
-output events **True** and **False** and it also seems to read a **Bool**
-variable.  It would seem that the idea is that when the box receives the **In**
-event, it signals either the **True** or the **False** event depending on the
-current value of the **Bool** variable.  Something like that can be quite
-concisely expressed a Hopac job:
+making an educated guess, it seems to have an input event **In** and two output
+events **True** and **False** and it also seems to read a **Bool** variable.  It
+would seem that the idea is that when the box receives the **In** event, it
+signals either the **True** or the **False** event depending on the current
+value of the **Bool** variable.  Something like that can be quite concisely
+expressed as a Hopac job:
 
 ```fsharp
 let CompareBool (comparand: ref<bool>)
@@ -258,12 +325,12 @@ doesn't care about the type of the signals being sent on the channels.  It just
 copies the received value **x** to the chosen output.
 
 Let's then consider the **Delay** box.  Making another educated guess and
-simplifying a bit, it takes as input events **Start** and **Stop** (I leave
-**Pause** as an exercise for the reader), output events **Finished** and
+simplifying a bit, it has two input events **Start** and **Stop** (I leave
+**Pause** as an exercise for the reader) and two output events **Finished** and
 **Aborted** and also a time value **Duration**.  It would seem that the idea is
 that when the box receives the **Start** event, it starts a timer that counts
 down for the specified **Duration** after which the **Finished** event is
-signaled.  Also, if during the countdown a **Stop** signal is received then the
+signaled.  Also, if during the countdown, a **Stop** signal is received then the
 **Aborted** signal is signaled instead.  Here is how something like that could
 be expressed as a Hopac job:
 
@@ -294,7 +361,7 @@ will then be committed to during runtime and the other will be discarded.
 Those previous snippets are just two of the necessary building blocks.  Assuming
 we would have all of the building blocks packaged in similar style, what remains
 is translation of the configuration specified in the screenshot into code.  Here
-is a small snippet of a sketch of how what the end result could look like:
+is a small snippet of a sketch of what the end result could look like:
 
 ```fsharp
 let ch_1 = Ch.Now.create ()
