@@ -15,7 +15,7 @@ let runHopac numOps n =
   let rec loop n = job {
     if 0 < n then
       let task = Task.Factory.StartNew (fun _ -> n-1)
-      let! n = Task.awaitJ task
+      let! n = Task.awaitJob task
       return! loop n
   }
   do run (Array.create n (loop numOps) |> Job.parIgnore)

@@ -49,7 +49,7 @@ module HopacMb =
               (Job.forever
                 (Mailbox.take mb |>> fun msg ->
                  if msg = max then ping.Set ()))
-         do! data |> Array.iterJ (fun i -> Mailbox.send mb i)
+         do! data |> Array.iterJob (fun i -> Mailbox.send mb i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -73,7 +73,7 @@ module HopacCh =
               (Job.forever
                 (Ch.take mb |>> fun msg ->
                  if msg = max then ping.Set ()))
-         do! data |> Array.iterJ (fun i -> Ch.give mb i)
+         do! data |> Array.iterJob (fun i -> Ch.give mb i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()

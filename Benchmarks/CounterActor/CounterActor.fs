@@ -49,7 +49,7 @@ let run numPerThread =
   let r = run <| job {
     let! actor = CounterActorChMsg.create
     do! seq {1 .. Environment.ProcessorCount}
-        |> Seq.Parallel.iterJ
+        |> Seq.Parallel.iterJob
             (fun _ -> Job.forN numPerThread (CounterActorChMsg.add actor 100L))
     return! CounterActorChMsg.getAndReset actor
   }

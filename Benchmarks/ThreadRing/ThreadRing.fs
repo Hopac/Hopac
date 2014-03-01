@@ -21,7 +21,7 @@ module Ch =
   let mkChain n finishCh = Job.delay <| fun () ->
     let ch0 = Ch.Now.create ()
     seq {1 .. n}
-    |> Seq.foldJ
+    |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else Ch.Now.create ()
            proc i chIn chOut finishCh |> Job.start >>%
@@ -37,10 +37,10 @@ module Ch =
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()
         ps
-        |> Seq.Parallel.iterJ (fun n ->
+        |> Seq.Parallel.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
            Ch.give ch m) >>= fun () ->
-        Seq.Parallel.mapJ (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+        Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     let m =
       sprintf "Ch: %f msgs/s - %dm/%fs - %A\n"
@@ -64,7 +64,7 @@ module Mailbox =
   let mkChain n finishCh = Job.delay <| fun () ->
     let ms0 = Mailbox.Now.create ()
     seq {1 .. n}
-    |> Seq.foldJ
+    |> Seq.foldJob
         (fun msIn i ->
            let msOut = if i=n then ms0 else Mailbox.Now.create ()
            proc i msIn msOut finishCh |> Job.start >>%
@@ -80,10 +80,10 @@ module Mailbox =
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()
         ps
-        |> Seq.Parallel.iterJ (fun n ->
+        |> Seq.Parallel.iterJob (fun n ->
            mkChain n finishCh >>= fun ms ->
            Mailbox.send ms m) >>= fun () ->
-        Seq.Parallel.mapJ (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+        Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     let m =
       sprintf "Mb: %f msgs/s - %dm/%fs - %A\n"

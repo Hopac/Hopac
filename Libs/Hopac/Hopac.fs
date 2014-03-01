@@ -599,6 +599,23 @@ module Job =
        else
          xsK.DoCont (&wr, xs)}
 
+  let seqIgnore (xJs: seq<Job<'x>>) : Job<unit> =
+    {new Job<_>() with
+      override self.DoJob (wr, uK) =
+       let xJs = xJs.GetEnumerator ()
+       let loop =
+         {new Cont<_>() with
+           override self.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+           override self.DoCont (wr, x) =
+            if xJs.MoveNext () then
+              xJs.Current.DoJob (&wr, self)
+            else
+              uK.DoCont (&wr, ())}
+       if xJs.MoveNext () then
+         xJs.Current.DoJob (&wr, loop)
+       else
+         uK.DoCont (&wr, ())}
+
   type [<Sealed>] ParCollect<'y> =
     inherit Handler
     val mutable Lock: SpinlockWithOwner
@@ -765,7 +782,11 @@ module MVar =
     MVarFill<'a>(v, x) :> Job<unit>
   let inline take (v: MVar<'a>) : Job<'a> =
     v :> Job<'a>
-  let inline modify x2xyJob v =
+  let inline modifyFun x2xy v =
+    take v >>= fun x ->
+    let (x, y) = x2xy x
+    fill v x >>% y
+  let inline modifyJob x2xyJob v =
     take v >>= x2xyJob >>= fun (x, y) ->
     fill v x >>% y
   module Alt =
@@ -778,7 +799,7 @@ module Extensions =
   open Job
 
   module Array =
-    let mapJ (x2yJ: 'x -> Job<'y>) (xs: array<'x>) =
+    let mapJob (x2yJ: 'x -> Job<'y>) (xs: array<'x>) =
       {new Job<_>() with
         override self.DoJob (wr, ysK) =
          if 0 < xs.Length then
@@ -799,7 +820,7 @@ module Extensions =
          else
            ysK.DoCont (&wr, [||])}
 
-    let iterJ (x2yJ: 'a -> Job<'b>) (xs: array<'a>) =
+    let iterJob (x2yJ: 'a -> Job<'b>) (xs: array<'a>) =
       {new Job<_>() with
         override self.DoJob (wr, uK) =
           let loop =
@@ -817,7 +838,7 @@ module Extensions =
           loop.DoWork (&wr)}
 
   module Seq =
-    let iterJ (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) =
+    let iterJob (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) =
       {new Job<_>() with
         override self.DoJob (wr, uK) =
          let xs = xs.GetEnumerator ()
@@ -832,7 +853,7 @@ module Extensions =
                  uK.DoCont (&wr, ())}
          loop.DoWork (&wr)}
 
-    let mapJ (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
+    let mapJob (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
       {new Job<seq<'y>>() with
         override self.DoJob (wr, ysK) =
          let xs = xs.GetEnumerator ()
@@ -851,7 +872,7 @@ module Extensions =
          else
            ysK.DoCont (&wr, ys)}
 
-    let foldJ (xy2xJ: 'x -> 'y -> Job<'x>) (x: 'x) (ys: seq<'y>) =
+    let foldJob (xy2xJ: 'x -> 'y -> Job<'x>) (x: 'x) (ys: seq<'y>) =
       {new Job<'x>() with
         override self.DoJob (wr, xK) =
          let ys = ys.GetEnumerator ()
@@ -869,7 +890,7 @@ module Extensions =
            xK.DoCont (&wr, x)}
 
     module Parallel =
-      let iterJ (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) : Job<unit> =
+      let iterJob (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) : Job<unit> =
         {new Job<_>() with
           override self.DoJob (wr, uK) =
            let join = ParIgnore (uK)
@@ -888,7 +909,7 @@ module Extensions =
                  (x2yJ x).DoJob (&wr, self)})
            ParIgnore.Dec (join, &wr)}
 
-      let mapJ (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) : Job<seq<'b>> =
+      let mapJob (x2yJ: 'a -> Job<'b>) (xs: seq<'a>) : Job<seq<'b>> =
         {new Job<_>() with
           override self.DoJob (wr, ysK) =
            let st = ParCollect (ysK)
@@ -919,10 +940,10 @@ module Extensions =
   ///////////////////////////////////////////////////////////////////////
   
   type [<Sealed>] Task =
-    static member inline awaitJ (task: System.Threading.Tasks.Task<'x>) : Job<'x> =
+    static member inline awaitJob (task: System.Threading.Tasks.Task<'x>) : Job<'x> =
       AwaitTaskWithResult<'x> (task) :> Job<'x>
 
-    static member inline awaitJ (task: System.Threading.Tasks.Task) : Job<unit> =
+    static member inline awaitJob (task: System.Threading.Tasks.Task) : Job<unit> =
       AwaitTask (task) :> Job<unit>
 
 /////////////////////////////////////////////////////////////////////////
@@ -936,9 +957,9 @@ type JobBuilder () =
   member inline x.Combine (uJ: Job<unit>, aJ: Job<'a>) : Job<'a> = uJ >>. aJ
   member inline x.Delay (u2aJ: unit -> Job<'a>) : Job<'a> = Job.delay u2aJ
   member inline x.For (aS: seq<'a>, a2uJ: 'a -> Job<unit>) : Job<unit> =
-    Seq.iterJ a2uJ aS
+    Seq.iterJob a2uJ aS
   member inline x.For (aS: array<'a>, a2uJ: 'a -> Job<unit>) : Job<unit> =
-    Array.iterJ a2uJ aS
+    Array.iterJob a2uJ aS
   member inline x.Return (a: 'a) : Job<'a> = Job.result a
   member inline x.ReturnFrom (aJ: Job<'a>) : Job<'a> = aJ
   member inline x.TryFinally (aJ: Job<'a>, u2u: unit -> unit) : Job<'a> =

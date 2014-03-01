@@ -54,7 +54,7 @@ module HopacLock =
     let mp = MeetingPlace (numMeets)
     let resultsMS = Ch.Now.create ()
     colors
-    |> Seq.iterJ (fun myColor ->
+    |> Seq.iterJob (fun myColor ->
        let me = Chameneos (myColor)
        let myMeets = ref 0
        let cont = ref true
@@ -85,7 +85,7 @@ module HopacLock =
               MVar.fill other.WakeUp me.Color |>> fun () ->
               myMeets := !myMeets + 1
               me.Color <- complement me.Color otherColor))) >>= fun () ->
-    Seq.foldJ
+    Seq.foldJob
      (fun sum _ -> Ch.take resultsMS |>> fun n -> sum+n)
      0
      (seq {1 .. colors.Length}) |>> fun n ->
@@ -119,7 +119,7 @@ module HopacMV =
     MVar.fill meetingPlace (Empty numMeets) >>= fun () ->
     Ch.create () >>= fun resultsMS ->
     colors
-    |> Seq.iterJ (fun myColor ->
+    |> Seq.iterJob (fun myColor ->
        MVar.create () >>= fun me ->
        let myMeets = ref 0
        let myColor = ref myColor
@@ -141,7 +141,7 @@ module HopacMV =
               MVar.fill meetingPlace (Empty (n-1)) |>> fun () ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor))) >>= fun () ->
-    Seq.foldJ
+    Seq.foldJob
      (fun sum _ -> Ch.take resultsMS |>> fun n -> sum+n)
      0
      (seq {1 .. colors.Length}) |>> fun n ->
@@ -215,7 +215,7 @@ module HopacAlt =
            (Ch.give results)
            color
     let! n =
-      Seq.foldJ
+      Seq.foldJob
        (fun sum _ ->
           Ch.take results |>> fun n ->
           sum+n)

@@ -160,12 +160,12 @@ module Job =
   /// "forUpTo lo hi i2xJ" creates a job that sequentially iterates from lo to
   /// hi (inclusive) and calls the given function to construct jobs that will
   /// be executed.  The results from the jobs are ignored.
-  val forUpTo: int -> int -> (int -> Job<'a>) -> Job<unit>
+  val forUpTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
   /// "forDownTo hi lo i2xJ" creates a job that sequentially iterates from hi
   /// to lo (inclusive) and calls the given function to construct jobs that
   /// will be executed.  The results from the jobs are ignored.
-  val forDownTo: int -> int -> (int -> Job<'a>) -> Job<unit>
+  val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
   /// Creates a job that runs the given job sequentially for an indefinite
   /// number of times.  It is a common programming pattern to use server jobs
@@ -187,7 +187,7 @@ module Job =
 
   /// "whileDo cond body" creates a job that sequentially executes the body job
   /// as long as cond returns true.  The results from the jobs are ignored.
-  val whileDo: (unit -> bool) -> Job<'a> -> Job<unit>
+  val whileDo: (unit -> bool) -> Job<_> -> Job<unit>
 
   /// "whenDo b uJ" is equivalent to "if b then uJ else Job.unit".
   val inline whenDo: bool -> Job<unit> -> Job<unit>
@@ -198,6 +198,10 @@ module Job =
   /// sequence of the results.
   val seqCollect: seq<Job<'a>> -> Job<seq<'a>>
 
+  /// Creates a job that runs all of the jobs in sequence and returns a
+  /// sequence of the results.
+  val seqIgnore: seq<Job<_>> -> Job<unit>
+
   /// Creates a job that runs all of the jobs potentially in parallel and
   /// returns a sequence of the results.  It is not guaranteed that the jobs
   /// would be run as separate parallel jobs.
@@ -207,7 +211,7 @@ module Job =
   /// waits for all of the jobs to finish.  The results of the jobs are
   /// ignored.  It is not guaranteed that the jobs would be run as separate
   /// parallel jobs.
-  val parIgnore: seq<Job<'a>> -> Job<unit>
+  val parIgnore: seq<Job<_>> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -410,12 +414,20 @@ module MVar =
   val inline take: MVar<'a> -> Job<'a>
 
   /// Creates a job that takes the value of the variable and then fills the
+  /// variable with the result of performing the given function.  Note that this
+  /// operation is not atomic.  However, it is a common programming pattern to
+  /// make it so that only the job that has emptied an MVar by taking a value
+  /// from it is allowed to fill the MVar.  Such an access pattern makes
+  /// operations on the MVar appear as atomic.
+  val inline modifyFun: ('a -> 'a * 'b) -> MVar<'a> -> Job<'b>
+
+  /// Creates a job that takes the value of the variable and then fills the
   /// variable with the result of performing the given job.  Note that this
   /// operation is not atomic.  However, it is a common programming pattern to
   /// make it so that only the job that has emptied an MVar by taking a value
   /// from it is allowed to fill the MVar.  Such an access pattern makes
   /// operations on the MVar appear as atomic.
-  val inline modify: ('a -> Job<'a * 'b>) -> MVar<'a> -> Job<'b>
+  val inline modifyJob: ('a -> Job<'a * 'b>) -> MVar<'a> -> Job<'b>
 
   /// Selective operations on write many variables.
   module Alt =
@@ -532,25 +544,25 @@ module Extensions =
   module Array =
     /// Sequentially maps the given job constructor to the elements of the
     /// array and returns an array of the results.
-    val mapJ: ('a -> Job<'b>) -> array<'a> -> Job<array<'b>>
+    val mapJob: ('a -> Job<'b>) -> array<'a> -> Job<array<'b>>
 
     /// Sequentially iterates the given job constructor over the given
     /// array.  The results, if any, of the jobs are ignored.
-    val iterJ: ('a -> Job<'b>) -> array<'a> -> Job<unit>
+    val iterJob: ('a -> Job<_>) -> array<'a> -> Job<unit>
 
   /// Operations for processing sequences with parallel jobs.
   module Seq =
     /// Sequentially iterates the given job constructor over the given
     /// sequence.  The results, if any, of the jobs are ignored.
-    val iterJ: ('a -> Job<'b>) -> seq<'a> -> Job<unit>
+    val iterJob: ('a -> Job<_>) -> seq<'a> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
     /// sequence and returns a sequence of the results.
-    val mapJ: ('a -> Job<'b>) -> seq<'a> -> Job<seq<'b>>
+    val mapJob: ('a -> Job<'b>) -> seq<'a> -> Job<seq<'b>>
 
     /// Sequentially folds the job constructor over the given sequence and
     /// returns the result of the fold.
-    val foldJ: ('a -> 'b -> Job<'a>) -> 'a -> seq<'b> -> Job<'a>
+    val foldJob: ('a -> 'b -> Job<'a>) -> 'a -> seq<'b> -> Job<'a>
 
     /// Operations for processing sequences in parallel using Hopac jobs.
     module Parallel =
@@ -559,20 +571,20 @@ module Extensions =
       /// jobs have finished.  Note that the results of the created jobs are
       /// ignored.  It is also not guaranteed that the jobs would be run as
       /// separate parallel jobs.
-      val iterJ: ('a -> Job<'b>) -> seq<'a> -> Job<unit>
+      val iterJob: ('a -> Job<_>) -> seq<'a> -> Job<unit>
 
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs potentially in parallel and waits until all of the
       /// jobs have finished collecting the results into a new sequence.  It is
       /// not guaranteed that the jobs would be run as separate parallel jobs.
-      val mapJ: ('a -> Job<'b>) -> seq<'a> -> Job<seq<'b>>
+      val mapJob: ('a -> Job<'b>) -> seq<'a> -> Job<seq<'b>>
 
   /// Operations for interfacing tasks with parallel jobs.
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
     /// the result of the task.  Note that this does not start the job.
-    static member inline awaitJ: Threading.Tasks.Task<'x> -> Job<'x>
+    static member inline awaitJob: Threading.Tasks.Task<'x> -> Job<'x>
 
     /// Creates a job that waits until the given task finishes.  Note that this
     /// does not start the job.
-    static member inline awaitJ: Threading.Tasks.Task -> Job<unit>
+    static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
