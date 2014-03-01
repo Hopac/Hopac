@@ -21,14 +21,13 @@ try out examples from this document.  You can use the
 to prepare an environment in which you should be able to directly evaluate
 example code from this document.
 
-
 The Hopac Programming Model
 ---------------------------
 
 There are two central aspects of Hopac that shape the programming model.
 
 The first aspect is that, threads, which are called *jobs*, in Hopac are
-extremely lightweight.  On modern machines you can spawn tens of millions of new
+extremely lightweight.  On modern machines you can start tens of millions of new
 jobs in a second.  Because a job takes only a very small amount of memory,
 starting from tens of bytes, a program may have millions of jobs on a modern
 machine at any moment.  (Of course, at any moment, most of those jobs are
@@ -81,7 +80,7 @@ producer job tries to give a message to a consumer job via synchronous channels,
 the producer is suspended until a consumer job is ready to take the message.  A
 synchronous channel provides something that is much more like a control flow
 mechanism, like a procedure call, rather than a passive buffer for passing data
-between threads.  This property can make it easier to understand the behaviour
+between threads.  This property can make it easier to understand the behavior
 of concurrent programs.
 
 Of course, the bound **&Theta;(m + n)** does not take into account space that
@@ -95,7 +94,7 @@ are basic simple .Net objects and can be garbage collected.  Specifically, jobs
 and channels do not inherently hold onto disposable system resources.  (This is
 unlike the
 [MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), for
-example, which is disposable.)  What this means in practise is that most jobs do
+example, which is disposable.)  What this means in practice is that most jobs do
 not necessarily need to implement any special kill protocol.  A job that is
 blocked waiting for communication on a channel that is no longer reachable can
 (and will) be garbage collected.  Only jobs that explicitly hold onto some
@@ -110,7 +109,7 @@ In the book
 [John Reppy](http://people.cs.uchicago.edu/~jhr/) presents as the first
 programming example an implementation of updatable storage cells using
 Concurrent ML channels and threads.  While this example is not exactly something
-that one would do in practise, because F# already provides ref cells, it does a
+that one would do in practice, because F# already provides ref cells, it does a
 fairly nice job of illustrating some core aspects of Concurrent ML.  So, let's
 reproduce the same example with Hopac.
 
@@ -212,9 +211,10 @@ On Notation
 
 There are two ways to write jobs in Hopac.  One way is to use the **job**
 workflow builder like we did in the previous section.  The other way is to
-directly use the monadic combinators that the workflow builder abstracts away.
-I personally mostly prefer using the monadic combinators with an occasional
-excursion with the workflow notation.  I have a number of reasons for this:
+directly use the monadic combinators, **result** and **>>=**, that the workflow
+builder abstracts away.  I personally mostly prefer using the monadic
+combinators with an occasional excursion with the workflow notation.  I have a
+number of reasons for this:
 
 * Using the combinators directly usually leads to more concise code.
 * I often find it easier to understand the code when it is written with the
@@ -382,7 +382,7 @@ is used for making games.
 artists to create scripts in UnrealScript using a visual interface.  Working
 with Kismet, artists can basically create games by combining building blocks
 created by programmers.  Those building blocks can be seen as black boxes that
-have some inputs, outputs and have some interesting behaviour mapping the inputs
+have some inputs, outputs and have some interesting behavior mapping the inputs
 to outputs.
 
 On the Wikipedia page on [UnrealEd](http://en.wikipedia.org/wiki/UnrealEd) there
@@ -390,7 +390,7 @@ is a screenshot of a simple system built using Kismet.  Take a moment to look at
 the screenshot:
 [Roboblitz](http://upload.wikimedia.org/wikipedia/en/e/e6/Kismet_Roboblitz.PNG).
 As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
-**Delay**, and **Matinee** that have some inputs, outputs and some behaviour.
+**Delay**, and **Matinee** that have some inputs, outputs and some behavior.
 
 Kismet, UnrealScript and the Unreal Engine, in general, have components and
 semantics that have been designed for making games.  In fact, I've never
@@ -495,3 +495,129 @@ naive.  In a real system, one would probably also want to specify boxes using
 which would allow an editor to automatically understand input-output
 relationships.  Unrealistic as it may be, this sketch has hopefully given you
 something interesting to think about!
+
+On The Semantics of Alternatives
+--------------------------------
+
+TBD
+
+Parallel Programming
+--------------------
+
+One of the goals for Hopac is to be able to achieve speed-ups on multicore
+machines.  The primitives, such as channels, jobs (threads in CMl) and
+alternatives (events in CML) inspired by Concurrent ML are primarily designed
+for concurrent programming involving separate threads of execution.  For
+instance, the semantics of starting a thread in CML is that, indeed, a new
+independent thread of execution is started and it is then possible to
+communicate among threads using channels and events.  For achieving speedups
+from parallelism, such independent threads of execution may not be essential.
+Sometimes it may be more efficient to avoid creating a new thread of execution
+for every individual job, while some jobs are still being executed in parallel.
+
+Consider the following naive implementation of the Fibonacci function as a job:
+
+```fsharp
+let rec fib n = Job.delay <| fun () ->
+  if n < 2L then
+    Job.result n
+  else
+    fib (n-2L) <&> fib (n-1L) |>> fun (x, y) ->
+    x + y
+```
+
+The above implementation makes use of the combinators **<&>** and **|>>** whose
+meanings can be specified in terms of **result** and **>>=** as follows:
+
+```fsharp
+let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
+let (|>>) xJ x2y = xJ >>= fun x -> result (x2y x)
+```
+
+Note that the semantics of **<&>** are entirely sequential and as a whole the
+above **fib** job doesn't use any parallelism.
+
+After evaluating the above definition of **fib** in the F# interactive, we can
+run it as follows:
+
+```fsharp
+> run (fib 38L) ;;
+val it : int64 = 39088169L
+```
+
+If you ran the above code, you noticed that it took some time for the result to
+appear.  Let's make a small change, namely, let's change from the sequential
+pair combinator **<&>** to the parallel pair combinator **<*>**:
+
+```fsharp
+let rec fib n = Job.delay <| fun () ->
+  if n < 2L then
+    Job.result n
+  else
+    fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
+    x + y
+```
+
+The parallel pair combinator **<*>** makes it so that the two jobs given to it
+are either executed sequentially, just like **<&>**, or if it seems like a good
+thing to do, then the two jobs are executed in two separate jobs that may
+eventually run in parallel.  For this to be safe, of course, only jobs that are
+safe to run *both* in parallel and in sequence.  In this case those conditions
+both apply, but, for example, the following job might deadlock:
+
+```fsharp
+let notSafe = Job.delay <| fun () ->
+  let c = Ch.Now.create ()
+  Ch.take c <*> Ch.give c ()
+```
+
+The problem in the above job is that both the **take** and the **give**
+operations are not guaranteed to be executed in two separate jobs and a single
+job cannot communicate with itself using **take** and **give** operations on
+channels.  Whichever operation happens to be executed first will block waiting
+for the other pair of the communication that never appears.
+
+Did you already try to run the parallel version of the naive Fibonacci function
+in the F# interactive?  If you did, the behavior may have not been what you'd
+expect&mdash;that the parallel version would run about **N** times faster than
+the sequential version where **N** is the number of processor cores your machine
+has.  Now, there are a number of reasons for this and one of the possible
+reasons is that, by default, .Net uses single-threaded workstation garbage
+collection.  If garbage collection is single-threaded, it becomes a sequential
+bottleneck and an application cannot possibly scale.  So, you need to make sure
+that you are using multi-threaded server garbage collection.  See
+[&lt;gcServer&gt; Element](http://msdn.microsoft.com/en-us/library/ms229357%28v=vs.110%29.aspx)
+for some details.  I have modified the config files of the F# tools on my
+machine to use the server garbage collection.  I also use the 64-bit version of
+F# interactive and run on 64-bit machines.  Once you've made the necessary
+adjustments to the tool configurations, you should see the expected speed-up
+from the parallel version.
+
+This example is inspired by the parallel Fibonacci function used traditionally
+as a Cilk programming example.  See
+[The Implementation of the Cilk-5 Multithreaded Language](http://supertech.csail.mit.edu/papers/cilk5.pdf)
+for a representative example.  Basically, the naive, recursive, exponential time
+Fibonacci algorithm is used.  Parallelized versions simply run recursive calls
+in parallel.
+
+Like is often the case with cute programming examples, this is actually an
+extremely inefficient algorithm for computing Fibonacci numbers and that seems
+to be a recurring source of confusion.  Indeed, the naively parallelized version
+of the Fibonacci function is still hopelessly inefficient, because the amount of
+work done in each parallel job is an order of magnitude smaller than the
+overhead costs of starting parallel jobs.
+
+The main reason for using the Fibonacci function as an example is that it is a
+simple example for introducing the concept of optional parallel execution, which
+is employed by the **<*>** combinator.  The parallel Fibonacci function is also
+useful and instructive as a benchmark for measuring the overhead costs of
+starting, running and retrieving the results of parallel jobs.  Indeed, there is
+a
+[benchmark program](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Fibonacci)
+based on the parallel Fibonacci function.
+
+**Exercise:** Write a basic sequential Fibonacci function (not a job) and time
+it.  Then change the parallelized version of the Fibonacci function to call the
+sequential function when the **n** is smaller than some constant.  Try to find a
+constant after which the new parallelized version actually gives a speedup on
+the order of the number of cores on your machine.
