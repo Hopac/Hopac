@@ -44,9 +44,7 @@ namespace Hopac {
 
       Pick.SetNacks(ref wr, cursor.Me, pkOther);
     GotGiver:
-      var uK = cursor.Cont;
-      uK.Next = null;
-      Worker.Push(ref wr, uK);
+      Worker.Push(ref wr, cursor.Cont);
       xK.DoCont(ref wr, cursor.Value);
       return;
     }
@@ -168,7 +166,6 @@ namespace Hopac {
         tail = taker.Cont;
       GotTaker:
         tail.Value = this.X;
-        tail.Next = null;
         Worker.Push(ref wr, tail);
         uK.DoCont(ref wr, null);
         return;

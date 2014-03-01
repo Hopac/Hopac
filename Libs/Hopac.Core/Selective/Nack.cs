@@ -98,7 +98,6 @@ namespace Hopac.Core {
 
       Pick.SetNacks(ref wr, me, pk);
     GotTaker:
-      taker.Next = null;
       Worker.Push(ref wr, taker);
     TryNextTaker:
       if (cursor != takers) goto TryTaker;

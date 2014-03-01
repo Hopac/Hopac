@@ -34,12 +34,26 @@ namespace Hopac.Core {
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(ref Worker wr, Work work) {
-      Push(ref wr, work, work);
+      work.Next = null;
+      PushNew(ref wr, work, work);
     }
 
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(ref Worker wr, Work work, Work last) {
+      last.Next = null;
+      PushNew(ref wr, work, last);
+    }
+
+    /// Internal implementation detail.
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void PushNew(ref Worker wr, Work work) {
+      PushNew(ref wr, work, work);
+    }
+
+    /// Internal implementation detail.
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void PushNew(ref Worker wr, Work work, Work last) {
       Debug.Assert(null == last.Next);
       var older = wr.WorkStack;
       wr.WorkStack = work;

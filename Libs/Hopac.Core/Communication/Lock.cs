@@ -38,7 +38,6 @@ namespace Hopac {
       else
         tail.Next = cursor.Next;
       l.State = Lock.Held;
-      cursor.Next = null;
       Worker.Push(ref wr, cursor);
       return;
 

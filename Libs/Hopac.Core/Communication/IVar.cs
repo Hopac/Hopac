@@ -108,7 +108,6 @@ namespace Hopac {
         Pick.SetNacks(ref wr, me, pk);
       GotTaker:
         taker.Value = iv.Value;
-        taker.Next = null;
         Worker.Push(ref wr, taker);
 
       TryNextTaker:

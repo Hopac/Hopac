@@ -21,7 +21,7 @@ namespace Hopac {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal Promise(ref Worker wr, Job<T> tJ) {
-      Worker.Push(ref wr, new Cont(tJ, this));
+      Worker.PushNew(ref wr, new Cont(tJ, this));
     }
 
     /// <summary>Creates a promise whose value is computed lazily with the
@@ -101,7 +101,7 @@ namespace Hopac {
 
       this.State = Running;
 
-      Worker.Push(ref wr, job);
+      Worker.PushNew(ref wr, job);
       aE.TryElse(ref wr, i + 1, pkSelf, aK);
       return;
 
@@ -195,7 +195,7 @@ namespace Hopac {
         Pick.SetNacks(ref wr, me, pk);
 
       GotReader:
-        Worker.Push(ref wr, new FailWork(e, reader));
+        Worker.PushNew(ref wr, new FailWork(e, reader));
 
       TryNextReader:
         if (cursor != readers) goto TryReader;
@@ -230,7 +230,6 @@ namespace Hopac {
 
       GotReader:
         reader.Value = v;
-        reader.Next = null;
         Worker.Push(ref wr, reader);
 
       TryNextReader:

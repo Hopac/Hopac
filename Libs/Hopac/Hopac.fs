@@ -330,7 +330,7 @@ module Job =
               m <- m - 1
               self.State <- m
               if 511 = (m &&& 511) then
-                Worker.Push (&wr, JobWork (aJ, self))
+                Worker.PushNew (&wr, JobWork (aJ, self))
               else
                 aJ.DoJob (&wr, self)
             else
@@ -481,7 +481,7 @@ module Job =
         override self.DoJob (wr, abK) =
           if 0 <= Scheduler.Waiters then
             let bK = ParTuple<'a, 'b> (abK)
-            Worker.Push (&wr, {new Cont_State<_, _>(aJ) with
+            Worker.PushNew (&wr, {new Cont_State<_, _>(aJ) with
              override self.DoHandle (wr, e) = bK.DoHandle (&wr, e)
              override self.DoCont (wr, a) = bK.DoOtherCont (&wr, a)
              override self.DoWork (wr) =
@@ -573,7 +573,7 @@ module Job =
          override aK.DoHandle (_, e) = Handler.doHandle e
          override aK.DoWork (_) = ()
          override aK.DoCont (_, _) = ()}
-       Worker.Push (&wr, {new Work () with
+       Worker.PushNew (&wr, {new Work () with
          override w.DoHandle (_, e) = Handler.doHandle e
          override w.DoWork (wr) = aJ.DoJob (&wr, aK)})
        uK.DoCont (&wr, ())}
@@ -675,7 +675,7 @@ module Job =
          st.ys.Add Unchecked.defaultof<_>
          let i = nth
          nth <- i + 1
-         Worker.Push (&wr, {new Cont_State<_, _>(xJ) with
+         Worker.PushNew (&wr, {new Cont_State<_, _>(xJ) with
           override self.DoHandle (wr, e) = st.DoHandle (&wr, e)
           override self.DoCont (wr, y) = ParCollect<_>.Add (st, self, &wr, i, y)
           override self.DoWork (wr) =
@@ -720,7 +720,7 @@ module Job =
        while xJs.MoveNext () do
          let xJ = xJs.Current
          ParIgnore.Inc join
-         Worker.Push (&wr, {new Cont_State<_, _>(xJ) with
+         Worker.PushNew (&wr, {new Cont_State<_, _>(xJ) with
           override self.DoHandle (wr, e) = ParIgnore.Exn (join, &wr, e)
           override self.DoCont (wr, y) = self.DoWork (&wr)
           override self.DoWork (wr) =
@@ -898,7 +898,7 @@ module Extensions =
            while xs.MoveNext () do
              let x = xs.Current
              ParIgnore.Inc join
-             Worker.Push (&wr, {new Cont_State<_, _> () with
+             Worker.PushNew (&wr, {new Cont_State<_, _> () with
               override self.DoHandle (wr, e) = ParIgnore.Exn (join, &wr, e)
               override self.DoCont (wr, _) = ParIgnore.Dec (join, &wr)
               override self.DoWork (wr) =
@@ -924,7 +924,7 @@ module Extensions =
              st.ys.Add Unchecked.defaultof<_>
              let i = nth
              nth <- i + 1
-             Worker.Push (&wr, {new Cont_State<_, _, _> (x, true) with
+             Worker.PushNew (&wr, {new Cont_State<_, _, _> (x, true) with
               override self.DoHandle (wr, e) = st.DoHandle (&wr, e)
               override self.DoCont (wr, y) = ParCollect<_>.Add (st, self, &wr, i, y)
               override self.DoWork (wr) =
