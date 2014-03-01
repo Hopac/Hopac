@@ -504,8 +504,8 @@ TBD
 Parallel Programming
 --------------------
 
-One of the goals for Hopac is to be able to achieve speed-ups on multicore
-machines.  The primitives, such as channels, jobs (threads in CMl) and
+One of the goals for Hopac is to be able to achieve speedups on multicore
+machines.  The primitives, such as channels, jobs (threads in CML) and
 alternatives (events in CML) inspired by Concurrent ML are primarily designed
 for concurrent programming involving separate threads of execution.  For
 instance, the semantics of starting a thread in CML is that, indeed, a new
@@ -590,7 +590,7 @@ that you are using multi-threaded server garbage collection.  See
 for some details.  I have modified the config files of the F# tools on my
 machine to use the server garbage collection.  I also use the 64-bit version of
 F# interactive and run on 64-bit machines.  Once you've made the necessary
-adjustments to the tool configurations, you should see the expected speed-up
+adjustments to the tool configurations, you should see the expected speedup
 from the parallel version.
 
 This example is inspired by the parallel Fibonacci function used traditionally
