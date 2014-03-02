@@ -115,9 +115,9 @@ module MbPr =
   let run n m p =
     GC.Collect ()
     let timer = Stopwatch.StartNew ()
-    let allDone = new System.Threading.ManualResetEventSlim ()
+    use allDone = new System.Threading.ManualResetEventSlim ()
     let results = ResizeArray<_>()
-    let finishPr = new MbPr<_>(fun inbox ->
+    use finishPr = new MbPr<_>(fun inbox ->
       async {
         for i=1 to p do
           let! x = inbox.Receive ()
@@ -129,6 +129,9 @@ module MbPr =
     for i=0 to p-1 do
       chains.[i].[0].Post m
     allDone.Wait ()
+    for i=0 to p-1 do
+      for j=0 to n-1 do
+        (chains.[i].[j] :> IDisposable).Dispose ()
     let d = timer.Elapsed
     let m =
       sprintf "MbPr: %f msgs/s - %dm/%fs - %A\n"
