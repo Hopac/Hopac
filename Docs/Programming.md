@@ -506,44 +506,65 @@ uses of alternatives.  In this section we'll take a closer look at alternatives.
 
 ### On the Semantics of Alternatives
 
+The alternatives of Hopac are heavily inspired by the events of Concurrent ML,
+but the two are not precisely the same.  Whether or not you are familiar with
+the semantics of CML, it is important to understand how alternatives are
+evaluated in Hopac.  If you are not familiar with CML, you can ignore the
+comparison made to CML in this section and just concentrate on the description
+of how alternatives in Hopac behave.
+
 The semantics of Concurrent ML events and Hopac alternatives are slightly
-different.  Concurrent ML emphasizes fairness and non-determinism, while Hopac
-emphasizes performance and co-operation.  In CML, when two or more events are
-immediately available, the choice between them is made in a non-deterministic
-fashion.  In Hopac, the first alternative that is available will be chosen.
-Consider the following expression:
+different.  Concurrent ML emphasizes *fairness* and *non-determinism*, while
+Hopac emphasizes *performance* and *co-operation*.  In CML, when two or more
+events are immediately available, the choice between them is made in a
+*non-deterministic* fashion.  In Hopac, the first alternative that is available
+will be chosen *deterministically*.  Consider the following expression:
 
 ```fsharp
-run (Alt.select
-      [Alt.always 1
-       Alt.always 2])
+Alt.choose
+ [Alt.always 1
+  Alt.always 2]
 ```
 
-In Hopac, the above will always evaluate to 1, because it is the first available
-alternative.  In Concurrent ML, a non-deterministic choice should be made
-between the two events.  In this case, we could get the same behavior given a
-function **shuffle** that reorders the elements of a sequence randomly:
+In Hopac, the above alternative will *deterministically* evaluate to 1, because
+it is the first available alternative.  In CML, the similar event would
+*non-deterministically* choose between the two events.  In this case, we could
+get the same behavior in Hopac given a function **shuffle** that would reorder
+the elements of a sequence randomly:
 
 ```fsharp
-run ((Alt.select << shuffle)
-      [Alt.always 1
-       Alt.always 2])
+Alt.delay <| fun () ->
+ Alt.choose
+  (shuffle
+    [Alt.always 1
+     Alt.always 2])
 ```
 
-The choice of the simpler semantics in the case of multiple immediately
-available alternatives is motivated by performance considerations.  In order to
-provide the non-determinism, considerably more processing needs to be performed.
-Consider the following example:
+The choice of the simpler deterministic semantics in the case of multiple
+immediately available alternatives is motivated by performance considerations.
+In order to provide the non-determinism, considerably more processing would need
+to be performed.  Consider the following example:
 
 ```fsharp
-run (Alt.select
-      [Alt.delay (fun () -> printfn "1" ; Alt.always 1)
-       Alt.delay (fun () -> printfn "2" ; Alt.always 2)])
+Alt.choose
+ [Alt.delay <| fun () -> printfn "A" ; Alt.always 1
+  Alt.delay <| fun () -> printfn "B" ; Alt.always 2]
 ```
 
-In Hopac, the above prints "1" and nothing else.  In CML, similar code would
-print both "1" and "2".  In other words, Hopac evaluates alternatives lazily,
-while CML evaluates events eagerly.
+In Hopac, picking the above alternative prints "A" and nothing else.  In CML,
+the similar event would print both "A" and "B".  In other words, in the initial
+phase, Hopac evaluates alternatives *lazily*, while CML evaluates events
+*eagerly*.  Hopac can therefore run more efficiently in cases where an
+alternative happens to be immediately available.
+
+The above examples are contrived.  In real programs, choices are made over
+*communications between separate jobs* that may run in parallel.  This means
+that in many cases the initial lazy and deterministic evaluation of alternatives
+makes no difference except for performance.  In cases where none of the
+alternatives is immediately available, the behavior of Hopac and CML is
+essentially the same.  However, it is obviously possible to write programs that
+rely on either the lazy and deterministic or eager and non-deterministic initial
+choice.
 
 Parallel Programming
 --------------------
