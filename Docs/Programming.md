@@ -496,10 +496,54 @@ which would allow an editor to automatically understand input-output
 relationships.  Unrealistic as it may be, this sketch has hopefully given you
 something interesting to think about!
 
-On The Semantics of Alternatives
---------------------------------
+Programming with Alternatives
+-----------------------------
 
-TBD
+The alternative mechanism (events in CML) allows the definition of first-class
+synchronous operations and is an abstraction mechanism that was first introduced
+by Concurrent ML.  In the previous sections we have already seen some simple
+uses of alternatives.  In this section we'll take a closer look at alternatives.
+
+### On the Semantics of Alternatives
+
+The semantics of Concurrent ML events and Hopac alternatives are slightly
+different.  Concurrent ML emphasizes fairness and non-determinism, while Hopac
+emphasizes performance and co-operation.  In CML, when two or more events are
+immediately available, the choice between them is made in a non-deterministic
+fashion.  In Hopac, the first alternative that is available will be chosen.
+Consider the following expression:
+
+```fsharp
+run (Alt.select
+      [Alt.always 1
+       Alt.always 2])
+```
+
+In Hopac, the above will always evaluate to 1, because it is the first available
+alternative.  In Concurrent ML, a non-deterministic choice should be made
+between the two events.  In this case, we could get the same behavior given a
+function **shuffle** that reorders the elements of a sequence randomly:
+
+```fsharp
+run ((Alt.select << shuffle)
+      [Alt.always 1
+       Alt.always 2])
+```
+
+The choice of the simpler semantics in the case of multiple immediately
+available alternatives is motivated by performance considerations.  In order to
+provide the non-determinism, considerably more processing needs to be performed.
+Consider the following example:
+
+```fsharp
+run (Alt.select
+      [Alt.delay (fun () -> printfn "1" ; Alt.always 1)
+       Alt.delay (fun () -> printfn "2" ; Alt.always 2)])
+```
+
+In Hopac, the above prints "1" and nothing else.  In CML, similar code would
+print both "1" and "2".  In other words, Hopac evaluates alternatives lazily,
+while CML evaluates events eagerly.
 
 Parallel Programming
 --------------------
@@ -561,9 +605,9 @@ let rec fib n = Job.delay <| fun () ->
 The parallel pair combinator **<*>** makes it so that the two jobs given to it
 are either executed sequentially, just like **<&>**, or if it seems like a good
 thing to do, then the two jobs are executed in two separate jobs that may
-eventually run in parallel.  For this to be safe, of course, only jobs that are
-safe to run *both* in parallel and in sequence.  In this case those conditions
-both apply, but, for example, the following job might deadlock:
+eventually run in parallel.  For this to be safe, the jobs must be safe to run
+*both* in parallel and in sequence.  In this case those conditions both apply,
+but, for example, the following job might deadlock:
 
 ```fsharp
 let notSafe = Job.delay <| fun () ->
