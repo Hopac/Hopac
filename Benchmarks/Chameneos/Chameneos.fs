@@ -2,16 +2,11 @@
 
 module Chameneos
 
-// Note that because the number of threads used in Chameneos is low, it is
-// easy to make it fast via straightforward use of native threads and minimal
-// scope locks or interlocked primitives.
-
 open Hopac
 open Hopac.Extensions
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 open System
-open System.IO
 open System.Diagnostics
 
 /////////////////////////////////////////////////////////////////////////
@@ -88,21 +83,15 @@ module HopacLock =
     Seq.foldJob
      (fun sum _ -> Ch.take resultsMS |>> fun n -> sum+n)
      0
-     (seq {1 .. colors.Length}) |>> fun n ->
-    printf "%d meets\n" n
+     (seq {1 .. colors.Length})
 
   let run () =
-    GC.Collect ()
+    printf "Lock: "
     let timer = Stopwatch.StartNew ()
     let numMeets = 6000000
-    do run
-        (bench colorsAll numMeets <*>
-         bench colors10 numMeets |>> ignore)
+    let (n, m) = run (bench colorsAll numMeets <*> bench colors10 numMeets)
     let d = timer.Elapsed
-    let m = sprintf "Lock: %d %d %fs\n" numMeets Environment.ProcessorCount d.TotalSeconds
-    do use w = new StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -144,21 +133,15 @@ module HopacMV =
     Seq.foldJob
      (fun sum _ -> Ch.take resultsMS |>> fun n -> sum+n)
      0
-     (seq {1 .. colors.Length}) |>> fun n ->
-    printf "%d meets\n" n
+     (seq {1 .. colors.Length})
 
   let run () =
-    GC.Collect ()
+    printf "MVar: "
     let timer = Stopwatch.StartNew ()
     let numMeets = 6000000
-    do run
-        (bench colorsAll numMeets <*>
-         bench colors10 numMeets |>> ignore)
+    let (n, m) = run (bench colorsAll numMeets <*> bench colors10 numMeets)
     let d = timer.Elapsed
-    let m = sprintf "MV: %d %d %fs\n" numMeets Environment.ProcessorCount d.TotalSeconds
-    do use w = new StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
     
 /////////////////////////////////////////////////////////////////////////
 
@@ -221,35 +204,32 @@ module HopacAlt =
           sum+n)
        0
        colors
-    do printf "%d meets\n" n
-    do! Ch.give finishCh ()
+    do! Ch.give finishCh n
   }
 
   let run () =
-    GC.Collect ()
+    printf "Alt:  "
     let timer = Stopwatch.StartNew ()
     let numMeets = 6000000
-    do run <| job {
-         let finishCh = Ch.Now.create ()
-         do! Job.start (bench colors10 numMeets finishCh)
-         do! Job.start (bench colorsAll numMeets finishCh)
-         do! Ch.take finishCh
-         do! Ch.take finishCh
-       }
+    let (n, m) =
+      run <| job {
+        let finishCh = Ch.Now.create ()
+        do! Job.start (bench colors10 numMeets finishCh)
+        do! Job.start (bench colorsAll numMeets finishCh)
+        let! n = Ch.take finishCh
+        let! m = Ch.take finishCh
+        return (n, m)
+      }
     let d = timer.Elapsed
-    let m = sprintf "Alt: %d %d %fs\n" numMeets Environment.ProcessorCount d.TotalSeconds
-    do use w = new StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
 
 /////////////////////////////////////////////////////////////////////////
 
-do run
-    (Job.start
-      (Job.delay <| fun () ->
-       let delay = Job.sleep (TimeSpan.FromSeconds 1.0)
-       printf "Timer running...\n"
-       Job.forever (delay |>> fun () -> printf "Tick\n")))
-   HopacAlt.run ()
-   HopacMV.run ()
+let cleanup () =
+  for i=1 to 10 do
+    GC.Collect ()
+    Threading.Thread.Sleep 50
+
+do HopacAlt.run () ; cleanup ()
+   HopacMV.run () ; cleanup ()
    HopacLock.run ()

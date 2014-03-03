@@ -6,11 +6,11 @@ open Hopac
 open Hopac.Extensions
 open Hopac.Job.Infixes
 open System
-open System.IO
 open System.Diagnostics
 open System.Threading.Tasks
 
 let runHopac numOps n =
+  printf "Hopac: "
   let timer = Stopwatch.StartNew ()
   let rec loop n = job {
     if 0 < n then
@@ -20,13 +20,11 @@ let runHopac numOps n =
   }
   do run (Array.create n (loop numOps) |> Job.parIgnore)
   let d = timer.Elapsed
-  let m = sprintf "Hopac: %d*%d %fs - %f ops/s\n"
-           numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
-  do use w = new StreamWriter ("Results.txt", true)
-     w.Write m
-  printf "%s" m
+  printf "%d*%d %fs - %f ops/s\n"
+   numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
 let runAsync numOps n =
+  printf "Async: "
   let timer = Stopwatch.StartNew ()
   let rec loop n = async {
     if 0 < n then
@@ -36,11 +34,8 @@ let runAsync numOps n =
   }
   Async.RunSynchronously (Array.create n (loop numOps) |> Async.Parallel) |> ignore
   let d = timer.Elapsed
-  let m = sprintf "Async: %d*%d %fs - %f ops/s\n"
-           numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
-//  do use w = new StreamWriter ("Results.txt", true)
-//     w.Write m
-  printf "%s" m
+  printf "%d*%d %fs - %f ops/s\n"
+   numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
 do [(2500000, 1)
     (2000000, 2)

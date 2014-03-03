@@ -49,7 +49,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Chameneos.fs" />
-    <Content Include="Results.txt" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

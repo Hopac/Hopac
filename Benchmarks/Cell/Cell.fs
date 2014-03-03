@@ -5,9 +5,7 @@ open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Extensions
 open System
-open System.IO
 open System.Diagnostics
-open System.Threading.Tasks
 
 module HopacReq =
   type Request<'a> =
@@ -52,9 +50,8 @@ module HopacReq =
         |> Job.parIgnore
     }
     let d = timer.Elapsed
-    let m = sprintf "%8.5f s to %d c * %d p * %d u\n"
-             d.TotalSeconds nCells nJobs nUpdates
-    printf "%s" m
+    printf "%8.5f s to %d c * %d p * %d u\n"
+     d.TotalSeconds nCells nJobs nUpdates
 
 module HopacAlt =
   type Cell<'a> = {
@@ -92,9 +89,8 @@ module HopacAlt =
         |> Job.parIgnore
     }
     let d = timer.Elapsed
-    let m = sprintf "%8.5f s to %d c * %d p * %d u\n"
-             d.TotalSeconds nCells nJobs nUpdates
-    printf "%s" m
+    printf "%8.5f s to %d c * %d p * %d u\n"
+     d.TotalSeconds nCells nJobs nUpdates
 
 module AsyncCell =
   type Request<'a> =
@@ -142,9 +138,8 @@ module AsyncCell =
     for i=0 to nCells-1 do
       (cells.[i] :> IDisposable).Dispose ()
     let d = timer.Elapsed
-    let m = sprintf "%8.5f s to %d c * %d p * %d u\n"
-             d.TotalSeconds nCells nJobs nUpdates
-    printf "%s" m
+    printf "%8.5f s to %d c * %d p * %d u\n"
+     d.TotalSeconds nCells nJobs nUpdates
 
 let tick () =
   for i=1 to 10 do

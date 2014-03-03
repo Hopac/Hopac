@@ -6,10 +6,9 @@ open Hopac
 open Hopac.Extensions
 open Hopac.Job.Infixes
 open System
-open System.IO
 open System.Diagnostics
 
-module Ch =
+module ChGive =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) : Job<unit> =
     Job.forever
      (Ch.take inCh >>= fun n ->
@@ -29,7 +28,7 @@ module Ch =
         ch0
 
   let run n m p =
-    GC.Collect ()
+    printf "ChGive: "
     let timer = Stopwatch.StartNew ()
     let i =
       run
@@ -42,12 +41,8 @@ module Ch =
            Ch.give ch m) >>= fun () ->
         Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
-    let m =
-      sprintf "Ch: %f msgs/s - %dm/%fs - %A\n"
-       (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
-    do use w = new StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%f msgs/s - %dm/%fs - %A\n"
+     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
 
 module ChSend =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) : Job<unit> =
@@ -69,7 +64,7 @@ module ChSend =
         ch0
 
   let run n m p =
-    GC.Collect ()
+    printf "ChSend: "
     let timer = Stopwatch.StartNew ()
     let i =
       run
@@ -82,14 +77,10 @@ module ChSend =
            Ch.send ch m) >>= fun () ->
         Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
-    let m =
-      sprintf "ChSend: %f msgs/s - %dm/%fs - %A\n"
-       (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
-    do use w = new StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%f msgs/s - %dm/%fs - %A\n"
+     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
 
-module Mailbox =
+module MbSend =
   let proc (name: int)
            (inMS: Mailbox<int>)
            (outMS: Mailbox<int>)
@@ -112,7 +103,7 @@ module Mailbox =
         ms0
 
   let run n m p =
-    GC.Collect ()
+    printf "MbSend: "
     let timer = Stopwatch.StartNew ()
     let i =
       run
@@ -125,14 +116,10 @@ module Mailbox =
            Mailbox.send ms m) >>= fun () ->
         Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
-    let m =
-      sprintf "Mb: %f msgs/s - %dm/%fs - %A\n"
-       (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
-    do use w = new StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%f msgs/s - %dm/%fs - %A\n"
+     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
 
-module MbPr =
+module MPPost =
   type MbPr<'a> = MailboxProcessor<'a>
 
   let mkChain n (finishPr: MbPr<_>) : array<MbPr<_>> =
@@ -153,7 +140,7 @@ module MbPr =
     mbprs
 
   let run n m p =
-    GC.Collect ()
+    printf "MPPost: "
     let timer = Stopwatch.StartNew ()
     use allDone = new System.Threading.ManualResetEventSlim ()
     let results = ResizeArray<_>()
@@ -173,28 +160,27 @@ module MbPr =
       for j=0 to n-1 do
         (chains.[i].[j] :> IDisposable).Dispose ()
     let d = timer.Elapsed
-    let m =
-      sprintf "MbPr: %f msgs/s - %dm/%fs - %A\n"
-       (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds results
-    //do use w = new StreamWriter ("Results.txt", true)
-    //   w.Write m
-    printf "%s" m
+    printf "%f msgs/s - %dm/%fs - %A\n"
+     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds results
 
-let cleanup () = GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
+let cleanup () =
+  for i=1 to 10 do
+    GC.Collect ()
+    Threading.Thread.Sleep 50
 
-do Ch.run 503 5000 1 ; cleanup ()   
-   Ch.run 503 50000000 1 ; cleanup ()
-   Ch.run 53 50000000 Environment.ProcessorCount ; cleanup ()
+do ChGive.run 503 5000 1 ; cleanup ()   
+   ChGive.run 503 50000000 1 ; cleanup ()
+   ChGive.run 53 50000000 Environment.ProcessorCount ; cleanup ()
    
-   Mailbox.run 503 5000 1 ; cleanup ()
-   Mailbox.run 503 50000000 1 ; cleanup ()
-   Mailbox.run 53 50000000 Environment.ProcessorCount ; cleanup ()
+   MbSend.run 503 5000 1 ; cleanup ()
+   MbSend.run 503 50000000 1 ; cleanup ()
+   MbSend.run 53 50000000 Environment.ProcessorCount ; cleanup ()
    
    ChSend.run 503 5000 1 ; cleanup ()
    ChSend.run 503 50000000 1 ; cleanup ()
    ChSend.run 53 50000000 Environment.ProcessorCount ; cleanup ()
    
-   MbPr.run 503 5000 1 ; cleanup ()
-   MbPr.run 503 50000000 1 ; cleanup ()
-   MbPr.run 53 50000000 Environment.ProcessorCount
+   MPPost.run 503 5000 1 ; cleanup ()
+   MPPost.run 503 50000000 1 ; cleanup ()
+   MPPost.run 53 50000000 Environment.ProcessorCount
    

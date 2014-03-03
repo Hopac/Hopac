@@ -105,17 +105,22 @@ module ChSend =
     printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
     printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
     
-do ChGive.run dataWarmUp
-   ChSend.run dataWarmUp
-   HopacMb.run dataWarmUp
-   Async.run dataWarmUp
+let cleanup () =
+  for i=1 to 10 do
+    GC.Collect ()
+    Threading.Thread.Sleep 50
 
-   ChGive.run data
-   ChGive.run data
-   ChSend.run data
-   ChSend.run data
-   HopacMb.run data
-   HopacMb.run data
-   Async.run data
+do ChGive.run dataWarmUp ; cleanup ()
+   ChSend.run dataWarmUp ; cleanup ()
+   HopacMb.run dataWarmUp ; cleanup ()
+   Async.run dataWarmUp ; cleanup ()
+
+   ChGive.run data ; cleanup ()
+   ChGive.run data ; cleanup ()
+   ChSend.run data ; cleanup ()
+   ChSend.run data ; cleanup ()
+   HopacMb.run data ; cleanup ()
+   HopacMb.run data ; cleanup ()
+   Async.run data ; cleanup ()
    Async.run data
    

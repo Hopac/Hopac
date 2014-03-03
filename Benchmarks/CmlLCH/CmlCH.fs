@@ -32,13 +32,11 @@ module EgPaper =
     spawn (make "+" "z" (Ch.Alt.give z ()))
 
   let run n =
+    printf "EgPaper %d: " n
     let timer = Stopwatch.StartNew ()
     let r = run (Job.forN n egpaper)
     let d = timer.Elapsed
-    let m = sprintf "EgPaper: %d: %fs (%d threads)\n" n d.TotalSeconds System.Environment.ProcessorCount
-    do use w = new System.IO.StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%fs (%d threads)\n" d.TotalSeconds System.Environment.ProcessorCount
 
 module SwapCh =
   type SwapChannel<'a> = Ch<'a * Ch<'a>>
@@ -60,13 +58,11 @@ module SwapCh =
     Alt.pick (swap ch ())
 
   let run n =
+    printf "SwapCh %d: " n
     let timer = Stopwatch.StartNew ()
     let r = run (Job.forN n bench)
     let d = timer.Elapsed
-    let m = sprintf "SwapCh %d: %fs (%d threads)\n" n d.TotalSeconds System.Environment.ProcessorCount
-    do use w = new System.IO.StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%fs (%d threads)\n" d.TotalSeconds System.Environment.ProcessorCount
 
 module BufferedCh =
   type BufferedCh<'a> = Ch<'a> * Ch<'a>
@@ -98,13 +94,11 @@ module BufferedCh =
     recv buf
 
   let run n =
+    printf "BufferedCh %d: " n
     let timer = Stopwatch.StartNew ()
     let r = run (Job.forN n bench)
     let d = timer.Elapsed
-    let m = sprintf "BufferedCh %d: %fs (%d threads)\n" n d.TotalSeconds System.Environment.ProcessorCount
-    do use w = new System.IO.StreamWriter ("Results.txt", true)
-       w.Write m
-    printf "%s" m
+    printf "%fs (%d threads)\n" d.TotalSeconds System.Environment.ProcessorCount
 
 do let mutable n = 1
    for i=1 to 6 do

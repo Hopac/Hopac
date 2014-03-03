@@ -3,13 +3,13 @@
 // Inspired by http://t0yv0.blogspot.com/2011/12/making-async-5x-faster.html
 
 open System
-open System.IO
 open System.Diagnostics
 open Hopac
 open Hopac.Job.Infixes
 
 module Literal =
   let run n =
+    printf "Literal: "
     let timer = Stopwatch.StartNew ()
     let i =
       run <| job {
@@ -32,11 +32,11 @@ module Literal =
         return! reader 0
       }
     let d = timer.Elapsed
-    let m = sprintf "Literal: %f hops per second\n" (float n / d.TotalSeconds)
-    printf "%s" m
+    printf "%f hops per second\n" (float n / d.TotalSeconds)
 
 module Tweaked =
   let run n =
+    printf "Tweaked: "
     let timer = Stopwatch.StartNew ()
     let i =
       run <| job {
@@ -57,10 +57,12 @@ module Tweaked =
         return! reader 0
       }
     let d = timer.Elapsed
-    let m = sprintf "Tweaked: %f hops per second\n" (float n / d.TotalSeconds)
-    printf "%s" m
+    printf "%f hops per second\n" (float n / d.TotalSeconds)
 
-let cleanup () = GC.Collect () ; Threading.Thread.Sleep 500
+let cleanup () =
+  for i=1 to 10 do
+    GC.Collect ()
+    Threading.Thread.Sleep 50
 
 do Literal.run 2000 ; cleanup ()
    Literal.run 20000 ; cleanup ()

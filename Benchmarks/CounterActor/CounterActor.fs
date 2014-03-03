@@ -13,7 +13,7 @@ open Hopac
 open Hopac.Extensions
 open Hopac.Job.Infixes
 
-module CounterActorChMsg =
+module ChMsg =
   type Msg =
    | Add of int64
    | GetAndReset of IVar<int64>
@@ -45,22 +45,27 @@ module CounterActorChMsg =
   }
 
 let run numPerThread =
+  printf "ChMsg: "
   let timer = Stopwatch.StartNew ()
   let r = run <| job {
-    let! actor = CounterActorChMsg.create
+    let! actor = ChMsg.create
     do! seq {1 .. Environment.ProcessorCount}
         |> Seq.Parallel.iterJob
-            (fun _ -> Job.forN numPerThread (CounterActorChMsg.add actor 100L))
-    return! CounterActorChMsg.getAndReset actor
+            (fun _ -> Job.forN numPerThread (ChMsg.add actor 100L))
+    return! ChMsg.getAndReset actor
   }
   let d = timer.Elapsed
-  let m = sprintf "CounterActorChMsg: %d * %d msgs => %f msgs/s\n"
-           Environment.ProcessorCount numPerThread
-           (float (Environment.ProcessorCount * numPerThread) / d.TotalSeconds)
-  printf "%s" m
+  printf "%d * %d msgs => %f msgs/s\n"
+   Environment.ProcessorCount numPerThread
+   (float (Environment.ProcessorCount * numPerThread) / d.TotalSeconds)
+
+let cleanup () =
+  for i=1 to 10 do
+    GC.Collect () ; Threading.Thread.Sleep 50
  
-do run 3000 ; GC.Collect () ; Threading.Thread.Sleep 500
-   run 30000 ; GC.Collect () ; Threading.Thread.Sleep 500
-   run 300000 ; GC.Collect () ; Threading.Thread.Sleep 500
-   run 3000000 ; GC.Collect () ; Threading.Thread.Sleep 500
+do run 300 ; cleanup ()
+   run 3000 ; cleanup ()
+   run 30000 ; cleanup ()
+   run 300000 ; cleanup ()
+   run 3000000 ; cleanup ()
    run 30000000

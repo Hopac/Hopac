@@ -51,7 +51,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Fibonacci.fs" />
-    <Content Include="Results.txt" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
