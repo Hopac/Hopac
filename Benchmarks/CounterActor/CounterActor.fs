@@ -61,5 +61,6 @@ let run numPerThread =
  
 do run 3000 ; GC.Collect () ; Threading.Thread.Sleep 500
    run 30000 ; GC.Collect () ; Threading.Thread.Sleep 500
+   run 300000 ; GC.Collect () ; Threading.Thread.Sleep 500
    run 3000000 ; GC.Collect () ; Threading.Thread.Sleep 500
    run 30000000

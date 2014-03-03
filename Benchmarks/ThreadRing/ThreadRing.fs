@@ -49,6 +49,46 @@ module Ch =
        w.Write m
     printf "%s" m
 
+module ChSend =
+  let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) : Job<unit> =
+    Job.forever
+     (Ch.take inCh >>= fun n ->
+      if n <> 0 then
+        Ch.send outCh (n-1)
+      else
+        Ch.give finishCh name)
+
+  let mkChain n finishCh = Job.delay <| fun () ->
+    let ch0 = Ch.Now.create ()
+    seq {1 .. n}
+    |> Seq.foldJob
+        (fun chIn i ->
+           let chOut = if i=n then ch0 else Ch.Now.create ()
+           proc i chIn chOut finishCh |> Job.start >>%
+           chOut)
+        ch0
+
+  let run n m p =
+    GC.Collect ()
+    let timer = Stopwatch.StartNew ()
+    let i =
+      run
+       (Job.delay <| fun () ->
+        let ps = Array.create p n
+        let finishCh = Ch.Now.create ()
+        ps
+        |> Seq.Parallel.iterJob (fun n ->
+           mkChain n finishCh >>= fun ch ->
+           Ch.send ch m) >>= fun () ->
+        Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+    let d = timer.Elapsed
+    let m =
+      sprintf "ChSend: %f msgs/s - %dm/%fs - %A\n"
+       (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
+    do use w = new StreamWriter ("Results.txt", true)
+       w.Write m
+    printf "%s" m
+
 module Mailbox =
   let proc (name: int)
            (inMS: Mailbox<int>)
@@ -140,21 +180,21 @@ module MbPr =
     //   w.Write m
     printf "%s" m
 
-do Ch.run 503 5000 1
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   Ch.run 503 50000000 1
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   Ch.run 53 50000000 Environment.ProcessorCount
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   Mailbox.run 503 5000 1
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   Mailbox.run 503 50000000 1
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   Mailbox.run 53 50000000 Environment.ProcessorCount
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   MbPr.run 503 5000 1
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
-   MbPr.run 503 50000000 1
-   GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
+let cleanup () = GC.Collect() ; System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
+
+do Ch.run 503 5000 1 ; cleanup ()   
+   Ch.run 503 50000000 1 ; cleanup ()
+   Ch.run 53 50000000 Environment.ProcessorCount ; cleanup ()
+   
+   Mailbox.run 503 5000 1 ; cleanup ()
+   Mailbox.run 503 50000000 1 ; cleanup ()
+   Mailbox.run 53 50000000 Environment.ProcessorCount ; cleanup ()
+   
+   ChSend.run 503 5000 1 ; cleanup ()
+   ChSend.run 503 50000000 1 ; cleanup ()
+   ChSend.run 53 50000000 Environment.ProcessorCount ; cleanup ()
+   
+   MbPr.run 503 5000 1 ; cleanup ()
+   MbPr.run 503 50000000 1 ; cleanup ()
    MbPr.run 53 50000000 Environment.ProcessorCount
    

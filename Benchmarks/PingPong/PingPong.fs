@@ -20,12 +20,12 @@ let run numPairs numMsgsPerPair =
       let chPong = Ch.Now.create ()
       do! Job.start
            (Job.forever (Ch.take chPing >>= fun (Msg (chPong, msg)) ->
-                         Ch.give chPong (Msg (chPing, msg))))
+                         Ch.send chPong (Msg (chPing, msg))))
       do! Job.start <| job {
         do! Ch.give chPing (Msg (chPong, "msg"))
         do! Job.forN (numMsgsPerPair-1)
              (Ch.take chPong >>= fun (Msg (chPing, msg)) ->
-              Ch.give chPing (Msg (chPong, msg)))
+              Ch.send chPing (Msg (chPong, msg)))
         do! Ch.give chEnd ()
       }
     }

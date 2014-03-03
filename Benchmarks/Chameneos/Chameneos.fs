@@ -182,12 +182,12 @@ module HopacAlt =
       (Ch.Alt.take csch.Ch >=> fun (msgIn, outCh) ->
        let n = System.Threading.Interlocked.Decrement &csch.N
        if n > 0 then
-         Ch.give outCh (Some msgOut) >>% Some msgIn
+         Ch.send outCh (Some msgOut) >>% Some msgIn
        elif n = 0 then
          IVar.fill csch.Done None >>= fun () ->
-         Ch.give outCh (Some msgOut) >>% Some msgIn
+         Ch.send outCh (Some msgOut) >>% Some msgIn
        else
-         Ch.give outCh None >>% None) <|>
+         Ch.send outCh None >>% None) <|>
       (Alt.delay <| fun () ->
        let inCh = Ch.Now.create ()
        (Ch.Alt.give csch.Ch (msgOut, inCh) >=> fun () ->

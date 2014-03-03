@@ -57,13 +57,13 @@ module HopacMb =
     printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
     printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
 
-module HopacCh =
+module ChGive =
   open Hopac
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
   let run data =
-    printfn "HopacCh:"
+    printfn "ChGive:"
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -80,13 +80,40 @@ module HopacCh =
     let d2 = timer.Elapsed
     printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
     printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
+
+module ChSend =
+  open Hopac
+  open Hopac.Job.Infixes
+  open Hopac.Extensions
+
+  let run data =
+    printfn "ChSend:"
+    let timer = Stopwatch.StartNew ()
+    let max = Array.last data
+    use ping = new ManualResetEventSlim ()
+    let mb = Ch.Now.create ()
+    do run <| job {
+         do! Job.start 
+              (Job.forever
+                (Ch.take mb |>> fun msg ->
+                 if msg = max then ping.Set ()))
+         do! data |> Array.iterJob (fun i -> Ch.send mb i)
+       }
+    let d1 = timer.Elapsed
+    ping.Wait ()
+    let d2 = timer.Elapsed
+    printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
+    printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
     
-do HopacCh.run dataWarmUp
+do ChGive.run dataWarmUp
+   ChSend.run dataWarmUp
    HopacMb.run dataWarmUp
    Async.run dataWarmUp
 
-   HopacCh.run data
-   HopacCh.run data
+   ChGive.run data
+   ChGive.run data
+   ChSend.run data
+   ChSend.run data
    HopacMb.run data
    HopacMb.run data
    Async.run data
