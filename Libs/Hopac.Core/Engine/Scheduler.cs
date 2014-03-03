@@ -78,8 +78,9 @@ namespace Hopac.Core {
         x.Next = x;
       } else {
         var y = h.Up;
-        Work z = h.Up;
+        Work z = y;
         while (x.Ticks - y.Up.Ticks < 0) {
+          y = y.Up;
           var t = y.Next;
           y.Next = z;
           z = t;
@@ -94,6 +95,7 @@ namespace Hopac.Core {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void DropTimed() {
+      // XXX This implementation requires keys to be unique - must analyze and fix this properly to allow duplicates.
       var h = TopTimed;
       if (null == h)
         return;
@@ -104,7 +106,7 @@ namespace Hopac.Core {
         y1 = y2;
         y2 = t;
       }
-      if (y1 == h) {
+      if (y1.Ticks == h.Ticks) {
         TopTimed = null;
         return;
       }
@@ -118,7 +120,7 @@ namespace Hopac.Core {
           y1 = y2;
           y2 = t;
         }
-        if (y1 == h) {
+        if (y1.Ticks == h.Ticks) {
           TopTimed = h3;
           return;
         }

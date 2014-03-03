@@ -160,7 +160,7 @@ namespace Hopac.Core {
             if (null == tt)
               goto JustWait;
 
-            waitTicks = tt.Ticks - Environment.TickCount;
+            waitTicks = (int)(tt.Ticks >> 32) - Environment.TickCount;
             if (waitTicks > 0)
               goto JustWait;
 
