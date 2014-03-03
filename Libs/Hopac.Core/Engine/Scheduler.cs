@@ -53,9 +53,14 @@ namespace Hopac.Core {
       SpinlockTTAS.Exit(ref Lock);
     }
 
+    static uint unique = 0;
+
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void SynchronizedPushTimed(ref Worker wr, WorkTimed x) {
       SpinlockTTAS.Enter(ref Scheduler.Lock);
+      var tag = unique;
+      x.Ticks |= tag; // XXX: Kludge to make sure Ticks are unique.
+      unique = tag + 1;
       var h = TopTimed;
       if (null == h) {
         TopTimed = x;

@@ -9,11 +9,9 @@ namespace Hopac.Core {
 
   internal class WorkTimed : Work {
     internal WorkTimed Up;
-    internal readonly long Ticks;
+    internal long Ticks;
     internal Pick Pick;
     internal int Me;
-
-    private static int unique = 0; // XXX Kludge to eliminate duplicate keys.  Should fix the bottom up skew heap instead.
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal WorkTimed(int ticks) {
@@ -22,7 +20,7 @@ namespace Hopac.Core {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal WorkTimed(int ticks, int me, Pick pk) {
-      this.Ticks = (((long)ticks) << 32) | (uint)Interlocked.Increment(ref unique);
+      this.Ticks = ((long)ticks) << 32;
       this.Me = me;
       this.Pick = pk;
     }
