@@ -65,9 +65,9 @@ On Memory Usage
 ---------------
 
 An important property of Hopac jobs and synchronous channels is that a system
-that consist of **m** jobs that communicate with each other using **n**
-synchronous channels (and no other primitives) requires **&Theta;(m + n)** space
-for the jobs and channels.
+that consist of **m** jobs that communicate with each other using synchronous
+message passing over **n** channels requires **&Theta;(m + n)** space for the
+jobs and channels.
 
 That may sound obvious, but many concurrent systems,
 e.g. [Erlang](http://www.erlang.org/) and F#'s
@@ -500,9 +500,25 @@ Programming with Alternatives
 -----------------------------
 
 The alternative mechanism (events in CML) allows the definition of first-class
-synchronous operations and is an abstraction mechanism that was first introduced
-by Concurrent ML.  In the previous sections we have already seen some simple
-uses of alternatives.  In this section we'll take a closer look at alternatives.
+synchronous operations.  In the previous sections we have already seen some
+simple uses of alternatives.  In this section we'll take a closer look at
+alternatives.
+
+### Base Alternatives
+
+
+
+### Choose and Wrap
+
+
+
+### Guards
+
+
+
+### Negative Acknowledgements
+
+
 
 ### On the Semantics of Alternatives
 
@@ -563,8 +579,8 @@ that in many cases the initial lazy and deterministic evaluation of alternatives
 makes no difference except for performance.  In cases where none of the
 alternatives is immediately available, the behavior of Hopac and CML is
 essentially the same.  However, it is obviously possible to write programs that
-rely on either the lazy and deterministic or eager and non-deterministic initial
-choice.
+rely on either the Hopac style lazy and deterministic or the CML style eager and
+non-deterministic initial choice.
 
 Parallel Programming
 --------------------
