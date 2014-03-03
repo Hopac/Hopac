@@ -232,8 +232,10 @@ module Job =
 
 /// Operations on first-class synchronous operations or alternatives.
 module Alt =
-  /// Creates an alternative that is always available for picking and results
-  /// in the given value.
+  /// Creates an alternative that is always available for picking and results in
+  /// the given value.  Note that when there are alternatives immediately
+  /// available for picking in a disjunction, the first such alternative will be
+  /// committed to.
   val inline always: 'a -> Alt<'a>
 
   /// Creates an an alternative that is never available for picking.
@@ -332,13 +334,21 @@ module Ch =
   val create: unit -> Job<Ch<'a>>
 
   /// Creates a job that offers to give the given value to another job on
-  /// the given channel.  In other words, a give operation waits until another
-  /// job takes the value.
+  /// the given channel.  A give operation is synchronous.  In other words, a
+  /// give operation waits until another job takes the value.
   val inline give: Ch<'a> -> 'a -> Job<unit>
+
+  /// Creates a job that sends a value to another job on the given channel.
+  /// A send operation is asynchronous.  In other words, a send operation does
+  /// not wait for another job to give the value to.  Note that channels have
+  /// been optimized for synchronous operations; an occasional send can be
+  /// efficient, but when sends are queued, performance maybe be significantly
+  /// worse than with a Mailbox optimized for buffering.
+  val inline send: Ch<'a> -> 'a -> Job<unit>
 
   /// Creates a job that offers to take a value from another job on the
   /// given channel.  In other words, a take operation waits until another job
-  /// gives a value.
+  /// gives (or sends) a value.
   val inline take: Ch<'a> -> Job<'a>
 
   /// Selective operations on synchronous channels.

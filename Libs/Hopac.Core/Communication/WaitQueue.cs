@@ -6,12 +6,15 @@ namespace Hopac.Core {
   using System.Threading;
   using System.Runtime.CompilerServices;
 
-  internal sealed class Giver<T> {
-    internal Giver<T> Next;
+  internal class Send<T> {
+    internal Send<T> Next;
+    internal T Value;
+  }
+
+  internal sealed class Giver<T> : Send<T> {
+    internal int Me;
     internal Pick Pick;
     internal Cont<Unit> Cont;
-    internal T Value;
-    internal int Me;
   }
 
   internal sealed class Taker<T> : Cont<T> {
@@ -48,7 +51,7 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void ReplaceRange<T>(ref Giver<T> queue, Giver<T> last, Giver<T> cache) {
+    internal static void ReplaceRange<T>(ref Send<T> queue, Send<T> last, Send<T> cache) {
       var tail = queue;
       if (tail == last) {
         queue = cache;
@@ -68,7 +71,7 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void ReplaceRangeInclusive<T>(Giver<T> tail, Giver<T> next, Giver<T> cache) {
+    internal static void ReplaceRangeInclusive<T>(Send<T> tail, Send<T> next, Send<T> cache) {
       if (null == cache) {
         tail.Next = next;
       } else {
@@ -88,7 +91,7 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void Enqueue<T>(ref Giver<T> queue, Giver<T> elem) {
+    internal static void Enqueue<T>(ref Send<T> queue, Send<T> elem) {
       var tail = queue;
       if (null == tail) {
         elem.Next = elem;
@@ -114,7 +117,7 @@ namespace Hopac.Core {
     /// <summary>Note that this specifically tries to reuse a giver from the
     /// queue.  This reduces the chance of space leaks.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void AddGiver<T>(ref Giver<T> queue, T x, int me, Pick pk, Cont<Unit> uK) {
+    internal static void AddGiver<T>(ref Send<T> queue, T x, int me, Pick pk, Cont<Unit> uK) {
       var last = queue;
       Giver<T> elem;
       if (null != last)
@@ -125,10 +128,13 @@ namespace Hopac.Core {
       goto Init;
 
     MaybeReuse:
-      elem = last;// as Giver<T>;
+      elem = last as Giver<T>;
+      if (null == elem)
+        goto New;
       var pkGiver = elem.Pick;
       if (null != pkGiver && pkGiver.State > 0)
         goto Init;
+    New:
       elem = new Giver<T>();
       queue = elem;
       elem.Next = last.Next;
@@ -144,7 +150,7 @@ namespace Hopac.Core {
     /// <summary>Note that this specifically tries to reuse a giver from the
     /// queue.  This reduces the chance of space leaks.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void AddGiver<T>(ref Giver<T> queue, T x, Cont<Unit> uK) {
+    internal static void AddGiver<T>(ref Send<T> queue, T x, Cont<Unit> uK) {
       var last = queue;
       Giver<T> elem;
       if (null != last)
@@ -157,10 +163,13 @@ namespace Hopac.Core {
       return;
 
     MaybeReuse:
-      elem = last;// as Giver<T>;
+      elem = last as Giver<T>;
+      if (null == elem)
+        goto New;
       var pkGiver = elem.Pick;
       if (null != pkGiver && pkGiver.State > 0)
         goto Reuse;
+    New:
       elem = new Giver<T>();
       queue = elem;
       elem.Next = last.Next;
@@ -173,6 +182,20 @@ namespace Hopac.Core {
       elem.Pick = null;
       elem.Value = x;
       elem.Cont = uK;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void AddSend<T>(ref Send<T> queue, T x) {
+      var elem = new Send<T>();
+      elem.Value = x;
+      var last = queue;
+      queue = elem;
+      if (null == last) {
+        elem.Next = elem;
+      } else {
+        elem.Next = last.Next;
+        last.Next = elem;
+      }
     }
 
     /// <summary>Note that this specifically tries to reuse a taker from the
@@ -210,14 +233,12 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void AddTaker<T>(ref Cont<T> queue, Cont<T> xK) {
       var last = queue;
+      queue = xK;
       if (null == last) {
-        queue = xK;
         xK.Next = xK;
       } else {
-        var next = last.Next;
+        xK.Next = last.Next;
         last.Next = xK;
-        queue = xK;
-        xK.Next = next;
       }
     }
   }

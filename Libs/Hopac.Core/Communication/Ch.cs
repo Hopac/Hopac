@@ -9,7 +9,7 @@ namespace Hopac {
   /// <summary>A synchronous channel.</summary>
   public class Ch<T> : Alt<T> {
     internal SpinlockTTAS Lock;
-    internal Giver<T> Givers;
+    internal Send<T> Givers;
     internal Cont<T> Takers;
     // Note that via selective communication it is possible for a job to offer
     // to both give and take on the same channel simultaneously.  So, both
@@ -34,7 +34,11 @@ namespace Hopac {
         tail.Next = cursor.Next;
       this.Lock.Exit();
 
-      var pkOther = cursor.Pick;
+      var giver = cursor as Giver<T>;
+      if (null == giver)
+        goto GotSend;
+
+      var pkOther = giver.Pick;
       if (null == pkOther) goto GotGiver;
 
     TryPickOther:
@@ -42,25 +46,49 @@ namespace Hopac {
       if (stOther > 0) goto TryNextGiver;
       if (stOther < 0) goto TryPickOther;
 
-      Pick.SetNacks(ref wr, cursor.Me, pkOther);
+      Pick.SetNacks(ref wr, giver.Me, pkOther);
     GotGiver:
-      Worker.Push(ref wr, cursor.Cont);
+      Worker.Push(ref wr, giver.Cont);
+    GotSend:
       xK.DoCont(ref wr, cursor.Value);
       return;
     }
 
     /// Internal implementation detail.
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
+    internal override void
+      TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
       this.Lock.Enter();
       var tail = this.Givers;
       if (null == tail) goto TryTaker;
-      Giver<T> cache = null;
+      Send<T> cache = null;
       var cursor = tail.Next;
 
     TryGiver:
-      var giver = cursor;
+      var giver = cursor as Giver<T>;
+      Pick pkOther = null;
+      if (null != giver)
+        goto Giver;
+
+    TryPick:
+      var st = Pick.TryPick(pkSelf);
+      if (st > 0) goto AlreadyPicked;
+      if (st < 0) goto TryPick;
+
+      WaitQueue.ReplaceRange(ref this.Givers, cursor, cache);
+      this.Lock.Exit();
+
+      Pick.SetNacks(ref wr, i, pkSelf);
+      xK.DoCont(ref wr, cursor.Value);
+      return;
+
+    AlreadyPicked:
+      WaitQueue.ReplaceRangeInclusive(this.Givers, cursor, cache);
+      this.Lock.Exit();
+      return;
+
+    Giver:
       cursor = cursor.Next;
-      var pkOther = giver.Pick;
+      pkOther = giver.Pick;
 
       if (null == pkOther) goto TryPickSelf;
       if (pkOther == pkSelf) goto OtherIsSelf;
@@ -177,7 +205,8 @@ namespace Hopac {
       }
 
       /// Internal implementation detail.
-      internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
+      internal override void
+        TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
         var ch = this.Ch;
         ch.Lock.Enter();
         var tail = ch.Takers;
@@ -243,6 +272,63 @@ namespace Hopac {
 
         WaitQueue.ReplaceRangeInclusive(ch.Takers, taker, cache);
         ch.Lock.Exit();
+        return;
+      }
+    }
+
+    /// Internal implementation detail.
+    public class ChSend<T> : Job<Unit> {
+      private Ch<T> Ch;
+      private T X;
+
+      /// Internal implementation detail.
+      [MethodImpl(AggressiveInlining.Flag)]
+      public ChSend(Ch<T> ch, T x) {
+        this.Ch = ch;
+        this.X = x;
+      }
+
+      /// Internal implementation detail.
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        var ch = this.Ch;
+      TryNextTaker:
+        ch.Lock.Enter();
+        var tail = ch.Takers;
+        if (null == tail)
+          goto TryGiver;
+        var cursor = tail.Next;
+        if (tail == cursor) {
+          ch.Takers = null;
+          ch.Lock.Exit();
+        } else {
+          tail.Next = cursor.Next;
+          ch.Lock.Exit();
+          tail = cursor as Cont<T>;
+        }
+
+        var taker = tail as Taker<T>;
+        if (null == taker)
+          goto GotTaker;
+        var pkOther = taker.Pick;
+
+      TryPickOther:
+        var stOther = Pick.TryPick(pkOther);
+        if (stOther > 0) goto TryNextTaker;
+        if (stOther < 0) goto TryPickOther;
+
+        Pick.SetNacks(ref wr, taker.Me, pkOther);
+
+        tail = taker.Cont;
+      GotTaker:
+        tail.Value = this.X;
+        Worker.Push(ref wr, tail);
+        uK.DoCont(ref wr, null);
+        return;
+
+      TryGiver:
+        WaitQueue.AddSend(ref ch.Givers, this.X);
+        ch.Lock.Exit();
+        uK.DoCont(ref wr, null);
         return;
       }
     }

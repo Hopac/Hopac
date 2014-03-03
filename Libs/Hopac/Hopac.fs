@@ -63,6 +63,8 @@ module Ch =
   let create () = ctor Now.create ()
   let inline give (ch: Ch<'a>) (x: 'a) : Job<unit> =
     ChGive<'a> (ch, x) :> Job<unit>
+  let inline send (ch: Ch<'a>) (x: 'a) : Job<unit> =
+    ChSend<'a> (ch, x) :> Job<unit>
   let inline take (ch: Ch<'a>) : Job<'a> =
     ch :> Job<'a>
   module Alt =
