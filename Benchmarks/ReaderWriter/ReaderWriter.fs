@@ -32,7 +32,7 @@ module Literal =
         return! reader 0
       }
     let d = timer.Elapsed
-    printf "%f hops per second\n" (float n / d.TotalSeconds)
+    printf "%f hops/s\n" (float n / d.TotalSeconds)
 
 module Tweaked =
   let run n =
@@ -57,22 +57,15 @@ module Tweaked =
         return! reader 0
       }
     let d = timer.Elapsed
-    printf "%f hops per second\n" (float n / d.TotalSeconds)
+    printf "%f hops/s\n" (float n / d.TotalSeconds)
 
 let cleanup () =
   for i=1 to 10 do
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do Literal.run 2000 ; cleanup ()
-   Literal.run 20000 ; cleanup ()
-   Literal.run 200000 ; cleanup ()
-   Literal.run 2000000 ; cleanup ()
-   Literal.run 20000000 ; cleanup ()
-
-   Tweaked.run 2000 ; cleanup ()
-   Tweaked.run 20000 ; cleanup ()
-   Tweaked.run 200000 ; cleanup ()
-   Tweaked.run 2000000 ; cleanup ()
-   Tweaked.run 20000000 ; cleanup ()
-
+do let ns = [2000; 20000; 200000; 2000000; 20000000]
+   for n in ns do
+     Literal.run n ; cleanup ()
+   for n in ns do
+     Tweaked.run n ; cleanup ()
