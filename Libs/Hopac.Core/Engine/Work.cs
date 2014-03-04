@@ -24,7 +24,7 @@ namespace Hopac.Core {
 #if TRAMPOLINE
       unsafe {
         byte stack;
-        ulong ptr = (ulong)&stack;
+        void* ptr = &stack;
         if (ptr < wr.StackLimit) {
           work.Next = wr.WorkStack;
           wr.WorkStack = work;

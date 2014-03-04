@@ -37,7 +37,7 @@ namespace Hopac.Core {
     }
 
     /// Internal implementation detail.
-    internal override void DoContAbs(ref Worker wr, B b) {
+    internal override void DoCont(ref Worker wr, B b) {
     Interpret:
       var state = this.state;
       if (state > 0) goto DoCont;
@@ -56,7 +56,7 @@ namespace Hopac.Core {
     DoCont: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoContAbs(ref wr, new Tuple<A, B>(this.a, b));
+        abK.DoCont(ref wr, new Tuple<A, B>(this.a, b));
       }
     }
 
@@ -81,7 +81,7 @@ namespace Hopac.Core {
     DoCont: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoContAbs(ref wr, new Tuple<A, B>(a, this.b));
+        abK.DoCont(ref wr, new Tuple<A, B>(a, this.b));
       }
     }
   }

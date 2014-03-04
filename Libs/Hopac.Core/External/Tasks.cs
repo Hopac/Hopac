@@ -31,7 +31,7 @@ namespace Hopac.Core {
       }
 
       internal override void DoWork(ref Worker wr) {
-        this.aK.DoContAbs(ref wr, this.task.Result);
+        this.aK.DoCont(ref wr, this.task.Result);
       }
 
       public void Ready() {
@@ -74,7 +74,7 @@ namespace Hopac.Core {
 
       internal override void DoWork(ref Worker wr) {
         if (this.task.Status == TaskStatus.RanToCompletion)
-          this.uK.DoContAbs(ref wr, null);
+          this.uK.DoCont(ref wr, null);
         else
           this.uK.DoHandle(ref wr, this.task.Exception);
       }

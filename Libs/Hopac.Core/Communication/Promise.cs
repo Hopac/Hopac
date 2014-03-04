@@ -137,7 +137,7 @@ namespace Hopac {
         throw new NotImplementedException();
       }
 
-      internal override void DoContAbs(ref Worker wr, T value) {
+      internal override void DoCont(ref Worker wr, T value) {
         throw new NotImplementedException();
       }
 
@@ -159,7 +159,7 @@ namespace Hopac {
       internal override void DoWork(ref Worker wr) {
         var tJ = this.tJ;
         if (null == tJ) {
-          this.DoContAbs(ref wr, this.Value);
+          this.DoCont(ref wr, this.Value);
         } else {
           this.tJ = null;
           tJ.DoJob(ref wr, this);
@@ -201,7 +201,7 @@ namespace Hopac {
         if (cursor != readers) goto TryReader;
       }
 
-      internal override void DoContAbs(ref Worker wr, T v) {
+      internal override void DoCont(ref Worker wr, T v) {
         var pr = this.pr;
         pr.Value = v;
       Spin:

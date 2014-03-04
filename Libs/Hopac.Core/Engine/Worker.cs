@@ -17,11 +17,11 @@ namespace Hopac.Core {
   }
 
   /// Internal implementation detail.
-  internal struct Worker {
+  unsafe internal struct Worker {
     internal Work WorkStack;
     internal Handler Handler;
 #if TRAMPOLINE
-    internal ulong StackLimit;
+    internal void *StackLimit;
 #endif
 #if ENABLE_MCS
     internal SpinlockMCS.Node Node;
@@ -29,8 +29,8 @@ namespace Hopac.Core {
 
 #if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
-    unsafe internal void Init(ulong *StackLimit) {
-      this.StackLimit = (ulong)StackLimit - 500000L;
+    unsafe internal void Init(void *StackLimit) {
+      this.StackLimit = (byte *)StackLimit - 500000L;
 #else
     [MethodImpl(AggressiveInlining.Flag)]
     unsafe internal void Init() {

@@ -202,11 +202,11 @@ namespace Hopac {
           tK.DoHandle(ref wr, e);
         }
 
-        internal override void DoContAbs(ref Worker wr, T value) {
+        internal override void DoCont(ref Worker wr, T value) {
           var tK = this.tK;
           wr.Handler = tK;
           Lock.Exit(this.l, ref wr);
-          tK.DoContAbs(ref wr, value);
+          tK.DoCont(ref wr, value);
         }
       }
     }

@@ -17,11 +17,11 @@ namespace Hopac {
 
     /// Internal implementation detail.
     internal override void DoWork(ref Worker wr) {
-      this.DoContAbs(ref wr, this.Value);
+      this.DoCont(ref wr, this.Value);
     }
 
-    /// Use DoContAbs when NOT invoking continuation from a Job or Alt.
-    internal abstract void DoContAbs(ref Worker wr, T value);
+    /// Use DoCont when NOT invoking continuation from a Job or Alt.
+    internal abstract void DoCont(ref Worker wr, T value);
   }
 
   internal static class Cont {
@@ -31,13 +31,13 @@ namespace Hopac {
 #if TRAMPOLINE
       unsafe {
         byte stack;
-        ulong ptr = (ulong)&stack;
+        void *ptr = &stack;
         if (ptr < wr.StackLimit) {
           tK.Value = value;
           tK.Next = wr.WorkStack;
           wr.WorkStack = tK;
         } else {
-          tK.DoContAbs(ref wr, value);
+          tK.DoCont(ref wr, value);
         }
       }
 #else
@@ -50,12 +50,12 @@ namespace Hopac {
 #if TRAMPOLINE
       unsafe {
         byte stack;
-        ulong ptr = (ulong)&stack;
+        void* ptr = &stack;
         if (ptr < wr.StackLimit) {
           tK.Next = wr.WorkStack;
           wr.WorkStack = tK;
         } else {
-          tK.DoContAbs(ref wr, null);
+          tK.DoCont(ref wr, null);
         }
       }
 #else
@@ -83,7 +83,7 @@ namespace Hopac {
       }
 
       /// Internal implementation detail.
-      internal override void DoContAbs(ref Worker wr, T value) {
+      internal override void DoCont(ref Worker wr, T value) {
         this.hr.DoHandle(ref wr, this.e);
       }
     }
