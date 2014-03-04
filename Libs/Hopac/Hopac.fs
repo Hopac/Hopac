@@ -404,11 +404,12 @@ module Job =
          Cont.Do (uK, &wr, ())}
 
   let result (x: 'x) =
-    {new Job<'x> () with
+    if sizeof<IntPtr> = 8 then {new Job<'x> () with
       override self.DoJob (wr, xK) =
-       // This is not strictly safe, but should not cause stack space leaks
-       // except in contrived programs.
        xK.DoContAbs (&wr, x)}
+    else {new Job<'x> () with
+      override self.DoJob (wr, xK) =
+       Cont.Do (xK, &wr, x)}
 
   let unit = result ()
 
@@ -476,11 +477,18 @@ module Job =
 
     type PairCont<'x, 'y> (yJ: Job<'y>, xyK: Cont<'x * 'y>) =
       inherit Cont<'x> ()
-      override self.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
-      override self.DoContAbs (wr, a) =
+      override xK.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+      override xK.DoWork (wr) =
+       let a = xK.Value
        yJ.DoJob (&wr, {new Cont<_>() with
-        override self.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
-        override self.DoContAbs (wr, b) = xyK.DoContAbs (&wr, (a, b))})
+        override yK.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+        override yK.DoWork (wr) = xyK.DoContAbs (&wr, (a, yK.Value))
+        override yK.DoContAbs (wr, b) = xyK.DoContAbs (&wr, (a, b))})
+      override xK.DoContAbs (wr, a) =
+       yJ.DoJob (&wr, {new Cont<_>() with
+        override yK.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+        override yK.DoWork (wr) = xyK.DoContAbs (&wr, (a, yK.Value))
+        override yK.DoContAbs (wr, b) = xyK.DoContAbs (&wr, (a, b))})
 
     let (<&>) (aJ: Job<'a>) (bJ: Job<'b>) =
       {new Job<'a * 'b>() with
