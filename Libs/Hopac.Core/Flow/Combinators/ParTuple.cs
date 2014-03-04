@@ -5,7 +5,6 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  /// Internal implementation detail.
   internal sealed class ParTuple<A, B> : Cont<B> {
     internal readonly Cont<Tuple<A, B>> abK;
     internal A a;
@@ -13,13 +12,11 @@ namespace Hopac.Core {
     internal B b;
     internal volatile Exception e;
 
-    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal ParTuple(Cont<Tuple<A, B>> abK) {
       this.abK = abK;
     }
 
-    /// Internal implementation detail.
     internal override void DoHandle(ref Worker wr, Exception e) {
       if (null != Interlocked.CompareExchange(ref this.e, e, null))
         goto DoHandle;
@@ -36,7 +33,6 @@ namespace Hopac.Core {
       abK.DoHandle(ref wr, e);
     }
 
-    /// Internal implementation detail.
     internal override void DoCont(ref Worker wr, B b) {
     Interpret:
       var state = this.state;
@@ -60,7 +56,6 @@ namespace Hopac.Core {
       }
     }
 
-    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal void DoOtherCont(ref Worker wr, A a) {
     Interpret:

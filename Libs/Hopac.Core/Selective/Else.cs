@@ -1,7 +1,6 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
-namespace Hopac {
-  using Hopac.Core;
+namespace Hopac.Core {
   using System;
   using System.Runtime.CompilerServices;
 

@@ -18,7 +18,6 @@ namespace Hopac {
       Values = new Queue<T>();
     }
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
       this.Lock.Enter();
 
@@ -35,7 +34,6 @@ namespace Hopac {
       return;
     }
 
-    /// Internal implementation detail.
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
       this.Lock.Enter();
 
@@ -65,7 +63,7 @@ namespace Hopac {
 
   namespace Core {
     /// Internal implementation detail.
-    public class MailboxSend<T> : Job<Unit> {
+    public sealed class MailboxSend<T> : Job<Unit> {
       private Mailbox<T> Mb;
       private T X;
 
@@ -76,7 +74,6 @@ namespace Hopac {
         this.X = x;
       }
 
-      /// Internal implementation detail.
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var mb = this.Mb;
       TryNextTaker:

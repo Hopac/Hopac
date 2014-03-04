@@ -58,8 +58,7 @@ namespace Hopac {
         this.l = l;
         this.tF = tF;
       }
-
-      /// Internal implementation detail.
+  
       internal override void DoJob(ref Worker wr, Cont<T> tK) {
         var l = this.l;
       Spin:
@@ -137,7 +136,6 @@ namespace Hopac {
         this.tJ = tJ;
       }
 
-      /// Internal implementation detail.
       internal override void DoJob(ref Worker wr, Cont<T> tK) {
         var l = this.l;
         var tKPrime = new Cont(l, tK);

@@ -16,7 +16,6 @@ namespace Hopac.Core {
       this.Next = next;
     }
 
-    /// Internal implementation detail.
     internal abstract void DoWork(ref Worker wr);
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -36,7 +35,6 @@ namespace Hopac.Core {
       work.DoWork(ref wr);
 #endif
     }
-  
   }
 
   internal sealed class FailWork : Work {

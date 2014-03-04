@@ -16,7 +16,6 @@ namespace Hopac {
     // Givers and Takers queues must be maintained even though in many cases
     // only one of them is non empty.
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> xK) {
     TryNextGiver:
       this.Lock.Enter();
@@ -54,7 +53,6 @@ namespace Hopac {
       return;
     }
 
-    /// Internal implementation detail.
     internal override void
       TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
       this.Lock.Enter();
@@ -148,7 +146,7 @@ namespace Hopac {
 
   namespace Core {
     /// Internal implementation detail.
-    public class ChGive<T> : Alt<Unit> {
+    public sealed class ChGive<T> : Alt<Unit> {
       private Ch<T> Ch;
       private T X;
 
@@ -159,7 +157,6 @@ namespace Hopac {
         this.X = x;
       }
 
-      /// Internal implementation detail.
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var ch = this.Ch;
       TryNextTaker:
@@ -202,7 +199,6 @@ namespace Hopac {
         return;
       }
 
-      /// Internal implementation detail.
       internal override void
         TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
         var ch = this.Ch;
@@ -275,7 +271,7 @@ namespace Hopac {
     }
 
     /// Internal implementation detail.
-    public class ChSend<T> : Job<Unit> {
+    public sealed class ChSend<T> : Job<Unit> {
       private Ch<T> Ch;
       private T X;
 
@@ -286,7 +282,6 @@ namespace Hopac {
         this.X = x;
       }
 
-      /// Internal implementation detail.
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var ch = this.Ch;
       TryNextTaker:

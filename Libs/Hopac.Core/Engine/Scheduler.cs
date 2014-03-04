@@ -7,7 +7,6 @@ namespace Hopac.Core {
   using System.Threading;
   using System;
 
-  /// Internal implementation detail.
   internal static class Scheduler {
     internal static volatile int Waiters;
     internal static volatile int Lock;

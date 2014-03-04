@@ -4,7 +4,7 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
 
   /// Internal implementation detail.
-  public class Always<T> : Alt<T> {
+  public sealed class Always<T> : Alt<T> {
     private readonly T value;
 
     /// Internal implementation detail.
@@ -13,12 +13,10 @@ namespace Hopac.Core {
       this.value = value;
     }
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> xK) {
       Cont.Do(xK, ref wr, this.value);
     }
 
-    /// Internal implementation detail.
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
     TryPick:
       var stSelf = Pick.TryPick(pkSelf);

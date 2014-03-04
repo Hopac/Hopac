@@ -5,9 +5,7 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  /// <summary>Internal implementation detail.</summary>
-  internal class Pick {
-    /// <summary>Internal implementation detail.</summary>
+  internal sealed class Pick {
     internal Nack Nacks;
     internal volatile int State;  // 0 = available, -1 = claimed, 1 = picked
 
@@ -31,9 +29,8 @@ namespace Hopac.Core {
       return Interlocked.CompareExchange(ref pk.State, 1, 0);
     }
 
-    /// <summary>Internal implementation detail.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
-    public static Nack AddNack(Pick pk, int i0) {
+    internal static Nack AddNack(Pick pk, int i0) {
     TryClaim:
       var st = TryClaim(pk);
       if (st > 0) goto AlreadyPicked;

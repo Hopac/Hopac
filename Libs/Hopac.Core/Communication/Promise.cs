@@ -46,7 +46,6 @@ namespace Hopac {
       this.Readers = new Fail(e); // We assume failures are infrequent.
     }
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
@@ -75,12 +74,11 @@ namespace Hopac {
 
     Completed:
       if (state == Completed)
-        Hopac.Cont.Do(aK, ref wr, this.Value);
+        Hopac.Core.Cont.Do(aK, ref wr, this.Value);
       else
         aK.DoHandle(ref wr, (this.Readers as Fail).exn);
     }
 
-    /// Internal implementation detail.
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
     Spin:
       var state = this.State;
@@ -119,7 +117,7 @@ namespace Hopac {
       Pick.SetNacks(ref wr, i, pkSelf);
 
       if (state == Completed)
-        Hopac.Cont.Do(aK, ref wr, this.Value);
+        Hopac.Core.Cont.Do(aK, ref wr, this.Value);
       else
         aK.DoHandle(ref wr, (this.Readers as Fail).exn);
     AlreadyPicked:

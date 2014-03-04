@@ -16,7 +16,6 @@ namespace Hopac.Core {
     }
   }
 
-  /// Internal implementation detail.
   unsafe internal struct Worker {
     internal Work WorkStack;
     internal Handler Handler;
@@ -40,27 +39,23 @@ namespace Hopac.Core {
 #endif
     }
 
-    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(ref Worker wr, Work work) {
       work.Next = null;
       PushNew(ref wr, work, work);
     }
 
-    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(ref Worker wr, Work work, Work last) {
       last.Next = null;
       PushNew(ref wr, work, last);
     }
 
-    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void PushNew(ref Worker wr, Work work) {
       PushNew(ref wr, work, work);
     }
 
-    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void PushNew(ref Worker wr, Work work, Work last) {
       Debug.Assert(null == last.Next);

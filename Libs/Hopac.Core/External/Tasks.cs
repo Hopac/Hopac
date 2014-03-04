@@ -39,7 +39,6 @@ namespace Hopac.Core {
       }
     }
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
       var task = this.task;
       var state = new State(task, aK);
@@ -84,7 +83,6 @@ namespace Hopac.Core {
       }
     }
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
       var task = this.task;
       var state = new State(task, uK);

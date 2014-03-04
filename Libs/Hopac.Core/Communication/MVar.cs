@@ -30,7 +30,6 @@ namespace Hopac {
       this.State = Full;
     }
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
@@ -52,7 +51,6 @@ namespace Hopac {
       this.State = Demand;
     }
 
-    /// Internal implementation detail.
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
     Spin:
       var state = this.State;
@@ -99,7 +97,6 @@ namespace Hopac {
         this.X = x;
       }
 
-      /// Internal implementation detail.
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var mv = this.MV;
       TryNextTaker:

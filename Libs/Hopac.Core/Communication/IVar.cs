@@ -17,7 +17,6 @@ namespace Hopac {
     internal const int Empty = 0;
     internal const int HasValue = 1;
 
-    /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
@@ -34,7 +33,6 @@ namespace Hopac {
       return;
     }
 
-    /// Internal implementation detail.
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
     Spin:
       var state = this.State;
@@ -62,7 +60,7 @@ namespace Hopac {
 
   namespace Core {
     /// Internal implementation detail.
-    public class IVarFill<T> : Job<Unit> {
+    public sealed class IVarFill<T> : Job<Unit> {
       private readonly IVar<T> IV;
       private readonly T X;
 
@@ -73,7 +71,6 @@ namespace Hopac {
         this.X = x;
       }
 
-      /// Internal implementation detail.
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var iv = this.IV;
         iv.Value = this.X; // This assumes correct usage of IVar.

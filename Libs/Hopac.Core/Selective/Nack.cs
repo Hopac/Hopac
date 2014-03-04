@@ -7,14 +7,11 @@ namespace Hopac.Core {
   using System.Threading;
   using System;
 
-  /// <summary>Internal implementation detail.</summary>
-  public class Nack : Alt<Unit> {
+  internal sealed class Nack : Alt<Unit> {
     internal Nack Next;
     internal volatile int State;
-    /// <summary>Internal implementation detail.</summary>
-    public int I0;
-    /// <summary>Internal implementation detail.</summary>
-    public int I1;
+    internal int I0;
+    internal int I1;
     internal Cont<Unit> Takers;
 
     internal const int Locked = -1;
@@ -28,7 +25,6 @@ namespace Hopac.Core {
       this.I1 = Int32.MaxValue;
     }
 
-    /// <summary>Internal implementation detail.</summary>
     internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
     Spin:
       var state = this.State;
@@ -44,7 +40,6 @@ namespace Hopac.Core {
       Cont.Do(uK, ref wr, null);
     }
 
-    /// <summary>Internal implementation detail.</summary>
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
     Spin:
       var state = this.State;
