@@ -61,12 +61,11 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   /// Creates a job that schedules the given job to be executed as a separate
-  /// parallel job.  The result, if any, of the separate job is ignored.  Note
-  /// that it is guaranteed that the job is executed as a separate job.  This
-  /// means that a job such as "let c = Ch.Now.create () in Job.start
-  /// (Ch.give c ()) >>. Ch.take c" will not deadlock.  The cost of starting a
-  /// job should be comparable to the costs of allocating a couple of small
-  /// objects and inserting those objects to a queue.
+  /// parallel job.  The result, if any, of the separate job is ignored.  Use
+  /// Promise.start if you need to be able to get the result.  Note that it is
+  /// guaranteed that the job is executed as a separate job.  This means that a
+  /// job such as "let c = Ch.Now.create () in Job.start (Ch.give c ()) >>.
+  /// Ch.take c" will not deadlock.
   val start: Job<'a> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
@@ -481,7 +480,10 @@ module Promise =
   /// Immediate or non-workflow operations on promises.
   module Now =
     /// Creates a promise whose value is computed lazily with the given job
-    /// when an attempt is made to read the promise.
+    /// when an attempt is made to read the promise.  Although the job is not
+    /// started immediately, the effect is that the delayed job will be run as
+    /// a separate job, which means it is possible to communicate with it as
+    /// long the delayed job is started before trying to communicate with it.
     val inline delay: Job<'a> -> Promise<'a>
 
     /// Creates a promise with the given value.
@@ -495,16 +497,21 @@ module Promise =
   val start: Job<'a> -> Job<Promise<'a>>
 
   /// Creates a job that creates a promise, whose value is computed with the
-  /// given job, when an attempt is made to read the promise.
+  /// given job, when an attempt is made to read the promise.  Although the job
+  /// is not started immediately, the effect is that the delayed job will be
+  /// run as a separate job, which means it is possible to communicate with it
+  /// as long the delayed job is started before trying to communicate with it.
   val delay: Job<'a> -> Job<Promise<'a>>
 
   /// Creates a job that waits for the promise to be computed and then
-  /// returns its value (or fails with exception).
+  /// returns its value (or fails with exception).  If the job of promise was
+  /// delayed, it is first started as a separate job.
   val inline read: Promise<'a> -> Job<'a>
 
   /// Selective operations on promises.
   module Alt =
-    /// Creates an alternative for reading the promise.
+    /// Creates an alternative for reading the promise.  If the job of the
+    /// promise was delayed, it is started as a separate job.
     val inline read: Promise<'a> -> Alt<'a>
 
 /////////////////////////////////////////////////////////////////////////
