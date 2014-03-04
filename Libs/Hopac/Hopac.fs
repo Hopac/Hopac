@@ -22,7 +22,7 @@ module Util =
   let inline ctor f x =
     {new Job<_>() with
       override self.DoJob (wr, rK) =
-       Cont.Do (rK, &wr, f x)}
+       rK.DoContAbs (&wr, f x)}
 
   type TryInCont<'x, 'y> (x2yJ: 'x -> Job<'y>,
                           e2yJ: exn -> Job<'y>,
@@ -93,7 +93,7 @@ module Promise =
   let start (aJ: Job<'a>) : Job<Promise<'a>> =
     {new Job<_>() with
       override self.DoJob (wr, rK) =
-       Cont.Do (rK, &wr, Promise<'a>(&wr, aJ))}
+       rK.DoContAbs (&wr, Promise<'a>(&wr, aJ))}
   module Now =
     let inline delay (aJ: Job<'a>) : Promise<'a> =
       Promise<'a>(aJ)
@@ -406,7 +406,9 @@ module Job =
   let result (x: 'x) =
     {new Job<'x> () with
       override self.DoJob (wr, xK) =
-       Cont.Do (xK, &wr, x)}
+       // This is not strictly safe, but should not cause stack space leaks
+       // except in contrived programs.
+       xK.DoContAbs (&wr, x)}
 
   let unit = result ()
 

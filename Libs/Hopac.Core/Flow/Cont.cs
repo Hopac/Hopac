@@ -19,7 +19,7 @@ namespace Hopac {
       this.DoContAbs(ref wr, this.Value);
     }
 
-    /// Use Cont.Do when not invoking continuation from a Job or Alt.
+    /// Use DoContAbs when NOT invoking continuation from a Job or Alt.
     internal abstract void DoContAbs(ref Worker wr, T value);
   }
 
