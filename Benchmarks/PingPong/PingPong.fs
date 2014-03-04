@@ -33,7 +33,7 @@ module Ch =
     }
     let d = timer.Elapsed
     let total = numPairs * numMsgsPerPair
-    printf "%d ping-pongs - %f msgs/s - %fs\n"
+    printf "%10d - %f msgs/s - %fs\n"
      total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
@@ -41,9 +41,6 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do [(1,                          20000000)
-    (2,                          20000000)
-    (Environment.ProcessorCount, 20000000)]
-   |> List.iter (fun (numPairs, numMsgsPerPair) ->
-      cleanup ()
-      Ch.run numPairs numMsgsPerPair)
+do for p in seq {1 .. Environment.ProcessorCount} do
+     for n in [1000; 10000; 100000; 1000000; 10000000] do
+       Ch.run p n ; cleanup ()
