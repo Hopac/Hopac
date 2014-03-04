@@ -4,10 +4,6 @@ module Fibonacci
 
 /////////////////////////////////////////////////////////////////////////
 
-let mutable n = 38L
-
-/////////////////////////////////////////////////////////////////////////
-
 open Hopac
 open Hopac.Job.Infixes
 open System
@@ -27,7 +23,8 @@ module SerialFun =
       numSpawns <- numSpawns + 1L
       fib (n-2L) + fib (n-1L)
 
-  let run () =
+  let run n =
+    numSpawns <- 0L
     printf "SerFun: "
     let timer = Stopwatch.StartNew ()
     let r = fib n
@@ -46,7 +43,7 @@ module SerialJob =
       return x + y
   }
 
-  let run () =
+  let run n =
     printf "SerJob: "
     let timer = Stopwatch.StartNew ()
     let r = run (fib n)
@@ -64,7 +61,7 @@ module SerialOpt =
       fib (n-1L) |>> fun y ->
       x + y
 
-  let run () =
+  let run n =
     printf "SerOpt: "
     let timer = Stopwatch.StartNew ()
     let r = run (fib n)
@@ -82,7 +79,7 @@ module ParallelJob =
       return x + y
   }
 
-  let run () =
+  let run n =
     printf "ParJob: "
     let timer = Stopwatch.StartNew ()
     let r = run (fib n)
@@ -101,7 +98,7 @@ module ParallelOpt =
       fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
       x + y
 
-  let run () =
+  let run n =
     printf "ParOpt: "
     let timer = Stopwatch.StartNew ()
     let r = run (fib n)
@@ -121,7 +118,7 @@ module SerAsc =
       return x + y
   }
 
-  let run () =
+  let run n =
     printf "SerAsc: "
     let timer = Stopwatch.StartNew ()
     let r = Async.RunSynchronously (fib n)
@@ -135,18 +132,13 @@ module ParAsc =
     if n < 2L then
       return n
     else
-//#if NO_STARTCHILD_LEAK
       let! x = Async.StartChild (fib (n-2L))
-//#else
-//      let x = Async.StartAsTask (fib (n-2L))
-//      let x = Async.AwaitTask (x)
-//#endif
       let! y = fib (n-1L)
       let! x = x
       return x + y
   }
 
-  let run () =
+  let run n =
     printf "ParAsc: "
     let timer = Stopwatch.StartNew ()
     let r = Async.RunSynchronously (fib n)
@@ -164,7 +156,7 @@ module Task =
       let y = fib (n-1L)
       x.Result + y
 
-  let run () =
+  let run n =
     printf "ParTsk: "
     let timer = Stopwatch.StartNew ()
     let r = fib n
@@ -179,14 +171,13 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do SerialFun.run () ; cleanup ()
-   ParallelOpt.run () ; cleanup ()
-   ParallelJob.run () ; cleanup ()
-   SerialOpt.run () ; cleanup ()
-   SerialJob.run () ; cleanup ()
-   SerAsc.run () ; cleanup ()
-   Task.run () ; cleanup ()
-   
-   n <- 30L
-
-   ParAsc.run ()
+do for n in [10L; 20L; 30L; 40L] do
+     SerialFun.run n ; cleanup ()
+     ParallelOpt.run n ; cleanup ()
+     ParallelJob.run n ; cleanup ()
+     SerialOpt.run n ; cleanup ()
+     SerialJob.run n ; cleanup ()
+     SerAsc.run n ; cleanup ()
+     Task.run n ; cleanup ()
+     if n <= 30L then
+       ParAsc.run n ; cleanup ()
