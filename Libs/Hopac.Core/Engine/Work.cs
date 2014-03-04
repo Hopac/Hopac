@@ -20,14 +20,17 @@ namespace Hopac.Core {
     internal abstract void DoWork(ref Worker wr);
 
     [MethodImpl(AggressiveInlining.Flag)]
-    unsafe internal static void Do(Work work, ref Worker wr) {
+    internal static void Do(Work work, ref Worker wr) {
 #if TRAMPOLINE
-      ulong ptr;
-      ptr = (ulong)&ptr;
-      if (ptr < wr.StackLimit) {
-        Worker.Push(ref wr, work);
-      } else {
-        work.DoWork(ref wr);
+      unsafe {
+        byte stack;
+        ulong ptr = (ulong)&stack;
+        if (ptr < wr.StackLimit) {
+          work.Next = wr.WorkStack;
+          wr.WorkStack = work;
+        } else {
+          work.DoWork(ref wr);
+        }
       }
 #else
       work.DoWork(ref wr);

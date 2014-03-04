@@ -1,6 +1,7 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
 namespace Hopac {
+  using Microsoft.FSharp.Core;
   using Hopac.Core;
   using System;
   using System.Runtime.CompilerServices;
@@ -26,18 +27,39 @@ namespace Hopac {
   internal static class Cont {
     /// Use Cont.Do when invoking continuation from a Job or Alt.
     [MethodImpl(AggressiveInlining.Flag)]
-    unsafe internal static void Do<T>(Cont<T> tK, ref Worker wr, T value) {
+    internal static void Do<T>(Cont<T> tK, ref Worker wr, T value) {
 #if TRAMPOLINE
-      ulong ptr;
-      ptr = (ulong)&ptr;
-      if (ptr < wr.StackLimit) {
-        tK.Value = value;
-        Worker.Push(ref wr, tK);
-      } else {
-        tK.DoContAbs(ref wr, value);
+      unsafe {
+        byte stack;
+        ulong ptr = (ulong)&stack;
+        if (ptr < wr.StackLimit) {
+          tK.Value = value;
+          tK.Next = wr.WorkStack;
+          wr.WorkStack = tK;
+        } else {
+          tK.DoContAbs(ref wr, value);
+        }
       }
 #else
-        tK.DoContAbs(ref wr, value);
+      tK.DoContAbs(ref wr, value);
+#endif
+    }
+    /// Use Cont.Do when invoking continuation from a Job or Alt.
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Do(Cont<Unit> tK, ref Worker wr, Unit value) {
+#if TRAMPOLINE
+      unsafe {
+        byte stack;
+        ulong ptr = (ulong)&stack;
+        if (ptr < wr.StackLimit) {
+          tK.Next = wr.WorkStack;
+          wr.WorkStack = tK;
+        } else {
+          tK.DoContAbs(ref wr, null);
+        }
+      }
+#else
+      tK.DoContAbs(ref wr, null);
 #endif
     }
   }
