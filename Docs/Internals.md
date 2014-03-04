@@ -347,6 +347,68 @@ complex due to the support for selective communication and use of further low
 level optimizations such as taking advantage of volatile reads and writes and
 interlocked operations.
 
+Tail calls and Trampolining
+---------------------------
+
+As should be obvious from the previous sections, the continuation mechanism of
+Hopac requires tail call optimization.  Unfortunately, the state of tail call
+optimization support in .Net is a mixed bag.  Current C# compilers do not insert
+**tail** prefixes on call instructions at tail positions.  The current F#
+compiler (3.1) inserts tail prefixes on some calls, but not all tail
+calls&mdash;even with the tail call optimization enabled.  (I seem to recall
+that an earlier version of the F# compiler was more aggressive with the
+prefixes.)  On the other hand, Microsoft's current 64-bit JIT does a decent job
+of implementing tail calls&mdash;even without tail prefixes.  Unfortunately, the
+same cannot be said of all .Net JITs.
+
+In the beginning, Hopac used a simple ad hoc tool that to add tail prefixes to
+virtual tail calls in the Hopac libraries (basically all the places where Hopac
+relies on tail calls).  Unfortunately, even with the tail prefixes some tail
+calls simply won't be optimized properly.  Furthermore, adding tail prefixes
+sometimes makes performance worse.
+
+Without the tool, Hopac would have to rely on tail call optimization done by the
+JIT, which works reasonably well with the 64-bit JIT.  However, it doesn't
+always work and doesn't work on other JIT compilers.  So, Hopac now implements
+*trampolining* that allows Hopac code to work even without any tail call
+optimizations.  The additional runtime cost of trampolining appears to be
+surprisingly small.  This is because continuations in Hopac are already
+allocated from the heap and pushing an item to the local work item stack of a
+worker can be done very quickly as shown in previous sections.  To implement
+trampolining, the **Worker** struct additionally contains an additional field:
+
+```csharp
+struct Worker {
+  // ...
+  ulong StackLimit;
+};
+```
+
+This field is initialized using a bit of unsafe code with a pointer value that
+is used as an estimate of a safe stack limit.  Continuation invocations are then
+done via a helper function that uses a bit of unsafe code to check whether the
+stack limit has been reached, and either trampolines via the work item stack or
+calls the continuation directly:
+
+```csharp
+static void Do<T>(Cont<T> tK, ref Worker wr, T value) {
+  unsafe {
+    byte stack;
+    ulong ptr = (ulong)&stack;
+    if (ptr < wr.StackLimit) {
+      tK.Value = value;
+      tK.Next = wr.WorkStack;
+      wr.WorkStack = tK;
+    } else {
+      tK.DoCont(ref wr, value);
+    }
+  }
+}
+```
+
+Carefully applying this trampolining helper only where necessary makes the
+overhead surprisingly small.
+
 Why is Hopac so slow then?
 --------------------------
 

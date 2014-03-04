@@ -60,7 +60,11 @@ will hopefully grow to a proper introduction to programming in Hopac.  In
 addition, the Hopac library code contains documentation comments on individual
 Hopac primitives.  The
 [Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
-signature file contains most of those documentation comments.
+signature file contains most of those documentation comments.  There are also
+some
+[Notes on the Internal Implementation of Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Internals.md),
+but that document is not meant to be something that a user of the library would
+need to be intimately familiar with.
 
 Rationale: Why Hopac?
 ---------------------
