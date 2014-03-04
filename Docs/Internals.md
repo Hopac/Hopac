@@ -375,26 +375,30 @@ optimizations.  The additional runtime cost of trampolining appears to be
 surprisingly small.  This is because continuations in Hopac are already
 allocated from the heap and pushing an item to the local work item stack of a
 worker can be done very quickly as shown in previous sections.  To implement
-trampolining, the **Worker** struct additionally contains an additional field:
+trampolining, the **Worker** struct contains an additional field:
 
 ```csharp
 struct Worker {
   // ...
-  ulong StackLimit;
+  void *StackLimit;
 };
 ```
 
 This field is initialized using a bit of unsafe code with a pointer value that
-is used as an estimate of a safe stack limit.  Continuation invocations are then
-done via a helper function that uses a bit of unsafe code to check whether the
-stack limit has been reached, and either trampolines via the work item stack or
-calls the continuation directly:
+is used as an estimate of a safe stack limit.  The stack limit could be computed
+quickly from the address of the Worker struct (**ref wr**), but there is no way
+to tell the .Net JIT that the Worker struct is stack allocated and it would
+generate a few redundant instructions to pin the struct, so it is better to
+cache the value.  Continuation invocations are then done via a helper function
+that uses a bit of unsafe code to check whether the stack limit has been
+reached, and either trampolines via the work item stack or calls the
+continuation directly:
 
 ```csharp
 static void Do<T>(Cont<T> tK, ref Worker wr, T value) {
   unsafe {
     byte stack;
-    ulong ptr = (ulong)&stack;
+    void *ptr = &stack;
     if (ptr < wr.StackLimit) {
       tK.Value = value;
       tK.Next = wr.WorkStack;
