@@ -50,7 +50,7 @@ namespace Hopac {
     GotGiver:
       Worker.Push(ref wr, giver.Cont);
     GotSend:
-      xK.DoCont(ref wr, cursor.Value);
+      Cont.Do(xK, ref wr, cursor.Value);
       return;
     }
 
@@ -78,7 +78,7 @@ namespace Hopac {
       this.Lock.Exit();
 
       Pick.SetNacks(ref wr, i, pkSelf);
-      xK.DoCont(ref wr, cursor.Value);
+      Cont.Do(xK, ref wr, cursor.Value);
       return;
 
     AlreadyPicked:
@@ -111,10 +111,8 @@ namespace Hopac {
         Pick.SetNacks(ref wr, giver.Me, pkOther);
       }
       Pick.SetNacks(ref wr, i, pkSelf);
-      var uK = giver.Cont;
-      uK.Next = xK;
-      xK.Value = giver.Value;
-      Worker.Push(ref wr, uK, xK);
+      Worker.Push(ref wr, giver.Cont);
+      Cont.Do(xK, ref wr, giver.Value);
       return;
 
     BackOff:
@@ -195,7 +193,7 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
 
       TryGiver:
@@ -241,8 +239,8 @@ namespace Hopac {
         }
         Pick.SetNacks(ref wr, i, pkSelf);
         taker.Value = this.X;
-        taker.Next = uK;
-        Worker.Push(ref wr, taker, uK);
+        Worker.Push(ref wr, taker);
+        Cont.Do(uK, ref wr, null);
         return;
 
       BackOff:
@@ -322,13 +320,13 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
 
       TryGiver:
         WaitQueue.AddSend(ref ch.Givers, this.X);
         ch.Lock.Exit();
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
       }
     }

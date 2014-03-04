@@ -30,7 +30,7 @@ namespace Hopac {
       return;
 
     GotValue:
-      aK.DoCont(ref wr, this.Value);
+      Cont.Do(aK, ref wr, this.Value);
       return;
     }
 
@@ -54,7 +54,7 @@ namespace Hopac {
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
-      aK.DoCont(ref wr, this.Value);
+      Cont.Do(aK, ref wr, this.Value);
     AlreadyPicked:
       return;
     }
@@ -115,7 +115,7 @@ namespace Hopac {
           goto TryTaker;
 
       Empty:
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
 
       IVarFull:

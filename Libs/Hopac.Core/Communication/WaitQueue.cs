@@ -32,11 +32,11 @@ namespace Hopac.Core {
     }
 
     internal override void DoWork(ref Worker wr) {
-      this.Cont.DoCont(ref wr, this.Value);
+      this.Cont.DoContAbs(ref wr, this.Value);
     }
 
-    internal override void DoCont(ref Worker wr, T value) {
-      this.Cont.DoCont(ref wr, value);
+    internal override void DoContAbs(ref Worker wr, T value) {
+      this.Cont.DoContAbs(ref wr, value);
     }
   }
 

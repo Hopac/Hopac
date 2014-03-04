@@ -65,7 +65,7 @@ namespace Hopac {
 
       this.State = Running;
 
-      job.DoWork(ref wr);
+      Work.Do(job, ref wr);
       return;
 
     Running:
@@ -75,7 +75,7 @@ namespace Hopac {
 
     Completed:
       if (state == Completed)
-        aK.DoCont(ref wr, this.Value);
+        Hopac.Cont.Do(aK, ref wr, this.Value);
       else
         aK.DoHandle(ref wr, (this.Readers as Fail).exn);
     }
@@ -119,7 +119,7 @@ namespace Hopac {
       Pick.SetNacks(ref wr, i, pkSelf);
 
       if (state == Completed)
-        aK.DoCont(ref wr, this.Value);
+        Hopac.Cont.Do(aK, ref wr, this.Value);
       else
         aK.DoHandle(ref wr, (this.Readers as Fail).exn);
     AlreadyPicked:
@@ -137,7 +137,7 @@ namespace Hopac {
         throw new NotImplementedException();
       }
 
-      internal override void DoCont(ref Worker wr, T value) {
+      internal override void DoContAbs(ref Worker wr, T value) {
         throw new NotImplementedException();
       }
 
@@ -159,7 +159,7 @@ namespace Hopac {
       internal override void DoWork(ref Worker wr) {
         var tJ = this.tJ;
         if (null == tJ) {
-          DoCont(ref wr, this.Value);
+          this.DoContAbs(ref wr, this.Value);
         } else {
           this.tJ = null;
           tJ.DoJob(ref wr, this);
@@ -201,7 +201,7 @@ namespace Hopac {
         if (cursor != readers) goto TryReader;
       }
 
-      internal override void DoCont(ref Worker wr, T v) {
+      internal override void DoContAbs(ref Worker wr, T v) {
         var pr = this.pr;
         pr.Value = v;
       Spin:

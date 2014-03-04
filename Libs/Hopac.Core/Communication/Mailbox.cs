@@ -31,7 +31,7 @@ namespace Hopac {
     GotValue:
       T value = this.Values.Dequeue();
       this.Lock.Exit();
-      aK.DoCont(ref wr, value);
+      Cont.Do(aK, ref wr, value);
       return;
     }
 
@@ -54,7 +54,7 @@ namespace Hopac {
       T value = this.Values.Dequeue();
       this.Lock.Exit();
       Pick.SetNacks(ref wr, i, pkSelf);
-      aK.DoCont(ref wr, value);
+      Cont.Do(aK, ref wr, value);
       return;
 
     AlreadyPicked:
@@ -110,13 +110,13 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
 
       NoTakers:
         mb.Values.Enqueue(this.X);
         mb.Lock.Exit();
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
       }
     }

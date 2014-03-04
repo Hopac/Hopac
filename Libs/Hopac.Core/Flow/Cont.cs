@@ -16,11 +16,30 @@ namespace Hopac {
 
     /// Internal implementation detail.
     internal override void DoWork(ref Worker wr) {
-      this.DoCont(ref wr, this.Value);
+      this.DoContAbs(ref wr, this.Value);
     }
 
-    /// Internal implementation detail.
-    internal abstract void DoCont(ref Worker wr, T value);
+    /// Use Cont.Do when not invoking continuation from a Job or Alt.
+    internal abstract void DoContAbs(ref Worker wr, T value);
+  }
+
+  internal static class Cont {
+    /// Use Cont.Do when invoking continuation from a Job or Alt.
+    [MethodImpl(AggressiveInlining.Flag)]
+    unsafe internal static void Do<T>(Cont<T> tK, ref Worker wr, T value) {
+#if TRAMPOLINE
+      ulong ptr;
+      ptr = (ulong)&ptr;
+      if (ptr < wr.StackLimit) {
+        tK.Value = value;
+        Worker.Push(ref wr, tK);
+      } else {
+        tK.DoContAbs(ref wr, value);
+      }
+#else
+        tK.DoContAbs(ref wr, value);
+#endif
+    }
   }
 
   namespace Core {
@@ -42,7 +61,7 @@ namespace Hopac {
       }
 
       /// Internal implementation detail.
-      internal override void DoCont(ref Worker wr, T value) {
+      internal override void DoContAbs(ref Worker wr, T value) {
         this.hr.DoHandle(ref wr, this.e);
       }
     }

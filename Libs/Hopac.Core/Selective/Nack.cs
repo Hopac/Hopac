@@ -41,7 +41,7 @@ namespace Hopac.Core {
       return;
 
     Signaled:
-      uK.DoCont(ref wr, null);
+      Cont.Do(uK, ref wr, null);
     }
 
     /// <summary>Internal implementation detail.</summary>
@@ -64,7 +64,7 @@ namespace Hopac.Core {
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
-      uK.DoCont(ref wr, null);
+      Cont.Do(uK, ref wr, null);
     AlreadyPicked:
       return;
     }

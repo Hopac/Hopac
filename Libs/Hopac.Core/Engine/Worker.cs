@@ -20,12 +20,21 @@ namespace Hopac.Core {
   internal struct Worker {
     internal Work WorkStack;
     internal Handler Handler;
+#if TRAMPOLINE
+    internal ulong StackLimit;
+#endif
 #if ENABLE_MCS
     internal SpinlockMCS.Node Node;
 #endif
 
+#if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
-    internal void Init() {
+    unsafe internal void Init(ulong *StackLimit) {
+      this.StackLimit = (ulong)StackLimit - 500000L;
+#else
+    [MethodImpl(AggressiveInlining.Flag)]
+    unsafe internal void Init() {
+#endif
 #if ENABLE_MCS
       Node.Init();
 #endif
@@ -90,9 +99,11 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void RunOnThisThread(Work work) {
       var wr = new Worker();
+#if TRAMPOLINE
+      unsafe { wr.Init(&wr.StackLimit); }
+#else
       wr.Init();
-
-      //Func<Worker> box = () => wr;
+#endif
 
       if (null != work) {
         do {
@@ -112,9 +123,11 @@ namespace Hopac.Core {
     
     internal static void Run(int me) {
       var wr = new Worker();
+#if TRAMPOLINE
+      unsafe { wr.Init(&wr.StackLimit); }
+#else
       wr.Init();
-
-      //Func<Worker> box = () => wr;
+#endif
 
       var mine = Scheduler.Events[me];
       Work work = null;

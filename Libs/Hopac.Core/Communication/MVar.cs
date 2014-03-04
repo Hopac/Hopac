@@ -44,7 +44,7 @@ namespace Hopac {
       T value = this.Value;
       this.Value = default(T); // Avoid memory leaks.
       this.State = Empty;
-      aK.DoCont(ref wr, value);
+      Cont.Do(aK, ref wr, value);
       return;
 
     EmptyOrDemand:
@@ -71,7 +71,7 @@ namespace Hopac {
       T value = this.Value;
       this.Value = default(T);
       this.State = Empty;
-      aK.DoCont(ref wr, value);
+      Cont.Do(aK, ref wr, value);
       return;
 
     AlreadyPicked:
@@ -143,13 +143,13 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
 
       WasEmpty:
         mv.Value = this.X;
         mv.State = MVar<T>.Full;
-        uK.DoCont(ref wr, null);
+        Cont.Do(uK, ref wr, null);
         return;
 
       MVarFull:

@@ -93,7 +93,7 @@ namespace Hopac {
           value = default(T);
         }
         l.State = Lock.Free;
-        tK.DoCont(ref wr, value);
+        Cont.Do(tK, ref wr, value);
       }
 
       private sealed class GotIt : Work {
@@ -120,7 +120,7 @@ namespace Hopac {
           var tK = this.tK;
           wr.Handler = tK;
           Lock.Exit(this.l, ref wr);
-          tK.DoCont(ref wr, value);
+          Cont.Do(tK, ref wr, value);
         }
       }
     }
@@ -202,11 +202,11 @@ namespace Hopac {
           tK.DoHandle(ref wr, e);
         }
 
-        internal override void DoCont(ref Worker wr, T value) {
+        internal override void DoContAbs(ref Worker wr, T value) {
           var tK = this.tK;
           wr.Handler = tK;
           Lock.Exit(this.l, ref wr);
-          tK.DoCont(ref wr, value);
+          tK.DoContAbs(ref wr, value);
         }
       }
     }

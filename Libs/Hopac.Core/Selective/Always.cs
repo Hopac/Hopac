@@ -15,7 +15,7 @@ namespace Hopac.Core {
 
     /// Internal implementation detail.
     internal override void DoJob(ref Worker wr, Cont<T> xK) {
-      xK.DoCont(ref wr, this.value);
+      Cont.Do(xK, ref wr, this.value);
     }
 
     /// Internal implementation detail.
@@ -27,7 +27,7 @@ namespace Hopac.Core {
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
-      xK.DoCont(ref wr, this.value);
+      Cont.Do(xK, ref wr, this.value);
 
     AlreadyPicked:
       return;

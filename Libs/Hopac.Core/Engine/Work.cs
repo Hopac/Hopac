@@ -18,6 +18,22 @@ namespace Hopac.Core {
 
     /// Internal implementation detail.
     internal abstract void DoWork(ref Worker wr);
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    unsafe internal static void Do(Work work, ref Worker wr) {
+#if TRAMPOLINE
+      ulong ptr;
+      ptr = (ulong)&ptr;
+      if (ptr < wr.StackLimit) {
+        Worker.Push(ref wr, work);
+      } else {
+        work.DoWork(ref wr);
+      }
+#else
+      work.DoWork(ref wr);
+#endif
+    }
+  
   }
 
   internal sealed class FailWork : Work {
