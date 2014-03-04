@@ -164,23 +164,18 @@ module MPPost =
      (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds results
 
 let cleanup () =
-  for i=1 to 10 do
+  for i=1 to 5 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    Threading.Thread.Sleep 100
 
-do ChGive.run 503 5000 1 ; cleanup ()   
-   ChGive.run 503 50000000 1 ; cleanup ()
-   ChGive.run 53 50000000 Environment.ProcessorCount ; cleanup ()
-   
-   MbSend.run 503 5000 1 ; cleanup ()
-   MbSend.run 503 50000000 1 ; cleanup ()
-   MbSend.run 53 50000000 Environment.ProcessorCount ; cleanup ()
-   
-   ChSend.run 503 5000 1 ; cleanup ()
-   ChSend.run 503 50000000 1 ; cleanup ()
-   ChSend.run 53 50000000 Environment.ProcessorCount ; cleanup ()
-   
-   MPPost.run 503 5000 1 ; cleanup ()
-   MPPost.run 503 50000000 1 ; cleanup ()
-   MPPost.run 53 50000000 Environment.ProcessorCount
+do for mp in [false; true] do
+     for n in [5000; 50000000] do
+       for l in [503; 53] do
+         for p in [1; Environment.ProcessorCount] do
+           if mp then
+             MPPost.run l n p ; cleanup ()
+           else
+             ChGive.run l n p ; cleanup ()   
+             MbSend.run l n p ; cleanup ()
+             ChSend.run l n p ; cleanup ()
    
