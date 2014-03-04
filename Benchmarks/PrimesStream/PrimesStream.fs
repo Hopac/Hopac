@@ -2,15 +2,12 @@
 
 module PrimesStream
 
+open System
+open System.Diagnostics
 open Hopac
 open Hopac.Extra
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
-open System.Diagnostics
-
-/////////////////////////////////////////////////////////////////////////
-
-let n = 10000
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -52,11 +49,12 @@ module Sequential =
       stream <- force stream.Next
     result
 
-  let run () =
+  let run n =
+    printf "Sequential:   "
     let timer = Stopwatch.StartNew ()
     let ps = primes n
     let d = timer.Elapsed
-    printf "Primes are %A\n\nLast prime is %A\n\nSequential time %fs\n" ps ps.[ps.Length-1] d.TotalSeconds
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -80,11 +78,12 @@ module HopacCh =
       result.[i] <- p) >>%
     result
 
-  let run () =
+  let run n =
+    printf "HopacCh:      "
     let timer = Stopwatch.StartNew ()
     let ps = run (primes n)
     let d = timer.Elapsed
-    printf "Primes are %A\n\nLast prime is %A\n\nHopacCh time %fs\n" ps ps.[ps.Length-1] d.TotalSeconds
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
     
 /////////////////////////////////////////////////////////////////////////
 
@@ -124,11 +123,12 @@ module HopacPromise =
         Job.result result
     sieve >>= loop 0
 
-  let run () =
+  let run n =
+    printf "HopacPromise: "
     let timer = Stopwatch.StartNew ()
     let ps = run (primes n)
     let d = timer.Elapsed
-    printf "Primes are %A\n\nLast prime is %A\n\nHopacPromise time %fs\n" ps ps.[ps.Length-1] d.TotalSeconds
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
     
 /////////////////////////////////////////////////////////////////////////
 
@@ -176,32 +176,28 @@ module Async =
     return result
   }
 
-  let run () =
+  let run n =
+    printf "Async:        "
     use cancelSource = new System.Threading.CancellationTokenSource ()
     let timer = Stopwatch.StartNew ()
     let ps = Async.RunSynchronously (primes n, -1, cancelSource.Token)
     let d = timer.Elapsed
     cancelSource.Cancel ()
-    printf "Primes are %A\n\nLast prime is %A\n\nAsync time %fs\n" ps ps.[ps.Length-1] d.TotalSeconds
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
 
 /////////////////////////////////////////////////////////////////////////
 
-do 
-   printf "Running Sequential...\n"
-   System.GC.Collect() ; Sequential.run ()
-   printf "\n\nSleeping a bit...\n"
-   System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 1.0)
+let inline cleanup () =
+  for i=1 to 10 do
+    GC.Collect ()
+    Threading.Thread.Sleep 50
 
-   for i=1 to 3 do
-     printf "Running HopacCh...\n"
-     System.GC.Collect() ; HopacCh.run ()
-     printf "\n\nSleeping a bit...\n"
-     System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 3.0)
-
-   printf "Running HopacPromise...\n"
-   System.GC.Collect() ; HopacPromise.run ()
-   printf "\n\nSleeping a bit...\n"
-   System.Threading.Thread.Sleep (System.TimeSpan.FromSeconds 3.0)
-
-   printf "Running Async...\n"
-   System.GC.Collect() ; Async.run ()
+do let ns = [10; 100; 1000; 10000]
+   for n in ns do
+     Sequential.run n ; cleanup ()
+   for n in ns do
+     HopacCh.run n ; cleanup ()
+   for n in ns do
+     HopacPromise.run n ; cleanup ()
+   for n in ns do
+     Async.run n ; cleanup ()
