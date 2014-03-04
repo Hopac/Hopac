@@ -85,10 +85,9 @@ module HopacLock =
      0
      (seq {1 .. colors.Length})
 
-  let run () =
+  let run numMeets =
     printf "Lock: "
     let timer = Stopwatch.StartNew ()
-    let numMeets = 6000000
     let (n, m) = run (bench colorsAll numMeets <*> bench colors10 numMeets)
     let d = timer.Elapsed
     printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
@@ -135,10 +134,9 @@ module HopacMV =
      0
      (seq {1 .. colors.Length})
 
-  let run () =
+  let run numMeets =
     printf "MVar: "
     let timer = Stopwatch.StartNew ()
-    let numMeets = 6000000
     let (n, m) = run (bench colorsAll numMeets <*> bench colors10 numMeets)
     let d = timer.Elapsed
     printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
@@ -207,10 +205,9 @@ module HopacAlt =
     do! Ch.give finishCh n
   }
 
-  let run () =
+  let run numMeets =
     printf "Alt:  "
     let timer = Stopwatch.StartNew ()
-    let numMeets = 6000000
     let (n, m) =
       run <| job {
         let finishCh = Ch.Now.create ()
@@ -230,6 +227,7 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do HopacAlt.run () ; cleanup ()
-   HopacMV.run () ; cleanup ()
-   HopacLock.run ()
+do for n in [600; 6000; 60000; 600000; 6000000] do
+     HopacLock.run n ; cleanup ()
+     HopacMV.run n ; cleanup ()
+     HopacAlt.run n ; cleanup ()
