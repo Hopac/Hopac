@@ -112,7 +112,7 @@ namespace Hopac {
           goto TryTaker;
 
       Empty:
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       IVarFull:

@@ -3,6 +3,7 @@
 namespace Hopac
 
 open System
+open System.Collections.Generic
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -195,7 +196,7 @@ module Job =
 
   /// Creates a job that runs all of the jobs in sequence and returns a
   /// sequence of the results.
-  val seqCollect: seq<Job<'a>> -> Job<seq<'a>>
+  val seqCollect: seq<Job<'a>> -> Job<IList<'a>>
 
   /// Creates a job that runs all of the jobs in sequence and returns a
   /// sequence of the results.
@@ -204,7 +205,7 @@ module Job =
   /// Creates a job that runs all of the jobs potentially in parallel and
   /// returns a sequence of the results.  It is not guaranteed that the jobs
   /// would be run as separate parallel jobs.
-  val parCollect: seq<Job<'a>> -> Job<seq<'a>>
+  val parCollect: seq<Job<'a>> -> Job<IList<'a>>
 
   /// Creates a job that runs all of the jobs potentially in parallel and then
   /// waits for all of the jobs to finish.  The results of the jobs are
@@ -575,7 +576,7 @@ module Extensions =
 
     /// Sequentially maps the given job constructor to the elements of the
     /// sequence and returns a sequence of the results.
-    val mapJob: ('a -> Job<'b>) -> seq<'a> -> Job<seq<'b>>
+    val mapJob: ('a -> Job<'b>) -> seq<'a> -> Job<IList<'b>>
 
     /// Sequentially folds the job constructor over the given sequence and
     /// returns the result of the fold.
@@ -594,7 +595,7 @@ module Extensions =
       /// constructed jobs potentially in parallel and waits until all of the
       /// jobs have finished collecting the results into a new sequence.  It is
       /// not guaranteed that the jobs would be run as separate parallel jobs.
-      val mapJob: ('a -> Job<'b>) -> seq<'a> -> Job<seq<'b>>
+      val mapJob: ('a -> Job<'b>) -> seq<'a> -> Job<IList<'b>>
 
   /// Operations for interfacing tasks with parallel jobs.
   type [<Sealed>] Task =

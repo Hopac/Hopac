@@ -42,24 +42,6 @@ namespace Hopac.Core {
       tK.DoContAbs(ref wr, value);
 #endif
     }
-    /// Use Cont.Do when invoking continuation from a Job or Alt.
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal static void Do(Cont<Unit> tK, ref Worker wr, Unit value) {
-#if TRAMPOLINE
-      unsafe {
-        byte stack;
-        void* ptr = &stack;
-        if (ptr < wr.StackLimit) {
-          tK.Next = wr.WorkStack;
-          wr.WorkStack = tK;
-        } else {
-          tK.DoCont(ref wr, null);
-        }
-      }
-#else
-      tK.DoContAbs(ref wr, null);
-#endif
-    }
   }
 
   internal sealed class FailCont<T> : Cont<T> {

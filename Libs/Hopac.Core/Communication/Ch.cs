@@ -190,7 +190,7 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       TryGiver:
@@ -236,7 +236,7 @@ namespace Hopac {
         Pick.SetNacks(ref wr, i, pkSelf);
         taker.Value = this.X;
         Worker.Push(ref wr, taker);
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       BackOff:
@@ -315,13 +315,13 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       TryGiver:
         WaitQueue.AddSend(ref ch.Givers, this.X);
         ch.Lock.Exit();
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
       }
     }

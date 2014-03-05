@@ -37,7 +37,7 @@ namespace Hopac.Core {
       return;
 
     Signaled:
-      Cont.Do(uK, ref wr, null);
+      Work.Do(uK, ref wr);
     }
 
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
@@ -59,7 +59,7 @@ namespace Hopac.Core {
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
-      Cont.Do(uK, ref wr, null);
+      Work.Do(uK, ref wr);
     AlreadyPicked:
       return;
     }

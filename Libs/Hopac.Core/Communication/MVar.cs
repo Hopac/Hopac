@@ -140,13 +140,13 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       WasEmpty:
         mv.Value = this.X;
         mv.State = MVar<T>.Full;
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       MVarFull:

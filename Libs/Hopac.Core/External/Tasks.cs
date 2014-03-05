@@ -73,7 +73,7 @@ namespace Hopac.Core {
 
       internal override void DoWork(ref Worker wr) {
         if (this.task.Status == TaskStatus.RanToCompletion)
-          this.uK.DoCont(ref wr, null);
+          this.uK.DoWork(ref wr);
         else
           this.uK.DoHandle(ref wr, this.task.Exception);
       }

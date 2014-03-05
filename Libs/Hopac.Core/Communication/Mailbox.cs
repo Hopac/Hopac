@@ -107,13 +107,13 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
 
       NoTakers:
         mb.Values.Enqueue(this.X);
         mb.Lock.Exit();
-        Cont.Do(uK, ref wr, null);
+        Work.Do(uK, ref wr);
         return;
       }
     }
