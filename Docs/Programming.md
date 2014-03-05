@@ -61,6 +61,30 @@ That is a mouthful!  Let's open it up a bit.
 What this all boils down to is that Hopac basically provides a kind of language
 for expressing concurrent control flow.
 
+Potential Applications for Hopac
+--------------------------------
+
+Hopac is by no means a panacea.  As discussed in the previous section, the
+essence of Hopac is *lightweight* threads, called *jobs*, and flexible
+lightweight synchronous message passing via channels (and other messaging
+primitives).  Hopac is designed and optimized to scale as the number of such
+relatively independent lightweight elements is increased.  That can be seen as a
+form of *data parallelism* in which the data is the program entities implemented
+by the jobs and communication primitives.
+
+Problem domains that are more or less naturally expressed in terms of large
+numbers of threads (one or more threads per program element) and message passing
+are where Hopac should be able to shine in terms of performance and ease of
+programming.  Parallel build systems, simulations, web servers and GUIs, for
+example, fit this description.
+
+On the other hand, problem domains that can be conveniently expressed with just
+a small number of threads are unlikely to benefit from Hopac.  For example, if
+you can conveniently express your system as a kind of fixed pipeline with a few
+threads that you can afford to be kept spinning waiting for messages, then a
+system like the [LMAX Disruptor](http://lmax-exchange.github.io/disruptor/)
+might offer better performance than Hopac.
+
 On Memory Usage
 ---------------
 

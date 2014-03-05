@@ -448,7 +448,7 @@ IVars.
 The F# compiler has support for inline functions.  Unfortunately, inline
 functions do not mix well with encapsulation.  Methods marked as **internal**
 cannot be implemented inside inline functions exported outside of their module.
-By exposing the internal of Hopac it would be possible to use F# inline
+By exposing the internals of Hopac it would be possible to use F# inline
 functions.  According to my tests that can give something like up to 30% better
 performance.  That is much less than one could expect, because the optimizer of
 F# is not particularly clever (e.g. partially applied functions cannot be

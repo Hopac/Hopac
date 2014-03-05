@@ -195,3 +195,4 @@ style programming is [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s book
 * [Scheduling Parallel Programs by Work Stealing with Private Deques](http://chargueraud.org/research/2013/ppopp/full.pdf)
 * [TaskCreationOptions.PreferFairness](http://blogs.msdn.com/b/pfxteam/archive/2009/07/07/9822857.aspx)
 * [Transactional Events](http://www.cs.rit.edu/~mtf/research/tx-events/ICFP06/icfp06.pdf)
+* [Why Events Are A Bad Idea (for high-concurrency servers)](http://www.cs.berkeley.edu/~brewer/papers/threads-hotos-2003.pdf)
