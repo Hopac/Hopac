@@ -2,18 +2,18 @@ Notes on the Internal Implementation of Hopac
 =============================================
 
 This document describes some aspects of the internal implementation of Hopac.
-This document is not meant to be something that a user of Hopac would need to
-understand, but potential users might find this interesting nevertheless.
-The code snippets in here are illustrative and not necessarily valid F# code.
-The actual definitions may be written in C# and contain implementation details
-not discussed here.  Also note that these are internal implementation details
-and subject to change.  The internal design of Hopac has evolved considerably
-during the course of developing it.  This document makes mention of "tricks"
-or techniques used in the implementation.  The possibility of using many of
-these techniques in the implementation is something that was not a priori
-obvious when I started working on the implementation and the discovery and
-subsequent incorporation of some of these techniques into the implementation
-has improved the performance of Hopac significantly.
+This is not meant to be something that a user of Hopac would need to understand,
+but potential users might find this interesting nevertheless.  The code snippets
+in here are illustrative and not necessarily valid F# or C# code.  The actual
+definitions corresponding to a snippet of F# may be written in C# and contain
+implementation details not discussed here.  Also note that these are internal
+implementation details and subject to change.  The internal design of Hopac has
+evolved considerably during the course of developing it.  This document makes
+mention of "tricks" or techniques used in the implementation.  The possibility
+of using many of these techniques in the implementation is something that was
+not a priori obvious when I started working on the implementation and the
+discovery and subsequent incorporation of some of these techniques into the
+implementation has improved the performance of Hopac significantly.
 
 Scheduler and Workers
 ---------------------
@@ -36,9 +36,12 @@ This is not all, however, because other components of Hopac can also
 *effectively* make scheduling decisions.  For example, when a new lightweight
 thread is spawned, there are multiple alternatives:
 
-* The new thread is queued via the scheduler and the current thread is continued.
-* The current thread is queued via the scheduler and the new thread is started immediately.
-* Both the new and current threads are queued and some previously queued thread is started instead.
+* The new thread is queued via the scheduler and the current thread is
+  continued.
+* The current thread is queued via the scheduler and the new thread is started
+  immediately.
+* Both the new and current threads are queued and some previously queued thread
+  is started instead.
 * ...
 
 Choices like these are not made by a single specific component in Hopac.
@@ -162,7 +165,7 @@ The Job Monad
 To program lightweight threads directly in terms of **Job**, **Cont**,
 **Handler** and **Work** objects as well as worker threads would be rather
 cumbersome.  Fortunately the underlying mechanisms can be abstract away in the
-form of a **Job** monad with the usual **result** and **&gt;&gt;=** (or bind)
+form of a **Job** monad with the usual **result** and **>>=** (or bind)
 operations.
 
 The **result** operation is quite straightforward:
@@ -178,7 +181,7 @@ let result (x: 'x) =
 continuation **xK** with value **x** and the worker reference **wr** it
 was given.
 
-The **&gt;&gt;=** (or bind) operation, is considerably more complicated:
+The **>>=** (or bind) operation, is considerably more complicated:
 
 ```fsharp
 let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) : Job<'y> =
@@ -194,10 +197,10 @@ let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) : Job<'y> =
         yJ'.DoJob (&wr, yK)})}
 ```
 
-**xJ &gt;&gt;= x2yJ** is a job **yJ** that first executes the **xJ** job.  In
-order to do that, it needs to allocate a new continuation object **xK**, which it
-passes to the **DoJob** method of **xJ**.  That continuation object needs to
-properly implement all that the **Cont** class represents.  In particular,
+**xJ >>= x2yJ** is a job **yJ** that first executes the **xJ** job.  In order to
+do that, it needs to allocate a new continuation object **xK**, which it passes
+to the **DoJob** method of **xJ**.  That continuation object needs to properly
+implement all that the **Cont** class represents.  In particular,
 
 * the **DoHandle** method implements the failure (or exception) continuation,
 * the **DoCont** method implements the success continuation, and, interestingly,
@@ -361,7 +364,7 @@ prefixes.)  On the other hand, Microsoft's current 64-bit JIT does a decent job
 of implementing tail calls&mdash;even without tail prefixes.  Unfortunately, the
 same cannot be said of all .Net JITs.
 
-In the beginning, Hopac used a simple ad hoc tool that to add tail prefixes to
+In the beginning, Hopac used a simple ad hoc tool to add tail prefixes to
 virtual tail calls in the Hopac libraries (basically all the places where Hopac
 relies on tail calls).  Unfortunately, even with the tail prefixes some tail
 calls simply won't be optimized properly.  Furthermore, adding tail prefixes
@@ -413,8 +416,10 @@ static void Do<T>(Cont<T> tK, ref Worker wr, T value) {
 Carefully applying this trampolining helper only where necessary makes the
 overhead surprisingly small.
 
-Why is Hopac so slow then?
---------------------------
+Could something like Hopac be even faster?
+------------------------------------------
+
+Yes, definitely.
 
 The previous sections basically showed what makes Hopac fast: the primitive
 operations within Hopac are designed to avoid memory allocations, locks are
@@ -439,6 +444,17 @@ able to do that.  As a result, the job monad incurs an order of magnitude
 overhead compared to what would be possible in an implementation that would be
 able to inline operations such as the **read** and **fill** operations on
 IVars.
+
+The F# compiler has support for inline functions.  Unfortunately, inline
+functions do not mix well with encapsulation.  Methods marked as **internal**
+cannot be implemented inside inline functions exported outside of their module.
+By exposing the internal of Hopac it would be possible to use F# inline
+functions.  According to my tests that can give something like up to 30% better
+performance.  That is much less than one could expect, because the optimizer of
+F# is not particularly clever (e.g. partially applied functions cannot be
+inlined trivially and compiler analyses by the F# compiler are not powerful
+enough to help).  Nevertheless, in some cases it might make a difference and it
+might make sense to provide a build of Hopac with such inline support.
 
 Selective message passing primitives
 ------------------------------------
