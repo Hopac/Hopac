@@ -33,6 +33,28 @@ namespace Hopac.Core {
       abK.DoHandle(ref wr, e);
     }
 
+    internal override void DoWork(ref Worker wr) {
+    Interpret:
+      var state = this.state;
+      if (state > 0) goto DoCont;
+      if (state < 0) goto DoHandle;
+      if (0 != Interlocked.CompareExchange(ref this.state, 1, 0)) goto Interpret;
+      return;
+
+    DoHandle: {
+        var abK = this.abK;
+        wr.Handler = abK;
+        abK.DoHandle(ref wr, this.e);
+        return;
+      }
+
+    DoCont: {
+        var abK = this.abK;
+        wr.Handler = abK;
+        abK.DoCont(ref wr, new Tuple<A, B>(this.a, this.b));
+      }
+    }
+
     internal override void DoCont(ref Worker wr, B b) {
     Interpret:
       var state = this.state;

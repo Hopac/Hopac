@@ -14,14 +14,10 @@ namespace Hopac.Core {
       return null;
     }
 
-    internal override void DoWork(ref Worker wr) {
-      this.DoCont(ref wr, this.Value);
-    }
-
     /// Use DoCont when NOT invoking continuation from a Job or Alt.
     internal abstract void DoCont(ref Worker wr, T value);
   }
-
+  
   internal static class Cont {
     /// Use Cont.Do when invoking continuation from a Job or Alt.
     [MethodImpl(AggressiveInlining.Flag)]
@@ -56,6 +52,10 @@ namespace Hopac.Core {
 
     internal override void DoHandle(ref Worker wr, Exception e) {
       this.hr.DoHandle(ref wr, e);
+    }
+
+    internal override void DoWork(ref Worker wr) {
+      this.hr.DoHandle(ref wr, this.e);
     }
 
     internal override void DoCont(ref Worker wr, T value) {

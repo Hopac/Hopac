@@ -96,6 +96,9 @@ module Job =
   /// Creates a job with the given result.
   val result: 'x -> Job<'x>
 
+  /// "raises e" is equivalent to "delay <| fun () -> raise e".
+  val raises: exn -> Job<_>
+
   /// Infix operators on jobs.  You can open this module to bring all of the
   /// infix operators into scope.
   module Infixes =

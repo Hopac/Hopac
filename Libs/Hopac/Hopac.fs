@@ -32,6 +32,9 @@ module Util =
     override xK'.DoHandle (wr, e) =
      wr.Handler <- yK
      (e2yJ e).DoJob (&wr, yK)
+    override xK'.DoWork (wr) =
+     wr.Handler <- yK
+     (x2yJ xK'.Value).DoJob (&wr, yK)
     override xK'.DoCont (wr, x) =
      wr.Handler <- yK
      (x2yJ x).DoJob (&wr, yK)
@@ -141,15 +144,21 @@ module Alt =
   let inline pick (xA: Alt<'x>) : Job<'x> =
     xA :> Job<'x>
 
+  type WithNackElse<'x> (nk: Nack, xE: Else<'x>) =
+    inherit Else<'x> ()
+    override xE'.TryElse (wr, i, pk, xK) =
+      nk.I1 <- i
+      xE.TryElse (&wr, i, pk, xK)
+
   let inline WithNackCont (pk: Pick, xK: Cont<'x>, xE: Else<'x>) =
     {new Cont<Alt<'x>> () with
       override xAK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+      override xAK'.DoWork (wr) =
+       let nk = pk.Nacks
+       xAK'.Value.TryAlt (&wr, nk.I0, pk, xK, WithNackElse (nk, xE))
       override xAK'.DoCont (wr, xA) =
-       let nk = pk.Nacks;
-       xA.TryAlt (&wr, nk.I0, pk, xK, {new Else<'x>() with
-        override xE'.TryElse (wr, i, pk, xK) =
-         nk.I1 <- i
-         xE.TryElse (&wr, i, pk, xK)})}
+       let nk = pk.Nacks
+       xA.TryAlt (&wr, nk.I0, pk, xK, WithNackElse (nk, xE))}
 
   let withNack (nack2xAJ: Alt<unit> -> Job<Alt<'x>>) : Alt<'x> =
     {new Alt<'x>() with
@@ -387,6 +396,10 @@ module Job =
       override self.DoJob (wr, xK) =
        Cont.Do (xK, &wr, x)}
 
+  let raises (e: exn) =
+    {new Job<_> () with
+      override xJ.DoJob (wr, xK) = xK.DoHandle (&wr, e)}
+
   let unit = result ()
 
   let inline whenDo (b: bool) (uJ: Job<unit>) =
@@ -438,9 +451,12 @@ module Job =
          xJ.DoJob (&wr, DropCont yK)}
 
     let (>>!) (xJ: Job<'x>) (e: exn) =
-      {new Job<'y>() with
+      {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
-         yK.DoHandle (&wr, e)}
+         xJ.DoJob (&wr, {new Cont<'x> () with
+          override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+          override xK'.DoWork (wr) = yK.DoHandle (&wr, e)
+          override xK'.DoCont (wr, _) = yK.DoHandle (&wr, e)})}
 
     type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
       inherit Cont<'y>()
@@ -498,6 +514,9 @@ module Job =
         override xK'.DoHandle (wr, e) =
          wr.Handler <- xK
          (e2xJ e).DoJob (&wr, xK)
+        override xK'.DoWork (wr) =
+         wr.Handler <- xK
+         xK.DoCont (&wr, xK'.Value)
         override xK'.DoCont (wr, x) =
          wr.Handler <- xK
          xK.DoCont (&wr, x)}
@@ -512,6 +531,10 @@ module Job =
          wr.Handler <- xK
          u2u ()
          xK.DoHandle (&wr, e)
+        override xK'.DoWork (wr) =
+         wr.Handler <- xK
+         u2u ()
+         xK.DoCont (&wr, xK'.Value)
         override xK'.DoCont (wr, x) =
          wr.Handler <- xK
          u2u ()
@@ -527,6 +550,10 @@ module Job =
          wr.Handler <- yK
          x.Dispose ()
          yK.DoHandle (&wr, e)
+        override yK'.DoWork (wr) =
+         wr.Handler <- yK
+         x.Dispose ()
+         yK.DoCont (&wr, yK'.Value)
         override yK'.DoCont (wr, y) =
          wr.Handler <- yK
          x.Dispose ()
@@ -541,6 +568,9 @@ module Job =
         override xK'.DoHandle (wr, e) =
          wr.Handler <- cK
          cK.DoCont (&wr, Choice2Of2 e)
+        override xK'.DoWork (wr) =
+         wr.Handler <- cK
+         cK.DoCont (&wr, Choice1Of2 xK'.Value)
         override xK'.DoCont (wr, x) =
          wr.Handler <- cK
          cK.DoCont (&wr, Choice1Of2 x)}
