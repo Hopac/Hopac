@@ -28,8 +28,8 @@ namespace Hopac.Core {
 
 #if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
-    unsafe internal void Init(void *StackLimit) {
-      this.StackLimit = (byte *)StackLimit - 500000L;
+    unsafe internal void Init(void *StackLimit, int bytes) {
+      this.StackLimit = (byte *)StackLimit - bytes;
 #else
     [MethodImpl(AggressiveInlining.Flag)]
     unsafe internal void Init() {
@@ -95,31 +95,42 @@ namespace Hopac.Core {
     internal static void RunOnThisThread(Work work) {
       var wr = new Worker();
 #if TRAMPOLINE
-      unsafe { wr.Init(&wr.StackLimit); }
+      unsafe { wr.Init(&wr.StackLimit, 1000); }
 #else
       wr.Init();
 #endif
-
-      if (null != work) {
-        do {
-          try {
-            do {
-              wr.WorkStack = work.Next;
-              wr.Handler = work;
-              work.DoWork(ref wr);
-              work = wr.WorkStack;
-            } while (null != work);
-          } catch (Exception e) {
-            work = new FailWork(wr.WorkStack, e, wr.Handler);
-          }
-        } while (null != work);
+      try {
+        wr.Handler = work;
+        work.DoWork(ref wr);
+      } catch (Exception e) {
+        wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
       }
+
+      Scheduler.PushAll(wr.WorkStack);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void RunOnThisThread<T>(Job<T> tJ, Cont<T> tK) {
+      var wr = new Worker();
+#if TRAMPOLINE
+      unsafe { wr.Init(&wr.StackLimit, 1000); }
+#else
+      wr.Init();
+#endif
+      try {
+        wr.Handler = tK;
+        tJ.DoJob(ref wr, tK);
+      } catch (Exception e) {
+        wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
+      }
+
+      Scheduler.PushAll(wr.WorkStack);
     }
     
     internal static void Run(int me) {
       var wr = new Worker();
 #if TRAMPOLINE
-      unsafe { wr.Init(&wr.StackLimit); }
+      unsafe { wr.Init(&wr.StackLimit, 4000); }
 #else
       wr.Init();
 #endif

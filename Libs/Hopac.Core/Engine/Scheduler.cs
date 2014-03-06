@@ -42,14 +42,31 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void Push(Work work) {
+    internal static void Push(Work work, Work last) {
       SpinlockTTAS.Enter(ref Lock);
-      work.Next = WorkStack;
+      last.Next = WorkStack;
       WorkStack = work;
       var waiters = Waiters;
       if (0 <= waiters)
         Events[waiters].Set();
       SpinlockTTAS.Exit(ref Lock);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void PushAll(Work work) {
+      if (null == work)
+        return;
+
+      var last = work;
+    FindLast:
+      var next = last.Next;
+      if (null == next)
+        goto FoundLast;
+      last = next;
+      goto FindLast;
+
+    FoundLast:
+      Push(work, last);
     }
 
     static uint unique = 0;

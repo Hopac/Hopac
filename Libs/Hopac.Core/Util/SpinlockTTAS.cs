@@ -5,9 +5,11 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  /// On every change of owner this spinlock implementation requires Theta(n)
-  /// cache line transfers, where n is the number of threads waiting for the
-  /// lock, and is thus inherently unscalable.
+  /// <summary>Provides a low overhead spinlock that is about as fast as
+  /// possible in case of low contention, but also becomes slow in case of
+  /// contention.  On every change of owner this spinlock implementation
+  /// requires Omega(n) cache line transfers, where n is the number of threads
+  /// waiting for the lock, and is thus inherently unscalable.</summary>
   internal struct SpinlockTTAS {
     private volatile int state;
 
