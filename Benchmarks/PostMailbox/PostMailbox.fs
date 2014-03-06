@@ -1,13 +1,8 @@
 ﻿module PostMailbox
 
-// Inspired by: http://theburningmonk.com/2012/03/f-how-many-messages-can-you-post-to-a-f-agent-in-one-second/
-
 open System
 open System.Diagnostics
 open System.Threading
-
-let dataWarmUp = [|1..100000|]
-let data       = [|1..20000000|]
 
 module Array =
   let inline last (xs: array<_>) = xs.[xs.Length-1]
@@ -16,7 +11,7 @@ module Async =
   type Agent<'t> = MailboxProcessor<'t>
 
   let run data =
-    printfn "Async:"
+    printf "Async:  "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -30,16 +25,15 @@ module Async =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
-    printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
-module HopacMb =
+module MbSend =
   open Hopac
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
   let run data =
-    printfn "HopacMb:"
+    printf "MbSend: "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -54,8 +48,7 @@ module HopacMb =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
-    printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChGive =
   open Hopac
@@ -63,7 +56,7 @@ module ChGive =
   open Hopac.Extensions
 
   let run data =
-    printfn "ChGive:"
+    printf "ChGive: "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -78,8 +71,7 @@ module ChGive =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
-    printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChSend =
   open Hopac
@@ -87,7 +79,7 @@ module ChSend =
   open Hopac.Extensions
 
   let run data =
-    printfn "ChSend:"
+    printf "ChSend: "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -102,25 +94,20 @@ module ChSend =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "- Posted:   %f msgs/s" (float max / d1.TotalSeconds)
-    printfn "- Finished: %f msgs/s" (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
     
 let cleanup () =
   for i=1 to 10 do
+    Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do ChGive.run dataWarmUp ; cleanup ()
-   ChSend.run dataWarmUp ; cleanup ()
-   HopacMb.run dataWarmUp ; cleanup ()
-   Async.run dataWarmUp ; cleanup ()
-
-   ChGive.run data ; cleanup ()
-   ChGive.run data ; cleanup ()
-   ChSend.run data ; cleanup ()
-   ChSend.run data ; cleanup ()
-   HopacMb.run data ; cleanup ()
-   HopacMb.run data ; cleanup ()
-   Async.run data ; cleanup ()
-   Async.run data
-   
+do for n in [|2000; 20000; 200000; 2000000; 20000000|] do
+     let test f =
+       let data = [|1 .. n|]
+       f data
+       cleanup ()
+     test ChGive.run
+     test ChSend.run
+     test MbSend.run
+     test Async.run
