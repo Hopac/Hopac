@@ -131,15 +131,37 @@ module Alt =
       override xA'.DoJob (wr, xK) =
        xAJ.DoJob (&wr, GuardJobCont xK)
       override xA'.TryAlt (wr, i, pk, xK, xE) =
-       xAJ.DoJob (&wr, {new Cont<Alt<'x>> () with
-        override xAK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-        override xAK'.DoWork (wr) = xAK'.Value.TryAlt (&wr, i, pk, xK, xE)
-        override xAK'.DoCont (wr, xA) = xA.TryAlt (&wr, i, pk, xK, xE)})}
+       let xAK' = {new Cont<Alt<'x>> () with
+        override xAK'.DoHandle (wr, e) =
+         Pick.PickClaimed pk
+         xK.DoHandle (&wr, e)
+        override xAK'.DoWork (wr) =
+         Pick.Unclaim pk
+         xAK'.Value.TryAlt (&wr, i, pk, xK, xE)
+        override xAK'.DoCont (wr, xA) =
+         Pick.Unclaim pk
+         xA.TryAlt (&wr, i, pk, xK, xE)}
+       if Pick.Claim pk then
+         xAJ.DoJob (&wr, xAK')}
 
   let delay (u2xA: unit -> Alt<'x>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) = (u2xA ()).DoJob (&wr, xK)
-      override xA'.TryAlt (wr, i, pk, xK, xE) = (u2xA ()).TryAlt (&wr, i, pk, xK, xE)}
+      override xA'.TryAlt (wr, i, pk, xK, xE) =
+       if Pick.Claim pk then
+         let mutable e = null
+         let mutable xA = null
+         try
+           xA <- u2xA ()
+         with exn ->
+           e <- exn
+         match xA with
+          | null ->
+            Pick.PickClaimed pk
+            xK.DoHandle (&wr, e)
+          | xA ->
+            Pick.Unclaim pk
+            xA.TryAlt (&wr, i, pk, xK, xE)}
 
   let inline pick (xA: Alt<'x>) =
     xA :> Job<'x>
@@ -152,11 +174,15 @@ module Alt =
 
   let inline WithNackCont (pk: Pick, xK: Cont<'x>, xE: Else<'x>) =
     {new Cont<Alt<'x>> () with
-      override xAK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+      override xAK'.DoHandle (wr, e) =
+       Pick.PickClaimed pk
+       xK.DoHandle (&wr, e)
       override xAK'.DoWork (wr) =
+       Pick.Unclaim pk
        let nk = pk.Nacks
        xAK'.Value.TryAlt (&wr, nk.I0, pk, xK, WithNackElse (nk, xE))
       override xAK'.DoCont (wr, xA) =
+       Pick.Unclaim pk
        let nk = pk.Nacks
        xA.TryAlt (&wr, nk.I0, pk, xK, WithNackElse (nk, xE))}
 

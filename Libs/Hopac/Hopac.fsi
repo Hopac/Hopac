@@ -298,15 +298,16 @@ module Alt =
 
   ///////////////////////////////////////////////////////////////////////
 
-  /// WIP: The semantics of this primitive are not yet fully cast in stone.
-  ///
-  /// The semantics of the current implementation differ from the semantics
-  /// of exception handling construct (wrapHandler) in John Reppy's Concurrent
-  /// ML.
-  val tryIn: Alt<'x>
-          -> ('x -> Job<'y>)
-          -> (exn -> Job<'y>)
-          -> Alt<'y>
+  /// Implements the try-in-unless exception handling construct for
+  /// alternatives.  Both of the continuation jobs "'x -> Job<'y>", for success,
+  /// and "exn -> Job<'y>", for failure, are invoked from a tail position.
+  /// Exceptions from both before and after the commit point can be handled.  An
+  /// exception that occures before a commit point, from the user code in a
+  /// guard, delay, or withNack, results in treating that exception as the
+  /// commit point.  Note you can also use function or job level exception
+  /// handling before the commit point within the user code in a guard, delay,
+  /// or withNack.
+  val tryIn: Alt<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Alt<'y>
 
   ///////////////////////////////////////////////////////////////////////
 

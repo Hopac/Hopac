@@ -14,6 +14,18 @@ namespace Hopac.Core {
       return Interlocked.CompareExchange(ref pk.State, -1, 0);
     }
 
+    internal static bool Claim(Pick pk) {
+    TryClaim:
+      var state = pk.State;
+      if (state > 0) goto AlreadyPicked;
+      if (state < 0) goto TryClaim;
+      if (0 != Interlocked.CompareExchange(ref pk.State, ~state, state)) goto TryClaim;
+      return true;
+
+    AlreadyPicked:
+      return false;
+    }
+
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Unclaim(Pick pk) {
       pk.State = 0;
@@ -32,15 +44,15 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static Nack AddNack(Pick pk, int i0) {
     TryClaim:
-      var st = TryClaim(pk);
-      if (st > 0) goto AlreadyPicked;
-      if (st < 0) goto TryClaim;
+      var state = pk.State;
+      if (state > 0) goto AlreadyPicked;
+      if (state < 0) goto TryClaim;
+      if (0 != Interlocked.CompareExchange(ref pk.State, ~state, state)) goto TryClaim;
 
       var nk = new Nack(pk.Nacks, i0);
       pk.Nacks = nk;
 
-      Unclaim(pk);
-      return nk;
+      return nk; // Leaves the pick claimed on purpose!
 
     AlreadyPicked:
       return null;
