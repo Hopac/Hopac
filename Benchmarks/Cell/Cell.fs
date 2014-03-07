@@ -47,7 +47,7 @@ module HopacReq =
              let c = rnd.Next (0, nCells)
              get cells.[c] >>= fun x ->
              put cells.[c] (x+1))
-        |> Job.parIgnore
+        |> Job.conIgnore
     }
     let d = timer.Elapsed
     printf "%8.5f s to %d c * %d p * %d u\n"
@@ -86,7 +86,7 @@ module HopacAlt =
              let c = rnd.Next (0, nCells)
              get cells.[c] >>= fun x ->
              put cells.[c] (x+1))
-        |> Job.parIgnore
+        |> Job.conIgnore
     }
     let d = timer.Elapsed
     printf "%8.5f s to %d c * %d p * %d u\n"
@@ -147,19 +147,19 @@ let tick () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-let test m n p =
+let test doAs m n p =
   HopacReq.run m n p ; tick ()
   HopacAlt.run m n p ; tick ()
-  AsyncCell.run m n p ; tick ()
+  if doAs then AsyncCell.run m n p ; tick ()
 
 do tick ()
-   test 10 10 10
-   test 100 100 100
-   test 1000 1000 1000
-   test 10 10 1000000
-   test 1000 1000 10000
-   test 10000 1000 1000
-   test 1000 10000 1000
-   test 10000 10000 1000
-   test 1000000 100000 100
-   test 10000 10000 10000
+   test  true 10 10 10
+   test  true 100 100 100
+   test  true 1000 1000 1000
+   test false 10 10 1000000
+   test false 1000 1000 10000
+   test  true 10000 1000 1000
+   test false 1000 10000 1000
+   test false 10000 10000 1000
+   test false 1000000 100000 100
+   test false 10000 10000 10000

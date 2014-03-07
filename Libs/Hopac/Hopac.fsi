@@ -37,10 +37,10 @@ module TopLevel =
 
 /////////////////////////////////////////////////////////////////////////
 
-/// Operations on parallel jobs.
+/// Operations on jobs.
 module Job =
 
-  /// Immediate or non-workflow operations on parallel jobs.
+  /// Immediate or non-workflow operations on jobs.
   module Now =
     /// Starts running the given job, but does not wait for the job to finish.
     /// Upon the failure or success of the job, one of the given actions is
@@ -63,11 +63,11 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   /// Creates a job that schedules the given job to be executed as a separate
-  /// parallel job.  The result, if any, of the separate job is ignored.  Use
-  /// Promise.start if you need to be able to get the result.  Note that it is
-  /// guaranteed that the job is executed as a separate job.  This means that a
-  /// job such as "let c = Ch.Now.create () in Job.start (Ch.give c ()) >>.
-  /// Ch.take c" will not deadlock.
+  /// concurrent job.  The result, if any, of the concurrent job is ignored.
+  /// Use Promise.start if you need to be able to get the result.  Note that it
+  /// is guaranteed that the job is executed as a separate job.  This means
+  /// that a job such as "let c = Ch.Now.create () in Job.start (Ch.give c ())
+  /// >>. Ch.take c" will not deadlock.
   val start: Job<_> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
@@ -199,23 +199,21 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   /// Creates a job that runs all of the jobs in sequence and returns a
-  /// sequence of the results.
+  /// list of the results.
   val seqCollect: seq<Job<'x>> -> Job<IList<'x>>
 
-  /// Creates a job that runs all of the jobs in sequence and returns a
-  /// sequence of the results.
+  /// Creates a job that runs all of the jobs in sequence.  The results of the
+  /// jobs are ignored.
   val seqIgnore: seq<Job<_>> -> Job<unit>
 
-  /// Creates a job that runs all of the jobs potentially in parallel and
-  /// returns a sequence of the results.  It is not guaranteed that the jobs
-  /// would be run as separate parallel jobs.
-  val parCollect: seq<Job<'x>> -> Job<IList<'x>>
+  /// Creates a job that runs all of the jobs as separate concurrent jobs and
+  /// returns a list of the results.
+  val conCollect: seq<Job<'x>> -> Job<IList<'x>>
 
-  /// Creates a job that runs all of the jobs potentially in parallel and then
-  /// waits for all of the jobs to finish.  The results of the jobs are
-  /// ignored.  It is not guaranteed that the jobs would be run as separate
-  /// parallel jobs.
-  val parIgnore: seq<Job<_>> -> Job<unit>
+  /// Creates a job that runs all of the jobs as separate concurrent jobs and
+  /// then waits for all of the jobs to finish.  The results of the jobs are
+  /// ignored.
+  val conIgnore: seq<Job<_>> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -498,7 +496,7 @@ module Promise =
     val inline withFailure: exn -> Promise<'x>
 
   /// Creates a job that creates a promise, whose value is computed eagerly
-  /// with the given job, which is started to run as a separate parallel job.
+  /// with the given job, which is started to run as a separate concurrent job.
   val start: Job<'x> -> Job<Promise<'x>>
 
   /// Creates a job that creates a promise, whose value is computed with the
@@ -558,11 +556,11 @@ module Cond =
 
 /////////////////////////////////////////////////////////////////////////
 
-/// Extensions to various system modules and types for programming with
-/// parallel jobs.  You can open this module to use the extensions much
-/// like as if they were part of the existing modules and types.
+/// Extensions to various system modules and types for programming with jobs.
+/// You can open this module to use the extensions much like as if they were
+/// part of the existing modules and types.
 module Extensions =
-  /// Operations for processing arrays with parallel jobs.
+  /// Operations for processing arrays with jobs.
   module Array =
     /// Sequentially maps the given job constructor to the elements of the
     /// array and returns an array of the results.
@@ -572,36 +570,33 @@ module Extensions =
     /// array.  The results, if any, of the jobs are ignored.
     val iterJob: ('x -> Job<_>) -> array<'x> -> Job<unit>
 
-  /// Operations for processing sequences with parallel jobs.
+  /// Operations for processing sequences with jobs.
   module Seq =
     /// Sequentially iterates the given job constructor over the given
     /// sequence.  The results, if any, of the jobs are ignored.
     val iterJob: ('x -> Job<_>) -> seq<'x> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
-    /// sequence and returns a sequence of the results.
+    /// sequence and returns a list of the results.
     val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<IList<'y>>
 
     /// Sequentially folds the job constructor over the given sequence and
     /// returns the result of the fold.
     val foldJob: ('x -> 'y -> Job<'x>) -> 'x -> seq<'y> -> Job<'x>
 
-    /// Operations for processing sequences in parallel using Hopac jobs.
-    module Parallel =
+    /// Operations for processing sequences using concurrent Hopac jobs.
+    module Con =
       /// Iterates the given job constructor over the given sequence, runs the
-      /// constructed jobs potentially in parallel and waits until all of the
-      /// jobs have finished.  Note that the results of the created jobs are
-      /// ignored.  It is also not guaranteed that the jobs would be run as
-      /// separate parallel jobs.
+      /// constructed jobs as separate concurrent jobs and waits until all of
+      /// the jobs have finished.  The results of the created jobs are ignored.
       val iterJob: ('x -> Job<_>) -> seq<'x> -> Job<unit>
 
       /// Iterates the given job constructor over the given sequence, runs the
-      /// constructed jobs potentially in parallel and waits until all of the
-      /// jobs have finished collecting the results into a new sequence.  It is
-      /// not guaranteed that the jobs would be run as separate parallel jobs.
+      /// constructed jobs as separate concurrent jobs and waits until all of
+      /// the jobs have finished collecting the results into a list.
       val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<IList<'y>>
 
-  /// Operations for interfacing tasks with parallel jobs.
+  /// Operations for interfacing tasks with jobs.
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
     /// the result of the task.  Note that this does not start the job.

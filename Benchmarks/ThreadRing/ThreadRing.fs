@@ -28,7 +28,7 @@ module ChGive =
         ch0
 
   let run n m p =
-    printf "ChGive: "
+    printf " ChGive: "
     let timer = Stopwatch.StartNew ()
     let i =
       run
@@ -36,13 +36,13 @@ module ChGive =
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()
         ps
-        |> Seq.Parallel.iterJob (fun n ->
+        |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
            Ch.give ch m) >>= fun () ->
-        Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+        Seq.Con.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
-    printf "%f msgs/s - %dm/%fs - %A\n"
-     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
+    printf "%9.0f m/s - %fs\n"
+     (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 module ChSend =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) : Job<unit> =
@@ -64,7 +64,7 @@ module ChSend =
         ch0
 
   let run n m p =
-    printf "ChSend: "
+    printf " ChSend: "
     let timer = Stopwatch.StartNew ()
     let i =
       run
@@ -72,13 +72,13 @@ module ChSend =
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()
         ps
-        |> Seq.Parallel.iterJob (fun n ->
+        |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
            Ch.send ch m) >>= fun () ->
-        Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+        Seq.Con.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
-    printf "%f msgs/s - %dm/%fs - %A\n"
-     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
+    printf "%9.0f m/s - %fs\n"
+     (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 module MbSend =
   let proc (name: int)
@@ -103,7 +103,7 @@ module MbSend =
         ms0
 
   let run n m p =
-    printf "MbSend: "
+    printf " MbSend: "
     let timer = Stopwatch.StartNew ()
     let i =
       run
@@ -111,13 +111,13 @@ module MbSend =
         let ps = Array.create p n
         let finishCh = Ch.Now.create ()
         ps
-        |> Seq.Parallel.iterJob (fun n ->
+        |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ms ->
            Mailbox.send ms m) >>= fun () ->
-        Seq.Parallel.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+        Seq.Con.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
-    printf "%f msgs/s - %dm/%fs - %A\n"
-     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds i
+    printf "%9.0f m/s - %fs\n"
+     (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 module MPPost =
   type MbPr<'a> = MailboxProcessor<'a>
@@ -140,7 +140,7 @@ module MPPost =
     mbprs
 
   let run n m p =
-    printf "MPPost: "
+    printf " MPPost: "
     let timer = Stopwatch.StartNew ()
     use allDone = new System.Threading.ManualResetEventSlim ()
     let results = ResizeArray<_>()
@@ -160,22 +160,21 @@ module MPPost =
       for j=0 to n-1 do
         (chains.[i].[j] :> IDisposable).Dispose ()
     let d = timer.Elapsed
-    printf "%f msgs/s - %dm/%fs - %A\n"
-     (float (p*m) / d.TotalSeconds) (p*m) d.TotalSeconds results
+    printf "%9.0f m/s - %fs\n"
+     (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 10 do
+    Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     Threading.Thread.Sleep 100
 
-do for mp in [false; true] do
-     for n in [5000; 50000000] do
-       for l in [503; 53] do
-         for p in [1; Environment.ProcessorCount] do
-           if mp then
-             MPPost.run l n p ; cleanup ()
-           else
-             ChGive.run l n p ; cleanup ()   
-             MbSend.run l n p ; cleanup ()
-             ChSend.run l n p ; cleanup ()
-   
+do for p in [1 .. Environment.ProcessorCount] do
+     for n in [500; 500000; 50000000] do
+       for l in [53; 503; 500003] do
+         printf "\nWith %d rings of length %d passing %d msgs:\n\n" p l n
+         if n <= 500000 then
+           MPPost.run l n p ; cleanup ()
+         ChGive.run l n p ; cleanup ()   
+         MbSend.run l n p ; cleanup ()
+         ChSend.run l n p ; cleanup ()

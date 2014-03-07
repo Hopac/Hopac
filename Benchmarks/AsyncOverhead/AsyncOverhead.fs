@@ -18,7 +18,7 @@ let runHopac numOps n =
       let! n = Task.awaitJob task
       return! loop n
   }
-  do run (Array.create n (loop numOps) |> Job.parIgnore)
+  do run (Array.create n (loop numOps) |> Job.conIgnore)
   let d = timer.Elapsed
   printf "%d*%d %fs - %f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
@@ -37,8 +37,8 @@ let runAsync numOps n =
   printf "%d*%d %fs - %f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
-do [(2500000, 1)
-    (2000000, 2)
+do [(1500000, 1)
+    (1000000, 2)
     (1500000, 4)
     (1000000, 8)]
    |> List.iter (fun (numOps, n) ->

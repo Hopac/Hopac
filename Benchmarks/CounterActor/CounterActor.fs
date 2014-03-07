@@ -50,7 +50,7 @@ let run numPerThread =
   let r = run <| job {
     let! actor = ChMsg.create
     do! seq {1 .. Environment.ProcessorCount}
-        |> Seq.Parallel.iterJob
+        |> Seq.Con.iterJob
             (fun _ -> Job.forN numPerThread (ChMsg.add actor 100L))
     return! ChMsg.getAndReset actor
   }
@@ -61,7 +61,9 @@ let run numPerThread =
 
 let cleanup () =
   for i=1 to 10 do
-    GC.Collect () ; Threading.Thread.Sleep 50
+    Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
+    GC.Collect ()
+    Threading.Thread.Sleep 50
  
 do run 300 ; cleanup ()
    run 3000 ; cleanup ()
