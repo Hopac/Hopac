@@ -68,7 +68,7 @@ module HopacCh =
        (Ch.Stream.filter
          (fun x -> Job.result (x % prime <> 0))
          natsInCh) >>= sieve
-    Job.start (Ch.Stream.imp (Ch.Stream.iterate 2 (fun x -> Job.result (x+1))) >>= sieve)
+    Job.server (Ch.Stream.imp (Ch.Stream.iterate 2 (fun x -> Job.result (x+1))) >>= sieve)
 
   let primes n =
     Ch.Stream.imp sieve >>= fun primesCh ->

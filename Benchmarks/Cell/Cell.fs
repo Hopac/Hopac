@@ -24,7 +24,7 @@ module HopacReq =
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
-    Job.start
+    Job.server
      (Job.iterate x (fun x ->
        Ch.take c.reqCh >>= function
         | Get   -> Ch.give c.replyCh x >>% x
@@ -64,7 +64,7 @@ module HopacAlt =
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
-    Job.start
+    Job.server
      (Job.iterate x (fun x ->
        Alt.pick ((Ch.Alt.take c.putCh)
              <|> (Ch.Alt.give c.getCh x >-> fun () -> x)))) >>% c

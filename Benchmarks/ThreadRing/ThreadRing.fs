@@ -9,7 +9,7 @@ open System
 open System.Diagnostics
 
 module ChGive =
-  let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) : Job<unit> =
+  let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
     Job.forever
      (Ch.take inCh >>= fun n ->
       if n <> 0 then
@@ -23,7 +23,7 @@ module ChGive =
     |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else Ch.Now.create ()
-           proc i chIn chOut finishCh |> Job.start >>%
+           proc i chIn chOut finishCh |> Job.server >>%
            chOut)
         ch0
 
@@ -45,7 +45,7 @@ module ChGive =
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 module ChSend =
-  let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) : Job<unit> =
+  let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
     Job.forever
      (Ch.take inCh >>= fun n ->
       if n <> 0 then
@@ -59,7 +59,7 @@ module ChSend =
     |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else Ch.Now.create ()
-           proc i chIn chOut finishCh |> Job.start >>%
+           proc i chIn chOut finishCh |> Job.server >>%
            chOut)
         ch0
 
@@ -84,7 +84,7 @@ module MbSend =
   let proc (name: int)
            (inMS: Mailbox<int>)
            (outMS: Mailbox<int>)
-           (finishCh: Ch<int>) : Job<unit> =
+           (finishCh: Ch<int>) =
     Job.forever
      (Mailbox.take inMS >>= fun n ->
       if n <> 0 then
@@ -98,7 +98,7 @@ module MbSend =
     |> Seq.foldJob
         (fun msIn i ->
            let msOut = if i=n then ms0 else Mailbox.Now.create ()
-           proc i msIn msOut finishCh |> Job.start >>%
+           proc i msIn msOut finishCh |> Job.server >>%
            msOut)
         ms0
 

@@ -39,7 +39,7 @@ module MbSend =
     use ping = new ManualResetEventSlim ()
     let mb = Mailbox.Now.create ()
     do run <| job {
-         do! Job.start
+         do! Job.server
               (Job.forever
                 (Mailbox.take mb |>> fun msg ->
                  if msg = max then ping.Set ()))
@@ -62,7 +62,7 @@ module ChGive =
     use ping = new ManualResetEventSlim ()
     let mb = Ch.Now.create ()
     do run <| job {
-         do! Job.start 
+         do! Job.server 
               (Job.forever
                 (Ch.take mb |>> fun msg ->
                  if msg = max then ping.Set ()))
@@ -85,7 +85,7 @@ module ChSend =
     use ping = new ManualResetEventSlim ()
     let mb = Ch.Now.create ()
     do run <| job {
-         do! Job.start 
+         do! Job.server 
               (Job.forever
                 (Ch.take mb |>> fun msg ->
                  if msg = max then ping.Set ()))

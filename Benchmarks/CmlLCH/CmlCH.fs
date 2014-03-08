@@ -70,7 +70,7 @@ module BufferedCh =
   let create () = Job.delay <| fun () ->
     let inCh = Ch.Now.create ()
     let outCh = Ch.Now.create ()
-    Job.start
+    Job.server
      (Job.iterate ([], [])
        (function
          | ([], []) ->

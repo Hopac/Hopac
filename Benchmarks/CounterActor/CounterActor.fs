@@ -24,7 +24,7 @@ module ChMsg =
   let create : Job<CounterActor> = job {
     let inCh = Ch.Now.create ()
     let state = ref 0L
-    do! Job.start
+    do! Job.server
          (Job.forever
            (Ch.take inCh >>= function
              | Add n ->

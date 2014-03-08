@@ -18,7 +18,7 @@ module Ch =
       do! Job.forN numPairs <| job {
         let chPing = Ch.Now.create ()
         let chPong = Ch.Now.create ()
-        do! Job.start
+        do! Job.server
              (Job.forever (Ch.take chPing >>= fun (Msg (chPong, msg)) ->
                            Ch.send chPong (Msg (chPing, msg))))
         do! Job.start <| job {
