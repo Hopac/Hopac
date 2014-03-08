@@ -28,11 +28,11 @@ namespace Hopac.Core {
 
 #if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
-    unsafe internal void Init(void *StackLimit, int bytes) {
+    internal void Init(void *StackLimit, int bytes) {
       this.StackLimit = (byte *)StackLimit - bytes;
 #else
     [MethodImpl(AggressiveInlining.Flag)]
-    unsafe internal void Init() {
+    internal void Init() {
 #endif
 #if ENABLE_MCS
       Node.Init();
@@ -95,7 +95,7 @@ namespace Hopac.Core {
     internal static void RunOnThisThread(Work work) {
       var wr = new Worker();
 #if TRAMPOLINE
-      unsafe { wr.Init(&wr.StackLimit, 1000); }
+      wr.Init(&wr.StackLimit, 1000);
 #else
       wr.Init();
 #endif
@@ -113,7 +113,7 @@ namespace Hopac.Core {
     internal static void RunOnThisThread<T>(Job<T> tJ, Cont<T> tK) {
       var wr = new Worker();
 #if TRAMPOLINE
-      unsafe { wr.Init(&wr.StackLimit, 1000); }
+      wr.Init(&wr.StackLimit, 1000);
 #else
       wr.Init();
 #endif
@@ -130,17 +130,18 @@ namespace Hopac.Core {
     internal static void Run(int me) {
       var wr = new Worker();
 #if TRAMPOLINE
-      unsafe { wr.Init(&wr.StackLimit, 4000); }
+      wr.Init(&wr.StackLimit, 4000);
 #else
       wr.Init();
 #endif
 
       var mine = Scheduler.Events[me];
-      Work work = null;
 
       while (true) {
         try {
-          goto Begin;
+          Work work = wr.WorkStack;
+          if (null == work)
+            goto EnterScheduler;
 
         WorkerLoop:
           wr.WorkStack = work.Next;
@@ -148,12 +149,11 @@ namespace Hopac.Core {
           wr.Handler = work;
           work.DoWork(ref wr);
           work = wr.WorkStack;
-        Begin:
           if (null != work)
             goto WorkerLoop;
 
         EnterScheduler:
-        SpinlockTTAS.Enter(ref Scheduler.Lock);
+          SpinlockTTAS.Enter(ref Scheduler.Lock);
         TryScheduler:
           work = Scheduler.WorkStack;
           if (null == work)
@@ -232,7 +232,7 @@ namespace Hopac.Core {
 
           goto TryScheduler;
         } catch (Exception e) {
-          work = new FailWork(wr.WorkStack, e, wr.Handler);
+          wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
         }
       }
     }
