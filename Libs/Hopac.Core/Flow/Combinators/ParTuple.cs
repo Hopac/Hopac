@@ -7,9 +7,8 @@ namespace Hopac.Core {
 
   internal sealed class ParTuple<A, B> : Cont<B> {
     internal readonly Cont<Tuple<A, B>> abK;
-    internal A a;
+    internal A Other;
     internal volatile int state;
-    internal B b;
     internal volatile Exception e;
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -51,7 +50,7 @@ namespace Hopac.Core {
     DoCont: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoCont(ref wr, new Tuple<A, B>(this.a, this.b));
+        abK.DoCont(ref wr, new Tuple<A, B>(this.Other, this.Value));
       }
     }
 
@@ -60,7 +59,7 @@ namespace Hopac.Core {
       var state = this.state;
       if (state > 0) goto DoCont;
       if (state < 0) goto DoHandle;
-      this.b = b;
+      this.Value = b;
       if (0 != Interlocked.CompareExchange(ref this.state, 1, 0)) goto Interpret;
       return;
 
@@ -74,7 +73,7 @@ namespace Hopac.Core {
     DoCont: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoCont(ref wr, new Tuple<A, B>(this.a, b));
+        abK.DoCont(ref wr, new Tuple<A, B>(this.Other, b));
       }
     }
 
@@ -84,7 +83,7 @@ namespace Hopac.Core {
       var state = this.state;
       if (state > 0) goto DoCont;
       if (state < 0) goto DoHandle;
-      this.a = a;
+      this.Other = a;
       if (0 != Interlocked.CompareExchange(ref this.state, 1, 0)) goto Interpret;
       return;
 
@@ -98,7 +97,7 @@ namespace Hopac.Core {
     DoCont: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoCont(ref wr, new Tuple<A, B>(a, this.b));
+        abK.DoCont(ref wr, new Tuple<A, B>(a, this.Value));
       }
     }
   }
