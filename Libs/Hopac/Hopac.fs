@@ -10,6 +10,10 @@ open Hopac.Core
 
 /////////////////////////////////////////////////////////////////////////
 
+type Void = Void
+
+/////////////////////////////////////////////////////////////////////////
+
 [<AutoOpen>]
 module Util =
   let inline inc (i: byref<int>) : int =
@@ -615,6 +619,19 @@ module Job =
           override xK'.DoHandle (_, e) = Handler.doHandle e
           override xK'.DoWork (_) = ()
           override xK'.DoCont (_, _) = ()})})
+       Work.Do (uK, &wr)}
+
+  let vK = {new Cont<Void> () with
+    override vK'.DoHandle (_, e) = Handler.doHandle e
+    override vK'.DoWork (_) = raise <| Exception "Void job returned"
+    override vK'.DoCont (wr, _) = vK'.DoWork (&wr)}
+
+  let server (vJ: Job<Void>) =
+    {new Job<unit> () with
+      override uJ'.DoJob (wr, uK) =
+       Worker.PushNew (&wr, {new Work () with
+        override w'.DoHandle (_, e) = Handler.doHandle e
+        override w'.DoWork (wr) = vJ.DoJob (&wr, vK)})
        Work.Do (uK, &wr)}
 
   ///////////////////////////////////////////////////////////////////////

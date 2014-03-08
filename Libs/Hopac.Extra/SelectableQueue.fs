@@ -40,7 +40,7 @@ module SelectableQueue =
       match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
        | None         -> cancelAlt
        | Some msgNode -> cancelAlt <|> giveAlt msgNode
-    Job.start
+    Job.server
      (Job.forever
        (Alt.pick (sendAlt
                   <|> takeAlt

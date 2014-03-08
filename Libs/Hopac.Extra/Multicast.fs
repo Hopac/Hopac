@@ -35,7 +35,7 @@ module Multicast =
         IVar.read v >>= fun r ->
         Ch.give outCh r.Value >>= fun () ->
         tee r.Next
-      Job.start (tee v) >>%
+      Job.server (tee v) >>%
       MPort outCh
     let rec server v =
       Ch.take requestCh >>= function
@@ -47,7 +47,7 @@ module Multicast =
          let nV = IVar.Now.create ()
          IVar.fill v {Value = x; Next = nV} >>= fun () ->
          server nV
-    Job.start (IVar.create () >>= server) >>%
+    Job.server (IVar.create () >>= server) >>%
     {RequestCh = requestCh; ReplyCh = replyCh}
 
   let port (mc: MChan<'a>) : Job<MPort<'a>> =

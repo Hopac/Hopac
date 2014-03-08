@@ -7,6 +7,12 @@ open System.Collections.Generic
 
 /////////////////////////////////////////////////////////////////////////
 
+/// A type that has no public constructors to indicate that a job or function
+/// does not return normally.
+type Void
+
+/////////////////////////////////////////////////////////////////////////
+
 /// Expression builder type for jobs.  Note that the Job module provides
 /// more combinators for building jobs.
 type JobBuilder =
@@ -51,8 +57,8 @@ module Job =
 
     /// Starts running the given job, but does not wait for the job to finish.
     /// The result, if any, of the job is ignored.  Note that using this
-    /// function in a job workflow is not optimal and you should use Job.start
-    /// instead.
+    /// function in a job workflow is not optimal and you should use Job.server
+    /// or Job.start instead.
     val start: Job<_> -> unit
 
     /// Starts running the job and then waits for the job to either return
@@ -64,11 +70,16 @@ module Job =
 
   /// Creates a job that schedules the given job to be executed as a separate
   /// concurrent job.  The result, if any, of the concurrent job is ignored.
-  /// Use Promise.start if you need to be able to get the result.  Note that it
-  /// is guaranteed that the job is executed as a separate job.  This means
-  /// that a job such as "let c = Ch.Now.create () in Job.start (Ch.give c ())
-  /// >>. Ch.take c" will not deadlock.
+  /// Use Promise.start if you need to be able to get the result.  Use
+  /// Job.server if the job never returns normally.  Note that it is guaranteed
+  /// that the job is executed as a separate job.  This means that a job such
+  /// as "let c = Ch.Now.create () in Job.start (Ch.give c ()) >>. Ch.take c"
+  /// will not deadlock.
   val start: Job<_> -> Job<unit>
+
+  /// Like Job.start, but the given job is known never to return normally, so
+  /// the job can be spawned in a sligthly lighter-weight way.
+  val server: Job<Void> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
 
