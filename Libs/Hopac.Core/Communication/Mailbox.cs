@@ -100,6 +100,13 @@ namespace Hopac {
       mb.Lock.Exit();
       return;
     }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Send(Mailbox<T> mb, T x) {
+      Worker wr = new Worker();
+      Send(mb, ref wr, x);
+      Scheduler.PushAll(wr.WorkStack);
+    }
   }
 
   namespace Core {

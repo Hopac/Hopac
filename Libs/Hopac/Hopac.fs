@@ -92,10 +92,7 @@ module Ch =
   module Now =
     let inline create () = Ch<'x> ()
     [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xCh: Ch<'x>) (x: 'x) =
-      let mutable wr = Worker ()
-      Ch<'x>.Send (xCh, &wr, x)
-      Scheduler.PushAll wr.WorkStack
+    let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (xCh, x)
   let create () = ctor Now.create ()
   let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
@@ -110,10 +107,7 @@ module Mailbox =
   module Now =
     let inline create () = Mailbox<'x> ()
     [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xMb: Mailbox<'x>) (x: 'x) =
-      let mutable wr = Worker ()
-      Mailbox<'x>.Send (xMb, &wr, x)
-      Scheduler.PushAll wr.WorkStack
+    let send (xMb: Mailbox<'x>) (x: 'x) = Mailbox<'x>.Send (xMb, x)
   let create () = ctor Now.create ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>

@@ -183,6 +183,13 @@ namespace Hopac {
       ch.Lock.Exit();
       return;
     }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Send(Ch<T> ch, T x) {
+      Worker wr = new Worker();
+      Send(ch, ref wr, x);
+      Scheduler.PushAll(wr.WorkStack);
+    }
   }
 
   namespace Core {
