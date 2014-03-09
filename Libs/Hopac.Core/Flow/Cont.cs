@@ -35,7 +35,7 @@ namespace Hopac.Core {
         }
       }
 #else
-      tK.DoContAbs(ref wr, value);
+      tK.DoCont(ref wr, value);
 #endif
     }
   }
