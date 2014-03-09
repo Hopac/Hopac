@@ -55,11 +55,11 @@ namespace Hopac.Core {
     }
 
     internal override void DoHandle(ref Worker wr, Exception e) {
-      this.hr.DoHandle(ref wr, e);
+      Handler.DoHandle(this.hr, ref wr, e);
     }
 
     internal override void DoWork(ref Worker wr) {
-      this.hr.DoHandle(ref wr, this.e);
+      Handler.DoHandle(this.hr, ref wr, this.e);
     }
   }
 }

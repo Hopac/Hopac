@@ -46,7 +46,9 @@ module TopLevel =
 /// Operations on jobs.
 module Job =
 
-  /// Immediate or non-workflow operations on jobs.
+  /// Immediate or non-workflow operations on jobs.  Note that in a typical
+  /// program there should only be a few points (maybe just one) where jobs
+  /// are started or run outside of job workflows.
   module Now =
     /// Starts running the given job, but does not wait for the job to finish.
     /// Upon the failure or success of the job, one of the given actions is
@@ -57,14 +59,27 @@ module Job =
 
     /// Starts running the given job, but does not wait for the job to finish.
     /// The result, if any, of the job is ignored.  Note that using this
-    /// function in a job workflow is not optimal and you should use Job.server
-    /// or Job.start instead.
+    /// function in a job workflow is not optimal and you should use Job.start
+    /// instead.
     val start: Job<_> -> unit
+
+    /// Like Job.start, but the given job is known never to return normally, so
+    /// the job can be spawned in a sligthly lighter-weight manner.
+    val server: Job<Void> -> unit
 
     /// Starts running the job and then waits for the job to either return
     /// successfully or fail.  Note that using this function in a job workflow
     /// is not optimal and should never be needed.
     val run: Job<'x> -> 'x
+
+    /// Sets the top level exception handler job constructor.  When a job fails
+    /// with an otherwise unhandled exception, the job is killed and a new job
+    /// is constructed with the top level handler constructor and then started.
+    /// To avoid infinite loops, in case the top level handler job raises
+    /// exceptions, it is simply killed after printing a message to the
+    /// console.  The default top level handler simply prints out a message to
+    /// the console.
+    val setTopLevelHandler: (exn -> Job<unit>) -> unit
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -78,7 +93,7 @@ module Job =
   val start: Job<_> -> Job<unit>
 
   /// Like Job.start, but the given job is known never to return normally, so
-  /// the job can be spawned in a sligthly lighter-weight way.
+  /// the job can be spawned in a sligthly lighter-weight manner.
   val server: Job<Void> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
@@ -182,6 +197,15 @@ module Job =
   /// will be executed.  The results from the jobs are ignored.
   val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
+  /// "whileDo cond body" creates a job that sequentially executes the body job
+  /// as long as cond returns true.  The results from the jobs are ignored.
+  val whileDo: (unit -> bool) -> Job<_> -> Job<unit>
+
+  /// "whenDo b uJ" is equivalent to "if b then uJ else Job.unit".
+  val inline whenDo: bool -> Job<unit> -> Job<unit>
+
+  ///////////////////////////////////////////////////////////////////////
+
   /// Creates a job that runs the given job sequentially for an indefinite
   /// number of times.  It is a common programming pattern to use server jobs
   /// that loop indefinitely and communicate with clients via channels.  When a
@@ -199,13 +223,6 @@ module Job =
   /// longer reachable by any other job) the job can be garbage collected as
   /// well.
   val iterate: 'x -> ('x -> Job<'x>) -> Job<_>
-
-  /// "whileDo cond body" creates a job that sequentially executes the body job
-  /// as long as cond returns true.  The results from the jobs are ignored.
-  val whileDo: (unit -> bool) -> Job<_> -> Job<unit>
-
-  /// "whenDo b uJ" is equivalent to "if b then uJ else Job.unit".
-  val inline whenDo: bool -> Job<unit> -> Job<unit>
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -279,7 +296,7 @@ module Alt =
   val choose: seq<Alt<'x>> -> Alt<'x>
 
   /// "select xAs" is equivalent to "pick (choose xJs)".
-  val select: seq<Alt<'x>> -> Job<'x>
+  val inline select: seq<Alt<'x>> -> Job<'x>
 
   ///////////////////////////////////////////////////////////////////////
 

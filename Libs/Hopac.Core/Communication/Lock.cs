@@ -111,7 +111,7 @@ namespace Hopac {
           var tK = this.tK;
           wr.Handler = tK;
           Lock.Exit(this.l, ref wr);
-          tK.DoHandle(ref wr, e);
+          Handler.DoHandle(tK, ref wr, e);
         }
 
         internal override void DoWork(ref Worker wr) {
@@ -175,7 +175,7 @@ namespace Hopac {
         }
 
         internal override void DoHandle(ref Worker wr, Exception e) {
-          this.tKPrime.DoHandle(ref wr, e);
+          Handler.DoHandle(this.tKPrime, ref wr, e);
         }
 
         internal override void DoWork(ref Worker wr) {
@@ -197,7 +197,7 @@ namespace Hopac {
           var tK = this.tK;
           wr.Handler = tK;
           Lock.Exit(this.l, ref wr);
-          tK.DoHandle(ref wr, e);
+          Handler.DoHandle(tK, ref wr, e);
         }
 
         internal override void DoWork(ref Worker wr) {

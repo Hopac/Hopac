@@ -116,7 +116,7 @@ namespace Hopac {
         return;
 
       IVarFull:
-        uK.DoHandle(ref wr, new Exception("IVar full"));
+        Handler.DoHandle(uK, ref wr, new Exception("IVar full"));
       }
     }
   }

@@ -27,7 +27,7 @@ namespace Hopac.Core {
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        aK.DoHandle(ref wr, e);
+        Handler.DoHandle(aK, ref wr, e);
       }
 
       internal override void DoWork(ref Worker wr) {
@@ -68,14 +68,14 @@ namespace Hopac.Core {
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        uK.DoHandle(ref wr, e);
+        Handler.DoHandle(uK, ref wr, e);
       }
 
       internal override void DoWork(ref Worker wr) {
         if (this.task.Status == TaskStatus.RanToCompletion)
           this.uK.DoWork(ref wr);
         else
-          this.uK.DoHandle(ref wr, this.task.Exception);
+          Handler.DoHandle(this.uK, ref wr, this.task.Exception);
       }
 
       public void Ready() {

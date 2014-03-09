@@ -45,21 +45,34 @@ module Util =
 
   type BindCont<'x, 'y> (x2yJ: 'x -> Job<'y>, yK: Cont<'y>) =
     inherit Cont<'x> ()
-    override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
     override xK'.DoWork (wr) = (x2yJ xK'.Value).DoJob (&wr, yK)
     override xK'.DoCont (wr, x) = (x2yJ x).DoJob (&wr, yK)
 
   type MapCont<'x, 'y> (x2y: 'x -> 'y, yK: Cont<'y>) =
     inherit Cont<'x> ()
-    override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
     override xK'.DoWork (wr) = yK.DoCont (&wr, x2y xK'.Value)
     override xK'.DoCont (wr, x) = yK.DoCont (&wr, x2y x)
 
-/////////////////////////////////////////////////////////////////////////
+  type Handler<'x> () =
+    inherit Cont<'x> ()
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+    override xK'.DoWork (_) = ()
+    override xK'.DoCont (_, _) = ()
 
-module Handler =
-  let doHandle (e: exn) =
-    Console.WriteLine("Unhandled exception: {0}", e)
+  let reallyInit () =
+    SpinlockTTAS.Enter (&Scheduler.Lock)
+    match Scheduler.NullWhenNeedsInit () with
+     | null ->
+       Scheduler.DoInit ()
+     | _ -> ()
+    SpinlockTTAS.Exit (&Scheduler.Lock)
+
+  let inline init () =
+    match Scheduler.NullWhenNeedsInit () with
+     | null -> reallyInit ()
+     | _ -> ()
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -126,7 +139,7 @@ module Alt =
 
   type GuardJobCont<'x> (xK: Cont<'x>) =
     inherit Cont<Alt<'x>> ()
-    override xAK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+    override xAK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
     override xAK'.DoWork (wr) = xAK'.Value.DoJob (&wr, xK)
     override xAK'.DoCont (wr, xA) = xA.DoJob (&wr, xK)
 
@@ -138,7 +151,7 @@ module Alt =
        let xAK' = {new Cont<Alt<'x>> () with
         override xAK'.DoHandle (wr, e) =
          Pick.PickClaimed pk
-         xK.DoHandle (&wr, e)
+         Handler.DoHandle (xK, &wr, e)
         override xAK'.DoWork (wr) =
          Pick.Unclaim pk
          xAK'.Value.TryAlt (&wr, i, pk, xK, xE)
@@ -162,7 +175,7 @@ module Alt =
          match xA with
           | null ->
             Pick.PickClaimed pk
-            xK.DoHandle (&wr, e)
+            Handler.DoHandle (xK, &wr, e)
           | xA ->
             Pick.Unclaim pk
             xA.TryAlt (&wr, i, pk, xK, xE)}
@@ -180,7 +193,7 @@ module Alt =
     {new Cont<Alt<'x>> () with
       override xAK'.DoHandle (wr, e) =
        Pick.PickClaimed pk
-       xK.DoHandle (&wr, e)
+       Handler.DoHandle (xK, &wr, e)
       override xAK'.DoWork (wr) =
        Pick.Unclaim pk
        let nk = pk.Nacks
@@ -254,7 +267,7 @@ module Alt =
        else
          xE.TryElse (&wr, i, pk, xK)}
 
-  let select xAs = choose xAs :> Job<'x>
+  let inline select xAs = choose xAs :> Job<'x>
 
   let tryIn (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) (e2yJ: exn -> Job<'y>) =
     {new Alt<'y> () with
@@ -273,7 +286,7 @@ module Alt =
   type [<AllowNullLiteral>] WorkTimedUnitCont =
     inherit WorkTimed
     val uK: Cont<unit>
-    override wt.DoHandle (wr, e) = wt.uK.DoHandle (&wr, e)
+    override wt.DoHandle (wr, e) = Handler.DoHandle (wt.uK, &wr, e)
     override wt.DoWork (wr) = wt.uK.DoWork (&wr)
     new (t, me, pk, uK) = {inherit WorkTimed (t, me, pk); uK=uK}
 
@@ -298,21 +311,22 @@ module Job =
     let startWithActions (eF: exn -> unit)
                          (xF: 'x -> unit)
                          (xJ: Job<'x>) =
-      Scheduler.Init ()
+      init ()
       Worker.RunOnThisThread (xJ, {new Cont<'x> () with
        override xK'.DoHandle (_, e) = eF e
        override xK'.DoWork (_) = xF xK'.Value
        override xK'.DoCont (_, x) = xF x})
 
     let start (xJ: Job<'x>) =
-      Scheduler.Init ()
-      Worker.RunOnThisThread (xJ, {new Cont<'x> () with
-       override xK'.DoHandle (_, e) = Handler.doHandle e
-       override xK'.DoWork (_) = ()
-       override xK'.DoCont (_, _) = ()})
+      init ()
+      Worker.RunOnThisThread (xJ, Handler<'x> ())
+
+    let server (vJ: Job<Void>) =
+      init ()
+      Worker.RunOnThisThread (vJ, null)
 
     let run (xJ: Job<'x>) =
-      Scheduler.Init ()
+      init ()
       let xK' = {new Cont_State<_, _, _> () with
        override xK'.DoHandle (wr, e) =
         xK'.State1 <- e
@@ -327,6 +341,9 @@ module Job =
       match xK'.State1 with
        | null -> xK'.Value
        | e -> Util.forward e
+
+    let setTopLevelHandler (e2uJ: exn -> Job<unit>) =
+      Handler.TopLevelHandler <- e2uJ
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -352,7 +369,7 @@ module Job =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        {new Cont_State<_, _> (n) with
-         override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+         override xK'.DoHandle (wr, e) = Handler.DoHandle (uK, &wr, e)
          override xK'.DoCont (wr, _) =
           let n = xK'.State
           if 0 < n then
@@ -373,7 +390,7 @@ module Job =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          {new Cont_State<_, _> (i0) with
-           override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+           override xK'.DoHandle (wr, e) = Handler.DoHandle (uK, &wr, e)
            override xK'.DoCont (wr, _) =
             let i = xK'.State
             if more i i1 then
@@ -398,21 +415,21 @@ module Job =
   let forever (xJ: Job<'x>) =
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK) = {new Cont<'x> () with
-       override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+       override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
        override xK'.DoWork (wr) = xJ.DoJob (&wr, xK')
        override xK'.DoCont (wr, _) = xJ.DoJob (&wr, xK')}.DoWork (&wr)}
 
   let iterate (x: 'x) (x2xJ: 'x -> Job<'x>) =
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK) = {new Cont<_> () with
-       override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+       override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
        override xK'.DoWork (wr) = (x2xJ xK'.Value).DoJob (&wr, xK')
        override xK'.DoCont (wr, x) = (x2xJ x).DoJob (&wr, xK')}.DoCont (&wr, x)}
 
   let whileDo (cond: unit -> bool) (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) = {new Cont<'x> () with
-       override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+       override xK'.DoHandle (wr, e) = Handler.DoHandle (uK, &wr, e)
        override xK'.DoCont (wr, _) =
         if cond () then xJ.DoJob (&wr, xK') else uK.DoWork (&wr)
        override xK'.DoWork (wr) =
@@ -428,7 +445,7 @@ module Job =
 
   let raises (e: exn) =
     {new Job<_> () with
-      override xJ.DoJob (wr, xK) = xK.DoHandle (&wr, e)}
+      override xJ.DoJob (wr, xK) = Handler.DoHandle (xK, &wr, e)}
 
   let unit = result ()
 
@@ -447,13 +464,13 @@ module Job =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
          xJ.DoJob (&wr, {new Cont<'x> () with
-          override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+          override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
           override xK'.DoWork (wr) = yJ.DoJob (&wr, yK)
           override xK'.DoCont (wr, _) = yJ.DoJob (&wr, yK)})}
 
     type DropCont<'x, 'y> (xK: Cont<'x>) =
       inherit Cont<'y> ()
-      override yK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+      override yK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
       override yK'.DoWork (wr) = xK.DoWork (&wr)
       override yK'.DoCont (wr, _) = xK.DoWork (&wr)
 
@@ -461,7 +478,7 @@ module Job =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
          xJ.DoJob (&wr, {new Cont<'x> () with
-          override xK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+          override xK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
           override xK'.DoWork (wr) =
            xK.Value <- xK'.Value
            yJ.DoJob (&wr, DropCont xK)
@@ -484,19 +501,19 @@ module Job =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
          xJ.DoJob (&wr, {new Cont<'x> () with
-          override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
-          override xK'.DoWork (wr) = yK.DoHandle (&wr, e)
-          override xK'.DoCont (wr, _) = yK.DoHandle (&wr, e)})}
+          override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
+          override xK'.DoWork (wr) = Handler.DoHandle (yK, &wr, e)
+          override xK'.DoCont (wr, _) = Handler.DoHandle (yK, &wr, e)})}
 
     type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
       inherit Cont<'y> ()
-      override yK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+      override yK'.DoHandle (wr, e) = Handler.DoHandle (xyK, &wr, e)
       override yK'.DoWork (wr) = xyK.DoCont (&wr, (x, yK'.Value))
       override yK'.DoCont (wr, y) = xyK.DoCont (&wr, (x, y))
 
     type PairCont<'x, 'y> (yJ: Job<'y>, xyK: Cont<'x * 'y>) =
       inherit Cont<'x> ()
-      override xK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+      override xK'.DoHandle (wr, e) = Handler.DoHandle (xyK, &wr, e)
       override xK'.DoWork (wr) = yJ.DoJob (&wr, PairCont2<'x, 'y> (xK'.Value, xyK))
       override xK'.DoCont (wr, x) = yJ.DoJob (&wr, PairCont2<'x, 'y> (x, xyK))
 
@@ -511,7 +528,7 @@ module Job =
           if 0 <= Scheduler.Waiters then
             let yK' = ParTuple<'x, 'y> (xyK)
             Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
-             override xK'.DoHandle (wr, e) = yK'.DoHandle (&wr, e)
+             override xK'.DoHandle (wr, e) = Handler.DoHandle (yK', &wr, e)
              override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
              override xK'.DoWork (wr) =
               match xK'.State with
@@ -527,7 +544,7 @@ module Job =
 
   type DelayWithWork<'x, 'y> (x2yJ: 'x -> Job<'y>, x: 'x, yK: Cont<'y>) =
     inherit Work ()
-    override work.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+    override work.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
     override work.DoWork (wr) = (x2yJ x).DoJob (&wr, yK)
 
   let tryIn (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) (e2yJ: exn -> Job<'y>) =
@@ -560,7 +577,7 @@ module Job =
         override xK'.DoHandle (wr, e) =
          wr.Handler <- xK
          u2u ()
-         xK.DoHandle (&wr, e)
+         Handler.DoHandle (xK, &wr, e)
         override xK'.DoWork (wr) =
          wr.Handler <- xK
          u2u ()
@@ -579,7 +596,7 @@ module Job =
         override yK'.DoHandle (wr, e) =
          wr.Handler <- yK
          x.Dispose ()
-         yK.DoHandle (&wr, e)
+         Handler.DoHandle (yK, &wr, e)
         override yK'.DoWork (wr) =
          wr.Handler <- yK
          x.Dispose ()
@@ -613,25 +630,16 @@ module Job =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        Worker.PushNew (&wr, {new Work () with
-        override w'.DoHandle (_, e) = Handler.doHandle e
-        override w'.DoWork (wr) =
-         xJ.DoJob (&wr, {new Cont<_> () with
-          override xK'.DoHandle (_, e) = Handler.doHandle e
-          override xK'.DoWork (_) = ()
-          override xK'.DoCont (_, _) = ()})})
+        override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+        override w'.DoWork (wr) = xJ.DoJob (&wr, Handler<'x> ())})
        Work.Do (uK, &wr)}
-
-  let vK = {new Cont<Void> () with
-    override vK'.DoHandle (_, e) = Handler.doHandle e
-    override vK'.DoWork (_) = raise <| Exception "Void job returned"
-    override vK'.DoCont (wr, _) = vK'.DoWork (&wr)}
 
   let server (vJ: Job<Void>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        Worker.PushNew (&wr, {new Work () with
-        override w'.DoHandle (_, e) = Handler.doHandle e
-        override w'.DoWork (wr) = vJ.DoJob (&wr, vK)})
+        override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+        override w'.DoWork (wr) = vJ.DoJob (&wr, null)})
        Work.Do (uK, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
@@ -641,23 +649,21 @@ module Job =
       override self.DoJob (wr, xsK) =
        let xJs = xJs.GetEnumerator ()
        xsK.Value <- ResizeArray<_> ()
-       let loop =
-         {new Cont<_> () with
-           override self.DoHandle (wr, e) = xsK.DoHandle (&wr, e)
-           override self.DoWork (wr) =
-            xsK.Value.Add self.Value
-            if xJs.MoveNext () then
-              xJs.Current.DoJob (&wr, self)
-            else
-              xsK.DoWork (&wr)
-           override self.DoCont (wr, x) =
-            xsK.Value.Add x
-            if xJs.MoveNext () then
-              xJs.Current.DoJob (&wr, self)
-            else
-              xsK.DoWork (&wr)}
        if xJs.MoveNext () then
-         xJs.Current.DoJob (&wr, loop)
+         xJs.Current.DoJob (&wr, {new Cont<'x> () with
+          override xK'.DoHandle (wr, e) = Handler.DoHandle (xsK, &wr, e)
+          override xK'.DoWork (wr) =
+           xsK.Value.Add xK'.Value
+           if xJs.MoveNext () then
+             xJs.Current.DoJob (&wr, xK')
+           else
+             xsK.DoWork (&wr)
+          override xK'.DoCont (wr, x) =
+           xsK.Value.Add x
+           if xJs.MoveNext () then
+             xJs.Current.DoJob (&wr, xK')
+           else
+             xsK.DoWork (&wr)})
        else
          Work.Do (xsK, &wr)}
 
@@ -665,21 +671,19 @@ module Job =
     {new Job<unit> () with
       override self.DoJob (wr, uK) =
        let xJs = xJs.GetEnumerator ()
-       let loop =
-         {new Cont<_> () with
-           override self.DoHandle (wr, e) = uK.DoHandle (&wr, e)
-           override self.DoWork (wr) =
-            if xJs.MoveNext () then
-              xJs.Current.DoJob (&wr, self)
-            else
-              uK.DoWork (&wr)
-           override self.DoCont (wr, _) =
-            if xJs.MoveNext () then
-              xJs.Current.DoJob (&wr, self)
-            else
-              uK.DoWork (&wr)}
        if xJs.MoveNext () then
-         xJs.Current.DoJob (&wr, loop)
+         xJs.Current.DoJob (&wr, {new Cont<'x> () with
+          override xK'.DoHandle (wr, e) = Handler.DoHandle (uK, &wr, e)
+          override xK'.DoWork (wr) =
+           if xJs.MoveNext () then
+             xJs.Current.DoJob (&wr, xK')
+           else
+             uK.DoWork (&wr)
+          override xK'.DoCont (wr, _) =
+           if xJs.MoveNext () then
+             xJs.Current.DoJob (&wr, xK')
+           else
+             uK.DoWork (&wr)})
        else
          Work.Do (uK, &wr)}
 
@@ -695,7 +699,7 @@ module Job =
         wr.Handler <- ysK
         match self.exns with
          | null -> self.ysK.DoWork (&wr)
-         | exns -> self.ysK.DoHandle (&wr, AggregateException exns)
+         | exns -> Handler.DoHandle (self.ysK, &wr, AggregateException exns)
       else
         SpinlockWithOwner.Exit (owner)
     static member inline Add (self: ConCollect<_>, visitor: Work, wr: byref<Worker>, i, y) =
@@ -714,7 +718,7 @@ module Job =
         exns.Add e
      if Util.dec &self.n = 0 then
        wr.Handler <- self.ysK
-       self.ysK.DoHandle (&wr, AggregateException self.exns)
+       Handler.DoHandle (self.ysK, &wr, AggregateException self.exns)
      else
        SpinlockWithOwner.Exit (owner)
     new (ysK: Cont<IList<'y>>) = {
@@ -746,7 +750,7 @@ module Job =
          let i = nth
          nth <- i + 1
          Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
-          override self.DoHandle (wr, e) = st.DoHandle (&wr, e)
+          override self.DoHandle (wr, e) = Handler.DoHandle (st, &wr, e)
           override self.DoCont (wr, y) = ConCollect<_>.Add (st, self, &wr, i, y)
           override self.DoWork (wr) =
            match self.State with
@@ -770,7 +774,7 @@ module Job =
         wr.Handler <- uK
         match self.exns with
          | null -> uK.DoWork (&wr)
-         | exns -> uK.DoHandle (&wr, AggregateException exns)
+         | exns -> Handler.DoHandle (uK, &wr, AggregateException exns)
     override self.DoHandle (wr: byref<Worker>, e: exn) =
       lock self <| fun () ->
         let exns =
@@ -797,15 +801,15 @@ module Job =
        while xJs.MoveNext () do
          ConIgnore.Inc join
          Worker.PushNew (&wr, {new Cont_State<_, _> (xJs.Current) with
-          override xK.DoHandle (wr, e) = join.DoHandle (&wr, e)
-          override xK.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
-          override xK.DoWork (wr) =
-           match xK.State with
+          override xK'.DoHandle (wr, e) = Handler.DoHandle (join, &wr, e)
+          override xK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
+          override xK'.DoWork (wr) =
+           match xK'.State with
             | null ->
               ConIgnore.Dec (join, &wr)
             | xJ ->
-              xK.State <- null
-              xJ.DoJob (&wr, xK)})
+              xK'.State <- null
+              xJ.DoJob (&wr, xK')})
        ConIgnore.Dec (join, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
@@ -819,7 +823,7 @@ module Job =
 
   type AsyncBeginEnd<'x> (doEnd, xK: Cont<'x>) =
     inherit WorkWithReady<IAsyncResult> ()
-    override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+    override self.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
     override self.DoWork (wr) = xK.DoCont (&wr, doEnd self.Value)
 
   let fromBeginEnd (doBegin: AsyncCallback * obj -> IAsyncResult)
@@ -873,7 +877,7 @@ module Extensions =
          if 0 < xs.Length then
            ysK.Value <- Array.zeroCreate xs.Length
            (x2yJ xs.[0]).DoJob (&wr, {new Cont_State<_, _> (0) with
-            override yK'.DoHandle (wr, e) = ysK.DoHandle (&wr, e)
+            override yK'.DoHandle (wr, e) = Handler.DoHandle (ysK, &wr, e)
             override yK'.DoWork (wr) =
              let j = yK'.State
              ysK.Value.[j] <- yK'.Value
@@ -899,7 +903,7 @@ module Extensions =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          Work.Do ({new Cont_State<_,_> (0) with
-          override yK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+          override yK'.DoHandle (wr, e) = Handler.DoHandle (uK, &wr, e)
           override yK'.DoCont (wr, _) =
            let i = yK'.State
            if i < xs.Length then
@@ -923,7 +927,7 @@ module Extensions =
         override uJ'.DoJob (wr, uK) =
          let xs = xs.GetEnumerator ()
          Work.Do ({new Cont<'y> () with
-          override yK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+          override yK'.DoHandle (wr, e) = Handler.DoHandle (uK, &wr, e)
           override yK'.DoCont (wr, _) =
            if xs.MoveNext () then
              (x2yJ xs.Current).DoJob (&wr, yK')
@@ -942,7 +946,7 @@ module Extensions =
          let xs = xs.GetEnumerator ()
          if xs.MoveNext () then
            (x2yJ xs.Current).DoJob (&wr, {new Cont<_> () with
-            override yK'.DoHandle (wr, e) = ysK.DoHandle (&wr, e)
+            override yK'.DoHandle (wr, e) = Handler.DoHandle (ysK, &wr, e)
             override yK'.DoWork (wr) =
              ysK.Value.Add yK'.Value
              if xs.MoveNext () then
@@ -965,7 +969,7 @@ module Extensions =
          let ys = ys.GetEnumerator ()
          if ys.MoveNext () then
            (xy2xJ.Invoke (x, ys.Current)).DoJob (&wr, {new Cont<'x> () with
-            override xK'.DoHandle (wr, e) = xK.DoHandle (&wr, e)
+            override xK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
             override xK'.DoWork (wr) =
              if ys.MoveNext () then
                (xy2xJ.Invoke (xK'.Value, ys.Current)).DoJob (&wr, xK')
@@ -990,7 +994,7 @@ module Extensions =
              let x = xs.Current
              ConIgnore.Inc join
              Worker.PushNew (&wr, {new Cont_State<_, _> () with
-              override yK'.DoHandle (wr, e) = join.DoHandle (&wr, e)
+              override yK'.DoHandle (wr, e) = Handler.DoHandle (join, &wr, e)
               override yK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
               override yK'.DoWork (wr) =
                if yK'.State then
@@ -1014,7 +1018,7 @@ module Extensions =
              st.ysK.Value.Add Unchecked.defaultof<_>
              nth <- nth - 1
              Worker.PushNew (&wr, {new Cont_State<_, _, _> (xs.Current, nth) with
-              override yK'.DoHandle (wr, e) = st.DoHandle (&wr, e)
+              override yK'.DoHandle (wr, e) = Handler.DoHandle (st, &wr, e)
               override yK'.DoCont (wr, y) =
                ConCollect<_>.Add (st, yK', &wr, yK'.State2, y)
               override yK'.DoWork (wr) =

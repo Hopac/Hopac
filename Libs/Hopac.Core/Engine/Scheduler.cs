@@ -15,30 +15,30 @@ namespace Hopac.Core {
     internal static WorkTimed TopTimed;
     internal static WorkerEvent[] Events;
 
+    // We use manual initialization here, because automatic initialization
+    // generates code with slightly more overhead.
+
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void Init() {
-      if (Volatile.Read(ref Events) == null)
-        ReallyInit();
+    internal static object NullWhenNeedsInit() {
+      return Volatile.Read(ref Events);
     }
 
-    private static void ReallyInit() {
-      SpinlockTTAS.Enter(ref Scheduler.Lock);
-      if (Volatile.Read(ref Events) == null) {
-        var numWorkers = Environment.ProcessorCount;
-        Waiters = -1;
-        Events = new WorkerEvent[numWorkers];
-        var threads = new Thread[numWorkers];
-        for (int i = 0; i < numWorkers; ++i) {
-          Events[i] = new WorkerEvent(i);
-          var index = i;
-          var thread = new Thread(() => Worker.Run(index));
-          threads[i] = thread;
-          thread.IsBackground = true;
-        }
-        for (int i=0; i < numWorkers; ++i)
-          threads[i].Start();
-        SpinlockTTAS.Exit(ref Scheduler.Lock);
+    internal static void DoInit() {
+      Debug.Assert(SpinlockTTAS.Locked == SpinlockTTAS.GetState(ref Lock) &&
+                   null == NullWhenNeedsInit());
+      var numWorkers = Environment.ProcessorCount;
+      Waiters = -1;
+      Events = new WorkerEvent[numWorkers];
+      var threads = new Thread[numWorkers];
+      for (int i = 0; i < numWorkers; ++i) {
+        Events[i] = new WorkerEvent(i);
+        var index = i;
+        var thread = new Thread(() => Worker.Run(index));
+        threads[i] = thread;
+        thread.IsBackground = true;
       }
+      for (int i=0; i < numWorkers; ++i)
+        threads[i].Start();
     }
 
     [MethodImpl(AggressiveInlining.Flag)]

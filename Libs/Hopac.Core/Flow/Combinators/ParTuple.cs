@@ -29,7 +29,7 @@ namespace Hopac.Core {
       wr.Handler = abK;
       if (null != this.e)
         e = new AggregateException(new Exception[]{this.e, e});
-      abK.DoHandle(ref wr, e);
+      Handler.DoHandle(abK, ref wr, e);
     }
 
     internal override void DoWork(ref Worker wr) {
@@ -43,7 +43,7 @@ namespace Hopac.Core {
     DoHandle: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoHandle(ref wr, this.e);
+        Handler.DoHandle(abK, ref wr, this.e);
         return;
       }
 
@@ -66,7 +66,7 @@ namespace Hopac.Core {
     DoHandle: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoHandle(ref wr, this.e);
+        Handler.DoHandle(abK, ref wr, this.e);
         return;
       }
 
@@ -90,7 +90,7 @@ namespace Hopac.Core {
     DoHandle: {
         var abK = this.abK;
         wr.Handler = abK;
-        abK.DoHandle(ref wr, this.e);
+        Handler.DoHandle(abK, ref wr, this.e);
         return;
       }
 
