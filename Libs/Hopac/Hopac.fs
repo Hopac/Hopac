@@ -5,6 +5,7 @@ namespace Hopac
 open System
 open System.Collections.Generic
 open System.Diagnostics
+open System.Runtime.CompilerServices
 open System.Threading
 open Hopac.Core
 
@@ -103,6 +104,11 @@ module Ch =
 module Mailbox =
   module Now =
     let inline create () = Mailbox<'x> ()
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let send (xMb: Mailbox<'x>) (x: 'x) =
+      let mutable wr = Worker ()
+      Mailbox<'x>.Send (xMb, &wr, x)
+      Scheduler.PushAll wr.WorkStack
   let create () = ctor Now.create ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>

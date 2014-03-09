@@ -11,7 +11,7 @@ module Async =
   type Agent<'t> = MailboxProcessor<'t>
 
   let run data =
-    printf "Async:  "
+    printf "Async:     "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -33,7 +33,7 @@ module MbSend =
   open Hopac.Extensions
 
   let run data =
-    printf "MbSend: "
+    printf "MbSend:    "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -50,13 +50,34 @@ module MbSend =
     let d2 = timer.Elapsed
     printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
+module MbSendNow =
+  open Hopac
+  open Hopac.Job.Infixes
+  open Hopac.Extensions
+
+  let run data =
+    printf "MbSendNow: "
+    let timer = Stopwatch.StartNew ()
+    let max = Array.last data
+    use ping = new ManualResetEventSlim ()
+    let mb = Mailbox.Now.create ()
+    Job.Now.server
+     (Job.forever
+       (Mailbox.take mb |>> fun msg ->
+        if msg = max then ping.Set ()))
+    data |> Array.iter (fun i -> Mailbox.Now.send mb i)
+    let d1 = timer.Elapsed
+    ping.Wait ()
+    let d2 = timer.Elapsed
+    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+
 module ChGive =
   open Hopac
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
   let run data =
-    printf "ChGive: "
+    printf "ChGive:    "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -79,7 +100,7 @@ module ChSend =
   open Hopac.Extensions
 
   let run data =
-    printf "ChSend: "
+    printf "ChSend:    "
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
@@ -102,12 +123,8 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for n in [|2000; 20000; 200000; 2000000; 20000000|] do
-     let test f =
+do for f in [ChGive.run; MbSend.run; MbSendNow.run; ChSend.run; Async.run] do
+     for n in [|2000; 20000; 200000; 2000000; 20000000|] do
        let data = [|1 .. n|]
        f data
        cleanup ()
-     test ChGive.run
-     test ChSend.run
-     test MbSend.run
-     test Async.run

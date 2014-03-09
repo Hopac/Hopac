@@ -59,6 +59,47 @@ namespace Hopac {
       this.Lock.Exit();
       return;
     }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Send(Mailbox<T> mb, ref Worker wr, T x) {
+    TryNextTaker:
+      mb.Lock.Enter();
+      var tail = mb.Takers;
+      if (null == tail)
+        goto NoTakers;
+      var cursor = tail.Next;
+      if (tail == cursor) {
+        mb.Takers = null;
+        mb.Lock.Exit();
+      } else {
+        tail.Next = cursor.Next;
+        mb.Lock.Exit();
+        tail = cursor as Cont<T>;
+      }
+
+      var taker = cursor as Taker<T>;
+      if (null == taker)
+        goto GotTaker;
+      var pk = taker.Pick;
+
+    TryPick:
+      var st = Pick.TryPick(pk);
+      if (st > 0)
+        goto TryNextTaker;
+      if (st < 0)
+        goto TryPick;
+
+      Pick.SetNacks(ref wr, taker.Me, pk);
+    GotTaker:
+      tail.Value = x;
+      Worker.Push(ref wr, tail);
+      return;
+
+    NoTakers:
+      mb.Values.Enqueue(x);
+      mb.Lock.Exit();
+      return;
+    }
   }
 
   namespace Core {
@@ -75,46 +116,8 @@ namespace Hopac {
       }
 
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
-        var mb = this.Mb;
-      TryNextTaker:
-        mb.Lock.Enter();
-        var tail = mb.Takers;
-        if (null == tail)
-          goto NoTakers;
-        var cursor = tail.Next;
-        if (tail == cursor) {
-          mb.Takers = null;
-          mb.Lock.Exit();
-        } else {
-          tail.Next = cursor.Next;
-          mb.Lock.Exit();
-          tail = cursor as Cont<T>;
-        }
-
-        var taker = cursor as Taker<T>;
-        if (null == taker)
-          goto GotTaker;
-        var pk = taker.Pick;
-
-      TryPick:
-        var st = Pick.TryPick(pk);
-        if (st > 0)
-          goto TryNextTaker;
-        if (st < 0)
-          goto TryPick;
-
-        Pick.SetNacks(ref wr, taker.Me, pk);
-      GotTaker:
-        tail.Value = this.X;
-        Worker.Push(ref wr, tail);
+        Mailbox<T>.Send(this.Mb, ref wr, this.X);
         Work.Do(uK, ref wr);
-        return;
-
-      NoTakers:
-        mb.Values.Enqueue(this.X);
-        mb.Lock.Exit();
-        Work.Do(uK, ref wr);
-        return;
       }
     }
   }

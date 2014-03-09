@@ -486,6 +486,11 @@ module Mailbox =
     /// Creates a new mailbox.
     val inline create: unit -> Mailbox<'x>
 
+    /// Sends the given value to the specified mailbox.  Note that using this
+    /// function in a job workflow is not generally optimal and you should use
+    /// Mailbox.send instead.
+    val send: Mailbox<'x> -> 'x -> unit
+
   /// Creates a job that creates a new mailbox.
   val create: unit -> Job<Mailbox<'x>>
 
