@@ -8,11 +8,13 @@ namespace Hopac {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  /// <summary>A non-recursive mutual exclusion lock for parallel jobs.
-  /// Operations on locks have costs comparable to operations on other parallel
-  /// communication primitives.  For very short duration locking, when blocking
-  /// is unlikely, native locks (e.g. Monitor and SpinLock) should be
-  /// faster.</summary>
+  /// <summary>A non-recursive mutual exclusion lock for jobs.  Note that this
+  /// lock is for synchronizing at the level of jobs that might even block
+  /// while holding the lock.  In most cases you should rather use higher-level
+  /// message passing primitives such as Ch, Mailbox, MVar or IVar, but in some
+  /// cases a simple lock might be more natural to use.  For short non-blocking
+  /// critical sections, native locks (e.g. Monitor and SpinLock), concurrent
+  /// data structures or interlocked operations should be faster.</summary>
   public class Lock {
     internal volatile Work Waiters;
     internal volatile int State;
