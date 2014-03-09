@@ -116,6 +116,27 @@ module ChSend =
     ping.Wait ()
     let d2 = timer.Elapsed
     printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+
+module ChSendNow =
+  open Hopac
+  open Hopac.Job.Infixes
+  open Hopac.Extensions
+
+  let run data =
+    printf "ChSendNow: "
+    let timer = Stopwatch.StartNew ()
+    let max = Array.last data
+    use ping = new ManualResetEventSlim ()
+    let ch = Ch.Now.create ()
+    Job.Now.server
+     (Job.forever
+       (Ch.take ch |>> fun msg ->
+        if msg = max then ping.Set ()))
+    data |> Array.iter (fun i -> Ch.Now.send ch i)
+    let d1 = timer.Elapsed
+    ping.Wait ()
+    let d2 = timer.Elapsed
+    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
     
 let cleanup () =
   for i=1 to 10 do
@@ -123,7 +144,7 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for f in [ChGive.run; MbSend.run; MbSendNow.run; ChSend.run; Async.run] do
+do for f in [ChGive.run; MbSend.run; MbSendNow.run; ChSend.run; ChSendNow.run; Async.run] do
      for n in [|2000; 20000; 200000; 2000000; 20000000|] do
        let data = [|1 .. n|]
        f data

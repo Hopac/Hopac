@@ -91,6 +91,11 @@ module IVar =
 module Ch =
   module Now =
     let inline create () = Ch<'x> ()
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let send (xCh: Ch<'x>) (x: 'x) =
+      let mutable wr = Worker ()
+      Ch<'x>.Send (xCh, &wr, x)
+      Scheduler.PushAll wr.WorkStack
   let create () = ctor Now.create ()
   let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>

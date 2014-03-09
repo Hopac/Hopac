@@ -361,6 +361,11 @@ module Ch =
     /// Creates a new channel.
     val inline create: unit -> Ch<'x>
 
+    /// Sends the given value to the specified channel.  Note that using this
+    /// function in a job workflow is not generally optimal and you should use
+    /// Ch.send instead.
+    val send: Ch<'x> -> 'x -> unit
+
   /// Creates a job that creates a new channel.
   val create: unit -> Job<Ch<'x>>
 

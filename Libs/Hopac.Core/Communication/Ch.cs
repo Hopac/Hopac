@@ -142,6 +142,47 @@ namespace Hopac {
       this.Lock.Exit();
       return;
     }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Send(Ch<T> ch, ref Worker wr, T x) {
+    TryNextTaker:
+      ch.Lock.Enter();
+      var tail = ch.Takers;
+      if (null == tail)
+        goto TryGiver;
+      var cursor = tail.Next;
+      if (tail == cursor) {
+        ch.Takers = null;
+        ch.Lock.Exit();
+      } else {
+        tail.Next = cursor.Next;
+        ch.Lock.Exit();
+        tail = cursor as Cont<T>;
+      }
+
+      var taker = tail as Taker<T>;
+      if (null == taker)
+        goto GotTaker;
+      var pkOther = taker.Pick;
+
+    TryPickOther:
+      var stOther = Pick.TryPick(pkOther);
+      if (stOther > 0) goto TryNextTaker;
+      if (stOther < 0) goto TryPickOther;
+
+      Pick.SetNacks(ref wr, taker.Me, pkOther);
+
+      tail = taker.Cont;
+    GotTaker:
+      tail.Value = x;
+      Worker.Push(ref wr, tail);
+      return;
+
+    TryGiver:
+      WaitQueue.AddSend(ref ch.Givers, x);
+      ch.Lock.Exit();
+      return;
+    }
   }
 
   namespace Core {
@@ -283,46 +324,8 @@ namespace Hopac {
       }
 
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
-        var ch = this.Ch;
-      TryNextTaker:
-        ch.Lock.Enter();
-        var tail = ch.Takers;
-        if (null == tail)
-          goto TryGiver;
-        var cursor = tail.Next;
-        if (tail == cursor) {
-          ch.Takers = null;
-          ch.Lock.Exit();
-        } else {
-          tail.Next = cursor.Next;
-          ch.Lock.Exit();
-          tail = cursor as Cont<T>;
-        }
-
-        var taker = tail as Taker<T>;
-        if (null == taker)
-          goto GotTaker;
-        var pkOther = taker.Pick;
-
-      TryPickOther:
-        var stOther = Pick.TryPick(pkOther);
-        if (stOther > 0) goto TryNextTaker;
-        if (stOther < 0) goto TryPickOther;
-
-        Pick.SetNacks(ref wr, taker.Me, pkOther);
-
-        tail = taker.Cont;
-      GotTaker:
-        tail.Value = this.X;
-        Worker.Push(ref wr, tail);
+        Ch<T>.Send(this.Ch, ref wr, this.X);
         Work.Do(uK, ref wr);
-        return;
-
-      TryGiver:
-        WaitQueue.AddSend(ref ch.Givers, this.X);
-        ch.Lock.Exit();
-        Work.Do(uK, ref wr);
-        return;
       }
     }
   }
