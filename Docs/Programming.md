@@ -609,7 +609,170 @@ val it : unit = ()
 When you run the above program, you will notice that the message "First job
 finished first." is printed about half a second before the last "Hello, from
 another job!" message after which the program is finished and F# interactive
-prints the inferred type,
+prints the inferred type.
+
+Working with many jobs at this level would be rather burdensome.  Hopac also
+provides functions such as **Job.conCollect** and **Job.conIgnore** for starting
+and joining with a sequence of jobs.  In this case we don't care about the
+results of the jobs, so **Job.conIgnore** is what use:
+
+```fsharp
+> [Job.sleep (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
+   Job.sleep (TimeSpan.FromSeconds 0.3) >>. hello "Hello, from second job!" ;
+   Job.sleep (TimeSpan.FromSeconds 0.6) >>. hello "Hello, from third job"]
+|> Job.conIgnore |> run ;;
+Hello, from first job!
+Hello, from second job!
+Hello, from third job
+Hello, from first job!
+Hello, from second job!
+Hello, from third job
+Hello, from first job!
+Hello, from second job!
+Hello, from third job
+val it : unit = ()
+>
+```
+
+Fork-Join Parallelism
+---------------------
+
+In the previous section we saw various ways of starting and joining with jobs.
+There isn't really communication between the individual jobs in these examples.
+Indeed, the strength of Hopac is in that it provides high-level primitives for
+such communication among concurrent jobs.  Nevertheless, the style of
+programming that consists of starting and joining with threads is also known as
+*fork-join parallelism* and is a convenient paradigm for expressing many
+parallel algorithms.
+
+One of the goals for Hopac is to be able to achieve speedups on multicore
+machines.  The primitives, such as channels, jobs (threads in CML) and
+alternatives (events in CML) inspired by Concurrent ML are primarily designed
+for concurrent programming involving separate threads of execution.  For
+instance, the semantics of starting a thread in CML is that, indeed, a new
+independent thread of execution is started and it is then possible to
+communicate among threads using channels and events.  For achieving speedups
+from parallelism, such independent threads of execution may not be essential.
+Sometimes it may be more efficient to avoid creating a new thread of execution
+for every individual job, while some jobs are still being executed in parallel.
+
+#### The Fibonacci Function and Optional Parallelism
+
+Consider the following naive implementation of the Fibonacci function as a job:
+
+```fsharp
+let rec fib n = Job.delay <| fun () ->
+  if n < 2L then
+    Job.result n
+  else
+    fib (n-2L) <&> fib (n-1L) |>> fun (x, y) ->
+    x + y
+```
+
+The above implementation makes use of the combinators **<&>** and **|>>** whose
+meanings can be specified in terms of **result** and **>>=** as follows:
+
+```fsharp
+let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
+let (|>>) xJ x2y = xJ >>= fun x -> result (x2y x)
+```
+
+Note that the semantics of **<&>** are entirely sequential and as a whole the
+above **fib** job doesn't use any parallelism.
+
+After evaluating the above definition of **fib** in the F# interactive, we can
+run it as follows:
+
+```fsharp
+> run (fib 38L) ;;
+val it : int64 = 39088169L
+```
+
+If you ran the above code, you noticed that it took some time for the result to
+appear.  Indeed, this is an extremely inefficient exponential time algorithm for
+computing Fibonacci numbers.
+
+Let's make a small change, namely, let's change from the sequential pair
+combinator **<&>** to the parallel pair combinator **<*>**:
+
+```fsharp
+let rec fib n = Job.delay <| fun () ->
+  if n < 2L then
+    Job.result n
+  else
+    fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
+    x + y
+```
+
+The parallel pair combinator **<*>** makes it so that the two jobs given to it
+are either executed sequentially, just like **<&>**, or if it seems like a good
+thing to do, then the two jobs are executed in two separate jobs that may
+eventually run in parallel.  For this to be safe, the jobs must be safe to run
+*both* in parallel and in sequence.  In this case those conditions both apply,
+but, for example, the following job might deadlock:
+
+```fsharp
+let notSafe = Job.delay <| fun () ->
+  let c = Ch.Now.create ()
+  Ch.take c <*> Ch.give c ()
+```
+
+The problem in the above job is that both the **take** and the **give**
+operations are not guaranteed to be executed in two separate jobs and a single
+job cannot communicate with itself using **take** and **give** operations on
+channels.  Whichever operation happens to be executed first will block waiting
+for the other pair of the communication that never appears.
+
+Did you already try to run the parallel version of the naive Fibonacci function
+in the F# interactive?  If you did, the behavior may have not been what you'd
+expect&mdash;that the parallel version would run about **N** times faster than
+the sequential version where **N** is the number of processor cores your machine
+has.  Now, there are a number of reasons for this and one of the possible
+reasons is that, by default, .Net uses single-threaded workstation garbage
+collection.  If garbage collection is single-threaded, it becomes a sequential
+bottleneck and an application cannot possibly scale.  So, you need to make sure
+that you are using multi-threaded server garbage collection.  See
+[&lt;gcServer&gt; Element](http://msdn.microsoft.com/en-us/library/ms229357%28v=vs.110%29.aspx)
+for some details.  I have modified the config files of the F# tools on my
+machine to use the server garbage collection.  I also use the 64-bit version of
+F# interactive and run on 64-bit machines.  Once you've made the necessary
+adjustments to the tool configurations, you should see the expected speedup
+from the parallel version.
+
+#### About the Fibonacci Example
+
+This example is inspired by the parallel Fibonacci function used traditionally
+as a Cilk programming example.  See
+[The Implementation of the Cilk-5 Multithreaded Language](http://supertech.csail.mit.edu/papers/cilk5.pdf)
+for a representative example.  Basically, the naive, recursive, exponential time
+Fibonacci algorithm is used.  Parallelized versions simply run recursive calls
+in parallel.
+
+Like is often the case with cute programming examples, this is actually an
+extremely inefficient algorithm for computing Fibonacci numbers and that seems
+to be a recurring source of confusion.  Indeed, the naively parallelized version
+of the Fibonacci function is still hopelessly inefficient, because the amount of
+work done in each parallel job is an order of magnitude smaller than the
+overhead costs of starting parallel jobs.
+
+The main reason for using the Fibonacci function as an example is that it is a
+simple example for introducing the concept of optional parallel execution, which
+is employed by the **<*>** combinator.  The parallel Fibonacci function is also
+useful and instructive as a benchmark for measuring the overhead costs of
+starting, running and retrieving the results of parallel jobs.  Indeed, there is
+a
+[benchmark program](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Fibonacci)
+based on the parallel Fibonacci function.
+
+**Exercise:** Write a basic sequential Fibonacci function (not a job) and time
+it.  Then change the parallelized version of the Fibonacci function to call the
+sequential function when the **n** is smaller than some constant.  Try to find a
+constant after which the new parallelized version actually gives a speedup on
+the order of the number of cores on your machine.
+
+#### Parallel Merge Sort
+
+
 
 Programming with Alternatives
 -----------------------------
@@ -695,124 +858,3 @@ alternatives is immediately available, the behavior of Hopac and CML is
 essentially the same.  However, it is obviously possible to write programs that
 rely on either the Hopac style lazy and deterministic or the CML style eager and
 non-deterministic initial choice.
-
-Parallel Programming
---------------------
-
-One of the goals for Hopac is to be able to achieve speedups on multicore
-machines.  The primitives, such as channels, jobs (threads in CML) and
-alternatives (events in CML) inspired by Concurrent ML are primarily designed
-for concurrent programming involving separate threads of execution.  For
-instance, the semantics of starting a thread in CML is that, indeed, a new
-independent thread of execution is started and it is then possible to
-communicate among threads using channels and events.  For achieving speedups
-from parallelism, such independent threads of execution may not be essential.
-Sometimes it may be more efficient to avoid creating a new thread of execution
-for every individual job, while some jobs are still being executed in parallel.
-
-Consider the following naive implementation of the Fibonacci function as a job:
-
-```fsharp
-let rec fib n = Job.delay <| fun () ->
-  if n < 2L then
-    Job.result n
-  else
-    fib (n-2L) <&> fib (n-1L) |>> fun (x, y) ->
-    x + y
-```
-
-The above implementation makes use of the combinators **<&>** and **|>>** whose
-meanings can be specified in terms of **result** and **>>=** as follows:
-
-```fsharp
-let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
-let (|>>) xJ x2y = xJ >>= fun x -> result (x2y x)
-```
-
-Note that the semantics of **<&>** are entirely sequential and as a whole the
-above **fib** job doesn't use any parallelism.
-
-After evaluating the above definition of **fib** in the F# interactive, we can
-run it as follows:
-
-```fsharp
-> run (fib 38L) ;;
-val it : int64 = 39088169L
-```
-
-If you ran the above code, you noticed that it took some time for the result to
-appear.  Let's make a small change, namely, let's change from the sequential
-pair combinator **<&>** to the parallel pair combinator **<*>**:
-
-```fsharp
-let rec fib n = Job.delay <| fun () ->
-  if n < 2L then
-    Job.result n
-  else
-    fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
-    x + y
-```
-
-The parallel pair combinator **<*>** makes it so that the two jobs given to it
-are either executed sequentially, just like **<&>**, or if it seems like a good
-thing to do, then the two jobs are executed in two separate jobs that may
-eventually run in parallel.  For this to be safe, the jobs must be safe to run
-*both* in parallel and in sequence.  In this case those conditions both apply,
-but, for example, the following job might deadlock:
-
-```fsharp
-let notSafe = Job.delay <| fun () ->
-  let c = Ch.Now.create ()
-  Ch.take c <*> Ch.give c ()
-```
-
-The problem in the above job is that both the **take** and the **give**
-operations are not guaranteed to be executed in two separate jobs and a single
-job cannot communicate with itself using **take** and **give** operations on
-channels.  Whichever operation happens to be executed first will block waiting
-for the other pair of the communication that never appears.
-
-Did you already try to run the parallel version of the naive Fibonacci function
-in the F# interactive?  If you did, the behavior may have not been what you'd
-expect&mdash;that the parallel version would run about **N** times faster than
-the sequential version where **N** is the number of processor cores your machine
-has.  Now, there are a number of reasons for this and one of the possible
-reasons is that, by default, .Net uses single-threaded workstation garbage
-collection.  If garbage collection is single-threaded, it becomes a sequential
-bottleneck and an application cannot possibly scale.  So, you need to make sure
-that you are using multi-threaded server garbage collection.  See
-[&lt;gcServer&gt; Element](http://msdn.microsoft.com/en-us/library/ms229357%28v=vs.110%29.aspx)
-for some details.  I have modified the config files of the F# tools on my
-machine to use the server garbage collection.  I also use the 64-bit version of
-F# interactive and run on 64-bit machines.  Once you've made the necessary
-adjustments to the tool configurations, you should see the expected speedup
-from the parallel version.
-
-This example is inspired by the parallel Fibonacci function used traditionally
-as a Cilk programming example.  See
-[The Implementation of the Cilk-5 Multithreaded Language](http://supertech.csail.mit.edu/papers/cilk5.pdf)
-for a representative example.  Basically, the naive, recursive, exponential time
-Fibonacci algorithm is used.  Parallelized versions simply run recursive calls
-in parallel.
-
-Like is often the case with cute programming examples, this is actually an
-extremely inefficient algorithm for computing Fibonacci numbers and that seems
-to be a recurring source of confusion.  Indeed, the naively parallelized version
-of the Fibonacci function is still hopelessly inefficient, because the amount of
-work done in each parallel job is an order of magnitude smaller than the
-overhead costs of starting parallel jobs.
-
-The main reason for using the Fibonacci function as an example is that it is a
-simple example for introducing the concept of optional parallel execution, which
-is employed by the **<*>** combinator.  The parallel Fibonacci function is also
-useful and instructive as a benchmark for measuring the overhead costs of
-starting, running and retrieving the results of parallel jobs.  Indeed, there is
-a
-[benchmark program](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Fibonacci)
-based on the parallel Fibonacci function.
-
-**Exercise:** Write a basic sequential Fibonacci function (not a job) and time
-it.  Then change the parallelized version of the Fibonacci function to call the
-sequential function when the **n** is smaller than some constant.  Try to find a
-constant after which the new parallelized version actually gives a speedup on
-the order of the number of cores on your machine.
