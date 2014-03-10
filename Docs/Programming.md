@@ -520,11 +520,11 @@ which would allow an editor to automatically understand input-output
 relationships.  Unrealistic as it may be, this sketch has hopefully given you
 something interesting to think about!
 
-Starting and running Jobs
--------------------------
+Starting and Joining with Jobs
+------------------------------
 
 Let's take a step back and just play a bit with jobs.  Here is a simple job that
-first sleeps for a second and then prints a given message:
+has a loop that first sleeps for a second and then prints a given message:
 
 ```fsharp
 let hello what = job {
@@ -577,7 +577,39 @@ val it : unit = ()
 ```
 
 Now the program explicitly waits for the children to finish and the output is
-clearer.
+clearer.  There is one more unfortunate thing in the above program.  The two
+promises are read in a specific order.  In this program it doesn't really
+matter, but it is a good demonstration of the flexibility of Hopac to show that
+we can indeed avoid this order dependency by using selective communication
+offered by the alternative mechanism:
+
+```fsharp
+> run <| job {
+  let! j1 = Promise.start (hello "Hello, from a job!")
+  do! Job.sleep (TimeSpan.FromSeconds 0.5)
+  let! j2 = Promise.start (hello "Hello, from another job!")
+  do! Alt.select
+       [Promise.Alt.read j1 >=> fun () ->
+          printfn "First job finished first."
+          Promise.read j2
+        Promise.Alt.read j2 >=> fun () ->
+          printfn "Second job finished first."
+          Promise.read j1]
+} ;;
+Hello, from a job!
+Hello, from another job!
+Hello, from a job!
+Hello, from another job!
+Hello, from a job!
+First job finished first.
+Hello, from another job!
+val it : unit = ()
+```
+
+When you run the above program, you will notice that the message "First job
+finished first." is printed about half a second before the last "Hello, from
+another job!" message after which the program is finished and F# interactive
+prints the inferred type,
 
 Programming with Alternatives
 -----------------------------
