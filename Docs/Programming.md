@@ -520,13 +520,71 @@ which would allow an editor to automatically understand input-output
 relationships.  Unrealistic as it may be, this sketch has hopefully given you
 something interesting to think about!
 
+Starting and running Jobs
+-------------------------
+
+Let's take a step back and just play a bit with jobs.  Here is a simple job that
+first sleeps for a second and then prints a given message:
+
+```fsharp
+let hello what = job {
+  for i=1 to 3 do
+    do! Job.sleep (TimeSpan.FromSeconds 1.0)
+    do printfn "%s" what
+}
+```
+
+Let's then start two such jobs roughly half a second a part:
+
+```fsharp
+> run <| job {
+  do! Job.start (hello "Hello, from a job!")
+  do! Job.sleep (TimeSpan.FromSeconds 0.5)
+  do! Job.start (hello "Hello, from another job!")
+} ;;
+val it : unit = ()
+> Hello, from a job!
+Hello, from another job!
+Hello, from a job!
+Hello, from another job!
+Hello, from a job!
+Hello, from another job!
+```
+
+One unfortunate thing in the above example is that the program returns
+immediately and the two jobs keep running in the background.  The **Job.start**
+primitive doesn't implicitly provide for any way to *join* with the started job.
+This is intentional, because it is quite common to start jobs that don't need to
+return.  To allow the parent job to join with child jobs, Hopac provides
+**Promise**s:
+
+```fsharp
+> run <| job {
+  let! j1 = Promise.start (hello "Hello, from a job!")
+  do! Job.sleep (TimeSpan.FromSeconds 0.5)
+  let! j2 = Promise.start (hello "Hello, from another job!")
+  do! Promise.read j1
+  do! Promise.read j2
+} ;;
+Hello, from a job!
+Hello, from another job!
+Hello, from a job!
+Hello, from another job!
+Hello, from a job!
+Hello, from another job!
+val it : unit = ()
+>
+```
+
+Now the program explicitly waits for the children to finish and the output is
+clearer.
+
 Programming with Alternatives
 -----------------------------
 
 The alternative mechanism (events in CML) allows the definition of first-class
-synchronous operations.  In the previous sections we have already seen some
-simple uses of alternatives.  In this section we'll take a closer look at
-alternatives.
+synchronous operations.  In previous sections we have already seen some simple
+uses of alternatives.  In this section we'll take a closer look at alternatives.
 
 ### Base Alternatives
 
