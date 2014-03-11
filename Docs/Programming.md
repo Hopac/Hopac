@@ -927,7 +927,7 @@ There are many ways to characterize alternatives.  Here is one.  An alternative,
 from one concurrent entity to another.  How that value is computed and when that
 value is available are details encapsulated by the alternative.  Alternatives
 can be created and combined in many ways allowing alternatives to encapsulate
-complex communication patterns.
+complex communication protocols.
 
 ### Primitive Alternatives
 
@@ -1010,17 +1010,106 @@ let! aValue = Ch.take aChannel
 
 Both of the above snippets have the same semantics.  Which version is faster?
 
-In Hopac the answer is that (assuming the F# compiler can inline a NOP function)
-both snippets compile to the exact same code.  Now, obviously, when more complex
+In Hopac the answer is that both snippets compile to the exact same code.
+(Assuming that the F# compiler can inline a non-virtual NOP function marked as
+an inline function.)  In fact, the same holds for as long as the alternative
+represents no selective operations.  Now, obviously, when more complex
 alternatives are formed, the selective alternative mechanism must incur some
 overhead compared to non-selective immediate operations.  But in the case only
 primitive alternatives are used, there is no extra overhead.  This is a
-fortunate feature of Hopac as it makes it more appealing to provide interface
-using alternatives.
+fortunate feature of Hopac as it makes it more appealing to provide interfaces
+to concurrent program modules using composable alternatives rather than
+non-composable immediate operations.
 
 ### Choose and Wrap
 
+If all we had was primitive alternatives there would be no point in the whole
+mechanisms.  What makes alternatives useful is that they can be composed in
+various ways.
 
+Let's motivate the introduction of selective communication with a sketch of a
+simplistic GUI system.  Suppose our GUI framework represents buttons as simple
+concurrent objects that communicate using alternatives:
+
+```fsharp
+type Button =
+  val Pressed: Alt<unit>
+  // ...
+```
+
+A simple Yes/No -dialog could then contain two such buttons:
+
+```fsharp
+type YesNoDialog =
+  val Yes: Button
+  val No: Button
+  val Show: Job<unit>
+  // ...
+```
+
+A job could then have a dialog with the user using a **YesNoDialog** using code
+such as:
+
+```fsharp
+do! dialog.Show
+let! answer = Alt.pick <| Alt.choose [
+       dialog.Yes.Pressed >=> fun () -> Job.result true
+       dialog.No.Pressed  >=> fun () -> Job.result false
+     ]
+if answer then
+  // Perform action on Yes.
+else
+  // Perform action on No.
+```
+
+The operations **Alt.choose** and **>=>**, also known as *wrap*, have the
+following signatures:
+
+```fsharp
+val choose: seq<Alt<'x>> -> Alt<'x>
+val (>=>): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+```
+
+The **Alt.choose** operation forms a disjunction of the sequence of alternatives
+given to it.  When such a disjunction is picked, the alternatives involved in
+the disjunction are instantiated one-by-one.  Assuming no alternative is
+immediately available, the job is blocked, waiting for any one of the
+alternatives to become available.  When one of the alternatives in the
+disjunction becomes available, the alternative is picked and committed to.
+
+The **>=>** operation is similar to the bind **>>=** operation on jobs and
+allows one to extend an alternative so that further operations are performed
+after the alternative has been committed to.  In this case we use the ability to
+simply map the button messages to a boolean value for further processing.  We
+could also just continue processing in the wrapper:
+
+```fsharp
+do! Alt.pick <| Alt.choose [
+       dialog.Yes.Pressed >=> fun () ->
+         // Perform action on Yes.
+       dialog.No.Pressed  >=> fun () ->
+         // Perform action on No.
+     ]
+```
+
+Using selective communication in this way feels and works much like using
+ordinary conditional statements.
+
+A key point in the types of the **choose** and **>=>** operations is that they
+create new alternatives and those alternatives are first-class object just like
+the primitive **give** and **take** alternatives on channels.  For the common
+cases of simply picking from a choice of alternatives or combining just two
+alternatives the operations **Alt.select** and **<|>** are provided.  Their
+semantics can be described as follows:
+
+```fsharp
+let select alts = pick (choose alts)
+let (<|>) a1 a2 = choose [a1; a2]
+```
+
+In fact, the above definition of **select** is essentially accurate.  The binary
+choice **<|>** operation can be, and is, implemented internally as a slightly
+more efficient special case (avoiding the construction of the sequence).
 
 ### Guards
 
