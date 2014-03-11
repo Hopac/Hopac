@@ -634,16 +634,19 @@ val it : unit = ()
 >
 ```
 
+The above program starts three concurrent jobs, that print messages roughly 0.3
+seconds apart from each other, and waits for all three of the jobs to finish.
+
 Fork-Join Parallelism
 ---------------------
 
 In the previous section we saw various ways of starting and joining with jobs.
-There isn't really communication between the individual jobs in these examples.
-Indeed, the strength of Hopac is in that it provides high-level primitives for
-such communication among concurrent jobs.  Nevertheless, the style of
-programming that consists of starting and joining with threads is also known as
-*fork-join parallelism* and is a convenient paradigm for expressing many
-parallel algorithms.
+There isn't really any communication between the individual jobs in these
+examples.  Indeed, the strength of Hopac is in that it provides high-level
+primitives for such communication among concurrent jobs.  Nevertheless, the
+style of programming that consists of starting and joining with threads is also
+known as *fork-join parallelism* and is a convenient paradigm for expressing
+many parallel algorithms.
 
 One of the goals for Hopac is to be able to achieve speedups on multicore
 machines.  The primitives, such as channels, jobs (threads in CML) and
@@ -656,7 +659,7 @@ from parallelism, such independent threads of execution may not be essential.
 Sometimes it may be more efficient to avoid creating a new thread of execution
 for every individual job, while some jobs are still being executed in parallel.
 
-#### The Fibonacci Function and Optional Parallelism
+### The Fibonacci Function and Optional Parallelism
 
 Consider the following naive implementation of the Fibonacci function as a job:
 
@@ -770,9 +773,118 @@ sequential function when the **n** is smaller than some constant.  Try to find a
 constant after which the new parallelized version actually gives a speedup on
 the order of the number of cores on your machine.
 
-#### Parallel Merge Sort
+### Parallel Merge Sort
 
+Let's consider a bit more realistic example of fork-join parallelism: a parallel
+merge sort.  This example is still a bit of toy, because the focus here isn't to
+show how to make the fastest merge sort, but rather to demonstrate fork-join
+parallelism.
 
+The two building blocks of merge sort are the functions **split** and **merge**.
+The **split** function simply splits the given input sequence into two halves.
+The **merge** function, on the other hand, merges two sequences into a new
+sorted sequence containing the elements of both of the given sequences.
+
+Here is a simple implementation of **split**:
+
+```fsharp
+let split xs =
+  let rec loop xs ys zs =
+    match xs with
+     | []    -> (ys, zs)
+     | x::xs -> loop xs (x::zs) ys
+  loop xs [] []
+```
+
+And here is a simple implementation of **merge**:
+
+```fsharp
+let merge xs ys =
+  let rec loop xs ys zs =
+    match (xs, ys) with
+     | ([], ys)       -> List.rev zs @ ys
+     | (xs, [])       -> List.rev zs @ xs
+     | (x::xs, y::ys) ->
+       if x <= y
+       then loop xs (y::ys) (x::zs)
+       else loop (x::xs) ys (y::zs)
+  loop xs ys []
+```
+
+It is left as an exercise for the reader to implement **merge** in a more
+efficient form.
+
+Merge sort then simply recursive splits and then merges the lists:
+
+```fsharp
+let rec mergeSort xs =
+  match split xs with
+   | ([], ys) -> ys
+   | (xs, []) -> xs
+   | (xs, ys) -> merge (mergeSort xs) (mergeSort ys)
+```
+
+We can now test that our **mergeSort** works:
+
+```fsharp
+> mergeSort [3;1;4;1;5;9;2] ;;
+val it : int list = [1; 1; 2; 3; 4; 5; 9]
+```
+
+Let's then write a fork-join parallel version of merge sort:
+
+```fsharp
+let rec mergeSortJob xs = Job.delay <| fun () ->
+  match split xs with
+   | ([], ys) -> Job.result ys
+   | (xs, []) -> Job.result xs
+   | (xs, ys) ->
+     mergeSortJob xs <*> mergeSortJob ys |>> fun (xs, ys) ->
+     merge xs ys
+```
+
+We can also test this version:
+
+```fsharp
+> run (mergeSortJob [3;1;4;1;5;9;2]) ;;
+val it : int list = [1; 1; 2; 3; 4; 5; 9]
+```
+
+Like suggested in an exercise in the previous section, to actually get
+speed-ups, the work done in each parallel job needs to be significant compared
+to the cost required to start a parallel job.  One way to do this is to use the
+sequential version of merge sort when the length of the list becomes shorter
+than some threshold.  That threshold then needs to chosen in such a way that the
+work required to sort a list shorter than the threshold is significant compared
+to the cost of starting parallel jobs.  In practice, this often means that you
+run a few experiments to find a good threshold.  Here is a modified version of
+**mergeSortJob** that uses a given threshold:
+
+```fsharp
+let mergeSortJob threshold xs = Job.delay <| fun () ->
+  let rec mergeSortJob n xs = Job.delay <| fun () ->
+    if n < threshold then
+      Job.result (mergeSort xs)
+    else
+      match split xs with
+       | ([], ys) -> Job.result ys
+       | (xs, []) -> Job.result xs
+       | (xs, ys) ->
+         mergeSortJob (n/2) xs <*> mergeSortJob (n/2) ys |>> fun (xs, ys) ->
+         merge xs ys
+  mergeSortJob (List.length xs) xs
+```
+
+For simplicity, the above computes the length of the input list just once and
+then approximates the lengths of the sub-lists resulting from the split.
+
+Using a function like the above you can experiment, perhaps by writing a simple
+driver program, to find a threshold that gives the best speed-ups.
+
+Please note that the implementations of merge sort given in this section are by
+no means meant to demonstrate state-of-the-art implementations of merge sort.
+There are many tricks that one can use to speed-up the sequential parts of a
+merge sort.
 
 Programming with Alternatives
 -----------------------------
