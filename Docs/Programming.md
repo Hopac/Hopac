@@ -52,7 +52,7 @@ That is a mouthful!  Let's open it up a bit.
   choice of which operation is performed then depends on whichever alternative
   becomes available at run time.
 * **Synchronous** means that rather than building up a queue of messages for
-  another job to examine, jobs can communicate via rendezvous.  Two jobs can
+  another job to examine, jobs can communicate via *rendezvous*.  Two jobs can
   meet so that one job can give a message to another job that takes the message.
 * **Lightweight** means that creating a new synchronous channel takes very
   little time (a single memory allocation) and a channel takes very little
@@ -61,16 +61,15 @@ That is a mouthful!  Let's open it up a bit.
 What this all boils down to is that Hopac basically provides a kind of language
 for expressing concurrent control flow.
 
-Potential Applications for Hopac
---------------------------------
+### Potential Applications for Hopac
 
-Hopac is by no means a panacea.  As discussed in the previous section, the
-essence of Hopac is *lightweight* threads, called *jobs*, and flexible
-lightweight synchronous message passing via channels (and other messaging
-primitives).  Hopac is designed and optimized to scale as the number of such
-relatively independent lightweight elements is increased.  That can be seen as a
-form of *data parallelism* in which the data is the program entities implemented
-by the jobs and communication primitives.
+Hopac is by no means a panacea.  As discussed above, the essence of Hopac is
+*lightweight* threads, called *jobs*, and flexible lightweight synchronous
+message passing via channels (and other messaging primitives).  Hopac is
+designed and optimized to scale as the number of such relatively independent
+lightweight elements is increased.  That can be seen as a form of *data
+parallelism* in which the data is the program entities implemented by the jobs
+and communication primitives.
 
 Problem domains that are more or less naturally expressed in terms of large
 numbers of threads (one or more threads per program element) and message passing
@@ -85,48 +84,13 @@ threads that you can afford to be kept spinning waiting for messages, then a
 system like the [LMAX Disruptor](http://lmax-exchange.github.io/disruptor/)
 might offer better performance than Hopac.
 
-On Memory Usage
----------------
+A Couple of Introductory Examples
+---------------------------------
 
-An important property of Hopac jobs and synchronous channels is that a system
-that consist of **m** jobs that communicate with each other using synchronous
-message passing over **n** channels requires **&Theta;(m + n)** space for the
-jobs and channels.
+Rather than meticulously building up the primitives of Hopac let's just run
+through a couple of examples.
 
-That may sound obvious, but many concurrent systems,
-e.g. [Erlang](http://www.erlang.org/) and F#'s
-[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), are
-built upon asynchronous message passing primitives and in such systems message
-queues can collect arbitrary numbers of messages when there are differences in
-speed between producer and consumer threads.  Synchronous channels do not work
-like that.  A synchronous channel doesn't hold a buffer of messages.  When a
-producer job tries to give a message to a consumer job via synchronous channels,
-the producer is suspended until a consumer job is ready to take the message.  A
-synchronous channel provides something that is much more like a control flow
-mechanism, like a procedure call, rather than a passive buffer for passing data
-between threads.  This property can make it easier to understand the behavior
-of concurrent programs.
-
-Of course, the bound **&Theta;(m + n)** does not take into account space that
-the jobs otherwise accumulate in the form of data structures other than the
-synchronous channels.
-
-### Garbage Collection
-
-Another aspect that is important to understand is that Hopac jobs and channels
-are basic simple .Net objects and can be garbage collected.  Specifically, jobs
-and channels do not inherently hold onto disposable system resources.  (This is
-unlike the
-[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), for
-example, which is disposable.)  What this means in practice is that most jobs do
-not necessarily need to implement any special kill protocol.  A job that is
-blocked waiting for communication on a channel that is no longer reachable can
-(and will) be garbage collected.  Only jobs that explicitly hold onto some
-resource that needs to be disposed must implement a kill protocol to explicitly
-make sure that the resource gets properly disposed.
-
-Example: Updatable Storage Cells
---------------------------------
+### Example: Updatable Storage Cells
 
 In the book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
@@ -230,8 +194,69 @@ val it : unit = ()
 val it : int = 2
 ```
 
-On Notation
------------
+#### Garbage Collection
+
+Running through the previous example you may have wondered about what happens to
+server jobs that run inside those cells.  Shouldn't they be killed?  Indeed, one
+aspect that is important to understand is that Hopac jobs and channels are basic
+simple .Net objects and can be garbage collected.  Specifically, jobs and
+channels do not inherently hold onto disposable system resources.  (This is
+unlike the
+[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), for
+example, which is disposable.)  What this means in practice is that most jobs do
+not necessarily need to implement any special kill protocol.  A job that is
+blocked waiting for communication on a channel that is no longer reachable can
+(and will) be garbage collected.  Only jobs that explicitly hold onto some
+resource that needs to be disposed must implement a kill protocol to explicitly
+make sure that the resource gets properly disposed.
+
+Consider the following interaction:
+
+```fsharp
+> GC.GetTotalMemory true ;;
+val it : int64 = 39784152L
+> let cs = ref (List.init 100000 <| fun i -> run (cell i)) ;;
+// ...
+> GC.GetTotalMemory true ;;
+val it : int64 = 66296336L
+> cs := [] ;;
+val it : unit = ()
+> GC.GetTotalMemory true ;;
+val it : int64 = 39950064L
+```
+
+The above shows that after the list has become garbage, the cells have been
+garbage collected.  (The above example interaction uses lists to avoid the
+possibility that the objects would end up in the last generation or the LOH,
+because when that happens it can be difficult to force .Net runtime to perform a
+thorough enough GC for the memory estimate to be valid.)
+
+#### On Memory Usage
+
+Another important property of Hopac jobs and synchronous channels is that a
+system that consist of **m** jobs that communicate with each other using
+synchronous message passing over **n** channels requires **&Theta;(m + n)**
+space for the jobs and channels.
+
+That may sound obvious, but many concurrent systems,
+e.g. [Erlang](http://www.erlang.org/) and F#'s
+[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), are
+built upon asynchronous message passing primitives and in such systems message
+queues can collect arbitrary numbers of messages when there are differences in
+speed between producer and consumer threads.  Synchronous channels do not work
+like that.  A synchronous channel doesn't hold a buffer of messages.  When a
+producer job tries to give a message to a consumer job via synchronous channels,
+the producer is suspended until a consumer job is ready to take the message.  A
+synchronous channel provides something that is much more like a control flow
+mechanism, like a procedure call, rather than a passive buffer for passing data
+between threads.  This property can make it easier to understand the behavior
+of concurrent programs.
+
+Of course, the bound **&Theta;(m + n)** does not take into account space that
+the jobs otherwise accumulate in the form of data structures other than the
+synchronous channels.
+
+#### On Notation
 
 There are two ways to write jobs in Hopac.  One way is to use the **job**
 workflow builder like we did in the previous section.  The other way is to
@@ -288,8 +313,7 @@ and **replyCh** one could also make it so that the reply channel required by a
 server.  Change the implementation to use this technique.  Explain what
 performance advantages and disadvantages such an implementation might have?
 
-Example: Storage Cells Using Alternatives
------------------------------------------
+### Example: Storage Cells Using Alternatives
 
 The updatable storage cells in the previous section were built using only
 channels and jobs.  In order to allow for the two different kind of requests,
@@ -372,7 +396,7 @@ let cell x = Job.delay <| fun () ->
 
 The above also makes use of the function **Job.server** instead of
 **Job.start**.  **Job.server** takes advantage of the fact that the job it is
-given is known not to never return normally and starts it in a little bit
+given is known to never return normally and starts it in a little bit
 lighter-weight form.
 
 At this point you might want to try out the snippets of code from this section
@@ -394,8 +418,7 @@ channel in a single synchronous operation.  Explain what would go wrong if there
 was only one channel instead of separate **getCh** and **putCh** channels.
 Hint: Consider a situation with multiple clients.
 
-Example: Kismet
----------------
+### Example: Kismet
 
 The updatable storage cell example in the previous sections may have seemed
 rather unrealistic.  The server job of a storage cell doesn't do much and it
@@ -528,8 +551,9 @@ something interesting to think about!
 Starting and Waiting for Jobs
 -----------------------------
 
-Let's take a step back and just play a bit with jobs.  Here is a simple job that
-has a loop that first sleeps for a second and then prints a given message:
+After running through the introductory examples, let's take a step back and just
+play a bit with jobs.  Here is a simple job that has a loop that first sleeps
+for a second and then prints a given message:
 
 ```fsharp
 let hello what = job {
@@ -642,16 +666,15 @@ val it : unit = ()
 The above program starts three concurrent jobs, that print messages roughly 0.3
 seconds apart from each other, and waits for all three of the jobs to finish.
 
-Fork-Join Parallelism
----------------------
+### Fork-Join Parallelism
 
-In the previous section we saw various ways of starting and waiting for jobs.
-There isn't really any communication between the individual jobs in these
-examples.  Indeed, the strength of Hopac is in that it provides high-level
-primitives for such communication among concurrent jobs.  Nevertheless, the
-style of programming that consists of starting and joining with threads is also
-known as *fork-join parallelism* and is a convenient paradigm for expressing
-many parallel algorithms.
+Above we saw various ways of starting and waiting for jobs.  There isn't really
+any communication between the individual jobs in these examples.  Indeed, the
+strength of Hopac is in that it provides high-level primitives for such
+communication among concurrent jobs.  Nevertheless, the style of programming
+that consists of starting and joining with threads is also known as *fork-join
+parallelism* and is a convenient paradigm for expressing many parallel
+algorithms.
 
 One of the goals for Hopac is to be able to achieve speedups on multicore
 machines.  The primitives, such as channels, jobs (threads in CML) and
@@ -662,7 +685,7 @@ not be essential.  Sometimes it may be more efficient to avoid creating a new
 thread of execution for every individual job, while some jobs are still being
 executed in parallel.
 
-### The Fibonacci Function and Optional Parallelism
+#### The Fibonacci Function and Optional Parallelism
 
 Consider the following naive implementation of the Fibonacci function as a job:
 
@@ -745,7 +768,7 @@ F# interactive and run on 64-bit machines.  Once you've made the necessary
 adjustments to the tool configurations, you should see the expected speedup
 from the parallel version.
 
-#### About the Fibonacci Example
+##### About the Fibonacci Example
 
 This example is inspired by the parallel Fibonacci function used traditionally
 as a Cilk programming example.  See
@@ -776,7 +799,7 @@ sequential function when the **n** is smaller than some constant.  Try to find a
 constant after which the new parallelized version actually gives a speedup on
 the order of the number of cores on your machine.
 
-### Parallel Merge Sort
+#### Parallel Merge Sort
 
 Let's consider a bit more realistic example of fork-join parallelism: a parallel
 [merge sort](http://en.wikipedia.org/wiki/Merge_sort).  This example is still a
@@ -974,3 +997,14 @@ alternatives is immediately available, the behavior of Hopac and CML is
 essentially the same.  However, it is obviously possible to write programs that
 rely on either the Hopac style lazy and deterministic or the CML style eager and
 non-deterministic initial choice.
+
+Going Further
+-------------
+
+For learning more about Concurrent ML style programming, I highly recommend
+[John Reppy](http://people.cs.uchicago.edu/~jhr/)'s book
+[Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).
+
+The wiki also has the page
+[Questions and Answers](https://github.com/VesaKarvonen/Hopac/wiki/Questions-and-Answers).
+Feel free to add questions there.
