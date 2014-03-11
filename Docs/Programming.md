@@ -920,9 +920,103 @@ The alternative mechanism (events in CML) allows the definition of first-class
 synchronous operations.  In previous sections we have already seen some simple
 uses of alternatives.  In this section we'll take a closer look at alternatives.
 
-### Base Alternatives
+### Just what is an alternative?
 
+There are many ways to characterize alternatives.  Here is one.  An alternative,
+**Alt<'x>**, represents the possibility of communicating a value of type **'x**
+from one concurrent entity to another.  How that value is computed and when that
+value is available are details encapsulated by the alternative.  Alternatives
+can be created and combined in many ways allowing alternatives to encapsulate
+complex communication patterns.
 
+### Primitive Alternatives
+
+The basic building blocks of alternatives are primitive alternatives provided by
+message passing primitives like channels.  For example, the channel primitive
+provides the following primitive alternatives:
+
+```fsharp
+module Ch =
+  module Alt =
+    val give: Ch<'x> -> 'x -> Alt<unit>
+    val take: Ch<'x> -> Alt<'x>
+```
+
+The **Ch.Alt.give** alternative represents the possibility of giving a value on
+a channel to another concurrent job and the **Ch.Alt.take** alternative
+represents the possibility of taking a value from another concurrent job on a
+channel.
+
+It is important that primitive alternatives such as these only represent the
+*possibility* of performing the operations.  As we will see shortly, we can form
+a disjunction of alternatives, whether primitive or complex, and commit to
+perform exactly one of those alternatives.
+
+### Picking an Alternative
+
+To actually perform an operation made possible by an alternative, the
+**Alt.pick** operation is used:
+
+```fsharp
+val pick: Alt<'x> -> Job<'x>
+```
+
+So, for example, to indeed offer to give a value on a channel to another job, a
+job might run the following code:
+
+```fsharp
+do! Alt.pick (Ch.Alt.give aChannel aValue)
+```
+
+Likewise, to offer to take a value from another job, the following code could be
+run:
+
+```fsharp
+let! aValue = Alt.pick (Ch.Alt.take aChannel)
+```
+
+Conceptually, the **Alt.pick** operation *instantiates* the given alternative,
+*waits until* the alternative becomes *available* for picking and then *commits*
+to the alternative and returns the value communicated by the alternative.  In
+the instantiation phase the computation encapsulated by the alternative is
+started.  In the case of the **Ch.Alt.give** operation, for example, it means
+that the job basically registers an offer to give a value on a channel.  If the
+alternative cannot be performed immediately, e.g. no other job has offered to
+take a value on the channel, the job is blocked until the alternative becomes
+available.
+
+### Primitive Alternatives vs Immediate Operations
+
+Before continuing, let's take a moment to consider an aspect of the efficiency
+implications of alternatives.  The channel interface also provides simpler
+immediate versions of the give and take operations:
+
+```fsharp
+val give: Ch<'x> -> 'x -> Job<unit>
+val take: Ch<'x> -> Job<'x>
+```
+
+Contrast the use of alternatives:
+
+```fsharp
+let! aValue = Alt.pick (Ch.Alt.take aChannel)
+```
+
+and the use of immediate operations:
+
+```fsharp
+let! aValue = Ch.take aChannel
+```
+
+Both of the above snippets have the same semantics.  Which version is faster?
+
+In Hopac the answer is that (assuming the F# compiler can inline a NOP function)
+both snippets compile to the exact same code.  Now, obviously, when more complex
+alternatives are formed, the selective alternative mechanism must incur some
+overhead compared to non-selective immediate operations.  But in the case only
+primitive alternatives are used, there is no extra overhead.  This is a
+fortunate feature of Hopac as it makes it more appealing to provide interface
+using alternatives.
 
 ### Choose and Wrap
 
@@ -997,6 +1091,11 @@ alternatives is immediately available, the behavior of Hopac and CML is
 essentially the same.  However, it is obviously possible to write programs that
 rely on either the Hopac style lazy and deterministic or the CML style eager and
 non-deterministic initial choice.
+
+Channels, Mailboxes, IVars, MVars, ...
+--------------------------------------
+
+
 
 Going Further
 -------------
