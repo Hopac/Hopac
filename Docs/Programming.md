@@ -50,7 +50,7 @@ That is a mouthful!  Let's open it up a bit.
   is supported.  An alternative can be constructed that, for example, offers to
   give a message to another job *or* take a message from another job.  The
   choice of which operation is performed then depends on whichever alternative
-  becomes available at runtime.
+  becomes available at run time.
 * **Synchronous** means that rather than building up a queue of messages for
   another job to examine, jobs can communicate via rendezvous.  Two jobs can
   meet so that one job can give a message to another job that takes the message.
@@ -251,7 +251,7 @@ number of reasons for this:
 
 I'm afraid that to fully explain all of these issues would require quite a bit
 of writing and I think that there are more interesting things to tell about
-Hopac, so I'll skip it for now.  In the remainder of this document I will be
+Hopac, so I'll skip it for now.  In the reminder of this document I will be
 writing Hopac code in my preferred way.  If you prefer to make more use of the
 workflow notation, you could consider it as an exercise to convert the examples
 to use the workflow notation.  If you do that, make sure that you properly
@@ -297,7 +297,7 @@ channels and jobs.  In order to allow for the two different kind of requests,
 In this section we look at an alternative implementation of storage cells using
 selective communication.
 
-As a remainder, here is the abstract signature that we'd like to implement:
+As a reminder, here is the abstract signature that we'd like to implement:
 
 ```fsharp
 type Cell<'a>
@@ -364,11 +364,16 @@ Using **iterate** we would write:
 ```fsharp
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
-  Job.start
+  Job.server
    (Job.iterate x (fun x ->
       Alt.pick ((Ch.Alt.take c.putCh)
             <|> (Ch.Alt.give c.getCh x >-> fun () -> x)))) >>% c
 ```
+
+The above also makes use of the function **Job.server** instead of
+**Job.start**.  **Job.server** takes advantage of the fact that the job it is
+given is known not to never return normally and starts it in a little bit
+lighter-weight form.
 
 At this point you might want to try out the snippets of code from this section
 in the F# interactive and verify that the alternative implementation of cells
@@ -435,12 +440,13 @@ let CompareBool (comparand: ref<bool>)
                 (inCh: Ch<'a>)
                 (onTrueCh: Ch<'a>)
                 (onFalseCh: Ch<'a>) : Job<_> =
-  Job.forever
-   (Ch.take inCh >>= fun x ->
-    Ch.give (if !comparand then onTrueCh else onFalseCh) x)
+  Job.server
+   (Job.forever
+     (Ch.take inCh >>= fun x ->
+      Ch.give (if !comparand then onTrueCh else onFalseCh) x))
 ```
 
-The **CompareBool** function creates a job that loops indefinitely taking
+The **CompareBool** function creates a server job that loops indefinitely taking
 messages from the given **inCh** channel and then giving those messages away on
 either the **onTrueCh** or the **onFalseCh** channel depending on the value held
 by the **comparand** ref cell.  As you can see, the above **CompareBool** job
@@ -463,23 +469,22 @@ let Delay (duration: ref<TimeSpan>)
           (stopCh: Ch<'b>)
           (finishedCh: Ch<'a>)
           (abortedCh: Ch<'b>) : Job<_> =
-  let rec initial () = Ch.take startCh >>= started
-  and started x =
-    Alt.pick (Ch.Alt.take stopCh      >=> Ch.give abortedCh
-          <|> Alt.timeOut (!duration) >=> fun () -> Ch.give finishedCh x) >>= initial
-  initial ()
+  Job.server
+   (Job.forever
+     (Ch.take startCh >>= fun x ->
+      Alt.pick (Ch.Alt.take stopCh      >=> Ch.give abortedCh
+            <|> Alt.timeOut (!duration) >=> fun () -> Ch.give finishedCh x)))
 ```
 
-The **Delay** function creates a job that, using a pair of mutually recursive
-functions, representing two different states of the Delay job, loops
-indefinitely.  In the **initial** state it takes an input from the **startCh**
-channel and then transfers to the **started** state.  In the **started** state
-it sets up two alternatives.  The first alternative takes a messages from the
-**stopCh** channel and then gives the message on the **abortedCh** channel.  The
-second alternative starts a **timeout** alternative for the current value of
-**duration** and then gives the message taken in the **initial** state on the
-**finishedCh** channel.  Whichever of those alternatives becomes enabled first
-will then be committed to during runtime and the other will be discarded.
+The **Delay** function creates a server job that loops indefinitely.  In the
+initial state it takes an input from the **startCh** channel and then transfers
+to the second state.  In the second state it sets up two alternatives.  The
+first alternative takes a messages from the **stopCh** channel and then gives
+the message on the **abortedCh** channel.  The second alternative starts a
+**timeout** alternative for the current value of **duration** and then gives the
+message taken in the initial state on the **finishedCh** channel.  Whichever of
+those alternatives becomes enabled first will then be committed to during
+runtime and the other will be discarded.
 
 Those previous snippets are just two of the necessary building blocks.  Assuming
 we would have all of the building blocks packaged in similar style, what remains
@@ -493,9 +498,9 @@ let ch_3 = Ch.Now.create ()
 // ...
 let bMoved = ref false
 // ...
-do! Job.start <| CompareBool bMoved ch_1 ch_2 ch_3
-do! Job.start <| Sink ch_2
-do! Job.start <| Delay (ref (TimeSpan.FromSeconds 3.14)) ch_3 ch_4 ch_5 ch_6
+do! CompareBool bMoved ch_1 ch_2 ch_3
+do! Sink ch_2
+do! Delay (ref (TimeSpan.FromSeconds 3.14)) ch_3 ch_4 ch_5 ch_6
 // ...
 ```
 
@@ -506,7 +511,7 @@ previously created channels.  One more thing in the above is the use of a
 connected to any other box.  The **Sink** could be implemented like this:
 
 ```fsharp
-let Sink inCh = Job.forever (Ch.take inCh)
+let Sink inCh = Job.server (Job.forever (Ch.take inCh))
 ```
 
 Now, games often have their own specific notion of time, different from
@@ -520,8 +525,8 @@ which would allow an editor to automatically understand input-output
 relationships.  Unrealistic as it may be, this sketch has hopefully given you
 something interesting to think about!
 
-Starting and Joining with Jobs
-------------------------------
+Starting and Waiting for Jobs
+-----------------------------
 
 Let's take a step back and just play a bit with jobs.  Here is a simple job that
 has a loop that first sleeps for a second and then prints a given message:
@@ -553,10 +558,10 @@ Hello, from another job!
 
 One unfortunate thing in the above example is that the program returns
 immediately and the two jobs keep running in the background.  The **Job.start**
-primitive doesn't implicitly provide for any way to *join* with the started job.
-This is intentional, because it is quite common to start jobs that don't need to
-return.  To allow the parent job to join with child jobs, Hopac provides
-**Promise**s:
+primitive doesn't implicitly provide for any way to wait for the started job to
+finish.  This is intentional, because it is quite common to start jobs that
+don't need to return.  Hopac **Promise**s allow a parent job to wait for child
+jobs:
 
 ```fsharp
 > run <| job {
@@ -613,7 +618,7 @@ prints the inferred type.
 
 Working with many jobs at this level would be rather burdensome.  Hopac also
 provides functions such as **Job.conCollect** and **Job.conIgnore** for starting
-and joining with a sequence of jobs.  In this case we don't care about the
+and waiting for a sequence of jobs.  In this case we don't care about the
 results of the jobs, so **Job.conIgnore** is what use:
 
 ```fsharp
@@ -640,7 +645,7 @@ seconds apart from each other, and waits for all three of the jobs to finish.
 Fork-Join Parallelism
 ---------------------
 
-In the previous section we saw various ways of starting and joining with jobs.
+In the previous section we saw various ways of starting and waiting for jobs.
 There isn't really any communication between the individual jobs in these
 examples.  Indeed, the strength of Hopac is in that it provides high-level
 primitives for such communication among concurrent jobs.  Nevertheless, the
@@ -652,12 +657,10 @@ One of the goals for Hopac is to be able to achieve speedups on multicore
 machines.  The primitives, such as channels, jobs (threads in CML) and
 alternatives (events in CML) inspired by Concurrent ML are primarily designed
 for concurrent programming involving separate threads of execution.  For
-instance, the semantics of starting a thread in CML is that, indeed, a new
-independent thread of execution is started and it is then possible to
-communicate among threads using channels and events.  For achieving speedups
-from parallelism, such independent threads of execution may not be essential.
-Sometimes it may be more efficient to avoid creating a new thread of execution
-for every individual job, while some jobs are still being executed in parallel.
+achieving speedups from parallelism, such independent threads of execution may
+not be essential.  Sometimes it may be more efficient to avoid creating a new
+thread of execution for every individual job, while some jobs are still being
+executed in parallel.
 
 ### The Fibonacci Function and Optional Parallelism
 
@@ -776,9 +779,9 @@ the order of the number of cores on your machine.
 ### Parallel Merge Sort
 
 Let's consider a bit more realistic example of fork-join parallelism: a parallel
-merge sort.  This example is still a bit of toy, because the focus here isn't to
-show how to make the fastest merge sort, but rather to demonstrate fork-join
-parallelism.
+[merge sort](http://en.wikipedia.org/wiki/Merge_sort).  This example is still a
+bit of toy, because the idea here isn't to show how to make the fastest merge
+sort, but rather to demonstrate fork-join parallelism.
 
 The two building blocks of merge sort are the functions **split** and **merge**.
 The **split** function simply splits the given input sequence into two halves.
@@ -831,6 +834,13 @@ We can now test that our **mergeSort** works:
 val it : int list = [1; 1; 2; 3; 4; 5; 9]
 ```
 
+This is not a very good implementation of merge sort, but it should be easy
+enough to understand&mdash;perhaps even without having seen merge sort before.
+One particular problem with this implementation is that it is not
+[stable](http://en.wikipedia.org/wiki/Sorting_algorithm#Stability).  We'll leave
+it as an exercise for the reader to tune this example into something more
+realistic.
+
 Let's then write a fork-join parallel version of merge sort:
 
 ```fsharp
@@ -876,15 +886,9 @@ let mergeSortJob threshold xs = Job.delay <| fun () ->
 
 For simplicity, the above computes the length of the input list just once and
 then approximates the lengths of the sub-lists resulting from the split.  It
-also assumes that **threshold** is greater than zero.
-
-Using a function like the above you can experiment, perhaps by writing a simple
-driver program, to find a threshold that gives the best speed-ups.
-
-Please note that the implementations of merge sort given in this section are by
-no means meant to demonstrate state-of-the-art implementations of merge sort.
-There are many tricks that one can use to speed-up the sequential parts of a
-merge sort.
+also assumes that **threshold** is greater than zero.  Using a function like the
+above you can experiment, perhaps by writing a simple driver program, to find a
+threshold that gives the best speed-ups.
 
 Programming with Alternatives
 -----------------------------
