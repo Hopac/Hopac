@@ -814,7 +814,7 @@ let merge xs ys =
 It is left as an exercise for the reader to implement **merge** in a more
 efficient form.
 
-Merge sort then simply recursive splits and then merges the lists:
+Merge sort then simply recursively splits, sorts and then merges the lists:
 
 ```fsharp
 let rec mergeSort xs =
@@ -827,7 +827,7 @@ let rec mergeSort xs =
 We can now test that our **mergeSort** works:
 
 ```fsharp
-> mergeSort [3;1;4;1;5;9;2] ;;
+> mergeSort [3; 1; 4; 1; 5; 9; 2] ;;
 val it : int list = [1; 1; 2; 3; 4; 5; 9]
 ```
 
@@ -846,37 +846,37 @@ let rec mergeSortJob xs = Job.delay <| fun () ->
 We can also test this version:
 
 ```fsharp
-> run (mergeSortJob [3;1;4;1;5;9;2]) ;;
+> run (mergeSortJob [3; 1; 4; 1; 5; 9; 2]) ;;
 val it : int list = [1; 1; 2; 3; 4; 5; 9]
 ```
 
 Like suggested in an exercise in the previous section, to actually get
 speed-ups, the work done in each parallel job needs to be significant compared
-to the cost required to start a parallel job.  One way to do this is to use the
+to the cost of starting a parallel job.  One way to do this is to use the
 sequential version of merge sort when the length of the list becomes shorter
-than some threshold.  That threshold then needs to chosen in such a way that the
-work required to sort a list shorter than the threshold is significant compared
-to the cost of starting parallel jobs.  In practice, this often means that you
-run a few experiments to find a good threshold.  Here is a modified version of
-**mergeSortJob** that uses a given threshold:
+than some threshold.  That threshold then needs to be chosen in such a way that
+the work required to sort a list shorter than the threshold is significant
+compared to the cost of starting parallel jobs.  In practice, this often means
+that you run a few experiments to find a good threshold.  Here is a modified
+version of **mergeSortJob** that uses a given threshold:
 
 ```fsharp
 let mergeSortJob threshold xs = Job.delay <| fun () ->
+  assert (threshold > 0)
   let rec mergeSortJob n xs = Job.delay <| fun () ->
     if n < threshold then
       Job.result (mergeSort xs)
     else
-      match split xs with
-       | ([], ys) -> Job.result ys
-       | (xs, []) -> Job.result xs
-       | (xs, ys) ->
-         mergeSortJob (n/2) xs <*> mergeSortJob (n/2) ys |>> fun (xs, ys) ->
-         merge xs ys
+      let (xs, ys) = split xs
+      let n = n/2
+      mergeSortJob n xs <*> mergeSortJob n ys |>> fun (xs, ys) ->
+      merge xs ys
   mergeSortJob (List.length xs) xs
 ```
 
 For simplicity, the above computes the length of the input list just once and
-then approximates the lengths of the sub-lists resulting from the split.
+then approximates the lengths of the sub-lists resulting from the split.  It
+also assumes that **threshold** is greater than zero.
 
 Using a function like the above you can experiment, perhaps by writing a simple
 driver program, to find a threshold that gives the best speed-ups.
