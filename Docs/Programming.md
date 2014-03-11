@@ -1024,7 +1024,7 @@ non-composable immediate operations.
 ### Choose and Wrap
 
 If all we had was primitive alternatives there would be no point in the whole
-mechanisms.  What makes alternatives useful is that they can be composed in
+mechanism.  What makes alternatives useful is that they can be composed in
 various ways.
 
 Let's motivate the introduction of selective communication with a sketch of a
@@ -1075,9 +1075,10 @@ given to it.  When such a disjunction is picked, the alternatives involved in
 the disjunction are instantiated one-by-one.  Assuming no alternative is
 immediately available, the job is blocked, waiting for any one of the
 alternatives to become available.  When one of the alternatives in the
-disjunction becomes available, the alternative is picked and committed to.
+disjunction becomes available, the alternative is picked and committed to and
+the other alternatives are canceled.
 
-The **>=>** operation is similar to the bind **>>=** operation on jobs and
+The wrap **>=>** operation is similar to the bind **>>=** operation on jobs and
 allows one to extend an alternative so that further operations are performed
 after the alternative has been committed to.  In this case we use the ability to
 simply map the button messages to a boolean value for further processing.  We
@@ -1085,18 +1086,18 @@ could also just continue processing in the wrapper:
 
 ```fsharp
 do! Alt.pick <| Alt.choose [
-       dialog.Yes.Pressed >=> fun () ->
-         // Perform action on Yes.
-       dialog.No.Pressed  >=> fun () ->
-         // Perform action on No.
-     ]
+      dialog.Yes.Pressed >=> fun () ->
+        // Perform action on Yes.
+      dialog.No.Pressed  >=> fun () ->
+        // Perform action on No.
+    ]
 ```
 
 Using selective communication in this way feels and works much like using
 ordinary conditional statements.
 
 A key point in the types of the **choose** and **>=>** operations is that they
-create new alternatives and those alternatives are first-class object just like
+create new alternatives and those alternatives are first-class values just like
 the primitive **give** and **take** alternatives on channels.  For the common
 cases of simply picking from a choice of alternatives or combining just two
 alternatives the operations **Alt.select** and **<|>** are provided.  Their
@@ -1107,9 +1108,10 @@ let select alts = pick (choose alts)
 let (<|>) a1 a2 = choose [a1; a2]
 ```
 
-In fact, the above definition of **select** is essentially accurate.  The binary
-choice **<|>** operation can be, and is, implemented internally as a slightly
-more efficient special case (avoiding the construction of the sequence).
+In fact, the above definition of **select** is essentially how the operation is
+internally implemented.  The binary choice **<|>** operation can be, and is,
+implemented internally as a slightly more efficient special case (avoiding the
+construction of the sequence).
 
 ### Guards
 
