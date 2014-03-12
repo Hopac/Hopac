@@ -460,20 +460,17 @@ expressed as a Hopac job:
 
 ```fsharp
 let CompareBool (comparand: ref<bool>)
-                (inCh: Ch<'a>)
-                (onTrueCh: Ch<'a>)
-                (onFalseCh: Ch<'a>) : Job<_> =
-  Job.server
-   (Job.forever
-     (Ch.take inCh >>= fun x ->
-      Ch.give (if !comparand then onTrueCh else onFalseCh) x))
+                (input: Alt<'x>)
+                (onTrue: 'x -> Job<unit>)
+                (onFalse: 'x -> Job<unit>) : Job<unit> =
+  Alt.pick input >>= fun x ->
+  if !comparand then onTrue x else onFalse x
 ```
 
-The **CompareBool** function creates a server job that loops indefinitely taking
-messages from the given **inCh** channel and then giving those messages away on
-either the **onTrueCh** or the **onFalseCh** channel depending on the value held
-by the **comparand** ref cell.  As you can see, the above **CompareBool** job
-doesn't care about the type of the signals being sent on the channels.  It just
+The **CompareBool** function creates a job that first waits for the **input**
+event and then performs either the **onTrue** or the **onFalse** action
+depending on the value of **comparand**.  As you can see, the above
+**CompareBool** job doesn't care about the type of the alternatives.  It just
 copies the received value **x** to the chosen output.
 
 Let's then consider the **Delay** box.  Making another educated guess and
@@ -488,31 +485,35 @@ be expressed as a Hopac job:
 
 ```fsharp
 let Delay (duration: ref<TimeSpan>)
-          (startCh: Ch<'a>)
-          (stopCh: Ch<'b>)
-          (finishedCh: Ch<'a>)
-          (abortedCh: Ch<'b>) : Job<_> =
-  Job.server
-   (Job.forever
-     (Ch.take startCh >>= fun x ->
-      Alt.pick (Ch.Alt.take stopCh      >=> Ch.give abortedCh
-            <|> Alt.timeOut (!duration) >=> fun () -> Ch.give finishedCh x)))
+          (start: Alt<'x>)
+          (stop: Alt<'y>)
+          (finished: 'x -> Job<unit>)
+          (aborted: 'y -> Job<unit>) : Job<unit> =
+  Alt.pick start >>= fun x ->
+  Alt.select [stop                    >=> fun y -> aborted y
+              Alt.timeOut (!duration) >=> fun () -> finished x]
 ```
 
-The **Delay** function creates a server job that loops indefinitely.  In the
-initial state it takes an input from the **startCh** channel and then transfers
-to the second state.  In the second state it sets up two alternatives.  The
-first alternative takes a messages from the **stopCh** channel and then gives
-the message on the **abortedCh** channel.  The second alternative starts a
-**timeout** alternative for the current value of **duration** and then gives the
-message taken in the initial state on the **finishedCh** channel.  Whichever of
-those alternatives becomes enabled first will then be committed to during
-runtime and the other will be discarded.
+The **Delay** function creates a job that first picks the **start** alternative.
+It then selects from two alternatives.  The first one is the given **stop**
+alternative and in case that is committed to, the value obtained from **stop**
+is given to the **aborted** action.  The second alternative starts a **timeOut**
+alternative for the current value of **duration** and in case that is committed
+to, the value received from **start** is given to the **finished** action.
+Whichever of those alternatives becomes enabled first will then be committed to
+during run time and the other will be discarded.
+
+These building blocks may seem deceptively simple.  What is important about
+these building blocks is that they take advantage of the ability of Hopac's jobs
+to be blocked waiting for an alternative.  Without something like that, those
+building blocks wouldn't have the kind of abilities, such as being able to wait
+for a timeout, that are needed here.
 
 Those previous snippets are just two of the necessary building blocks.  Assuming
 we would have all of the building blocks packaged in similar style, what remains
-is translation of the configuration specified in the screenshot into code.  Here
-is a small snippet of a sketch of what the end result could look like:
+is translation of the wiring configuration specified in the screenshot into
+code.  Here is a small snippet of a sketch of what the end result could look
+like:
 
 ```fsharp
 let ch_1 = Ch.Now.create ()
@@ -521,32 +522,32 @@ let ch_3 = Ch.Now.create ()
 // ...
 let bMoved = ref false
 // ...
-do! CompareBool bMoved ch_1 ch_2 ch_3
-do! Sink ch_2
-do! Delay (ref (TimeSpan.FromSeconds 3.14)) ch_3 ch_4 ch_5 ch_6
+do! CompareBool bMoved
+                (Ch.Alt.take ch_1)
+                (Ch.Alt.give ch_2)
+                (fun _ -> Job.unit)
+    |> Job.forever |> Job.server
+do! Delay (ref (TimeSpan.FromSeconds 3.14))
+          (Ch.Alt.take ch_2)
+          (Alt.never ())
+          (Ch.Alt.give ch_4)
+          (fun _ -> Job.unit)
+    |> Job.forever |> Job.server
 // ...
 ```
 
 The above initialization code sketch first creates shared channels and
-variables.  Then the desired jobs are created and started passing to them the
-previously created channels.  One more thing in the above is the use of a
-**Sink** job to take messages from output channels that are not explicitly
-connected to any other box.  The **Sink** could be implemented like this:
-
-```fsharp
-let Sink inCh = Job.server (Job.forever (Ch.take inCh))
-```
+variables.  Then the desired building block jobs are created, passing them
+appropriate input alternatives and output actions, and started as server jobs
+that loop indefinitely.
 
 Now, games often have their own specific notion of time, different from
 wall-clock time, which means that for programming games, the sketched
 implementation of **Delay** would not give the desired meaning of time.  (But
 you can certainly implement a notion of time more suitable for games on top of
 Hopac.)  Also, the way variables are represented as mutable ref cells is a bit
-naive.  In a real system, one would probably also want to specify boxes using
-[directional channels](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac.Extra/DirCh.fsi),
-which would allow an editor to automatically understand input-output
-relationships.  Unrealistic as it may be, this sketch has hopefully given you
-something interesting to think about!
+naive.  Unrealistic as it may be, this sketch has hopefully given you something
+interesting to think about!
 
 Starting and Waiting for Jobs
 -----------------------------
@@ -1000,12 +1001,14 @@ Contrast the use of alternatives:
 
 ```fsharp
 let! aValue = Alt.pick (Ch.Alt.take aChannel)
+do! Alt.pick (Ch.Alt.give aChannel aValue)
 ```
 
 and the use of immediate operations:
 
 ```fsharp
 let! aValue = Ch.take aChannel
+do! Ch.give aChannel aValue
 ```
 
 Both of the above snippets have the same semantics.  Which version is faster?
@@ -1018,7 +1021,7 @@ alternatives are formed, the selective alternative mechanism must incur some
 overhead compared to non-selective immediate operations.  But in the case only
 primitive alternatives are used, there is no extra overhead.  This is a
 fortunate feature of Hopac as it makes it more appealing to provide interfaces
-to concurrent program modules using composable alternatives rather than
+to concurrent program modules using abstract composable alternatives rather than
 non-composable immediate operations.
 
 ### Choose and Wrap
@@ -1119,6 +1122,37 @@ purpose **select** statement typically only allow the program to synchronize on
 a set of events that is specified statically in the program text.
 
 ### Guards
+
+The wrap combinator **>=>** allows post-commit actions to be added to an
+alternative.  Hopac also provides the **guard** combinator that allows an
+alternative to be computed at instantiation time.
+
+```fsharp
+val guard: Job<Alt<'x>> -> Alt<'x>
+```
+
+Recall in the Kismet sketch it was mentioned that simulations like games often
+have their own notion of time and that the wall-clock time provided by
+**Alt.timeOut** probably doesn't provide the desired semantics.  A simple game
+might be designed to update the simulation of the game world 60 times per second
+to match with a 60Hz display devices.  Rather than complicate all the
+calculations done in the simulation with a variable time step, such a simulation
+would be advanced in fixed length time steps or *ticks*.  Simplifying things to
+a minimum, the main loop of a game would then look roughly like this:
+
+```fsharp
+while !runGame do
+  tick ()   // Advance simulation
+  render () // Render new view to back buffer
+  flip ()   // Wait for display refresh and switch front and back buffers
+```
+
+Now, the idea is that the **tick ()** call runs all the simulation logic for one
+step and that the simulation is implemented using Hopac jobs.  More specifically
+we don't want any simulation code to run after the **tick ()** call returns.
+This is so that the **render ()** call has one consistent view of the world
+without nasty race conditions.  To make this happen, we will simply not have any
+jobs waiting on any other notion of time except those game ticks.
 
 
 
