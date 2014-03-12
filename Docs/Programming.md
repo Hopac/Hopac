@@ -1047,7 +1047,7 @@ type YesNoDialog =
   // ...
 ```
 
-A job could then have a dialog with the user using a **YesNoDialog** using code
+A job could then have a dialogue with the user using a **YesNoDialog** and code
 such as:
 
 ```fsharp
@@ -1113,11 +1113,16 @@ internally implemented.  The binary choice **<|>** operation can be, and is,
 implemented internally as a slightly more efficient special case (avoiding the
 construction of the sequence).
 
+It is also worth pointing out that **choose** allows synchronizing on a sequence
+of alternatives that is computed dynamically.  Languages that have a special
+purpose **select** statement typically only allow the program to synchronize on
+a set of events that is specified statically in the program text.
+
 ### Guards
 
 
 
-### Negative Acknowledgements
+### Negative Acknowledgments
 
 
 
@@ -1186,7 +1191,20 @@ non-deterministic initial choice.
 Channels, Mailboxes, IVars, MVars, ...
 --------------------------------------
 
-
+In this document we have mostly used channels in our examples.  The Hopac
+library, like CML, also directly provides other communication primitives such as
+**Mailbox**es, **IVar**s, **MVar**s and **Lock**s.  These other primitives are
+optimized for the particular communication patterns they support, but most of
+them could be implemented using only jobs and channels as shown in the book
+[Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
+for example.  When programming with Hopac, it, of course, makes sense to use the
+optimized primitives where possible.  So, for example, rather than allocating a
+channel and starting a job for a one-shot communication, it makes sense to use
+an **IVar**, which implements the desired semantics more efficiently.  On the
+other hand, it is reassuring that these optimized primitives, and many others,
+can be implemented using only jobs and channels.  This means that there is no
+need for the Hopac library to be continuously extended with new communication
+primitives.
 
 Going Further
 -------------
