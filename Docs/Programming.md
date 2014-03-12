@@ -524,13 +524,13 @@ let bMoved = ref false
 // ...
 do! CompareBool bMoved
                 (Ch.Alt.take ch_1)
-                (Ch.Alt.give ch_2)
+                (Ch.give ch_2)
                 (fun _ -> Job.unit)
     |> Job.forever |> Job.server
 do! Delay (ref (TimeSpan.FromSeconds 3.14))
           (Ch.Alt.take ch_2)
           (Alt.never ())
-          (Ch.Alt.give ch_4)
+          (Ch.give ch_3)
           (fun _ -> Job.unit)
     |> Job.forever |> Job.server
 // ...
