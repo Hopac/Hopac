@@ -7,25 +7,18 @@ namespace Hopac.Core {
   using System.Threading;
   using System;
 
-  internal static class Scheduler {
-    internal static volatile int Waiters;
-    internal static volatile int Lock;
-    internal static int TimedCount;
-    internal static Work WorkStack;
-    internal static WorkTimed TopTimed;
-    internal static WorkerEvent[] Events;
+  internal class Scheduler {
+    internal volatile int Waiters;
+    internal volatile int Lock;
+    internal int TimedCount;
+    internal Work WorkStack;
+    internal WorkTimed TopTimed;
+    internal WorkerEvent[] Events;
 
     // We use manual initialization here, because automatic initialization
     // generates code with slightly more overhead.
 
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal static object NullWhenNeedsInit() {
-      return Volatile.Read(ref Events);
-    }
-
-    internal static void DoInit() {
-      Debug.Assert(SpinlockTTAS.Locked == SpinlockTTAS.GetState(ref Lock) &&
-                   null == NullWhenNeedsInit());
+    internal Scheduler() {
       var numWorkers = Environment.ProcessorCount;
       Waiters = -1;
       Events = new WorkerEvent[numWorkers];
@@ -33,7 +26,7 @@ namespace Hopac.Core {
       for (int i = 0; i < numWorkers; ++i) {
         Events[i] = new WorkerEvent(i);
         var index = i;
-        var thread = new Thread(() => Worker.Run(index));
+        var thread = new Thread(() => Worker.Run(this, index));
         threads[i] = thread;
         thread.IsBackground = true;
       }
@@ -42,18 +35,18 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void Push(Work work, Work last) {
-      SpinlockTTAS.Enter(ref Lock);
-      last.Next = WorkStack;
-      WorkStack = work;
-      var waiters = Waiters;
+    internal static void Push(Scheduler sr, Work work, Work last) {
+      SpinlockTTAS.Enter(ref sr.Lock);
+      last.Next = sr.WorkStack;
+      sr.WorkStack = work;
+      var waiters = sr.Waiters;
       if (0 <= waiters)
-        Events[waiters].Set();
-      SpinlockTTAS.Exit(ref Lock);
+        sr.Events[waiters].Set();
+      SpinlockTTAS.Exit(ref sr.Lock);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void PushAll(Work work) {
+    internal static void PushAll(Scheduler sr, Work work) {
       if (null == work)
         return;
 
@@ -66,33 +59,34 @@ namespace Hopac.Core {
       goto FindLast;
 
     FoundLast:
-      Push(work, last);
+      Push(sr, work, last);
     }
 
     static uint unique = 0;
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void SynchronizedPushTimed(ref Worker wr, WorkTimed x) {
-      SpinlockTTAS.Enter(ref Scheduler.Lock);
+      var sr = wr.Scheduler;
+      SpinlockTTAS.Enter(ref sr.Lock);
       var tag = unique;
       x.Ticks |= tag; // XXX: Kludge to make sure Ticks are unique.
       unique = tag + 1;
-      var h = TopTimed;
+      var h = sr.TopTimed;
       if (null == h) {
-        TopTimed = x;
+        sr.TopTimed = x;
         x.Up = x;
         x.Next = x;
-        var waiter = Waiters;
-        if (0 <= Waiters)
-          Events[waiter].Set();
+        var waiter = sr.Waiters;
+        if (0 <= sr.Waiters)
+          sr.Events[waiter].Set();
       } else if (x.Ticks - h.Ticks < 0) {
         x.Next = h.Up;
         h.Up = x;
         x.Up = x;
-        TopTimed = x;
-        var waiter = Waiters;
-        if (0 <= Waiters)
-          Events[waiter].Set();
+        sr.TopTimed = x;
+        var waiter = sr.Waiters;
+        if (0 <= sr.Waiters)
+          sr.Events[waiter].Set();
       } else if (x.Ticks - h.Up.Ticks > 0) {
         x.Up = h.Up;
         h.Up = x;
@@ -111,13 +105,13 @@ namespace Hopac.Core {
         y.Up = x;
         h.Up = x;
       }
-      SpinlockTTAS.Exit(ref Scheduler.Lock);
+      SpinlockTTAS.Exit(ref sr.Lock);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void DropTimed() {
+    internal static void DropTimed(Scheduler sr) {
       // XXX This implementation requires keys to be unique - must analyze and fix this properly to allow duplicates.
-      var h = TopTimed;
+      var h = sr.TopTimed;
       if (null == h)
         return;
       var y1 = h.Up;
@@ -128,7 +122,7 @@ namespace Hopac.Core {
         y2 = t;
       }
       if (y1.Ticks == h.Ticks) {
-        TopTimed = null;
+        sr.TopTimed = null;
         return;
       }
       WorkTimed x;
@@ -142,7 +136,7 @@ namespace Hopac.Core {
           y2 = t;
         }
         if (y1.Ticks == h.Ticks) {
-          TopTimed = h3;
+          sr.TopTimed = h3;
           return;
         }
         x = y1;

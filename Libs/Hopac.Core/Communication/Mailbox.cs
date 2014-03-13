@@ -102,10 +102,11 @@ namespace Hopac {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void Send(Mailbox<T> mb, T x) {
+    internal static void Send(Scheduler sr, Mailbox<T> mb, T x) {
       Worker wr = new Worker();
+      wr.Scheduler = sr;
       Send(mb, ref wr, x);
-      Scheduler.PushAll(wr.WorkStack);
+      Scheduler.PushAll(sr, wr.WorkStack);
     }
   }
 

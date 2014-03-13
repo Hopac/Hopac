@@ -62,16 +62,14 @@ module Util =
     override xK'.DoWork (_) = ()
     override xK'.DoCont (_, _) = ()
 
+  let mutable globalScheduler : Scheduler = null
+
   let reallyInit () =
-    SpinlockTTAS.Enter (&Scheduler.Lock)
-    match Scheduler.NullWhenNeedsInit () with
-     | null ->
-       Scheduler.DoInit ()
-     | _ -> ()
-    SpinlockTTAS.Exit (&Scheduler.Lock)
+    lock typeof<Scheduler> <| fun () ->
+    globalScheduler <- Scheduler ()
 
   let inline init () =
-    match Scheduler.NullWhenNeedsInit () with
+    match globalScheduler with
      | null -> reallyInit ()
      | _ -> ()
 
@@ -92,7 +90,7 @@ module Ch =
   module Now =
     let inline create () = Ch<'x> ()
     [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (xCh, x)
+    let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (globalScheduler, xCh, x)
   let create () = ctor Now.create ()
   let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
@@ -107,7 +105,8 @@ module Mailbox =
   module Now =
     let inline create () = Mailbox<'x> ()
     [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xMb: Mailbox<'x>) (x: 'x) = Mailbox<'x>.Send (xMb, x)
+    let send (xMb: Mailbox<'x>) (x: 'x) =
+      Mailbox<'x>.Send (globalScheduler, xMb, x)
   let create () = ctor Now.create ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
@@ -317,18 +316,18 @@ module Job =
                          (xF: 'x -> unit)
                          (xJ: Job<'x>) =
       init ()
-      Worker.RunOnThisThread (xJ, {new Cont<'x> () with
+      Worker.RunOnThisThread (globalScheduler, xJ, {new Cont<'x> () with
        override xK'.DoHandle (_, e) = eF e
        override xK'.DoWork (_) = xF xK'.Value
        override xK'.DoCont (_, x) = xF x})
 
     let start (xJ: Job<'x>) =
       init ()
-      Worker.RunOnThisThread (xJ, Handler<'x> ())
+      Worker.RunOnThisThread (globalScheduler, xJ, Handler<'x> ())
 
     let server (vJ: Job<Void>) =
       init ()
-      Worker.RunOnThisThread (vJ, null)
+      Worker.RunOnThisThread (globalScheduler, vJ, null)
 
     let run (xJ: Job<'x>) =
       init ()
@@ -341,7 +340,7 @@ module Job =
        override xK'.DoCont (wr, x) =
         xK'.Value <- x
         Condition.Pulse (xK', &xK'.State2)}
-      Worker.RunOnThisThread (xJ, xK')
+      Worker.RunOnThisThread (globalScheduler, xJ, xK')
       Condition.Wait (xK', &xK'.State2)
       match xK'.State1 with
        | null -> xK'.Value
@@ -530,7 +529,7 @@ module Job =
     let (<*>) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'x * 'y> () with
         override xyJ'.DoJob (wr, xyK) =
-          if 0 <= Scheduler.Waiters then
+          if 0 <= wr.Scheduler.Waiters then
             let yK' = ParTuple<'x, 'y> (xyK)
             Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
              override xK'.DoHandle (wr, e) = Handler.DoHandle (yK', &wr, e)
@@ -826,8 +825,8 @@ module Job =
       | _ ->
         failwith "Bug")
 
-  type AsyncBeginEnd<'x> (doEnd, xK: Cont<'x>) =
-    inherit WorkWithReady<IAsyncResult> ()
+  type AsyncBeginEnd<'x> (sr, doEnd, xK: Cont<'x>) =
+    inherit WorkWithReady<IAsyncResult> (sr)
     override self.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
     override self.DoWork (wr) = xK.DoCont (&wr, doEnd self.Value)
 
@@ -835,7 +834,7 @@ module Job =
                    (doEnd: IAsyncResult -> 'x) =
     {new Job<'x> () with
       override self.DoJob (wr, xK) =
-       let rv = AsyncBeginEnd<'x> (doEnd, xK)
+       let rv = AsyncBeginEnd<'x> (wr.Scheduler, doEnd, xK)
        doBegin (doAsyncCallback, rv) |> ignore}
 
   ///////////////////////////////////////////////////////////////////////

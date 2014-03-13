@@ -25,18 +25,20 @@ namespace Hopac.Core {
 #if ENABLE_MCS
     internal SpinlockMCS.Node Node;
 #endif
+    internal Scheduler Scheduler;
 
 #if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
-    internal void Init(void *StackLimit, int bytes) {
+    internal void Init(Scheduler sr, void *StackLimit, int bytes) {
       this.StackLimit = (byte *)StackLimit - bytes;
 #else
     [MethodImpl(AggressiveInlining.Flag)]
-    internal void Init() {
+    internal void Init(Scheduler sr) {
 #endif
 #if ENABLE_MCS
       Node.Init();
 #endif
+      this.Scheduler = sr;
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -65,7 +67,8 @@ namespace Hopac.Core {
         goto CheckScheduler;
       goto Exit;
     CheckScheduler:
-      if (0 <= Scheduler.Waiters) // null == Scheduler.WorkStack)
+      var sr = wr.Scheduler;
+      if (0 <= sr.Waiters) // null == Scheduler.WorkStack)
         goto MaybePushToScheduler;
     Contention:
       last.Next = older;
@@ -73,31 +76,31 @@ namespace Hopac.Core {
       return;
 
     MaybePushToScheduler:
-      if (SpinlockTTAS.Open != SpinlockTTAS.GetState(ref Scheduler.Lock))
+      if (SpinlockTTAS.Open != SpinlockTTAS.GetState(ref sr.Lock))
         goto Contention;
-      if (SpinlockTTAS.Open != SpinlockTTAS.TryEnter(ref Scheduler.Lock))
+      if (SpinlockTTAS.Open != SpinlockTTAS.TryEnter(ref sr.Lock))
         goto Contention;
-      if (null == Scheduler.WorkStack)
+      if (null == sr.WorkStack)
         goto PushToScheduler;
-      SpinlockTTAS.Exit(ref Scheduler.Lock);
+      SpinlockTTAS.Exit(ref sr.Lock);
       last.Next = older;
       return;
 
     PushToScheduler:
-      Scheduler.WorkStack = older;
-      int waiters = Scheduler.Waiters;
+      sr.WorkStack = older;
+      int waiters = sr.Waiters;
       if (0 <= waiters)
-        Scheduler.Events[waiters].Set();
-      SpinlockTTAS.Exit(ref Scheduler.Lock);
+        sr.Events[waiters].Set();
+      SpinlockTTAS.Exit(ref sr.Lock);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void RunOnThisThread(Work work) {
+    internal static void RunOnThisThread(Scheduler sr, Work work) {
       var wr = new Worker();
 #if TRAMPOLINE
-      wr.Init(&wr.StackLimit, 1000);
+      wr.Init(sr, &wr.StackLimit, 1000);
 #else
-      wr.Init();
+      wr.Init(sr);
 #endif
       try {
         wr.Handler = work;
@@ -106,16 +109,16 @@ namespace Hopac.Core {
         wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
       }
 
-      Scheduler.PushAll(wr.WorkStack);
+      Scheduler.PushAll(sr, wr.WorkStack);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void RunOnThisThread<T>(Job<T> tJ, Cont<T> tK) {
+    internal static void RunOnThisThread<T>(Scheduler sr, Job<T> tJ, Cont<T> tK) {
       var wr = new Worker();
 #if TRAMPOLINE
-      wr.Init(&wr.StackLimit, 1000);
+      wr.Init(sr, &wr.StackLimit, 1000);
 #else
-      wr.Init();
+      wr.Init(sr);
 #endif
       try {
         wr.Handler = tK;
@@ -124,18 +127,18 @@ namespace Hopac.Core {
         wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
       }
 
-      Scheduler.PushAll(wr.WorkStack);
+      Scheduler.PushAll(sr, wr.WorkStack);
     }
     
-    internal static void Run(int me) {
+    internal static void Run(Scheduler sr, int me) {
       var wr = new Worker();
 #if TRAMPOLINE
-      wr.Init(&wr.StackLimit, 4000);
+      wr.Init(sr, &wr.StackLimit, 4000);
 #else
-      wr.Init();
+      wr.Init(sr);
 #endif
 
-      var mine = Scheduler.Events[me];
+      var mine = sr.Events[me];
 
       while (true) {
         try {
@@ -153,29 +156,29 @@ namespace Hopac.Core {
             goto WorkerLoop;
 
         EnterScheduler:
-          SpinlockTTAS.Enter(ref Scheduler.Lock);
+          SpinlockTTAS.Enter(ref sr.Lock);
         TryScheduler:
-          work = Scheduler.WorkStack;
+          work = sr.WorkStack;
           if (null == work)
             goto TryTimed;
 
           {
             var next = work.Next;
-            Scheduler.WorkStack = next;
+            sr.WorkStack = next;
             if (null == next)
               goto NoWake;
-            var waiter = Scheduler.Waiters;
+            var waiter = sr.Waiters;
             if (0 <= waiter)
-              Scheduler.Events[waiter].Set();
+              sr.Events[waiter].Set();
           }
         NoWake:
-          SpinlockTTAS.Exit(ref Scheduler.Lock);
+          SpinlockTTAS.Exit(ref sr.Lock);
           goto Do;
 
         TryTimed:
           var waitTicks = Timeout.Infinite;
           {
-            var tt = Scheduler.TopTimed;
+            var tt = sr.TopTimed;
             if (null == tt)
               goto JustWait;
 
@@ -183,8 +186,8 @@ namespace Hopac.Core {
             if (waitTicks > 0)
               goto JustWait;
 
-            Scheduler.DropTimed();
-            SpinlockTTAS.Exit(ref Scheduler.Lock);
+            Scheduler.DropTimed(sr);
+            SpinlockTTAS.Exit(ref sr.Lock);
 
             var pk = tt.Pick;
             if (null == pk)
@@ -203,28 +206,28 @@ namespace Hopac.Core {
             goto Do;
           }
         JustWait:
-          var n = Scheduler.Waiters;
+          var n = sr.Waiters;
           if (n < 0) {
             mine.Next = -1;
-            Scheduler.Waiters = me;
+            sr.Waiters = me;
           } else {
-            WorkerEvent other = Scheduler.Events[n];
+            WorkerEvent other = sr.Events[n];
             mine.Next = other.Next;
             other.Next = me;
           }
 
           mine.Reset();
-          SpinlockTTAS.Exit(ref Scheduler.Lock);
+          SpinlockTTAS.Exit(ref sr.Lock);
           mine.Wait(waitTicks);
-          SpinlockTTAS.Enter(ref Scheduler.Lock);
+          SpinlockTTAS.Enter(ref sr.Lock);
 
-          if (Scheduler.Waiters == me) {
-            Scheduler.Waiters = mine.Next;
+          if (sr.Waiters == me) {
+            sr.Waiters = mine.Next;
           } else {
-            WorkerEvent ev = Scheduler.Events[Scheduler.Waiters];
+            WorkerEvent ev = sr.Events[sr.Waiters];
             if (ev.Next != me) {
               do {
-                ev = Scheduler.Events[ev.Next];
+                ev = sr.Events[ev.Next];
               } while (ev.Next != me);
             }
             ev.Next = mine.Next;

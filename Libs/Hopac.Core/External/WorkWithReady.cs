@@ -5,10 +5,15 @@ namespace Hopac.Core {
 
   internal abstract class WorkWithReady<T> : Work {
     internal T Value;
+    internal Scheduler Scheduler;
+
+    internal WorkWithReady(Scheduler sr) {
+      this.Scheduler = sr;
+    }
 
     internal void Ready(T value) {
       this.Value = value;
-      Worker.RunOnThisThread(this);
+      Worker.RunOnThisThread(this.Scheduler, this);
     }
   }
 }
