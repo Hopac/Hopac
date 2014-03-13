@@ -59,7 +59,7 @@
     <Compile Include="Engine\Scheduler.cs" />
     <Compile Include="Engine\Work.cs" />
     <Compile Include="Engine\Worker.cs" />
-    <Compile Include="Engine\WorkTimed.cs" />
+    <Compile Include="Engine\Timer.cs" />
     <Compile Include="External\Tasks.cs" />
     <Compile Include="External\WorkWithReady.cs" />
     <Compile Include="Flow\Cont.cs" />

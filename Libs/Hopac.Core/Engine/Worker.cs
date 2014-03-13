@@ -137,11 +137,13 @@ namespace Hopac.Core {
 #else
       wr.Init(sr);
 #endif
+      var iK = new IdleCont();
 
       var mine = sr.Events[me];
 
-      while (true) {
+      while (null != sr) {
         try {
+        Restart:
           Work work = wr.WorkStack;
           if (null == work)
             goto EnterScheduler;
@@ -156,56 +158,46 @@ namespace Hopac.Core {
             goto WorkerLoop;
 
         EnterScheduler:
-          SpinlockTTAS.Enter(ref sr.Lock);
-        TryScheduler:
           work = sr.WorkStack;
           if (null == work)
-            goto TryTimed;
+            goto TryIdle;
+          sr.Lock.Enter();
+        EnterSchedulerLocked:
+          work = sr.WorkStack;
+          if (null == work)
+            goto ExitAndTryIdle;
 
-          {
-            var next = work.Next;
-            sr.WorkStack = next;
-            if (null == next)
-              goto NoWake;
+        SchedulerGotSome:
+          var next = work.Next;
+          sr.WorkStack = next;
+          if (null != next) {
             var waiter = sr.Waiters;
             if (0 <= waiter)
               sr.Events[waiter].Set();
           }
-        NoWake:
-          SpinlockTTAS.Exit(ref sr.Lock);
+          sr.Lock.Exit();
           goto Do;
 
-        TryTimed:
-          var waitTicks = Timeout.Infinite;
-          {
-            var tt = sr.TopTimed;
-            if (null == tt)
-              goto JustWait;
+        ExitAndTryIdle:
+          sr.Lock.Exit();
 
-            waitTicks = (int)(tt.Ticks >> 32) - Environment.TickCount;
-            if (waitTicks > 0)
-              goto JustWait;
+        TryIdle:
+          iK.Value = Timeout.Infinite;
 
-            Scheduler.DropTimed(sr);
-            SpinlockTTAS.Exit(ref sr.Lock);
-
-            var pk = tt.Pick;
-            if (null == pk)
-              goto GotIt;
-          TryPick:
-            var st = Pick.TryPick(pk);
-            if (st > 0)
-              goto EnterScheduler;
-            if (st < 0)
-              goto TryPick;
-
-            Pick.SetNacks(ref wr, tt.Me, pk);
-
-          GotIt:
-            work = tt;
-            goto Do;
+          var iJ = sr.IdleHandler;
+          if (null != iJ) {
+            wr.Handler = iK;
+            iJ.DoJob(ref wr, iK);
           }
-        JustWait:
+
+          if (0 == iK.Value)
+            goto Restart;
+
+          sr.Lock.Enter();
+          work = sr.WorkStack;
+          if (null != work)
+            goto SchedulerGotSome;
+
           var n = sr.Waiters;
           if (n < 0) {
             mine.Next = -1;
@@ -217,10 +209,9 @@ namespace Hopac.Core {
           }
 
           mine.Reset();
-          SpinlockTTAS.Exit(ref sr.Lock);
-          mine.Wait(waitTicks);
-          SpinlockTTAS.Enter(ref sr.Lock);
-
+          sr.Lock.Exit();
+          mine.Wait(iK.Value);
+          sr.Lock.Enter();
           if (sr.Waiters == me) {
             sr.Waiters = mine.Next;
           } else {
@@ -233,10 +224,25 @@ namespace Hopac.Core {
             ev.Next = mine.Next;
           }
 
-          goto TryScheduler;
+          goto EnterSchedulerLocked;
+        } catch (ThreadAbortException) {
+          Scheduler.Signal(sr);
+          sr = null;
         } catch (Exception e) {
           wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
         }
+      }
+    }
+
+    internal class IdleCont : Cont<int> {
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        Handler.DoHandle(null, ref wr, e);
+      }
+
+      internal override void DoWork(ref Worker wr) { }
+
+      internal override void DoCont(ref Worker wr, int value) {
+        this.Value = value;
       }
     }
   }

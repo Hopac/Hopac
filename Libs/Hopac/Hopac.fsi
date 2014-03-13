@@ -251,13 +251,6 @@ module Job =
                  -> (IAsyncResult -> 'x)
                  -> Job<'x>
 
-  ///////////////////////////////////////////////////////////////////////
-
-  /// Creates a job that sleeps for (about) the specified time.  Note that this
-  /// is simply not intended for high precision timing and the resolution of
-  /// the underlying timing mechanism is coarse (Windows system ticks).
-  val sleep: TimeSpan -> Job<unit>
-
 /////////////////////////////////////////////////////////////////////////
 
 /// Operations on first-class synchronous operations or alternatives.
@@ -344,13 +337,23 @@ module Alt =
   /// its value.
   val inline pick: Alt<'x> -> Job<'x>
 
-  ///////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
-  /// Creates an alternative that, after instantiation, becomes pickable after
-  /// the specified time span.  Note that this is simply not intended for high
-  /// precision timing and the resolution of the underlying timing mechanism is
-  /// very coarse (Windows system ticks).
-  val timeOut: TimeSpan -> Alt<unit>
+/// Operations on the wall-clock timer.
+module Timer =
+
+  /// Operations on the global wall-clock timer.
+  module Now =
+    /// Creates an alternative that, after instantiation, becomes pickable
+    /// after the specified time span.  Note that this is simply not intended
+    /// for high precision timing and the resolution of the underlying timing
+    /// mechanism is very coarse (Windows system ticks).
+    val timeOut: TimeSpan -> Alt<unit>
+
+    /// Creates a job that sleeps for (about) the specified time.  Note that this
+    /// is simply not intended for high precision timing and the resolution of
+    /// the underlying timing mechanism is coarse (Windows system ticks).
+    val sleep: TimeSpan -> Job<unit>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -644,3 +647,55 @@ module Extensions =
     /// Creates a job that waits until the given task finishes.  Note that this
     /// does not start the job.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
+
+/////////////////////////////////////////////////////////////////////////
+
+/// Operations on schedulers.  Use of this module requires more intimate
+/// knowledge of Hopac, but may allow adapting Hopac to special application
+/// requirements.
+module Scheduler =
+  type Create =
+    {NumWorkers: int}
+    static member Def: Create
+
+  /// Creates a new local scheduler.
+  val create: Create -> Scheduler
+
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// Upon the failure or success of the job, one of the given actions is called
+  /// once.  Note that using this function in a job workflow is not optimal and
+  /// you should instead use Job.start with desired Job exception handling
+  /// construct (e.g. Job.tryIn or Job.catch).
+  val startWithActions: Scheduler -> (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
+
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// The result, if any, of the job is ignored.  Note that using this function
+  /// in a job workflow is not optimal and you should use Job.start instead.
+  val start: Scheduler -> Job<_> -> unit
+
+  /// Like Scheduler.start, but the given job is known never to return normally,
+  /// so the job can be spawned in a sligthly lighter-weight manner.
+  val server: Scheduler -> Job<Void> -> unit
+
+  /// Sets the top level exception handler job constructor of the scheduler.
+  /// When a job fails with an otherwise unhandled exception, the job is killed
+  /// and a new job is constructed with the top level handler constructor and
+  /// then started.  To avoid infinite loops, in case the top level handler job
+  /// raises exceptions, it is simply killed after printing a message to the
+  /// console.  The default top level handler simply prints out a message to the
+  /// console.
+  val setTopLevelHandler: Scheduler -> (exn -> Job<unit>) -> unit
+
+  /// Sets the idle handler of the scheduler.  The idle handler is run whenever
+  /// a worker runs out of work.  The idle handler must return an integer value
+  /// that specifies how many milliseconds the worker is allowed to sleep.
+  /// Timeout.Infinite puts the worker into sleep until the scheduler explicitly
+  /// wakes it up.  0 means that the idle handler found some new work and the
+  /// worker should immediately look for it.  The default idle handler simply
+  /// returns Timeout.Infinite.  See also "Scheduler.signal".
+  val setIdleHandler: Scheduler -> Job<int> -> unit
+
+  /// Assuming that at least one worker thread is currently sleeping, wakes up
+  /// one worker thread.  The woken up worker may then wake up further workers
+  /// assuming there is plenty of work.  See also "Scheduler.setIdleHandler".
+  val signal: Scheduler -> unit

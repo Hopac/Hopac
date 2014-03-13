@@ -12,11 +12,9 @@ namespace Hopac.Core {
     /// null in server jobs!  Use the static DoHandle method instead.</summary>
     internal abstract void DoHandle(ref Worker wr, Exception e);
 
-    internal static FSharpFunc<Exception, Job<Unit>> TopLevelHandler;
-
     internal static void DoHandle(Handler h, ref Worker wr, Exception e) {
       if (null == h) {
-        var tlh = TopLevelHandler;
+        var tlh = wr.Scheduler.TopLevelHandler;
         if (null == tlh) {
           Console.WriteLine("Unhandled exception: {0}", e);
         } else {

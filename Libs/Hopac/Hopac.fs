@@ -64,14 +64,30 @@ module Util =
 
   let mutable globalScheduler : Scheduler = null
 
-  let reallyInit () =
+  let reallyGlobalScheduler () =
     lock typeof<Scheduler> <| fun () ->
-    globalScheduler <- Scheduler ()
+    let sr = Scheduler Environment.ProcessorCount
+    globalScheduler <- sr
+    sr
 
-  let inline init () =
+  let inline initGlobalScheduler () =
     match globalScheduler with
-     | null -> reallyInit ()
-     | _ -> ()
+     | null -> reallyGlobalScheduler ()
+     | sr -> sr
+
+  let mutable globalTimer : Timer = null
+
+  let reallyInitGlobalTimer () =
+    let sr = initGlobalScheduler ()
+    lock typeof<Timer> <| fun () ->
+    let tr = Timer sr
+    globalTimer <- tr
+    tr
+
+  let inline initGlobalTimer () =
+    match globalTimer with
+     | null -> reallyInitGlobalTimer ()
+     | tr -> tr
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -287,67 +303,67 @@ module Alt =
          wr.Handler <- yK
          yE.TryElse (&wr, i, pk, yK)})}
 
-  type [<AllowNullLiteral>] WorkTimedUnitCont =
-    inherit WorkTimed
-    val uK: Cont<unit>
-    override wt.DoHandle (wr, e) = Handler.DoHandle (wt.uK, &wr, e)
-    override wt.DoWork (wr) = wt.uK.DoWork (&wr)
-    new (t, me, pk, uK) = {inherit WorkTimed (t, me, pk); uK=uK}
+/////////////////////////////////////////////////////////////////////////
 
-  let timeOut (span: System.TimeSpan) =
-    let ms = span.Ticks / 10000L
-    if ms < 0L || 2147483647L < ms then
-      failwith "TimeSpan out of allowed range"
-    let ms = int ms
-    {new Alt<unit> () with
-      override uA'.DoJob (wr, uK) =
-       Scheduler.SynchronizedPushTimed
-        (&wr, WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
-      override uA'.TryAlt (wr, i, pk, uK, uE) =
-       Scheduler.SynchronizedPushTimed
-        (&wr, WorkTimedUnitCont (Environment.TickCount + ms, i, pk, uK))
-       uE.TryElse (&wr, i+1, pk, uK)}
+module Scheduler =
+  type Create =
+    {NumWorkers: int}
+    static member Def: Create =
+      {NumWorkers = Environment.ProcessorCount}
+
+  let create (c: Create) = Scheduler c.NumWorkers
+
+  let startWithActions (sr: Scheduler)
+                       (eF: exn -> unit)
+                       (xF: 'x -> unit)
+                       (xJ: Job<'x>) =
+    Worker.RunOnThisThread (sr, xJ, {new Cont<'x> () with
+     override xK'.DoHandle (_, e) = eF e
+     override xK'.DoWork (_) = xF xK'.Value
+     override xK'.DoCont (_, x) = xF x})
+
+  let start (sr: Scheduler) (xJ: Job<'x>) =
+    Worker.RunOnThisThread (sr, xJ, Handler<'x> ())
+
+  let server (sr: Scheduler) (vJ: Job<Void>) =
+    Worker.RunOnThisThread (sr, vJ, null)
+
+  let run (sr: Scheduler) (xJ: Job<'x>) =
+    let xK' = {new Cont_State<_, _, _> () with
+     override xK'.DoHandle (wr, e) =
+      xK'.State1 <- e
+      Condition.Pulse (xK', &xK'.State2)
+     override xK'.DoWork (wr) =
+      Condition.Pulse (xK', &xK'.State2)
+     override xK'.DoCont (wr, x) =
+      xK'.Value <- x
+      Condition.Pulse (xK', &xK'.State2)}
+    Worker.RunOnThisThread (sr, xJ, xK')
+    Condition.Wait (xK', &xK'.State2)
+    match xK'.State1 with
+     | null -> xK'.Value
+     | e -> Util.forward e
+
+  let setTopLevelHandler (sr: Scheduler) (e2uJ: exn -> Job<unit>) =
+    sr.TopLevelHandler <- e2uJ
+
+  let setIdleHandler (sr: Scheduler) (iJ: Job<int>) =
+    sr.IdleHandler <- iJ
+
+  let signal (sr: Scheduler) =
+    Scheduler.Signal sr
 
 /////////////////////////////////////////////////////////////////////////
 
 module Job =
   module Now =
-    let startWithActions (eF: exn -> unit)
-                         (xF: 'x -> unit)
-                         (xJ: Job<'x>) =
-      init ()
-      Worker.RunOnThisThread (globalScheduler, xJ, {new Cont<'x> () with
-       override xK'.DoHandle (_, e) = eF e
-       override xK'.DoWork (_) = xF xK'.Value
-       override xK'.DoCont (_, x) = xF x})
-
-    let start (xJ: Job<'x>) =
-      init ()
-      Worker.RunOnThisThread (globalScheduler, xJ, Handler<'x> ())
-
-    let server (vJ: Job<Void>) =
-      init ()
-      Worker.RunOnThisThread (globalScheduler, vJ, null)
-
-    let run (xJ: Job<'x>) =
-      init ()
-      let xK' = {new Cont_State<_, _, _> () with
-       override xK'.DoHandle (wr, e) =
-        xK'.State1 <- e
-        Condition.Pulse (xK', &xK'.State2)
-       override xK'.DoWork (wr) =
-        Condition.Pulse (xK', &xK'.State2)
-       override xK'.DoCont (wr, x) =
-        xK'.Value <- x
-        Condition.Pulse (xK', &xK'.State2)}
-      Worker.RunOnThisThread (globalScheduler, xJ, xK')
-      Condition.Wait (xK', &xK'.State2)
-      match xK'.State1 with
-       | null -> xK'.Value
-       | e -> Util.forward e
-
-    let setTopLevelHandler (e2uJ: exn -> Job<unit>) =
-      Handler.TopLevelHandler <- e2uJ
+    let startWithActions eF xF xJ =
+      Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ
+    let start xJ = Scheduler.start (initGlobalScheduler ()) xJ
+    let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
+    let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
+    let setTopLevelHandler e2uJ =
+      Scheduler.setTopLevelHandler (initGlobalScheduler ()) e2uJ
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -837,10 +853,33 @@ module Job =
        let rv = AsyncBeginEnd<'x> (wr.Scheduler, doEnd, xK)
        doBegin (doAsyncCallback, rv) |> ignore}
 
-  ///////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
-  let sleep (span: TimeSpan) =
-    Alt.timeOut span :> Job<unit>
+module Timer =
+  module Now =
+    type [<AllowNullLiteral>] WorkTimedUnitCont =
+      inherit WorkTimed
+      val uK: Cont<unit>
+      override wt.DoHandle (wr, e) = Handler.DoHandle (wt.uK, &wr, e)
+      override wt.DoWork (wr) = wt.uK.DoWork (&wr)
+      new (t, me, pk, uK) = {inherit WorkTimed (t, me, pk); uK=uK}
+
+    let timeOut (span: System.TimeSpan) =
+      let ms = span.Ticks / 10000L
+      if ms < 0L || 2147483647L < ms then
+        failwith "TimeSpan out of allowed range"
+      let ms = int ms
+      {new Alt<unit> () with
+        override uA'.DoJob (wr, uK) =
+         (initGlobalTimer ()).SynchronizedPushTimed
+          (WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
+        override uA'.TryAlt (wr, i, pk, uK, uE) =
+         (initGlobalTimer ()).SynchronizedPushTimed
+          (WorkTimedUnitCont (Environment.TickCount + ms, i, pk, uK))
+         uE.TryElse (&wr, i+1, pk, uK)}
+
+    let sleep (span: TimeSpan) =
+      timeOut span :> Job<unit>
 
 /////////////////////////////////////////////////////////////////////////
 
