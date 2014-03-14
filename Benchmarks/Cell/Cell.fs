@@ -55,6 +55,56 @@ module HopacReq =
     printf "%8.5f s to %d c * %d p * %d u\n"
      d.TotalSeconds nCells nJobs nUpdates
 
+module HopacDyn =
+  type Request<'a> =
+   | Get of IVar<'a>
+   | Put of 'a
+
+  type Cell<'a> = {
+    reqCh: Ch<Request<'a>>
+  }
+
+  let put (c: Cell<'a>) (x: 'a) : Job<unit> =
+    Ch.give c.reqCh (Put x)
+
+  let get (c: Cell<'a>) : Job<'a> = Job.delay <| fun () ->
+    let replyIv = IVar.Now.create ()
+    Ch.give c.reqCh (Get replyIv) >>.
+    IVar.read replyIv
+
+  let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
+    let c = {reqCh = Ch.Now.create ()}
+    Job.server
+     (Job.iterate x (fun x ->
+       Ch.take c.reqCh >>= function
+        | Get replyIv-> IVar.fill replyIv x >>% x
+        | Put x -> Job.result x)) >>% c
+
+  let run nCells nJobs nUpdates =
+    printf "HopacDyn: "
+    let timer = Stopwatch.StartNew ()
+    let cells = Array.zeroCreate nCells
+    let before = GC.GetTotalMemory true
+    run <| job {
+      do! Job.forUpTo 0 (nCells-1) <| fun i ->
+            cell i |>> fun cell -> cells.[i] <- cell
+      do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
+      return!
+        seq {1 .. nJobs}
+        |> Seq.map (fun _ ->
+           let rnd = Random ()
+           Job.forUpTo 1 nUpdates <| fun _ ->
+             let c = rnd.Next (0, nCells)
+             get cells.[c] >>= fun x ->
+             put cells.[c] (x+1))
+        |> Job.conIgnore
+    }
+    for i=0 to nCells-1 do
+      cells.[i] <- Unchecked.defaultof<_>
+    let d = timer.Elapsed
+    printf "%8.5f s to %d c * %d p * %d u\n"
+     d.TotalSeconds nCells nJobs nUpdates
+
 module HopacAlt =
   type Cell<'a> = {
     getCh: Ch<'a>
@@ -155,6 +205,7 @@ let tick () =
 
 let test doAs m n p =
   HopacReq.run m n p ; tick ()
+  HopacDyn.run m n p ; tick ()
   HopacAlt.run m n p ; tick ()
   if doAs then AsyncCell.run m n p ; tick ()
 
