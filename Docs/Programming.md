@@ -362,24 +362,22 @@ The **cell** constructor then creates the channels and starts the server loop:
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
   let rec server x =
-    Alt.pick ((Ch.Alt.take c.putCh   >=> server)
-          <|> (Ch.Alt.give c.getCh x >=> fun () -> server x))
+    Alt.select [Ch.Alt.take c.putCh   >=> server
+                Ch.Alt.give c.getCh x >=> fun () -> server x]
   Job.start (server x) >>% c
 ```
 
 In the server loop, the above implementation uses selective communication.  It
-creates a combined alternative, using the binary choice combinator
-**&lt;|&gt;**, of two primitive alternatives:
+uses a choice of two primitive alternatives:
 
 * The first alternative takes a value on the **putCh** channel from a client and
   then loops.
 * The second alternative gives a value on the **getCh** channel to a client and
   the loops.
 
-The combined alternative is then instantiated using **pick**.  This means that
-the server makes an offer to perform the alternatives.  Of the two offered
-alternatives, the alternative that becomes available for picking first will then
-be committed to.  The other offer will be withdrawn.
+What this basically means is that the server makes an offer to perform the
+alternatives.  Of the two offered alternatives, the alternative that becomes
+available first will then be committed to.  The other offer will be withdrawn.
 
 This pattern of carrying some value from one iteration of a server loop to the
 next is common enough that there is a combinator **iterate** for that purpose.
@@ -389,9 +387,9 @@ Using **iterate** we would write:
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
   Job.server
-   (Job.iterate x (fun x ->
-      Alt.pick ((Ch.Alt.take c.putCh)
-            <|> (Ch.Alt.give c.getCh x >-> fun () -> x)))) >>% c
+   (Job.iterate x <| fun x ->
+    Alt.select [Ch.Alt.take c.putCh
+                Ch.Alt.give c.getCh x >-> fun () -> x]) >>% c
 ```
 
 The above also makes use of the function **Job.server** instead of
@@ -467,8 +465,8 @@ let CompareBool (comparand: ref<bool>)
   if !comparand then onTrue x else onFalse x
 ```
 
-The **CompareBool** function creates a job that first waits for the **input**
-event and then performs either the **onTrue** or the **onFalse** action
+The **CompareBool** function creates a job that first picks the **input**
+alternative and then performs either the **onTrue** or the **onFalse** action
 depending on the value of **comparand**.  As you can see, the above
 **CompareBool** job doesn't care about the type of the alternatives.  It just
 copies the received value **x** to the chosen output.
