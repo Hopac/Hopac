@@ -38,7 +38,7 @@ module TopLevel =
   val job: JobBuilder
 
   /// Convenience binding for running Hopac jobs.  This is the same function
-  /// as Job.Now.run.
+  /// as Job.Global.run.
   val inline run: Job<'x> -> 'x
 
 /////////////////////////////////////////////////////////////////////////
@@ -46,40 +46,31 @@ module TopLevel =
 /// Operations on jobs.
 module Job =
 
-  /// Immediate or non-workflow operations on jobs.  Note that in a typical
-  /// program there should only be a few points (maybe just one) where jobs
-  /// are started or run outside of job workflows.
-  module Now =
-    /// Starts running the given job, but does not wait for the job to finish.
-    /// Upon the failure or success of the job, one of the given actions is
-    /// called once.  Note that using this function in a job workflow is not
-    /// optimal and you should instead use Job.start with desired Job exception
-    /// handling construct (e.g. Job.tryIn or Job.catch).
+  /// Operations on the global scheduler.  Note that in a typical program there
+  /// should only be a few points (maybe just one) where jobs are started or run
+  /// outside of job workflows.
+  module Global =
+    /// Starts running the given job on the global scheduler, but does not wait
+    /// for the job to finish.  Upon the failure or success of the job, one of
+    /// the given actions is called once.  Note that using this function in a
+    /// job workflow is not optimal and you should instead use Job.start with
+    /// desired Job exception handling construct (e.g. Job.tryIn or Job.catch).
     val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
-    /// Starts running the given job, but does not wait for the job to finish.
-    /// The result, if any, of the job is ignored.  Note that using this
-    /// function in a job workflow is not optimal and you should use Job.start
-    /// instead.
+    /// Starts running the given job on the global scheduler, but does not wait
+    /// for the job to finish.  The result, if any, of the job is ignored.  Note
+    /// that using this function in a job workflow is not optimal and you should
+    /// use Job.start instead.
     val start: Job<_> -> unit
 
     /// Like Job.start, but the given job is known never to return normally, so
     /// the job can be spawned in a sligthly lighter-weight manner.
     val server: Job<Void> -> unit
 
-    /// Starts running the job and then waits for the job to either return
-    /// successfully or fail.  Note that using this function in a job workflow
-    /// is not optimal and should never be needed.
+    /// Starts running the job on the global scheduler and then waits for the
+    /// job to either return successfully or fail.  Note that using this
+    /// function in a job workflow is not optimal and should never be needed.
     val run: Job<'x> -> 'x
-
-    /// Sets the top level exception handler job constructor.  When a job fails
-    /// with an otherwise unhandled exception, the job is killed and a new job
-    /// is constructed with the top level handler constructor and then started.
-    /// To avoid infinite loops, in case the top level handler job raises
-    /// exceptions, it is simply killed after printing a message to the
-    /// console.  The default top level handler simply prints out a message to
-    /// the console.
-    val setTopLevelHandler: (exn -> Job<unit>) -> unit
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -343,7 +334,7 @@ module Alt =
 module Timer =
 
   /// Operations on the global wall-clock timer.
-  module Now =
+  module Global =
     /// Creates an alternative that, after instantiation, becomes pickable
     /// after the specified time span.  Note that this is simply not intended
     /// for high precision timing and the resolution of the underlying timing
@@ -364,6 +355,8 @@ module Ch =
     /// Creates a new channel.
     val inline create: unit -> Ch<'x>
 
+  /// Operations bound to the global scheduler.
+  module Global =
     /// Sends the given value to the specified channel.  Note that using this
     /// function in a job workflow is not generally optimal and you should use
     /// Ch.send instead.
@@ -494,6 +487,8 @@ module Mailbox =
     /// Creates a new mailbox.
     val inline create: unit -> Mailbox<'x>
 
+  /// Operations bound to the global scheduler.
+  module Global =
     /// Sends the given value to the specified mailbox.  Note that using this
     /// function in a job workflow is not generally optimal and you should use
     /// Mailbox.send instead.
@@ -654,8 +649,47 @@ module Extensions =
 /// knowledge of Hopac, but may allow adapting Hopac to special application
 /// requirements.
 module Scheduler =
+
+  /// Operations on the global scheduler.
+  module Global =  
+    /// Sets the top level exception handler job constructor of the global
+    /// scheduler.  When a job fails with an otherwise unhandled exception, the
+    /// job is killed and a new job is constructed with the top level handler
+    /// constructor and then started.  To avoid infinite loops, in case the top
+    /// level handler job raises exceptions, it is simply killed after printing
+    /// a message to the console.  The default top level handler, or None,
+    /// simply prints out a message to the console.
+    val setTopLevelHandler: option<exn -> Job<unit>> -> unit
+
+  /// A record of scheduler configuration options.
   type Create =
-    {NumWorkers: int}
+    {
+      /// Number of worker threads.  The default is Environment.ProcessorCount.
+      /// Using more than Environment.ProcessorCount is not optimal and may, in
+      /// some cases, significantly reduce performance.
+      NumWorkers: option<int>
+
+      /// Specifies the top level exception handler job constructor of the
+      /// scheduler.  When a job fails with an otherwise unhandled exception,
+      /// the job is killed and a new job is constructed with the top level
+      /// handler constructor and then started.  To avoid infinite loops, in
+      /// case the top level handler job raises exceptions, it is simply killed
+      /// after printing a message to the console.  The default top level
+      /// handler simply prints out a message to the console.
+      TopLevelHandler: option<exn -> Job<unit>>
+     
+      /// Specifies the idle handler of the scheduler.  The idle handler is run
+      /// whenever a worker runs out of work.  The idle handler must return an
+      /// integer value that specifies how many milliseconds the worker is
+      /// allowed to sleep.  Timeout.Infinite puts the worker into sleep until
+      /// the scheduler explicitly wakes it up.  0 means that the idle handler
+      /// found some new work and the worker should immediately look for it.
+      /// The default idle handler simply returns Timeout.Infinite.  See also
+      /// "Scheduler.signal".
+      IdleHandler: option<Job<int>>
+    }
+    
+    /// Default options.
     static member Def: Create
 
   /// Creates a new local scheduler.
@@ -677,25 +711,7 @@ module Scheduler =
   /// so the job can be spawned in a sligthly lighter-weight manner.
   val server: Scheduler -> Job<Void> -> unit
 
-  /// Sets the top level exception handler job constructor of the scheduler.
-  /// When a job fails with an otherwise unhandled exception, the job is killed
-  /// and a new job is constructed with the top level handler constructor and
-  /// then started.  To avoid infinite loops, in case the top level handler job
-  /// raises exceptions, it is simply killed after printing a message to the
-  /// console.  The default top level handler simply prints out a message to the
-  /// console.
-  val setTopLevelHandler: Scheduler -> (exn -> Job<unit>) -> unit
-
-  /// Sets the idle handler of the scheduler.  The idle handler is run whenever
-  /// a worker runs out of work.  The idle handler must return an integer value
-  /// that specifies how many milliseconds the worker is allowed to sleep.
-  /// Timeout.Infinite puts the worker into sleep until the scheduler explicitly
-  /// wakes it up.  0 means that the idle handler found some new work and the
-  /// worker should immediately look for it.  The default idle handler simply
-  /// returns Timeout.Infinite.  See also "Scheduler.signal".
-  val setIdleHandler: Scheduler -> Job<int> -> unit
-
   /// Assuming that at least one worker thread is currently sleeping, wakes up
   /// one worker thread.  The woken up worker may then wake up further workers
-  /// assuming there is plenty of work.  See also "Scheduler.setIdleHandler".
+  /// assuming there is plenty of work.
   val signal: Scheduler -> unit

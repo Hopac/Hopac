@@ -1,7 +1,6 @@
 ﻿module CmlLCH
 
-// Inspired by http://www.cs.umd.edu/~avik/projects/cmllch/
-
+open System
 open System.Diagnostics
 open Hopac
 open Hopac.Extra
@@ -32,11 +31,11 @@ module EgPaper =
     spawn (make "+" "z" (Ch.Alt.give z ()))
 
   let run n =
-    printf "EgPaper %d: " n
+    printf "EgPaper %8d: " n
     let timer = Stopwatch.StartNew ()
     let r = run (Job.forN n egpaper)
     let d = timer.Elapsed
-    printf "%fs (%d threads)\n" d.TotalSeconds System.Environment.ProcessorCount
+    printf "%fs\n" d.TotalSeconds
 
 module SwapCh =
   type SwapChannel<'a> = Ch<'a * Ch<'a>>
@@ -58,11 +57,11 @@ module SwapCh =
     Alt.pick (swap ch ())
 
   let run n =
-    printf "SwapCh %d: " n
+    printf "SwapCh %8d: " n
     let timer = Stopwatch.StartNew ()
     let r = run (Job.forN n bench)
     let d = timer.Elapsed
-    printf "%fs (%d threads)\n" d.TotalSeconds System.Environment.ProcessorCount
+    printf "%fs\n" d.TotalSeconds
 
 module BufferedCh =
   type BufferedCh<'a> = Ch<'a> * Ch<'a>
@@ -94,26 +93,31 @@ module BufferedCh =
     recv buf
 
   let run n =
-    printf "BufferedCh %d: " n
+    printf "BufferedCh %8d: " n
     let timer = Stopwatch.StartNew ()
     let r = run (Job.forN n bench)
     let d = timer.Elapsed
-    printf "%fs (%d threads)\n" d.TotalSeconds System.Environment.ProcessorCount
+    printf "%fs\n" d.TotalSeconds
+
+let cleanup () =
+  for i=1 to 2 do
+    GC.Collect ()
+    Threading.Thread.Sleep 50
 
 do let mutable n = 1
    for i=1 to 6 do
      n <- n*10
-     System.GC.Collect () ; System.Threading.Thread.Sleep 100
+     cleanup ()
      EgPaper.run n
 
 do let mutable n = 1
    for i=1 to 6 do
      n <- n*10
-     System.GC.Collect () ; System.Threading.Thread.Sleep 100
+     cleanup ()
      SwapCh.run n
 
 do let mutable n = 1
    for i=1 to 6 do
      n <- n*10
-     System.GC.Collect () ; System.Threading.Thread.Sleep 100
+     cleanup ()
      BufferedCh.run n

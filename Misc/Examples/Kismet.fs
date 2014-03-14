@@ -6,7 +6,7 @@ open Hopac.Alt
 open Hopac.Alt.Infixes
 open Hopac.Job
 open Hopac.Job.Infixes
-open Hopac.Timer.Now
+open Hopac.Timer.Global
 
 // Inspired by http://upload.wikimedia.org/wikipedia/en/e/e6/Kismet_Roboblitz.PNG
 

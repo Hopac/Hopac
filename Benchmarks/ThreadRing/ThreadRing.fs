@@ -164,14 +164,14 @@ module MPPost =
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
-  for i=1 to 10 do
+  for i=1 to 5 do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
-    Threading.Thread.Sleep 100
+    Threading.Thread.Sleep 50
 
-do for p in [1 .. Environment.ProcessorCount] do
+do for p in [1; Environment.ProcessorCount] do
      for n in [500; 500000; 50000000] do
-       for l in [53; 503; 500003] do
+       for l in [53; 503; 50003] do
          printf "\nWith %d rings of length %d passing %d msgs:\n\n" p l n
          if n <= 500000 then
            MPPost.run l n p ; cleanup ()

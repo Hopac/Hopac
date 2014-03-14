@@ -15,7 +15,7 @@ namespace Hopac.Core {
       this.Me = me;
     }
   }
-
+  
   unsafe internal struct Worker {
     internal Work WorkStack;
     internal Handler Handler;
@@ -63,35 +63,14 @@ namespace Hopac.Core {
       Debug.Assert(null == last.Next);
       var older = wr.WorkStack;
       wr.WorkStack = work;
-      if (null != older)
-        goto CheckScheduler;
-      goto Exit;
-    CheckScheduler:
-      var sr = wr.Scheduler;
-      if (0 <= sr.Waiters) // null == Scheduler.WorkStack)
-        goto MaybePushToScheduler;
-    Contention:
-      last.Next = older;
-    Exit:
-      return;
-
-    MaybePushToScheduler:
-      if (SpinlockTTAS.Open != SpinlockTTAS.GetState(ref sr.Lock))
-        goto Contention;
-      if (SpinlockTTAS.Open != SpinlockTTAS.TryEnter(ref sr.Lock))
-        goto Contention;
-      if (null == sr.WorkStack)
-        goto PushToScheduler;
-      SpinlockTTAS.Exit(ref sr.Lock);
-      last.Next = older;
-      return;
-
-    PushToScheduler:
-      sr.WorkStack = older;
-      int waiters = sr.Waiters;
-      if (0 <= waiters)
-        sr.Events[waiters].Set();
-      SpinlockTTAS.Exit(ref sr.Lock);
+      if (null != older) {
+        var sr = wr.Scheduler;
+        if (null == sr.WorkStack) {
+          Scheduler.PushAll(sr, older);
+        } else {
+          last.Next = older;
+        }
+      }
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -150,36 +129,46 @@ namespace Hopac.Core {
 
         WorkerLoop:
           wr.WorkStack = work.Next;
-        Do:
           wr.Handler = work;
           work.DoWork(ref wr);
           work = wr.WorkStack;
           if (null != work)
             goto WorkerLoop;
 
+          wr.Handler = null;
+
         EnterScheduler:
           work = sr.WorkStack;
           if (null == work)
             goto TryIdle;
-          sr.Lock.Enter();
-        EnterSchedulerLocked:
+
+          Scheduler.Enter(sr);
+
           work = sr.WorkStack;
           if (null == work)
             goto ExitAndTryIdle;
 
-        SchedulerGotSome:
-          var next = work.Next;
-          sr.WorkStack = next;
-          if (null != next) {
-            var waiter = sr.Waiters;
-            if (0 <= waiter)
-              sr.Events[waiter].Set();
+        SchedulerGotSome: {
+            var last = work;
+            int numWorkStack = sr.NumWorkStack - 1;
+            int n = sr.NumWorkStack >> 2;
+            numWorkStack -= n;
+            while (n > 0) {
+              last = last.Next;
+              n -= 1;
+            }
+            var next = last.Next;
+            last.Next = null;
+            sr.WorkStack = next;
+            if (null != next)
+              Scheduler.UnsafeSignal(sr);
+            sr.NumWorkStack = numWorkStack;
+            Scheduler.Exit(sr);
+            goto WorkerLoop;
           }
-          sr.Lock.Exit();
-          goto Do;
 
         ExitAndTryIdle:
-          sr.Lock.Exit();
+          Scheduler.Exit(sr);
 
         TryIdle:
           iK.Value = Timeout.Infinite;
@@ -193,38 +182,18 @@ namespace Hopac.Core {
           if (0 == iK.Value)
             goto Restart;
 
-          sr.Lock.Enter();
+          Scheduler.Enter(sr);
           work = sr.WorkStack;
           if (null != work)
             goto SchedulerGotSome;
 
-          var n = sr.Waiters;
-          if (n < 0) {
-            mine.Next = -1;
-            sr.Waiters = me;
-          } else {
-            WorkerEvent other = sr.Events[n];
-            mine.Next = other.Next;
-            other.Next = me;
-          }
+          mine.Next = sr.Waiters;
+          sr.Waiters = me;
 
-          mine.Reset();
-          sr.Lock.Exit();
+          Scheduler.Exit(sr);
           mine.Wait(iK.Value);
-          sr.Lock.Enter();
-          if (sr.Waiters == me) {
-            sr.Waiters = mine.Next;
-          } else {
-            WorkerEvent ev = sr.Events[sr.Waiters];
-            if (ev.Next != me) {
-              do {
-                ev = sr.Events[ev.Next];
-              } while (ev.Next != me);
-            }
-            ev.Next = mine.Next;
-          }
-
-          goto EnterSchedulerLocked;
+          mine.Reset();
+          goto EnterScheduler;
         } catch (ThreadAbortException) {
           Scheduler.Signal(sr);
           sr = null;

@@ -50,6 +50,8 @@ module HopacReq =
         |> Job.conIgnore
     }
     let d = timer.Elapsed
+    for i=0 to nCells-1 do
+      cells.[i] <- Unchecked.defaultof<_>
     printf "%8.5f s to %d c * %d p * %d u\n"
      d.TotalSeconds nCells nJobs nUpdates
 
@@ -89,6 +91,8 @@ module HopacAlt =
         |> Job.conIgnore
     }
     let d = timer.Elapsed
+    for i=0 to nCells-1 do
+      cells.[i] <- Unchecked.defaultof<_>
     printf "%8.5f s to %d c * %d p * %d u\n"
      d.TotalSeconds nCells nJobs nUpdates
 
@@ -138,11 +142,13 @@ module AsyncCell =
     for i=0 to nCells-1 do
       (cells.[i] :> IDisposable).Dispose ()
     let d = timer.Elapsed
+    for i=0 to nCells-1 do
+      cells.[i] <- Unchecked.defaultof<_>
     printf "%8.5f s to %d c * %d p * %d u\n"
      d.TotalSeconds nCells nJobs nUpdates
 
 let tick () =
-  for i=1 to 10 do
+  for i=1 to 5 do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     Threading.Thread.Sleep 50

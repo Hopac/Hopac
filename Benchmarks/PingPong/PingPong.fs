@@ -37,7 +37,7 @@ module Ch =
      total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
-  for i=1 to 10 do
+  for i=1 to 5 do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     Threading.Thread.Sleep 50

@@ -25,6 +25,12 @@ module Util =
   let inline forward (e: exn) : 'x =
     raise (exn ("forwarded", e))
 
+  module Option =
+    let orDefaultOf x =
+      match x with
+       | None -> Unchecked.defaultof<_>
+       | Some x -> x
+
   let inline ctor x2y x =
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK) =
@@ -66,7 +72,9 @@ module Util =
 
   let reallyGlobalScheduler () =
     lock typeof<Scheduler> <| fun () ->
-    let sr = Scheduler Environment.ProcessorCount
+    let sr = Scheduler (Environment.ProcessorCount,
+                        Unchecked.defaultof<_>,
+                        null)
     globalScheduler <- sr
     sr
 
@@ -105,6 +113,7 @@ module IVar =
 module Ch =
   module Now =
     let inline create () = Ch<'x> ()
+  module Global =
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (globalScheduler, xCh, x)
   let create () = ctor Now.create ()
@@ -120,6 +129,7 @@ module Ch =
 module Mailbox =
   module Now =
     let inline create () = Mailbox<'x> ()
+  module Global =
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xMb: Mailbox<'x>) (x: 'x) =
       Mailbox<'x>.Send (globalScheduler, xMb, x)
@@ -306,12 +316,29 @@ module Alt =
 /////////////////////////////////////////////////////////////////////////
 
 module Scheduler =
-  type Create =
-    {NumWorkers: int}
-    static member Def: Create =
-      {NumWorkers = Environment.ProcessorCount}
+  module Global =
+    let setTopLevelHandler e2uJO =
+      let sr = initGlobalScheduler ()
+      sr.TopLevelHandler <- Option.orDefaultOf e2uJO
 
-  let create (c: Create) = Scheduler c.NumWorkers
+  type Create =
+    {NumWorkers: option<int>
+     TopLevelHandler: option<exn -> Job<unit>>
+     IdleHandler: option<Job<int>>}
+    static member Def: Create =
+      {NumWorkers = None
+       TopLevelHandler = None
+       IdleHandler = None}
+
+  let create (c: Create) =
+    Scheduler ((match c.NumWorkers with
+                 | None -> Environment.ProcessorCount
+                 | Some n ->
+                   if n < 1 then
+                     failwith "Invalid number of workers specified: %d" n
+                   n),
+               Option.orDefaultOf c.TopLevelHandler,
+               Option.orDefaultOf c.IdleHandler)
 
   let startWithActions (sr: Scheduler)
                        (eF: exn -> unit)
@@ -344,26 +371,18 @@ module Scheduler =
      | null -> xK'.Value
      | e -> Util.forward e
 
-  let setTopLevelHandler (sr: Scheduler) (e2uJ: exn -> Job<unit>) =
-    sr.TopLevelHandler <- e2uJ
-
-  let setIdleHandler (sr: Scheduler) (iJ: Job<int>) =
-    sr.IdleHandler <- iJ
-
   let signal (sr: Scheduler) =
     Scheduler.Signal sr
 
 /////////////////////////////////////////////////////////////////////////
 
 module Job =
-  module Now =
+  module Global =
     let startWithActions eF xF xJ =
       Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ
     let start xJ = Scheduler.start (initGlobalScheduler ()) xJ
     let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
     let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
-    let setTopLevelHandler e2uJ =
-      Scheduler.setTopLevelHandler (initGlobalScheduler ()) e2uJ
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -545,19 +564,20 @@ module Job =
     let (<*>) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'x * 'y> () with
         override xyJ'.DoJob (wr, xyK) =
-          if 0 <= wr.Scheduler.Waiters then
-            let yK' = ParTuple<'x, 'y> (xyK)
-            Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
-             override xK'.DoHandle (wr, e) = Handler.DoHandle (yK', &wr, e)
-             override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
-             override xK'.DoWork (wr) =
-              match xK'.State with
-               | null -> yK'.DoOtherCont (&wr, xK'.Value)
-               | xJ ->
-                 xK'.State <- null
-                 xJ.DoJob (&wr, xK')})
-            yJ.DoJob (&wr, yK')
-          else
+          match wr.Scheduler.WorkStack with
+           | null ->
+             let yK' = ParTuple<'x, 'y> (xyK)
+             Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
+              override xK'.DoHandle (wr, e) = Handler.DoHandle (yK', &wr, e)
+              override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
+              override xK'.DoWork (wr) =
+               match xK'.State with
+                | null -> yK'.DoOtherCont (&wr, xK'.Value)
+                | xJ ->
+                  xK'.State <- null
+                  xJ.DoJob (&wr, xK')})
+             yJ.DoJob (&wr, yK')
+           | _ ->
             xJ.DoJob (&wr, PairCont (yJ, xyK))}
 
   ///////////////////////////////////////////////////////////////////////
@@ -856,7 +876,7 @@ module Job =
 /////////////////////////////////////////////////////////////////////////
 
 module Timer =
-  module Now =
+  module Global =
     type [<AllowNullLiteral>] WorkTimedUnitCont =
       inherit WorkTimed
       val uK: Cont<unit>
@@ -1114,4 +1134,4 @@ type JobBuilder () =
 [<AutoOpen>]
 module TopLevel =
   let job = JobBuilder ()
-  let inline run x = Job.Now.run x
+  let inline run x = Job.Global.run x
