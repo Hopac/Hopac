@@ -715,3 +715,8 @@ module Scheduler =
   /// one worker thread.  The woken up worker may then wake up further workers
   /// assuming there is plenty of work.
   val signal: Scheduler -> unit
+
+  /// Returns true if the scheduler is completely idle, meaning that all worker
+  /// threads are waiting, at the moment.  Note that calling this from a worker
+  /// thread, even from an idle handler, always return false.
+  val isIdle: Scheduler -> bool

@@ -14,7 +14,8 @@ namespace Hopac {
     internal Work WorkStack;
     internal SpinlockTTAS Lock;
     internal int NumWorkStack;
-    internal int Waiters;
+    internal int WaiterStack;
+    internal int NumActive;
     internal WorkerEvent[] Events;
     internal FSharpFunc<Exception, Job<Unit>> TopLevelHandler;
     internal Job<int> IdleHandler;
@@ -24,7 +25,8 @@ namespace Hopac {
                        Job<int> idleHandler) {
       TopLevelHandler = topLevelHandler;
       IdleHandler = idleHandler;
-      Waiters = -1;
+      WaiterStack = -1;
+      NumActive = numWorkers;
       Events = new WorkerEvent[numWorkers];
       var threads = new Thread[numWorkers];
       for (int i = 0; i < numWorkers; ++i) {
@@ -39,6 +41,11 @@ namespace Hopac {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal static bool IsIdle(Scheduler sr) {
+      return 0 == sr.NumActive;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal static void Enter(Scheduler sr) {
       sr.Lock.Enter();
     }
@@ -50,21 +57,32 @@ namespace Hopac {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void UnsafeSignal(Scheduler sr) {
-      var waiter = sr.Waiters;
+      var waiter = sr.WaiterStack;
       if (0 <= waiter) {
         var ev = sr.Events[waiter];
-        sr.Waiters = ev.Next;
+        sr.WaiterStack = ev.Next;
+        sr.NumActive += 1;
         ev.Set();
       }
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Signal(Scheduler sr) {
-      if (0 <= sr.Waiters) {
+      if (0 <= sr.WaiterStack) {
         Enter(sr);
         UnsafeSignal(sr);
         Exit(sr);
       }
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void UnsafeWait(Scheduler sr, int ms, WorkerEvent ev) {
+      ev.Next = sr.WaiterStack;
+      sr.WaiterStack = ev.Me;
+      sr.NumActive -= 1;
+      Exit(sr);
+      ev.Wait(ms);
+      ev.Reset();
     }
 
     [MethodImpl(AggressiveInlining.Flag)]

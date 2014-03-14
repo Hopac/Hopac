@@ -374,6 +374,9 @@ module Scheduler =
   let signal (sr: Scheduler) =
     Scheduler.Signal sr
 
+  let isIdle (sr: Scheduler) =
+    Scheduler.IsIdle sr
+
 /////////////////////////////////////////////////////////////////////////
 
 module Job =

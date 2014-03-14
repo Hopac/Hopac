@@ -187,12 +187,7 @@ namespace Hopac.Core {
           if (null != work)
             goto SchedulerGotSome;
 
-          mine.Next = sr.Waiters;
-          sr.Waiters = me;
-
-          Scheduler.Exit(sr);
-          mine.Wait(iK.Value);
-          mine.Reset();
+          Scheduler.UnsafeWait(sr, iK.Value, mine);
           goto EnterScheduler;
         } catch (ThreadAbortException) {
           Scheduler.Signal(sr);
