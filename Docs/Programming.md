@@ -488,8 +488,8 @@ let Delay (duration: ref<TimeSpan>)
           (finished: 'x -> Job<unit>)
           (aborted: 'y -> Job<unit>) : Job<unit> =
   Alt.pick start >>= fun x ->
-  Alt.select [stop                    >=> fun y -> aborted y
-              Alt.timeOut (!duration) >=> fun () -> finished x]
+  Alt.select [stop                             >=> fun y -> aborted y
+              Timer.Global.timeOut (!duration) >=> fun () -> finished x]
 ```
 
 The **Delay** function creates a job that first picks the **start** alternative.
@@ -1131,12 +1131,12 @@ val guard: Job<Alt<'x>> -> Alt<'x>
 
 Recall in the Kismet sketch it was mentioned that simulations like games often
 have their own notion of time and that the wall-clock time provided by
-**Alt.timeOut** probably doesn't provide the desired semantics.  A simple game
-might be designed to update the simulation of the game world 60 times per second
-to match with a 60Hz display devices.  Rather than complicate all the
-calculations done in the simulation with a variable time step, such a simulation
-would be advanced in fixed length time steps or *ticks*.  Simplifying things to
-a minimum, the main loop of a game would then look roughly like this:
+**Timer.Global.timeOut** probably doesn't provide the desired semantics.  A
+simple game might be designed to update the simulation of the game world 60
+times per second to match with a 60Hz display devices.  Rather than complicate
+all the calculations done in the simulation with a variable time step, such a
+simulation could be advanced in fixed length time steps or *ticks*.  Simplifying
+things to a minimum, the main loop of a game could then look roughly like this:
 
 ```fsharp
 while !runGame do
@@ -1148,11 +1148,122 @@ while !runGame do
 Now, the idea is that the **tick ()** call runs all the simulation logic for one
 step and that the simulation is implemented using Hopac jobs.  More specifically
 we don't want any simulation code to run after the **tick ()** call returns.
-This is so that the **render ()** call has one consistent view of the world
-without nasty race conditions.  To make this happen, we will simply not have any
-jobs waiting on any other notion of time except those game ticks.
+This is so that the **render ()** call has one consistent view of the world.
+
+A clean way to achieve this is to create a **local scheduler** for running the
+Hopac jobs that implement the game logic.  This way, after we've triggered all
+the jobs waiting for the next game tick, we can simply wait until the local
+scheduler becomes idle.  This means that all the jobs that run under the local
+scheduler have become blocked waiting for something&mdash;possibly waiting for a
+future game tick.
+
+Enough with the motivation.  We'll represent time using a 64-bit integer type.
+
+```fsharp
+type Ticks = int64
+```
+
+And we have a variable that holds the current time.
 
 
+```fsharp
+let mutable currentTime : Ticks = 0L
+```
+
+Now, to integrate this concept of time with Hopac, we'll have a time server with
+which we communicate through a timer request channel.
+
+```fsharp
+let timerReqCh : Ch<Ticks * Ch<unit>> = Ch.Now.create ()
+```
+
+Via the channel, a client can send a request to the server to send back a
+message on a channel allocated for the request at the specified time.  To send
+the request and allocate a new channel for the server's reply, we'll use the
+**guard** combinator.  The following **atTime** function creates an alternative
+that *encapsulates the whole protocol* for interacting with the time server:
+
+```fsharp
+let atTime (atTime: Ticks) : Alt<unit> =
+  Alt.guard << Job.delay <| fun () ->
+  let replyCh : Ch<unit> = Ch.Now.create ()
+  Ch.send timerReqCh (atTime, replyCh) >>%
+  Ch.Alt.take replyCh
+```
+
+A detail worth pointing out above is the use of the **Ch.send** operation to
+send requests to the server asynchronously.  We already have the client blocking
+to wait taking a reply from the server, so there is no need to have the client
+block waiting for the time server to take the request.  Using **atTime** we can
+implement the **timeOut** alternative constructor used in the earlier Kismet
+example:
+
+```fsharp
+let timeOut (afterTicks: Ticks) : Alt<unit> =
+  assert (0L <= afterTicks)
+  Alt.delay <| fun () ->
+  atTime (currentTime + afterTicks)
+```
+
+What remains is to implement the time server itself.  Taking advantage of
+existing data structures, we'll use a simple dictionary that maps ticks to lists
+of reply channels to represent the queue of pending requests:
+
+```fsharp
+let requests = Dictionary<Ticks, ResizeArray<Ch<unit>>> ()
+```
+
+The time request server takes messages from the request channel and deals with
+the appropriately, either responding to them immediately or adding them to the
+queue of pending requests:
+
+```fsharp
+let timeReqServer =
+  Ch.take timerReqCh >>= fun (atTime, replyCh) ->
+  if currentTime <= atTime then
+    Ch.send replyCh ()
+  else
+    let replyChs =
+      match requests.TryGetValue atTime with
+       | (true, replyChs) -> replyChs
+       | _ ->
+         let replyChs = ResizeArray<_>()
+         requests.Add (atTime, replyChs)
+         replyChs
+    replyIvs.Add replyCh
+    Job.unit
+```
+
+The time request server also uses an asynchronous send to reply to requests.
+This time it is not only an optimization, but required, because it is possible
+that within a selective communication the timer request is abandoned and there
+is no client waiting for the request.  If the server would try to give the reply
+synchronously, the server would be blocked indefinitely.
+
+The above only implements a single iteration of the time request server.  We
+need to start the server after we have created the local scheduler:
+
+```fsharp
+do! Job.server (Job.forever timeReqServer)
+```
+
+One final part of the implementation of time is a routine to advance time.  The
+following **tick** job increments the current time and then sends replies to all
+the requests at that time:
+
+```fsharp
+let tick = Job.delay <| fun () ->
+  currentTime <- currentTime + 1L
+  match requests.TryGetValue currentTime with
+   | (true, replyChs) ->
+     requests.Remove currentTime |> ignore
+     replyChs
+     |> Seq.iterJob (fun replyCh -> Ch.send replyCh ())
+   | _ ->
+     Job.unit
+```
+
+That concludes the implementation of the time server.
 
 ### Negative Acknowledgments
 
