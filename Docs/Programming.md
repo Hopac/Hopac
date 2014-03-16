@@ -1150,7 +1150,7 @@ step and that the simulation is implemented using Hopac jobs.  More specifically
 we don't want any simulation code to run after the **tick ()** call returns.
 This is so that the **render ()** call has one consistent view of the world.
 
-A clean way to achieve this is to create a **local scheduler** for running the
+A clean way to achieve this is to create a *local scheduler* for running the
 Hopac jobs that implement the game logic.  This way, after we've triggered all
 the jobs waiting for the next game tick, we can simply wait until the local
 scheduler becomes idle.  This means that all the jobs that run under the local
@@ -1214,8 +1214,8 @@ let requests = Dictionary<Ticks, ResizeArray<Ch<unit>>> ()
 ```
 
 The time request server takes messages from the request channel and deals with
-the appropriately, either responding to them immediately or adding them to the
-queue of pending requests:
+them, either responding to them immediately or adding them to the queue of
+pending requests:
 
 ```fsharp
 let timeReqServer =
@@ -1273,7 +1273,7 @@ service provide by the time server is idempotent.  If a client makes a request
 to the time server and later aborts the request, that is, doesn't wait for the
 server's reply, it causes no harm.  Sometimes things are not that simple and a
 server needs to know whether client actually committed to a transaction.  Hopac,
-like CML, supports this via the **Alt.withNack** combinator:
+like CML, supports this via the **withNack** combinator:
 
 ```fsharp
 val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
@@ -1281,7 +1281,7 @@ val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
 The **withNack** combinator is like **guard** in that it allows an alternative
 to be computed at instantiation time.  Additionally, **withNack** creates a
-negative acknowledgment alternative that it gives to the encapsulated
+*negative acknowledgment alternative* that it gives to the encapsulated
 alternative constructor.  If the constructed alternative is ultimately not
 committed to, the negative acknowledgment alternative becomes available.
 Consider the following example:
@@ -1320,11 +1320,183 @@ val it : int = 1
 ```
 
 In the third case above, the first alternative is immediately committed to and
-no verbose alternative is not instantiated.  No code within the verbose
-alternative constructor was executed and no negative acknowledgment alternative
-was created.
+no verbose alternative is instantiated.  No code within the verbose alternative
+constructor was executed and no negative acknowledgment alternative was created.
 
+Negative acknowledgments can be useful as both as a mechanism that allows one to
+cancel expensive operations for performance reasons (when the request is
+idempotent) and also as a mechanism that allows one to encapsulate protocols
+that otherwise couldn't be properly encapsulated as alternatives.
 
+#### Example: Lock Server
+
+An example that illustrates how **withNack** can be used to encapsulate a
+non-idempotent request as an alternative is the implementation of a *lock
+server*.  Here is a signature of a lock server:
+
+```fsharp
+type Server
+type Lock
+
+val start: Job<Server>
+val createLock: Server -> Lock
+val acquire: Server -> Lock -> Alt<unit>
+val release: Server -> Lock -> Job<unit>
+```
+
+The idea is that a lock server allows a client to acquire a lock as an
+alternative within a selective communication.  A client could, for example, try
+to obtain one of several locks and proceed accordingly:
+
+```fsharp
+Alt.select [acquire server lockA >=> fun () ->
+              (* critical section A *)
+              release server lockA
+            acquire server lockB >=> fun () ->
+              (* critical section B *)
+              release server lockB]
+```
+
+Or a client could use a timeout to avoid waiting indefinitely for a lock:
+
+```fsharp
+Alt.select [acquire lock >=> (* critical section *)
+            timeOut duration >=> (* do something else *)]
+```
+
+What is important here is that the **acquire** alternative must work correctly
+even in case that the operation is ultimately abandoned by the client.
+
+Let's then describe the lock server example implementation.  We represent a lock
+using a unique integer:
+
+```fsharp
+type Lock = Lock of int64
+```
+
+A request for the lock server is either an **Acquire** or a **Release**:
+
+```fsharp
+type Req =
+ | Acquire of lock: int64 * replyCh: Ch<unit> * abortAlt: Alt<unit>
+ | Release of lock: int64
+```
+
+An **Acquire** request passes both a reply channel and an abort alternative for
+the server.  The server record just contains an integer for generating new locks
+and the request channel:
+
+```fsharp
+type Server = {
+  mutable unique: int64
+  reqCh: Ch<Req>
+}
+```
+
+The **release**
+
+```fsharp
+let release s (Lock lock) = Ch.give s.reqCh (Release lock)
+```
+
+and **createLock**
+
+```fsharp
+let createLock s =
+  Lock (Interlocked.Increment &s.unique)
+```
+
+operations are entirely straightforward.  Note that in this example we simply
+use an interlocked increment to allocate locks.
+
+Note that this example implementation is not entirely type safe, because two
+different lock servers might have locks by the same integer value.  The reason
+for leaving the server exposed like this is that it is now easier to run the
+code snippets of this example in an interactive session.  As this type safety
+issue is not an essential aspect of the example, we leave it as an exercise for
+the reader to consider how to plug this typing hole.
+
+The **acquire** operation is where we'll use **withNack**:
+
+```fsharp
+let acquire s (Lock lock) = Alt.withNack <| fun abortAlt ->
+  let replyCh = Ch.Now.create ()
+  Ch.send s.reqCh (Acquire (lock, replyCh, abortAlt)) >>%
+  Ch.Alt.take replyCh
+```
+
+Using **withNack** a negative acknowledgment alternative, **abortAlt**, is
+created and then a reply channel, **replyCh**, is allocated and a request is
+created and sent to the lock server **s**.  An asynchronous **send** operation
+is used as there is no point in waiting for the server at this point.  Finally
+the alternative of taking the server's reply is returned.
+
+Note that a new pair of a negative acknowledgment alternative and reply channel
+is created each time an alternative constructed with **acquire** is
+instantiated.  This means that one can even try to acquire the same lock
+multiple times with the same alternative and it will work correctly:
+
+```fsharp
+let! acq = acquire s l
+do! Alt.select [acq >=> /* ... */
+                acq >=> /* ... */]
+```
+
+What remains is the implementation of the server itself.  We again make use of
+readily available data structures to hold the state, that is pending requests to
+active locks, of the lock server.
+
+```fsharp
+let start = Job.delay <| fun () ->
+  let locks = Dictionary<int64, Queue<Ch<unit> * Alt<unit>>>()
+  let s = {unique = 0L; reqCh = Ch.Now.create ()}
+  (Job.server << Job.forever)
+   (Ch.take s.reqCh >>= function
+     | Acquire (lock, replyCh, abortAlt) ->
+       match locks.TryGetValue lock with
+        | (true, pending) ->
+          pending.Enqueue (replyCh, abortAlt)
+          Job.unit
+        | _ ->
+          Alt.select [Ch.Alt.give replyCh () >-> fun () ->
+                        locks.Add (lock, Queue<_>())
+                      abortAlt]
+     | Release lock ->
+       match locks.TryGetValue lock with
+        | (true, pending) ->
+          let rec assign () =
+            if 0 = pending.Count then
+              locks.Remove lock |> ignore
+              Job.unit
+            else
+              let (replyCh, abortAlt) = pending.Dequeue ()
+              Alt.select [Ch.Alt.give replyCh ()
+                          abortAlt >=> assign]
+          assign ()
+        | _ ->
+          // We just ignore the erroneous release request
+          Job.unit) >>% s
+```
+
+As usual, the above server is implemented as a job that loops indefinitely
+taking requests from the server's request channel.  The crucial bits in the
+above implementation are the uses of **select**.  In both cases, the server
+selects between giving the lock to the client and aborting the transaction using
+the reply channel and the abort alternative, which was implemented by the client
+using a negative acknowledgment alternative created by the **withNack**
+combinator.
+
+You probably noticed the comment in the above server implementation in the case
+of an unmatched release operation.  We could also have a combinator that
+acquires a lock, executes some job and then releases the lock:
+
+```fsharp
+let withLock server lock action =
+  acquire server lock >=> fun () ->
+  Job.doFinally action (release server lock)
+```
+
+This ensures that an acquire is properly matched by a release.
 
 ### On the Semantics of Alternatives
 
