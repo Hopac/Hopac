@@ -13,7 +13,7 @@ type Lock = Lock of int64
 
 type Req =
  | Acquire of lock: int64 * replyCh: Ch<unit> * abortAlt: Alt<unit>
- | Release of int64
+ | Release of lock: int64
 
 type Server = {
   mutable unique: int64
