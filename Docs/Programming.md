@@ -1263,9 +1263,66 @@ let tick = Job.delay <| fun () ->
      Job.unit
 ```
 
-That concludes the implementation of the time server.
+That concludes the implementation of the time server itself.
 
 ### Negative Acknowledgments
+
+In the previous section the **guard** combinator was used to encapsulate the
+protocol for interacting with the custom timer server.  This worked because the
+service provide by the time server is idempotent.  If a client makes a request
+to the time server and later aborts the request, that is, doesn't wait for the
+server's reply, it causes no harm.  Sometimes things are not that simple and a
+server needs to know whether client actually committed to a transaction.  Hopac,
+like CML, supports this via the **Alt.withNack** combinator:
+
+```fsharp
+val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
+```
+
+The **withNack** combinator is like **guard** in that it allows an alternative
+to be computed at instantiation time.  Additionally, **withNack** creates a
+negative acknowledgment alternative that it gives to the encapsulated
+alternative constructor.  If the constructed alternative is ultimately not
+committed to, the negative acknowledgment alternative becomes available.
+Consider the following example:
+
+```fsharp
+let verbose alt = Alt.withNack <| fun nack ->
+  printf "Instantiated and "
+  Job.start (Alt.pick nack |>> fun () -> printfn "aborted.") >>%
+  (alt >-> fun x -> printfn "committed to." ; x)
+```
+
+The above implements an alternative constructor that simply prints out what
+happens.  Let's consider three interactions using a **verbose** alternative.
+
+```fsharp
+> run (Alt.select [verbose (Alt.always 1); Alt.always 2]) ;;
+Instantiated and committed to.
+val it : int = 1
+```
+
+In the first case above, a verbose alternative is instantiated and committed to.
+The negative acknowledgment is created, but does not become enabled.
+
+```fsharp
+> run (Alt.select [verbose (Alt.never ()); Alt.always 2]) ;;
+Instantiated and aborted.
+val it : int = 2
+```
+
+In the second case above, a verbose alternative is instantiated and aborted as
+the second alternative is committed to.
+
+```fsharp
+> run (Alt.select [Alt.always 1; verbose (Alt.always 2)]) ;;
+val it : int = 1
+```
+
+In the third case above, the first alternative is immediately committed to and
+no verbose alternative is not instantiated.  No code within the verbose
+alternative constructor was executed and no negative acknowledgment alternative
+was created.
 
 
 
