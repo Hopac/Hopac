@@ -139,7 +139,8 @@ module Job =
     /// "xJ >>! e" is equivalent to "xJ >>= fun _ -> raise e".
     val (>>!): Job<'x> -> exn -> Job<'y>
 
-    /// "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun y -> result (x, y)".
+    /// "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun y -> result
+    /// (x, y)".
     val (<&>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
     /// Creates a job that either runs the given jobs sequentially, like <&>,
@@ -207,7 +208,7 @@ module Job =
 
   /// Creates a job that indefinitely iterates the given job constructor
   /// starting with the given value.  More precisely, "iter x x2xJ" is
-  /// equivalent to "let rec lp x = x2xJ x >>= lp in lp".  It is a common
+  /// equivalent to "let rec lp x = x2xJ x >>= lp in lp x".  It is a common
   /// programming pattern to use server jobs that loop indefinitely and
   /// communicate with clients via channels.  When a job is blocked waiting for
   /// communication on one or more channels and the channels become garbage (no
@@ -330,10 +331,11 @@ module Alt =
 
 /////////////////////////////////////////////////////////////////////////
 
-/// Operations on the wall-clock timer.
+/// Operations on a wall-clock timer.
 module Timer =
 
-  /// Operations on the global wall-clock timer.
+  /// Operations on the global wall-clock timer.  The global timer is implicitly
+  /// associated with the global scheduler.
   module Global =
     /// Creates an alternative that, after instantiation, becomes pickable
     /// after the specified time span.  Note that this is simply not intended
@@ -692,7 +694,8 @@ module Scheduler =
     /// Default options.
     static member Def: Create
 
-  /// Creates a new local scheduler.
+  /// Creates a new local scheduler.  Note that a local scheduler does not
+  /// automatically implement services such as the global wall-clock timer.
   val create: Create -> Scheduler
 
   /// Starts running the given job, but does not wait for the job to finish.
