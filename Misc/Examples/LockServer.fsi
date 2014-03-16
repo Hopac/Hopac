@@ -14,5 +14,6 @@ module Now =
 
 module Alt =
   val acquire: Server -> Lock -> Alt<unit>
+  val withLock: Server -> Lock -> Job<'x> -> Alt<'x>
 
 val release: Server -> Lock -> Job<unit>

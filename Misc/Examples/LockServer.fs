@@ -22,13 +22,17 @@ type Server = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+let release s (Lock lock) = Ch.give s.reqCh (Release lock)
+
 module Alt =
   let acquire s (Lock lock) = Alt.withNack <| fun nack ->
     let replyCh = Ch.Now.create ()
     Ch.send s.reqCh (Acquire (lock, replyCh, nack)) >>%
     Ch.Alt.take replyCh
 
-let release s (Lock lock) = Ch.give s.reqCh (Release lock)
+  let withLock s l xJ =
+    acquire s l >=> fun () ->
+    Job.tryFinallyJob xJ (release s l)
 
 ///////////////////////////////////////////////////////////////////////////////
 
