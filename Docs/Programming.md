@@ -1269,7 +1269,7 @@ That concludes the implementation of the time server itself.
 
 In the previous section the **guard** combinator was used to encapsulate the
 protocol for interacting with the custom timer server.  This worked because the
-service provide by the time server is idempotent.  If a client makes a request
+service provided by the time server is idempotent.  If a client makes a request
 to the time server and later aborts the request, that is, doesn't wait for the
 server's reply, it causes no harm.  Sometimes things are not that simple and a
 server needs to know whether client actually committed to a transaction.  Hopac,
@@ -1437,7 +1437,7 @@ instantiated.  This means that one can even try to acquire the same lock
 multiple times with the same alternative and it will work correctly:
 
 ```fsharp
-let! acq = acquire s l
+let acq = acquire s l
 do! Alt.select [acq >=> /* ... */
                 acq >=> /* ... */]
 ```
@@ -1491,9 +1491,9 @@ of an unmatched release operation.  We could also have a combinator that
 acquires a lock, executes some job and then releases the lock:
 
 ```fsharp
-let withLock server lock action =
-  acquire server lock >=> fun () ->
-  Job.doFinally action (release server lock)
+let withLock (s: Server) (l: Lock) (xJ: Job<'x>) : Alt<'x> =
+  acquire s l >=> fun () ->
+  Job.tryFinallyJob xJ (release s l)
 ```
 
 This ensures that an acquire is properly matched by a release.
