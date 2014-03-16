@@ -160,10 +160,15 @@ module Job =
   /// Implements the try-with exception handling construct for jobs.
   val tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
 
-  /// Implements the try-finally exception handling construct for jobs.  The
-  /// given action is executed after the job has been run, whether it fails or
-  /// completes successfully.
-  val tryFinally: Job<'x> -> (unit -> unit) -> Job<'x>
+  /// Implements a variation of the try-finally exception handling construct
+  /// for jobs.  The given action, specified as a function, is executed after
+  /// the job has been run, whether it fails or completes successfully.
+  val tryFinallyFun: Job<'x> -> (unit -> unit) -> Job<'x>
+
+  /// Implements a variation of the try-finally exception handling construct
+  /// for jobs.  The given action, specified as a job, is executed after the
+  /// the job has been run, whether it fails or completes successfully.
+  val tryFinallyJob: Job<'x> -> Job<unit> -> Job<'x>
 
   /// Implements the use construct for jobs.  The Dispose method of the
   /// given disposable object is called after running the job constructed

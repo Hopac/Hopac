@@ -62,6 +62,12 @@ module Util =
     override xK'.DoWork (wr) = yK.DoCont (&wr, x2y xK'.Value)
     override xK'.DoCont (wr, x) = yK.DoCont (&wr, x2y x)
 
+  type DropCont<'x, 'y> (xK: Cont<'x>) =
+    inherit Cont<'y> ()
+    override yK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
+    override yK'.DoWork (wr) = xK.DoWork (&wr)
+    override yK'.DoCont (wr, _) = xK.DoWork (&wr)
+
   type Handler<'x> () =
     inherit Cont<'x> ()
     override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
@@ -510,12 +516,6 @@ module Job =
           override xK'.DoWork (wr) = yJ.DoJob (&wr, yK)
           override xK'.DoCont (wr, _) = yJ.DoJob (&wr, yK)})}
 
-    type DropCont<'x, 'y> (xK: Cont<'x>) =
-      inherit Cont<'y> ()
-      override yK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
-      override yK'.DoWork (wr) = xK.DoWork (&wr)
-      override yK'.DoCont (wr, _) = xK.DoWork (&wr)
-
     let (.>>) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
@@ -583,6 +583,8 @@ module Job =
            | _ ->
             xJ.DoJob (&wr, PairCont (yJ, xyK))}
 
+  open Infixes
+
   ///////////////////////////////////////////////////////////////////////
 
   type DelayWithWork<'x, 'y> (x2yJ: 'x -> Job<'y>, x: 'x, yK: Cont<'y>) =
@@ -613,7 +615,7 @@ module Job =
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
 
-  let tryFinally (xJ: Job<'x>) (u2u: unit -> unit) =
+  let tryFinallyFun (xJ: Job<'x>) (u2u: unit -> unit) =
     {new Job<'x> () with
       override xJ'.DoJob (wr, xK) =
        let xK' = {new Cont<'x> () with
@@ -629,6 +631,24 @@ module Job =
          wr.Handler <- xK
          u2u ()
          xK.DoCont (&wr, x)}
+       wr.Handler <- xK'
+       xJ.DoJob (&wr, xK')}
+
+  let tryFinallyJob (xJ: Job<'x>) (uJ: Job<unit>) =
+    {new Job<'x> () with
+      override xJ'.DoJob (wr, xK) =
+       let xK' = {new Cont<'x> () with
+        override xK'.DoHandle (wr, e) =
+         wr.Handler <- xK
+         uJ.DoJob (&wr, FailCont<unit> (xK, e))
+        override xK'.DoWork (wr) =
+         wr.Handler <- xK
+         xK.Value <- xK'.Value
+         uJ.DoJob (&wr, DropCont<'x, unit> (xK))
+        override xK'.DoCont (wr, x) =
+         wr.Handler <- xK
+         xK.Value <- x
+         uJ.DoJob (&wr, DropCont<'x, unit> (xK))}
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
 
@@ -1124,7 +1144,7 @@ type JobBuilder () =
   member inline job.Return (x: 'x) : Job<'x> = Job.result x
   member inline job.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
   member inline job.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =
-    Job.tryFinally xJ u2u
+    Job.tryFinallyFun xJ u2u
   member inline job.TryWith (xJ: Job<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith xJ e2xJ
   member inline job.Using (x: 'x, x2yJ: 'x -> Job<'y>) : Job<'y>
