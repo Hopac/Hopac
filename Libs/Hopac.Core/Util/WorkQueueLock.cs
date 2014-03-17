@@ -12,23 +12,23 @@ namespace Hopac.Core {
     internal void Enter(ref Worker wr, Work work) {
       work.Next = null;
 
-      var prev = Interlocked.Exchange(ref Tail, work);
+      var owner = Interlocked.Exchange(ref Tail, work);
 
-      if (prev != null) {
-        prev.Next = work;
+      if (owner != null) {
+        owner.Next = work;
       } else {
       Release:
         work.DoWork(ref wr);
-        var last = work;
-        work = work.Next;
+        var prev = work;
+        work = Volatile.Read(ref prev.Next);
         if (null != work)
           goto Release;
 
-        if (last == Interlocked.CompareExchange(ref Tail, null, last))
+        if (prev == Interlocked.CompareExchange(ref Tail, null, prev))
           return;
 
       Spin:
-        work = last.Next;
+        work = Volatile.Read(ref prev.Next);
         if (null != work)
           goto Release;
         goto Spin;
@@ -43,14 +43,13 @@ namespace Hopac.Core {
 
       Release:
         work.DoWork(ref wr);
-        if (work == last)
-          return;
         var prev = work;
       Spin:
-        work = prev.Next;
+        work = Volatile.Read(ref prev.Next);
         if (null != work)
           goto Release;
-        goto Spin;
+        if (prev != last)
+          goto Spin;
       }
     }
   }
