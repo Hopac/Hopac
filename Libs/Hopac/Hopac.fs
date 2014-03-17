@@ -706,7 +706,7 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   let seqCollect (xJs: seq<Job<'x>>) =
-    {new Job<IList<'x>> () with
+    {new Job<ResizeArray<'x>> () with
       override self.DoJob (wr, xsK) =
        let xJs = xJs.GetEnumerator ()
        xsK.Value <- ResizeArray<_> ()
@@ -750,12 +750,12 @@ module Job =
 
   type [<AbstractClass>] ConCollect<'y> =
     inherit Work
-    val mutable Lock: WorkQueueLock
-    val mutable N: int
-    val mutable Exns: ResizeArray<exn>
-    val ysK: Cont<IList<'y>>
-    member cc'.Dec (wr: byref<Worker>) =
-     if Util.dec &cc'.N = 0 then
+    [<DefaultValue>] val mutable Lock: WorkQueueLock
+    [<DefaultValue>] val mutable N: int
+    [<DefaultValue>] val mutable Exns: ResizeArray<exn>
+    val ysK: Cont<ResizeArray<'y>>
+    member cc'.Inc (wr: byref<Worker>) =
+     if cc'.ysK.Value.Count < Util.inc &cc'.N then
        let ysK = cc'.ysK
        wr.Handler <- ysK
        match cc'.Exns with
@@ -770,21 +770,18 @@ module Job =
           exns
         | exns -> exns
      exns.Add e
-     cc'.Dec (&wr)
+     cc'.Inc (&wr)
     member cc'.OutsideDoHandle (wr: byref<Worker>, e) =
      cc'.Lock.Enter (&wr, {new Work () with
       override wk.DoHandle (_, _) = ()
       override wk.DoWork (wr) = cc'.DoHandle (&wr, e)})
     new (ysK) = {
       inherit Work ()
-      Lock = WorkQueueLock ()
-      N = 1
-      Exns = null
       ysK = ysK
     }
 
   let conCollect (xJs: seq<Job<'x>>) =
-    {new Job<IList<'x>> () with
+    {new Job<ResizeArray<'x>> () with
       override xsJ'.DoJob (wr, xsK_) =
        xsK_.Value <- ResizeArray<_> ()
        let xJs = xJs.GetEnumerator ()
@@ -794,7 +791,6 @@ module Job =
           while xJs.MoveNext () do
             cc'.Lock.ExitAndEnter (&wr, cc')
             let xJ = xJs.Current
-            cc'.N <- cc'.N + 1
             cc'.ysK.Value.Add Unchecked.defaultof<_>
             Worker.PushNew (&wr, {new Cont_State<_, _, _> (xJ, Util.dec &nth) with
              override xK'.DoHandle (wr, e) = cc'.OutsideDoHandle (&wr, e)
@@ -811,40 +807,51 @@ module Job =
                    cc'.Lock.Enter (&wr, xK')
                  else
                    cc'.ysK.Value.[i] <- xK'.Value
-                   cc'.Dec (&wr)
+                   cc'.Inc (&wr)
                | xJ ->
                  xK'.State1 <- null
                  xJ.DoJob (&wr, xK')})
-          cc'.Dec (&wr)}
+          cc'.Inc (&wr)}
        wr.Handler <- cc'
        cc'.Lock.Enter (&wr, cc')}
 
   type ConIgnore =
     inherit Handler
-    val mutable n: int
-    val mutable exns: ResizeArray<exn> 
+    [<DefaultValue>] val mutable Finished: int
+    [<DefaultValue>] val mutable Started: int
+    [<DefaultValue>] val mutable Exns: ResizeArray<exn> 
     val uK: Cont<unit>
-    new (uK) = {n = 1; exns = null; uK = uK}
+    new (uK) = {uK = uK}
     static member inline Inc (self: ConIgnore) =
-      Interlocked.Increment &self.n |> ignore
+     self.Started <- self.Started - 1
+    static member Continue (self: ConIgnore, wr: byref<Worker>) =
+     let uK = self.uK
+     wr.Handler <- uK
+     match self.Exns with
+      | null -> uK.DoWork (&wr)
+      | exns -> Handler.DoHandle (uK, &wr, AggregateException exns)
     static member inline Dec (self: ConIgnore, wr: byref<Worker>) =
-      if 0 = Interlocked.Decrement &self.n then
-        let uK = self.uK
-        wr.Handler <- uK
-        match self.exns with
-         | null -> uK.DoWork (&wr)
-         | exns -> Handler.DoHandle (uK, &wr, AggregateException exns)
+     if Interlocked.Increment &self.Finished = self.Started then
+       ConIgnore.Continue (self, &wr)
+    static member inline Done (self: ConIgnore, wr: byref<Worker>) =
+     self.Started <- 1 - self.Started
+     ConIgnore.Dec (self, &wr)
+    static member AddExn (self: ConIgnore, e: exn) =
+     lock self <| fun () ->
+     let exns =
+       match self.Exns with
+        | null ->
+          let exns = ResizeArray<_> ()
+          self.Exns <- exns
+          exns
+        | exns -> exns
+     exns.Add e
+    static member OutsideDoHandle (self: ConIgnore, wr: byref<Worker>, e: exn) =
+     ConIgnore.AddExn (self, e)
+     ConIgnore.Dec (self, &wr)
     override self.DoHandle (wr: byref<Worker>, e: exn) =
-      lock self <| fun () ->
-        let exns =
-          match self.exns with
-           | null ->
-             let exns = ResizeArray<_> ()
-             self.exns <- exns
-             exns
-           | exns -> exns
-        exns.Add e
-      ConIgnore.Dec (self, &wr)
+     ConIgnore.AddExn (self, e)
+     ConIgnore.Done (self, &wr)
 
   type ConIgnore_State<'s> =
     inherit ConIgnore
@@ -860,7 +867,7 @@ module Job =
        while xJs.MoveNext () do
          ConIgnore.Inc join
          Worker.PushNew (&wr, {new Cont_State<_, _> (xJs.Current) with
-          override xK'.DoHandle (wr, e) = Handler.DoHandle (join, &wr, e)
+          override xK'.DoHandle (wr, e) = ConIgnore.OutsideDoHandle (join, &wr, e)
           override xK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
           override xK'.DoWork (wr) =
            match xK'.State with
@@ -869,7 +876,7 @@ module Job =
             | xJ ->
               xK'.State <- null
               xJ.DoJob (&wr, xK')})
-       ConIgnore.Dec (join, &wr)}
+       ConIgnore.Done (join, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -1022,7 +1029,7 @@ module Extensions =
              uK.DoWork (&wr)}, &wr)}
 
     let mapJob (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
-      {new Job<IList<'y>> () with
+      {new Job<ResizeArray<'y>> () with
         override ysJ'.DoJob (wr, ysK) =
          ysK.Value <- ResizeArray<_> ()
          let xs = xs.GetEnumerator ()
@@ -1076,7 +1083,7 @@ module Extensions =
              let x = xs.Current
              ConIgnore.Inc join
              Worker.PushNew (&wr, {new Cont_State<_, _> () with
-              override yK'.DoHandle (wr, e) = Handler.DoHandle (join, &wr, e)
+              override yK'.DoHandle (wr, e) = ConIgnore.OutsideDoHandle (join, &wr, e)
               override yK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
               override yK'.DoWork (wr) =
                if yK'.State then
@@ -1084,10 +1091,10 @@ module Extensions =
                else
                  yK'.State <- true
                  (join.State x).DoJob (&wr, yK')})
-           ConIgnore.Dec (join, &wr)}
+           ConIgnore.Done (join, &wr)}
 
       let mapJob (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
-        {new Job<IList<'y>> () with
+        {new Job<ResizeArray<'y>> () with
           override ysJ'.DoJob (wr, ysK_) =
            ysK_.Value <- ResizeArray<_> ()
            let xs = xs.GetEnumerator ()
@@ -1096,7 +1103,6 @@ module Extensions =
               let mutable nth = 0
               while xs.MoveNext () do
                 cc'.Lock.ExitAndEnter (&wr, cc')
-                cc'.N <- cc'.N + 1
                 cc'.ysK.Value.Add Unchecked.defaultof<_>
                 Worker.PushNew (&wr, {new Cont_State<_, _, _, _> (xs.Current, Util.dec &nth, x2yJ) with
                  override yK'.DoHandle (wr, e) = cc'.OutsideDoHandle (&wr, e)
@@ -1113,13 +1119,13 @@ module Extensions =
                       cc'.Lock.Enter (&wr, yK')
                     else
                       cc'.ysK.Value.[i] <- yK'.Value
-                      cc'.Dec (&wr)
+                      cc'.Inc (&wr)
                   else
                     let x = yK'.State1
                     yK'.State3 <- Unchecked.defaultof<_>
                     yK'.State1 <- Unchecked.defaultof<_>
                     (x2yJ x).DoJob (&wr, yK')})
-              cc'.Dec (&wr)}
+              cc'.Inc (&wr)}
            wr.Handler <- cc'
            cc'.Lock.Enter (&wr, cc')}
 

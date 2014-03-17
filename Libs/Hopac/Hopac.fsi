@@ -225,7 +225,7 @@ module Job =
 
   /// Creates a job that runs all of the jobs in sequence and returns a
   /// list of the results.
-  val seqCollect: seq<Job<'x>> -> Job<IList<'x>>
+  val seqCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs in sequence.  The results of the
   /// jobs are ignored.
@@ -233,7 +233,7 @@ module Job =
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// returns a list of the results.
-  val conCollect: seq<Job<'x>> -> Job<IList<'x>>
+  val conCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// then waits for all of the jobs to finish.  The results of the jobs are
@@ -622,7 +622,7 @@ module Extensions =
 
     /// Sequentially maps the given job constructor to the elements of the
     /// sequence and returns a list of the results.
-    val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<IList<'y>>
+    val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
     /// Sequentially folds the job constructor over the given sequence and
     /// returns the result of the fold.
@@ -638,7 +638,7 @@ module Extensions =
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
       /// the jobs have finished collecting the results into a list.
-      val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<IList<'y>>
+      val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
   /// Operations for interfacing tasks with jobs.
   type [<Sealed>] Task =
