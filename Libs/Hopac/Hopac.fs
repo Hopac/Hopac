@@ -755,31 +755,26 @@ module Job =
     val mutable Exns: ResizeArray<exn>
     val ysK: Cont<IList<'y>>
     member cc'.Dec (wr: byref<Worker>) =
-      if Util.dec &cc'.N = 0 then
-        let ysK = cc'.ysK
-        wr.Handler <- ysK
-        match cc'.Exns with
-         | null -> ysK.DoWork (&wr)
-         | exns -> Handler.DoHandle (ysK, &wr, AggregateException exns)
-    member cc'.AddExn e =
-      let exns =
-        match cc'.Exns with
-         | null ->
-           let exns = ResizeArray<_> ()
-           cc'.Exns <- exns
-           exns
-         | exns ->
-           exns
-      exns.Add e
+     if Util.dec &cc'.N = 0 then
+       let ysK = cc'.ysK
+       wr.Handler <- ysK
+       match cc'.Exns with
+        | null -> ysK.DoWork (&wr)
+        | exns -> Handler.DoHandle (ysK, &wr, AggregateException exns)
     override cc'.DoHandle (wr, e) =
-     cc'.AddExn e
+     let exns =
+       match cc'.Exns with
+        | null ->
+          let exns = ResizeArray<_> ()
+          cc'.Exns <- exns
+          exns
+        | exns -> exns
+     exns.Add e
      cc'.Dec (&wr)
     member cc'.OutsideDoHandle (wr: byref<Worker>, e) =
-      cc'.Lock.Enter (&wr, {new Work () with
-        override wk.DoHandle (_, _) = ()
-        override wk.DoWork (wr) =
-         cc'.AddExn e
-         cc'.Dec (&wr)})
+     cc'.Lock.Enter (&wr, {new Work () with
+      override wk.DoHandle (_, _) = ()
+      override wk.DoWork (wr) = cc'.DoHandle (&wr, e)})
     new (ysK) = {
       inherit Work ()
       Lock = WorkQueueLock ()
