@@ -73,9 +73,9 @@
     <Compile Include="Selective\Pick.cs" />
     <Compile Include="Util\AggressiveInlining.cs" />
     <Compile Include="Util\Condition.cs" />
-    <Compile Include="Util\SpinlockWithOwner.cs" />
     <Compile Include="Util\SpinlockTTAS.cs" />
     <Compile Include="Util\SpinlockMCS.cs" />
+    <Compile Include="Util\WorkQueueLock.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

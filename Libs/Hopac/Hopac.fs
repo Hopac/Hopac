@@ -583,8 +583,6 @@ module Job =
            | _ ->
             xJ.DoJob (&wr, PairCont (yJ, xyK))}
 
-  open Infixes
-
   ///////////////////////////////////////////////////////////////////////
 
   type DelayWithWork<'x, 'y> (x2yJ: 'x -> Job<'y>, x: 'x, yK: Cont<'y>) =
@@ -750,78 +748,81 @@ module Job =
        else
          Work.Do (uK, &wr)}
 
-  type ConCollect<'y> =
-    inherit Handler
-    val mutable Lock: SpinlockWithOwner
-    val mutable n: int
+  type [<AbstractClass>] ConCollect<'y> =
+    inherit Work
+    val mutable Lock: WorkQueueLock
+    val mutable N: int
+    val mutable Exns: ResizeArray<exn>
     val ysK: Cont<IList<'y>>
-    val mutable exns: ResizeArray<exn>
-    static member inline Dec (self: ConCollect<_>, owner: Work, wr: byref<Worker>) =
-      if Util.dec &self.n = 0 then
-        let ysK = self.ysK
+    member cc'.Dec (wr: byref<Worker>) =
+      if Util.dec &cc'.N = 0 then
+        let ysK = cc'.ysK
         wr.Handler <- ysK
-        match self.exns with
-         | null -> self.ysK.DoWork (&wr)
-         | exns -> Handler.DoHandle (self.ysK, &wr, AggregateException exns)
-      else
-        SpinlockWithOwner.Exit (owner)
-    static member inline Add (self: ConCollect<_>, visitor: Work, wr: byref<Worker>, i, y) =
-      self.Lock.Enter (visitor)
-      self.ysK.Value.[i] <- y
-      ConCollect<_>.Dec (self, visitor, &wr)
-    override self.DoHandle (wr, e) =
-     let owner = SpinlockWithOwner.Owner ()
-     self.Lock.Enter (owner)
-     match self.exns with
-      | null ->
-        let exns = ResizeArray<_> ()
-        exns.Add e
-        self.exns <- exns
-      | exns ->
-        exns.Add e
-     if Util.dec &self.n = 0 then
-       wr.Handler <- self.ysK
-       Handler.DoHandle (self.ysK, &wr, AggregateException self.exns)
-     else
-       SpinlockWithOwner.Exit (owner)
-    new (ysK: Cont<IList<'y>>) = {
-      inherit Handler ()
-      Lock = Unchecked.defaultof<_>
-      n = 1
-      ysK = (ysK.Value <- ResizeArray<_> () ; ysK)
-      exns = null
+        match cc'.Exns with
+         | null -> ysK.DoWork (&wr)
+         | exns -> Handler.DoHandle (ysK, &wr, AggregateException exns)
+    member cc'.AddExn e =
+      let exns =
+        match cc'.Exns with
+         | null ->
+           let exns = ResizeArray<_> ()
+           cc'.Exns <- exns
+           exns
+         | exns ->
+           exns
+      exns.Add e
+    override cc'.DoHandle (wr, e) =
+     cc'.AddExn e
+     cc'.Dec (&wr)
+    member cc'.OutsideDoHandle (wr: byref<Worker>, e) =
+      cc'.Lock.Enter (&wr, {new Work () with
+        override wk.DoHandle (_, _) = ()
+        override wk.DoWork (wr) =
+         cc'.AddExn e
+         cc'.Dec (&wr)})
+    new (ysK) = {
+      inherit Work ()
+      Lock = WorkQueueLock ()
+      N = 1
+      Exns = null
+      ysK = ysK
     }
-
-  type ConCollect_State<'y, 's> =
-    inherit ConCollect<'y>
-    val mutable State: 's
-    new (ysK, s) = {inherit ConCollect<'y> (ysK); State=s}
 
   let conCollect (xJs: seq<Job<'x>>) =
     {new Job<IList<'x>> () with
-      override self.DoJob (wr, xsK) =
-       let st = ConCollect<_> (xsK)
-       let owner = st.Lock.Init ()
-       let mutable nth = 0
-       wr.Handler <- st
+      override xsJ'.DoJob (wr, xsK_) =
+       xsK_.Value <- ResizeArray<_> ()
        let xJs = xJs.GetEnumerator ()
-       while xJs.MoveNext () do
-         let xJ = xJs.Current
-         st.Lock.ExitAndEnter (owner)
-         st.n <- st.n + 1
-         st.ysK.Value.Add Unchecked.defaultof<_>
-         let i = nth
-         nth <- i + 1
-         Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
-          override self.DoHandle (wr, e) = Handler.DoHandle (st, &wr, e)
-          override self.DoCont (wr, y) = ConCollect<_>.Add (st, self, &wr, i, y)
-          override self.DoWork (wr) =
-           match self.State with
-            | null -> ConCollect<_>.Add (st, self, &wr, i, self.Value)
-            | xJ ->
-              self.State <- null
-              xJ.DoJob (&wr, self)})
-       ConCollect<_>.Dec (st, owner, &wr)}
+       let cc' = {new ConCollect<'x> (xsK_) with
+         override cc'.DoWork (wr) =
+          let mutable nth = 0
+          while xJs.MoveNext () do
+            cc'.Lock.ExitAndEnter (&wr, cc')
+            let xJ = xJs.Current
+            cc'.N <- cc'.N + 1
+            cc'.ysK.Value.Add Unchecked.defaultof<_>
+            Worker.PushNew (&wr, {new Cont_State<_, _, _> (xJ, Util.dec &nth) with
+             override xK'.DoHandle (wr, e) = cc'.OutsideDoHandle (&wr, e)
+             override xK'.DoCont (wr, x) =
+              xK'.Value <- x
+              xK'.State2 <- ~~~ xK'.State2
+              cc'.Lock.Enter (&wr, xK')
+             override xK'.DoWork (wr) =
+              match xK'.State1 with
+               | null ->
+                 let i = xK'.State2
+                 if i < 0 then
+                   xK'.State2 <- ~~~ i
+                   cc'.Lock.Enter (&wr, xK')
+                 else
+                   cc'.ysK.Value.[i] <- xK'.Value
+                   cc'.Dec (&wr)
+               | xJ ->
+                 xK'.State1 <- null
+                 xJ.DoJob (&wr, xK')})
+          cc'.Dec (&wr)}
+       wr.Handler <- cc'
+       cc'.Lock.Enter (&wr, cc')}
 
   type ConIgnore =
     inherit Handler
@@ -1092,31 +1093,40 @@ module Extensions =
 
       let mapJob (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
         {new Job<IList<'y>> () with
-          override ysJ'.DoJob (wr, ysK) =
-           let st = ConCollect_State (ysK, x2yJ)
-           let owner = st.Lock.Init ()
-           wr.Handler <- st
+          override ysJ'.DoJob (wr, ysK_) =
+           ysK_.Value <- ResizeArray<_> ()
            let xs = xs.GetEnumerator ()
-           let mutable nth = 0
-           while xs.MoveNext () do
-             st.Lock.ExitAndEnter (owner)
-             st.n <- st.n + 1
-             st.ysK.Value.Add Unchecked.defaultof<_>
-             nth <- nth - 1
-             Worker.PushNew (&wr, {new Cont_State<_, _, _> (xs.Current, nth) with
-              override yK'.DoHandle (wr, e) = Handler.DoHandle (st, &wr, e)
-              override yK'.DoCont (wr, y) =
-               ConCollect<_>.Add (st, yK', &wr, yK'.State2, y)
-              override yK'.DoWork (wr) =
-               let i = yK'.State2
-               if i < 0 then
-                 yK'.State2 <- ~~~i
-                 let x = yK'.State1
-                 yK'.State1 <- Unchecked.defaultof<_>
-                 (st.State x).DoJob (&wr, yK')
-               else
-                 ConCollect<_>.Add (st, yK', &wr, i, yK'.Value)})
-           ConCollect<_>.Dec (st, owner, &wr)}
+           let cc' = {new ConCollect<'y> (ysK_) with
+             override cc'.DoWork (wr) =
+              let mutable nth = 0
+              while xs.MoveNext () do
+                cc'.Lock.ExitAndEnter (&wr, cc')
+                cc'.N <- cc'.N + 1
+                cc'.ysK.Value.Add Unchecked.defaultof<_>
+                Worker.PushNew (&wr, {new Cont_State<_, _, _, _> (xs.Current, Util.dec &nth, x2yJ) with
+                 override yK'.DoHandle (wr, e) = cc'.OutsideDoHandle (&wr, e)
+                 override yK'.DoCont (wr, y) =
+                  yK'.Value <- y
+                  yK'.State2 <- ~~~ yK'.State2
+                  cc'.Lock.Enter (&wr, yK')
+                 override yK'.DoWork (wr) =
+                  let x2yJ = yK'.State3
+                  if LanguagePrimitives.PhysicalEquality x2yJ Unchecked.defaultof<_> then
+                    let i = yK'.State2
+                    if i < 0 then
+                      yK'.State2 <- ~~~ i
+                      cc'.Lock.Enter (&wr, yK')
+                    else
+                      cc'.ysK.Value.[i] <- yK'.Value
+                      cc'.Dec (&wr)
+                  else
+                    let x = yK'.State1
+                    yK'.State3 <- Unchecked.defaultof<_>
+                    yK'.State1 <- Unchecked.defaultof<_>
+                    (x2yJ x).DoJob (&wr, yK')})
+              cc'.Dec (&wr)}
+           wr.Handler <- cc'
+           cc'.Lock.Enter (&wr, cc')}
 
   ///////////////////////////////////////////////////////////////////////
   

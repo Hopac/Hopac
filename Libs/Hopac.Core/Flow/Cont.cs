@@ -83,4 +83,16 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal Cont_State(S1 s1, S2 s2) { State1 = s1; State2 = s2; }
   }
+
+  internal abstract class Cont_State<T, S1, S2, S3> : Cont<T> {
+    internal S1 State1;
+    internal S2 State2;
+    internal S3 State3;
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal Cont_State() { }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal Cont_State(S1 s1, S2 s2, S3 s3) { State1 = s1; State2 = s2; State3 = s3; }
+  }
 }
