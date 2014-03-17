@@ -1192,11 +1192,11 @@ let atTime (atTime: Ticks) : Alt<unit> =
 ```
 
 A detail worth pointing out above is the use of the **Ch.send** operation to
-send requests to the server asynchronously.  We already have the client blocking
-to wait taking a reply from the server, so there is no need to have the client
-block waiting for the time server to take the request.  Using **atTime** we can
-implement the **timeOut** alternative constructor used in the earlier Kismet
-example:
+send requests to the server asynchronously.  We already have the client
+synchronously taking a reply from the server, so there is no need to have the
+client synchronously waiting for the time server to take the request.  Using
+**atTime** we can implement the **timeOut** alternative constructor used in the
+earlier Kismet example:
 
 ```fsharp
 let timeOut (afterTicks: Ticks) : Alt<unit> =
@@ -1360,7 +1360,7 @@ Alt.select [acquire server lockA >=> fun () ->
 Or a client could use a timeout to avoid waiting indefinitely for a lock:
 
 ```fsharp
-Alt.select [acquire lock >=> (* critical section *)
+Alt.select [acquire server lock >=> (* critical section *)
             timeOut duration >=> (* do something else *)]
 ```
 
