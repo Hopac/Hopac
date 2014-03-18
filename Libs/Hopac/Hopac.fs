@@ -754,13 +754,15 @@ module Job =
     [<DefaultValue>] val mutable N: int
     [<DefaultValue>] val mutable Exns: ResizeArray<exn>
     val ysK: Cont<ResizeArray<'y>>
-    member cc'.Inc (wr: byref<Worker>) =
-     if cc'.ysK.Value.Count < Util.inc &cc'.N then
+    static member Continue (cc': ConCollect<'y>, wr: byref<Worker>) =
        let ysK = cc'.ysK
        wr.Handler <- ysK
        match cc'.Exns with
         | null -> ysK.DoWork (&wr)
         | exns -> Handler.DoHandle (ysK, &wr, AggregateException exns)
+    static member inline Done (cc': ConCollect<'y>, wr: byref<Worker>) =
+     if cc'.ysK.Value.Count < Util.inc &cc'.N then
+       ConCollect<'y>.Continue (cc', &wr)
     override cc'.DoHandle (wr, e) =
      let exns =
        match cc'.Exns with
@@ -770,8 +772,8 @@ module Job =
           exns
         | exns -> exns
      exns.Add e
-     cc'.Inc (&wr)
-    member cc'.OutsideDoHandle (wr: byref<Worker>, e) =
+     ConCollect<'y>.Done (cc', &wr)
+    static member OutsideDoHandle (cc': ConCollect<'y>, wr: byref<Worker>, e) =
      cc'.Lock.Enter (&wr, {new Work () with
       override wk.DoHandle (_, _) = ()
       override wk.DoWork (wr) = cc'.DoHandle (&wr, e)})
@@ -789,11 +791,11 @@ module Job =
          override cc'.DoWork (wr) =
           let mutable nth = 0
           while xJs.MoveNext () do
-            cc'.Lock.ExitAndEnter (&wr, cc')
             let xJ = xJs.Current
+            cc'.Lock.ExitAndEnter (&wr, cc')
             cc'.ysK.Value.Add Unchecked.defaultof<_>
             Worker.PushNew (&wr, {new Cont_State<_, _, _> (xJ, Util.dec &nth) with
-             override xK'.DoHandle (wr, e) = cc'.OutsideDoHandle (&wr, e)
+             override xK'.DoHandle (wr, e) = ConCollect<'x>.OutsideDoHandle (cc', &wr, e)
              override xK'.DoCont (wr, x) =
               xK'.Value <- x
               xK'.State2 <- ~~~ xK'.State2
@@ -807,11 +809,11 @@ module Job =
                    cc'.Lock.Enter (&wr, xK')
                  else
                    cc'.ysK.Value.[i] <- xK'.Value
-                   cc'.Inc (&wr)
+                   ConCollect<'x>.Done (cc', &wr)
                | xJ ->
                  xK'.State1 <- null
                  xJ.DoJob (&wr, xK')})
-          cc'.Inc (&wr)}
+          ConCollect<'x>.Done (cc', &wr)}
        wr.Handler <- cc'
        cc'.Lock.Enter (&wr, cc')}
 
@@ -853,11 +855,6 @@ module Job =
      ConIgnore.AddExn (self, e)
      ConIgnore.Done (self, &wr)
 
-  type ConIgnore_State<'s> =
-    inherit ConIgnore
-    val mutable State: 's
-    new (uK, s) = {inherit ConIgnore (uK); State=s}
-
   let conIgnore (xJs: seq<Job<'x>>) =
     {new Job<unit> () with
       override uJ.DoJob (wr, uK) =
@@ -865,8 +862,9 @@ module Job =
        wr.Handler <- join
        let xJs = xJs.GetEnumerator ()
        while xJs.MoveNext () do
+         let xJ = xJs.Current
          ConIgnore.Inc join
-         Worker.PushNew (&wr, {new Cont_State<_, _> (xJs.Current) with
+         Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
           override xK'.DoHandle (wr, e) = ConIgnore.OutsideDoHandle (join, &wr, e)
           override xK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
           override xK'.DoWork (wr) =
@@ -1076,21 +1074,25 @@ module Extensions =
       let iterJob (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
         {new Job<unit> () with
           override uJ'.DoJob (wr, uK) =
-           let join = ConIgnore_State (uK, x2yJ)
+           let join = ConIgnore (uK)
            wr.Handler <- join
            let xs = xs.GetEnumerator ()
            while xs.MoveNext () do
              let x = xs.Current
              ConIgnore.Inc join
-             Worker.PushNew (&wr, {new Cont_State<_, _> () with
+             Worker.PushNew (&wr, {new Cont_State<_, _, _> (x, x2yJ) with
               override yK'.DoHandle (wr, e) = ConIgnore.OutsideDoHandle (join, &wr, e)
               override yK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
               override yK'.DoWork (wr) =
-               if yK'.State then
-                 ConIgnore.Dec (join, &wr)
-               else
-                 yK'.State <- true
-                 (join.State x).DoJob (&wr, yK')})
+               let x2yJ = yK'.State2
+               match x2yJ :> obj with
+                | null ->
+                  ConIgnore.Dec (join, &wr)
+                | _ ->
+                  let x = yK'.State1
+                  yK'.State1 <- Unchecked.defaultof<_>
+                  yK'.State2 <- Unchecked.defaultof<_>
+                  (x2yJ x).DoJob (&wr, yK')})
            ConIgnore.Done (join, &wr)}
 
       let mapJob (x2yJ: 'x -> Job<'y>) (xs: seq<'x>) =
@@ -1102,30 +1104,32 @@ module Extensions =
              override cc'.DoWork (wr) =
               let mutable nth = 0
               while xs.MoveNext () do
+                let x = xs.Current
                 cc'.Lock.ExitAndEnter (&wr, cc')
                 cc'.ysK.Value.Add Unchecked.defaultof<_>
-                Worker.PushNew (&wr, {new Cont_State<_, _, _, _> (xs.Current, Util.dec &nth, x2yJ) with
-                 override yK'.DoHandle (wr, e) = cc'.OutsideDoHandle (&wr, e)
+                Worker.PushNew (&wr, {new Cont_State<_, _, _, _> (x, Util.dec &nth, x2yJ) with
+                 override yK'.DoHandle (wr, e) = ConCollect<'y>.OutsideDoHandle (cc', &wr, e)
                  override yK'.DoCont (wr, y) =
                   yK'.Value <- y
                   yK'.State2 <- ~~~ yK'.State2
                   cc'.Lock.Enter (&wr, yK')
                  override yK'.DoWork (wr) =
                   let x2yJ = yK'.State3
-                  if LanguagePrimitives.PhysicalEquality x2yJ Unchecked.defaultof<_> then
-                    let i = yK'.State2
-                    if i < 0 then
-                      yK'.State2 <- ~~~ i
-                      cc'.Lock.Enter (&wr, yK')
-                    else
-                      cc'.ysK.Value.[i] <- yK'.Value
-                      cc'.Inc (&wr)
-                  else
-                    let x = yK'.State1
-                    yK'.State3 <- Unchecked.defaultof<_>
-                    yK'.State1 <- Unchecked.defaultof<_>
-                    (x2yJ x).DoJob (&wr, yK')})
-              cc'.Inc (&wr)}
+                  match x2yJ :> obj with
+                   | null ->
+                     let i = yK'.State2
+                     if i < 0 then
+                       yK'.State2 <- ~~~ i
+                       cc'.Lock.Enter (&wr, yK')
+                     else
+                       cc'.ysK.Value.[i] <- yK'.Value
+                       ConCollect<'y>.Done (cc', &wr)
+                   | _ ->
+                     let x = yK'.State1
+                     yK'.State3 <- Unchecked.defaultof<_>
+                     yK'.State1 <- Unchecked.defaultof<_>
+                     (x2yJ x).DoJob (&wr, yK')})
+              ConCollect<'y>.Done (cc', &wr)}
            wr.Handler <- cc'
            cc'.Lock.Enter (&wr, cc')}
 
