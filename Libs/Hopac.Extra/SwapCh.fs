@@ -12,7 +12,9 @@ module SwapChTypes =
    | SwapCh of Ch<'a * Ch<'a>>
 
 module SwapCh =
-  let create () = Ch.create () |>> SwapCh
+  module Now =
+    let create () = SwapCh (Ch.Now.create ())
+  let create () = Job.thunk Now.create
   let swap (SwapCh ch) (msgOut: 'a) : Alt<'a> =
     (Ch.Alt.take ch >=> fun (msgIn, outCh) -> Ch.give outCh msgOut >>% msgIn) <|>
     (Alt.delay <| fun () ->

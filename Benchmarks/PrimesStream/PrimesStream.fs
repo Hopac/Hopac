@@ -59,22 +59,21 @@ module Sequential =
 /////////////////////////////////////////////////////////////////////////
 
 module HopacCh =
-
-  let sieve primesOutCh =
-    let rec sieve natsInCh =
-      Ch.take natsInCh >>= fun prime ->
-      Ch.give primesOutCh prime >>= fun () ->
-      Ch.Stream.imp
-       (Ch.Stream.filter
-         (fun x -> Job.result (x % prime <> 0))
-         natsInCh) >>= sieve
-    Job.server (Ch.Stream.imp (Ch.Stream.iterate 2 (fun x -> Job.result (x+1))) >>= sieve)
+  let sieve (primesOut: Stream.Out<_>) =
+    let rec sieve natsIn =
+      natsIn >>= fun prime ->
+      primesOut prime >>= fun () ->
+      Stream.imp
+       (Stream.filterFun
+         (fun x -> x % prime <> 0)
+         natsIn) >>= sieve
+    Job.server (Stream.imp (Stream.iterateFun 2 (fun x -> x+1)) >>= sieve)
 
   let primes n =
-    Ch.Stream.imp sieve >>= fun primesCh ->
+    Stream.imp sieve >>= fun primes ->
     let result = Array.zeroCreate n
     Job.forUpTo 0 (n-1) (fun i ->
-      Ch.take primesCh |>> fun p ->
+      primes |>> fun p ->
       result.[i] <- p) >>%
     result
 
@@ -90,15 +89,14 @@ module HopacCh =
 module HopacPromise =
   type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Promise<Stream<'a>>}
 
-  let rec iterate (step: 'a -> Job<'a>) (init: 'a) : Job<Stream<_>> =
+  let rec iterate (step: 'a -> 'a) (init: 'a) : Job<Stream<_>> =
     Job.result
      {Value = init;
-      Next = Promise.Now.delay (step init >>= iterate step)}
+      Next = Promise.Now.delay (Job.delay <| fun () -> iterate step (step init))}
 
-  let rec filter (pred: 'a -> Job<bool>) (xs: Stream<'a>) : Job<Stream<'a>> =
-    pred xs.Value >>= fun b ->
+  let rec filter (pred: 'a -> bool) (xs: Stream<'a>) : Job<Stream<'a>> =
     let next = Promise.read xs.Next >>= filter pred
-    if b then
+    if pred xs.Value then
       Job.result {Value = xs.Value; Next = Promise.Now.delay next}
     else
       next
@@ -106,12 +104,11 @@ module HopacPromise =
   let sieve : Job<Stream<_>> =
     let rec sieve nats =
       let prime = nats.Value
-      let pred = Job.lift (fun x -> x % prime <> 0)
       Job.result
        {Value = prime;
         Next =
-         Promise.Now.delay (Promise.read nats.Next >>= filter pred >>= sieve)}
-    iterate (Job.lift (fun x -> x+1)) 2 >>= sieve
+         Promise.Now.delay (Promise.read nats.Next >>= filter (fun x -> x % prime <> 0) >>= sieve)}
+    iterate (fun x -> x+1) 2 >>= sieve
     
   let primes n = Job.delay <| fun () ->
     let result = Array.zeroCreate n
@@ -135,36 +132,34 @@ module HopacPromise =
 module Async =
   type Stream<'a> = MailboxProcessor<AsyncReplyChannel<'a>>
   let inline take (s: Stream<'a>) = s.PostAndAsyncReply (fun x -> x)
-  let inline give (s: Stream<'a>) (x: 'a) = async {
-    let! out = s.Receive ()
-    out.Reply x
-  }
 
-  let iterate (init: 'a) (step: 'a -> Async<'a>) : Stream<'a> =
+  let iterate (init: 'a) (step: 'a -> 'a) : Stream<'a> =
     MailboxProcessor.Start <| fun self -> async {
       let state = ref init
       while true do
-        do! give self (!state)
-        let! newState = step (!state)
-        state := newState
+        let! out = self.Receive ()
+        do out.Reply (!state)
+        do state := step (!state)
     }
 
-  let filter (pred: 'a -> Async<bool>) (stream: Stream<'a>) : Stream<'a> =
+  let filter (pred: 'a -> bool) (stream: Stream<'a>) : Stream<'a> =
     MailboxProcessor.Start <| fun self -> async {
       while true do
         let! x = take stream
-        let! b = pred x
-        do! if b then give self x else async {return ()}
+        if pred x then
+          let! out = self.Receive ()
+          do out.Reply x
     }
 
   let sieve () : Stream<int> =
     MailboxProcessor.Start <| fun self -> async {
       let rec sieve natsIn = async {
         let! prime = take natsIn
-        do! give self prime
-        return! sieve (filter (fun n -> async {return n % prime <> 0}) natsIn)
+        let! out = self.Receive ()
+        do out.Reply prime
+        return! sieve (filter (fun n -> n % prime <> 0) natsIn)
       }
-      return! sieve (iterate 2 (fun i -> async {return i+1}))
+      return! sieve (iterate 2 (fun i -> i+1))
     }
 
   let primes n = async {

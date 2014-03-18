@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -58,10 +58,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assembly.fs" />
     <Compile Include="Alt.fsi" />
     <Compile Include="Alt.fs" />
-    <Compile Include="Serializer.fsi" />
-    <Compile Include="Serializer.fs" />
     <Compile Include="Multicast.fsi" />
     <Compile Include="Multicast.fs" />
     <Compile Include="SwapCh.fsi" />

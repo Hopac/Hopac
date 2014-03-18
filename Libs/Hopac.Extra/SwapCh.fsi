@@ -12,6 +12,10 @@ module SwapChTypes =
 
 /// Operations on swap channeles.
 module SwapCh =
+  module Now =
+    /// Creates a new swap channel.
+    val create: unit -> SwapCh<'a>
+
   /// Creates a new swap channel.
   val create: unit -> Job<SwapCh<'a>>
 

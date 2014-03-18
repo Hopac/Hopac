@@ -24,16 +24,18 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion(Hopac.CommonAssemblyInfo.FileVersion)]
 
 namespace Hopac {
-  internal static class CommonAssemblyInfo {
-    internal const string Description =
+#pragma warning disable 1591 // Missing XML comment
+
+  public static class CommonAssemblyInfo {
+    public const string Description =
       "A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#";
-    internal const string Configuration = "";
-    internal const string Product = "Hopac";
-    internal const string Company = "Housemarque Inc.";
-    internal const string Copyright = "© Housemarque Inc.";
-    internal const string Version = "0.0.0.0";
-    internal const string FileVersion = Version;
-    internal const string Trademark = "";
-    internal const string Culture = "";
+    public const string Configuration = "";
+    public const string Product = "Hopac";
+    public const string Company = "Housemarque Inc.";
+    public const string Copyright = "© Housemarque Inc.";
+    public const string Version = "0.0.0.0";
+    public const string FileVersion = Version;
+    public const string Trademark = "";
+    public const string Culture = "";
   }
 }
