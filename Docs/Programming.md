@@ -1569,7 +1569,7 @@ Channels, Mailboxes, IVars, MVars, ...
 
 In this document we have mostly used channels in our examples.  The Hopac
 library, like CML, also directly provides other communication primitives such as
-**Mailbox**es, **IVar**s, **MVar**s and **Lock**s.  These other primitives are
+**Mailbox**, **IVar**, **MVar** and **Lock**.  These other primitives are
 optimized for the particular communication patterns they support, but most of
 them could be implemented using only jobs and channels as shown in the book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
