@@ -260,8 +260,8 @@ synchronous channels.
 
 There are two ways to write jobs in Hopac.  One way is to use the **job**
 workflow builder like we did in the previous section.  The other way is to
-directly use the monadic combinators, **result** and **>>=**, that the workflow
-builder abstracts away.  I personally mostly prefer using the monadic
+directly use the monadic combinators, **result** and bind, **>>=**, that the
+workflow builder abstracts away.  I personally mostly prefer using the monadic
 combinators with an occasional excursion with the workflow notation.  I have a
 number of reasons for this:
 
@@ -362,8 +362,8 @@ The **cell** constructor then creates the channels and starts the server loop:
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
   let rec server x =
-    Alt.select [Ch.Alt.take c.putCh   >=> server
-                Ch.Alt.give c.getCh x >=> fun () -> server x]
+    Alt.select [Ch.Alt.take c.putCh   >>=? server
+                Ch.Alt.give c.getCh x >>=? fun () -> server x]
   Job.start (server x) >>% c
 ```
 
@@ -389,7 +389,7 @@ let cell x = Job.delay <| fun () ->
   Job.server
    (Job.iterate x <| fun x ->
     Alt.select [Ch.Alt.take c.putCh
-                Ch.Alt.give c.getCh x >-> fun () -> x]) >>% c
+                Ch.Alt.give c.getCh x >>%? x]) >>% c
 ```
 
 The above also makes use of the function **Job.server** instead of
@@ -488,8 +488,8 @@ let Delay (duration: ref<TimeSpan>)
           (finished: 'x -> Job<unit>)
           (aborted: 'y -> Job<unit>) : Job<unit> =
   Alt.pick start >>= fun x ->
-  Alt.select [stop                             >=> fun y -> aborted y
-              Timer.Global.timeOut (!duration) >=> fun () -> finished x]
+  Alt.select [stop                             >>=? fun y -> aborted y
+              Timer.Global.timeOut (!duration) >>=? fun () -> finished x]
 ```
 
 The **Delay** function creates a job that first picks the **start** alternative.
@@ -617,10 +617,10 @@ offered by the alternative mechanism:
   do! Job.sleep (TimeSpan.FromSeconds 0.5)
   let! j2 = Promise.start (hello "Hello, from another job!")
   do! Alt.select
-       [Promise.Alt.read j1 >=> fun () ->
+       [Promise.Alt.read j1 >>=? fun () ->
           printfn "First job finished first."
           Promise.read j2
-        Promise.Alt.read j2 >=> fun () ->
+        Promise.Alt.read j2 >>=? fun () ->
           printfn "Second job finished first."
           Promise.read j1]
 } ;;
@@ -1054,8 +1054,8 @@ such as:
 ```fsharp
 do! dialog.Show
 let! answer = Alt.pick <| Alt.choose [
-       dialog.Yes.Pressed >=> fun () -> Job.result true
-       dialog.No.Pressed  >=> fun () -> Job.result false
+       dialog.Yes.Pressed >>=? fun () -> Job.result true
+       dialog.No.Pressed  >>=? fun () -> Job.result false
      ]
 if answer then
   // Perform action on Yes.
@@ -1063,12 +1063,12 @@ else
   // Perform action on No.
 ```
 
-The operations **Alt.choose** and **>=>**, also known as *wrap*, have the
+The operations **Alt.choose** and **>>=?**, also known as *wrap*, have the
 following signatures:
 
 ```fsharp
 val choose: seq<Alt<'x>> -> Alt<'x>
-val (>=>): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
 ```
 
 The **Alt.choose** operation forms a disjunction of the sequence of alternatives
@@ -1079,17 +1079,21 @@ alternatives to become available.  When one of the alternatives in the
 disjunction becomes available, the alternative is picked and committed to and
 the other alternatives are canceled.
 
-The wrap **>=>** operation is similar to the bind **>>=** operation on jobs and
+The wrap **>>=?** operation is similar to the bind **>>=** operation on jobs and
 allows one to extend an alternative so that further operations are performed
-after the alternative has been committed to.  In this case we use the ability to
+after the alternative has been committed to.  Similarly to corresponding
+operations on jobs, several shortcut operators, such as **|>>?** and **>>%?**,
+are provided in addition to **>>=?** on alternatives.
+
+In this case we use the ability to
 simply map the button messages to a boolean value for further processing.  We
 could also just continue processing in the wrapper:
 
 ```fsharp
 do! Alt.pick <| Alt.choose [
-      dialog.Yes.Pressed >=> fun () ->
+      dialog.Yes.Pressed >>=? fun () ->
         // Perform action on Yes.
-      dialog.No.Pressed  >=> fun () ->
+      dialog.No.Pressed  >>=? fun () ->
         // Perform action on No.
     ]
 ```
@@ -1097,7 +1101,7 @@ do! Alt.pick <| Alt.choose [
 Using selective communication in this way feels and works much like using
 ordinary conditional statements.
 
-A key point in the types of the **choose** and **>=>** operations is that they
+A key point in the types of the **choose** and **>>=?** operations is that they
 create new alternatives and those alternatives are first-class values just like
 the primitive **give** and **take** alternatives on channels.  For the common
 cases of simply picking from a choice of alternatives or combining just two
@@ -1121,7 +1125,7 @@ a set of events that is specified statically in the program text.
 
 ### Guards
 
-The wrap combinator **>=>** allows post-commit actions to be added to an
+The wrap combinator **>>=?** allows post-commit actions to be added to an
 alternative.  Hopac also provides the **guard** combinator that allows an
 alternative to be computed at instantiation time.
 
@@ -1290,7 +1294,7 @@ Consider the following example:
 let verbose alt = Alt.withNack <| fun nack ->
   printf "Instantiated and "
   Job.start (Alt.pick nack |>> fun () -> printfn "aborted.") >>%
-  (alt >-> fun x -> printfn "committed to." ; x)
+  (alt |>>? fun x -> printfn "committed to." ; x)
 ```
 
 The above implements an alternative constructor that simply prints out what
@@ -1349,10 +1353,10 @@ alternative within a selective communication.  A client could, for example, try
 to obtain one of several locks and proceed accordingly:
 
 ```fsharp
-Alt.select [acquire server lockA >=> fun () ->
+Alt.select [acquire server lockA >>=? fun () ->
               (* critical section A *)
               release server lockA
-            acquire server lockB >=> fun () ->
+            acquire server lockB >>=? fun () ->
               (* critical section B *)
               release server lockB]
 ```
@@ -1360,8 +1364,8 @@ Alt.select [acquire server lockA >=> fun () ->
 Or a client could use a timeout to avoid waiting indefinitely for a lock:
 
 ```fsharp
-Alt.select [acquire server lock >=> (* critical section *)
-            timeOut duration >=> (* do something else *)]
+Alt.select [acquire server lock >>=? (* critical section *)
+            timeOut duration >>=? (* do something else *)]
 ```
 
 What is important here is that the **acquire** alternative must work correctly
@@ -1438,8 +1442,8 @@ multiple times with the same alternative and it will work correctly:
 
 ```fsharp
 let acq = acquire s l
-do! Alt.select [acq >=> /* ... */
-                acq >=> /* ... */]
+do! Alt.select [acq >>=? /* ... */
+                acq >>=? /* ... */]
 ```
 
 What remains is the implementation of the server itself.  We again make use of
@@ -1458,7 +1462,7 @@ let start = Job.delay <| fun () ->
           pending.Enqueue (replyCh, abortAlt)
           Job.unit
         | _ ->
-          Alt.select [Ch.Alt.give replyCh () >-> fun () ->
+          Alt.select [Ch.Alt.give replyCh () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->
@@ -1471,7 +1475,7 @@ let start = Job.delay <| fun () ->
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
               Alt.select [Ch.Alt.give replyCh ()
-                          abortAlt >=> assign]
+                          abortAlt >>=? assign]
           assign ()
         | _ ->
           // We just ignore the erroneous release request
@@ -1492,7 +1496,7 @@ acquires a lock, executes some job and then releases the lock:
 
 ```fsharp
 let withLock (s: Server) (l: Lock) (xJ: Job<'x>) : Alt<'x> =
-  acquire s l >=> fun () ->
+  acquire s l >>=? fun () ->
   Job.tryFinallyJob xJ (release s l)
 ```
 

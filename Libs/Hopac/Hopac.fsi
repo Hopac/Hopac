@@ -125,10 +125,10 @@ module Job =
     val (>>=): Job<'x> -> ('x -> Job<'y>) -> Job<'y>
 
     /// "xJ >>. yJ" is equivalent to "xJ >>= fun _ -> yJ".
-    val (>>.): Job<'x> -> Job<'y> -> Job<'y>
+    val (>>.): Job<_> -> Job<'y> -> Job<'y>
 
     /// "xJ .>> yJ" is equivalent to "xJ >>= fun x -> yJ >>% x".
-    val (.>>): Job<'x> -> Job<'y> -> Job<'x>
+    val (.>>): Job<'x> -> Job<_> -> Job<'x>
 
     /// "xJ |>> x2y" is equivalent to "xJ >>= (x2y >> result)".
     val (|>>): Job<'x> -> ('x -> 'y) -> Job<'y>
@@ -137,7 +137,7 @@ module Job =
     val (>>%): Job<'x> -> 'y -> Job<'y>
 
     /// "xJ >>! e" is equivalent to "xJ >>= fun _ -> raise e".
-    val (>>!): Job<'x> -> exn -> Job<'y>
+    val (>>!): Job<'x> -> exn -> Job<_>
 
     /// "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun y -> result
     /// (x, y)".
@@ -301,10 +301,6 @@ module Alt =
     /// to and the "second" alternative will not be instantiated at all.
     val (<|>): Alt<'x> -> Alt<'x> -> Alt<'x>
 
-    /// Creates an alternative whose result is processed with the given
-    /// function after the given alternative has been committed to.
-    val (>->): Alt<'x> -> ('x -> 'y) -> Alt<'y>
-
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given
     /// alternative has been committed to.  Although this operator has a type
@@ -312,7 +308,22 @@ module Alt =
     /// (with the always alternative constructor).  So called Transactional
     /// Events do form a monad, but require a more complex synchronization
     /// protocol.
-    val (>=>): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+    val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+
+    /// "xA >>.? yJ" is equivalent to "xA >>=? fun _ -> yJ".
+    val (>>.?): Alt<_> -> Job<'y> -> Alt<'y>
+
+    /// "xA .>>? yJ" is equivalent to "xA >>=? fun x -> yJ >>% x".
+    val (.>>?): Alt<'x> -> Job<_> -> Alt<'x>
+
+    /// "xA |>>? x2y" is equivalent to "xA >>=? (x2y >> result)".
+    val (|>>?): Alt<'x> -> ('x -> 'y) -> Alt<'y>
+
+    /// "xA >>%? y" is equivalent to "xA >>=? fun _ -> result y".
+    val (>>%?): Alt<'x> -> 'y -> Alt<'y>
+
+    /// "xA >>!? e" is equivalent to "xA >>=? fun _ -> raise e".
+    val (>>!?): Alt<'x> -> exn -> Alt<_>
 
   ///////////////////////////////////////////////////////////////////////
 

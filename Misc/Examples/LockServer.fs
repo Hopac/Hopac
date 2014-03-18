@@ -31,7 +31,7 @@ module Alt =
     Ch.Alt.take replyCh
 
   let withLock s l xJ =
-    acquire s l >=> fun () ->
+    acquire s l >>=? fun () ->
     Job.tryFinallyJob xJ (release s l)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ let start = Job.delay <| fun () ->
           pending.Enqueue (replyCh, abortAlt)
           Job.unit
         | _ ->
-          Alt.select [Ch.Alt.give replyCh () >-> fun () ->
+          Alt.select [Ch.Alt.give replyCh () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->
@@ -66,7 +66,7 @@ let start = Job.delay <| fun () ->
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
               Alt.select [Ch.Alt.give replyCh ()
-                          abortAlt >=> assign]
+                          abortAlt >>=? assign]
           assign ()
         | _ ->
           // We just ignore the erroneous release request

@@ -16,8 +16,8 @@ module EgPaper =
     let inline make kind var op =
       Alt.withNack <| fun nack ->
       show "T" kind var
-      Job.start (Alt.pick nack |>> fun () -> show "A" kind var) |>> fun () ->
-      (op >-> fun _ -> show "D" kind var)
+      Job.start (nack |>> fun () -> show "A" kind var) |>> fun () ->
+      (op |>>? fun _ -> show "D" kind var)
     let inline spawn x = Job.start (Alt.pick x)
     Job.delay <| fun () ->
     let x = Ch.Now.create ()
@@ -44,16 +44,15 @@ module SwapCh =
     let create () = Ch.Now.create ()
 
   let swap ch outMsg =
-    ((Ch.Alt.take ch >=> fun (inMsg, outCh) ->
+    ((ch >>=? fun (inMsg, outCh) ->
       Ch.give outCh outMsg >>% inMsg) <|>
      (Alt.delay <| fun () ->
        let inCh = Ch.Now.create ()
-       Ch.Alt.give ch (outMsg, inCh) >=> fun () ->
-       Ch.take inCh))
+       Ch.Alt.give ch (outMsg, inCh) >>.? inCh))
 
   let bench = Job.delay <| fun () ->
     let ch = Now.create ()
-    Job.start (Alt.pick (swap ch ())) >>= fun () ->
+    Job.start (swap ch ()) >>= fun () ->
     Alt.pick (swap ch ())
 
   let run n =
@@ -73,11 +72,10 @@ module BufferedCh =
      (Job.iterate ([], [])
        (function
          | ([], []) ->
-           Ch.take inCh |>> fun x ->
-           ([x], [])
+           inCh |>> fun x -> ([x], [])
          | ((x::xs) as xxs, ys) ->
-           Alt.pick ((Ch.Alt.take inCh >-> fun y -> (xxs, y::ys))
-                 <|> (Ch.Alt.give outCh x >-> fun () -> (xs, ys)))
+           (inCh |>>? fun y -> (xxs, y::ys)) <|>
+           (Ch.Alt.give outCh x >>%? (xs, ys)) :> Job<_>
          | ([], ys) ->
            Job.result (List.rev ys, []))) >>%
     (inCh, outCh)

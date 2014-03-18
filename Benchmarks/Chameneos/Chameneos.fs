@@ -160,7 +160,7 @@ module HopacAlt =
     }
 
     let swap (csch: CountedSwapCh<'x>) (msgOut: 'x) : Alt<Option<'x>> =
-      (Ch.Alt.take csch.Ch >=> fun (msgIn, outCh) ->
+      (Ch.Alt.take csch.Ch >>=? fun (msgIn, outCh) ->
        let n = System.Threading.Interlocked.Decrement &csch.N
        if n > 0 then
          Ch.send outCh (Some msgOut) >>% Some msgIn
@@ -171,7 +171,7 @@ module HopacAlt =
          Ch.send outCh None >>% None) <|>
       (Alt.delay <| fun () ->
        let inCh = Ch.Now.create ()
-       (Ch.Alt.give csch.Ch (msgOut, inCh) >=> fun () ->
+       (Ch.Alt.give csch.Ch (msgOut, inCh) >>=? fun () ->
         Ch.take inCh) <|>
        IVar.Alt.read csch.Done)
 

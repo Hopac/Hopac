@@ -118,8 +118,8 @@ module HopacAlt =
     let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
     Job.server
      (Job.iterate x (fun x ->
-       Alt.pick ((Ch.Alt.take c.putCh)
-             <|> (Ch.Alt.give c.getCh x >-> fun () -> x)))) >>% c
+       c.putCh <|>
+       (Ch.Alt.give c.getCh x >>%? x) :> Job<_>)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "

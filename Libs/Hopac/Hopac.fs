@@ -68,6 +68,28 @@ module Util =
     override yK'.DoWork (wr) = xK.DoWork (&wr)
     override yK'.DoCont (wr, _) = xK.DoWork (&wr)
 
+  type ValueCont<'x, 'y> (y: 'y, yK: Cont<'y>) =
+    inherit Cont<'x> ()
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
+    override xK'.DoWork (wr) = yK.DoCont (&wr, y)
+    override xK'.DoCont (wr, _) = yK.DoCont (&wr, y)
+
+  type SeqCont<'x, 'y> (yJ: Job<'y>, yK: Cont<'y>) =
+    inherit Cont<'x> ()
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
+    override xK'.DoWork (wr) = yJ.DoJob (&wr, yK)
+    override xK'.DoCont (wr, _) = yJ.DoJob (&wr, yK)
+
+  type SkipCont<'x, 'y> (xK: Cont<'x>, yJ: Job<'y>) =
+    inherit Cont<'x> ()
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
+    override xK'.DoWork (wr) =
+     xK.Value <- xK'.Value
+     yJ.DoJob (&wr, DropCont xK)
+    override xK'.DoCont (wr, x) =
+     xK.Value <- x
+     yJ.DoJob (&wr, DropCont xK)
+
   type Handler<'x> () =
     inherit Cont<'x> ()
     override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
@@ -268,19 +290,48 @@ module Alt =
       inherit Else<'x> ()
       override xE'.TryElse (wr, i, pk, _) = yE.TryElse (&wr, i, pk, yK)
  
-    let (>->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
+    let (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, MapCont (x2y, yK))
         override yA'.TryAlt (wr, i, pk, yK, yE) =
          xA.TryAlt (&wr, i, pk, MapCont (x2y, yK), MapElse (yK, yE))}
 
-    let (>=>) (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) =
+    let (>>=?) (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, BindCont (x2yJ, yK))
         override yA'.TryAlt (wr, i, pk, yK, yE) =
          xA.TryAlt (&wr, i, pk, BindCont (x2yJ, yK), MapElse (yK, yE))}
+
+    let (>>%?) (xA: Alt<'x>) (y: 'y) =
+      {new Alt<'y> () with
+        override yA'.DoJob (wr, yK) =
+         yK.Value <- y
+         xA.DoJob (&wr, DropCont yK)
+        override yA'.TryAlt (wr, i, pk, yK, yE) =
+         xA.TryAlt (&wr, i, pk, ValueCont (y, yK), MapElse<'x, 'y> (yK, yE))}
+
+    let (>>!?) (xA: Alt<'x>) (e: exn) =
+      {new Alt<'y> () with
+        override yA'.DoJob (wr, yK) =
+         xA.DoJob (&wr, FailCont (yK, e))
+        override yA'.TryAlt (wr, i, pk, yK, yE) =
+         xA.TryAlt (&wr, i, pk, FailCont (yK, e), MapElse<'x, 'y> (yK, yE))}
+
+    let (>>.?) (xA: Alt<'x>) (yJ: Job<'y>) =
+      {new Alt<'y> () with
+        override yA'.DoJob (wr, yK) =
+         xA.DoJob (&wr, SeqCont (yJ, yK))
+        override yA'.TryAlt (wr, i, pk, yK, yE) =
+         xA.TryAlt (&wr, i, pk, SeqCont (yJ, yK), MapElse<'x, 'y> (yK, yE))}
+
+    let (.>>?) (xA: Alt<'x>) (yJ: Job<'y>) =
+      {new Alt<'x> () with
+        override xA'.DoJob (wr, xK) =
+         xA.DoJob (&wr, SkipCont (xK, yJ))
+        override xA'.TryAlt (wr, i, pk, xK, xE) =
+         xA.TryAlt (&wr, i, pk, SkipCont (xK, yJ), xE)}
 
   let choose (xAs: seq<Alt<'x>>) =
     {new Alt<'x> () with
@@ -511,22 +562,12 @@ module Job =
     let (>>.) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
-         xJ.DoJob (&wr, {new Cont<'x> () with
-          override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
-          override xK'.DoWork (wr) = yJ.DoJob (&wr, yK)
-          override xK'.DoCont (wr, _) = yJ.DoJob (&wr, yK)})}
+         xJ.DoJob (&wr, SeqCont (yJ, yK))}
 
     let (.>>) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
-         xJ.DoJob (&wr, {new Cont<'x> () with
-          override xK'.DoHandle (wr, e) = Handler.DoHandle (xK, &wr, e)
-          override xK'.DoWork (wr) =
-           xK.Value <- xK'.Value
-           yJ.DoJob (&wr, DropCont xK)
-          override xK'.DoCont (wr, x) =
-           xK.Value <- x
-           yJ.DoJob (&wr, DropCont xK)})}
+         xJ.DoJob (&wr, SkipCont (xK, yJ))}
 
     let (|>>) (xJ: Job<'x>) (x2y: 'x -> 'y) =
       {new Job<'y> () with

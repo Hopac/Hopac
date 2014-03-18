@@ -11,7 +11,7 @@ module Alts =
   let sumWith (xy2z: 'x -> 'y -> Job<'z>)
               (xAlt: Alt<'x>)
               (yAlt: Alt<'y>) : Alt<'z> =
-    xAlt <+> yAlt >=> fun (x, y) -> xy2z x y
+    xAlt <+> yAlt >>=? fun (x, y) -> xy2z x y
 
 module BufferedChViaPick =
   type Buffer<'a> =
@@ -23,11 +23,11 @@ module BufferedChViaPick =
     let rec loop buf =
       match buf with
        | [] ->
-         Ch.take insCh >>= fun x -> loop [x]
+         insCh >>= fun x -> loop [x]
        | x::xs ->
-         Alt.pick (Ch.Alt.give remCh x >=> fun () -> loop xs
-               <|> Ch.Alt.take insCh   >=> fun x  -> loop (buf @ [x]))
-    Job.start (loop []) >>%
+         (Ch.Alt.give remCh x >>=? fun () -> loop xs) <|>
+         (insCh               >>=? fun x  -> loop (buf @ [x])) :> Job<_>
+    Job.server (loop []) >>%
     {InsCh=insCh; RemCh=remCh}
   let insert b x = Ch.give b.InsCh x
   let remove b = Ch.take b.RemCh

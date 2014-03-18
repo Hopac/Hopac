@@ -28,13 +28,13 @@ module SelectableQueue =
     let takeCh = Ch.Now.create ()
     let msgs = Queue<'a>()
     let reqs = Queue<('a -> bool) * Alt<unit> * Ch<'a>>()
-    let sendAlt = Ch.Alt.take sendCh >-> fun msg -> msgs.AddLast (Node<_>(msg))
-    let takeAlt = Ch.Alt.take takeCh >-> fun req -> reqs.AddLast (Node<_>(req))
+    let sendAlt = sendCh |>>? fun msg -> msgs.AddLast (Node<_>(msg))
+    let takeAlt = takeCh |>>? fun req -> reqs.AddLast (Node<_>(req))
     let prepare (reqNode: Node<_>) : Alt<unit> =
       let (pred, cancel, replyCh) = reqNode.Value
-      let cancelAlt = cancel >-> fun () -> reqs.Remove reqNode
+      let cancelAlt = cancel |>>? fun () -> reqs.Remove reqNode
       let giveAlt (msgNode: Node<_>) =
-        Ch.Alt.give replyCh msgNode.Value >-> fun () ->
+        Ch.Alt.give replyCh msgNode.Value |>>? fun () ->
         reqs.Remove reqNode
         msgs.Remove msgNode
       match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
@@ -42,9 +42,9 @@ module SelectableQueue =
        | Some msgNode -> cancelAlt <|> giveAlt msgNode
     Job.server
      (Job.forever
-       (Alt.pick (sendAlt
-                  <|> takeAlt
-                  <|> Alt.choose (Seq.map prepare (nodes reqs))))) >>%
+       (sendAlt
+        <|> takeAlt
+        <|> Alt.choose (Seq.map prepare (nodes reqs)))) >>%
     {SendCh = sendCh; TakeCh = takeCh}
 
   module Alt =
@@ -54,5 +54,4 @@ module SelectableQueue =
     let take (q: SelectableQueue<'a>) (p: 'a -> bool) : Alt<'a> =
       Alt.withNack <| fun nack ->
       let replyCh = Ch.Now.create ()
-      Ch.give q.TakeCh (p, nack, replyCh) |>> fun () ->
-      Ch.Alt.take replyCh
+      Ch.give q.TakeCh (p, nack, replyCh) >>% (replyCh :> Alt<_>)
