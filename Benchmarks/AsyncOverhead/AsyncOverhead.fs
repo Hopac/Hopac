@@ -37,7 +37,8 @@ let runAsync numOps n =
   printf "%d*%d %fs - %f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
-do [(1500000, 1)
+do [(100, 1)
+    (1500000, 1)
     (1000000, 2)
     (1500000, 4)
     (1000000, 8)]
