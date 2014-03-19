@@ -765,7 +765,7 @@ module Infixes =
   /// "xCh <-? x" is equivalent to "Ch.Alt.give xCh x".
   val inline (<-?): Ch<'x> -> 'x -> Alt<unit>
 
-  /// "xCh <-+ x" is equivalent to "Ch.give xCh x".
+  /// "xCh <-- x" is equivalent to "Ch.give xCh x".
   val inline (<--): Ch<'x> -> 'x -> Job<unit>
 
   /// "xCh <-+ x" is equivalent to "Ch.send xCh x".
