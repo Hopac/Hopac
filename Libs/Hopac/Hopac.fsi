@@ -221,11 +221,12 @@ module Job =
   /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that runs the given job sequentially for an indefinite
-  /// number of times.  It is a common programming pattern to use server jobs
-  /// that loop indefinitely and communicate with clients via channels.  When a
-  /// job is blocked waiting for communication on one or more channels and the
-  /// channels become garbage (no longer reachable by any other job) the job can
-  /// be garbage collected as well.
+  /// number of times.  Note that the results, if any, from the given job are
+  /// ignored.  It is a common programming pattern to use server jobs that loop
+  /// indefinitely and communicate with clients via channels.  When a job is
+  /// blocked waiting for communication on one or more channels and the
+  /// channels become garbage (no longer reachable by any other job) the job
+  /// can be garbage collected as well.
   val forever: Job<_> -> Job<_>
 
   /// Creates a job that indefinitely iterates the given job constructor
@@ -237,6 +238,14 @@ module Job =
   /// longer reachable by any other job) the job can be garbage collected as
   /// well.
   val iterate: 'x -> ('x -> Job<'x>) -> Job<_>
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  /// "foreverServer xJ" is equivalent to "forever xJ |> server".
+  val foreverServer: Job<_> -> Job<unit>
+
+  /// "iterateServer x x2xJ" is equivalent to "iterate x x2xJ |> server".
+  val iterateServer: 'x -> ('x -> Job<'x>) -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
 

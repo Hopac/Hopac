@@ -511,19 +511,29 @@ module Job =
   let forDownTo (i0: int) (i1: int) (i2xJ: int -> Job<'x>) =
     Internal.mkFor (fun i i1 -> i1 <= i) (fun i -> i - 1) i0 i1 i2xJ
 
+  type ForeverCont<'x> (xJ: Job<'x>) =
+    inherit Cont<'x> ()
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+    override xK'.DoWork (wr) = xJ.DoJob (&wr, xK')
+    override xK'.DoCont (wr, _) = xJ.DoJob (&wr, xK')
+
   let forever (xJ: Job<'x>) =
     {new Job<'y> () with
-      override yJ'.DoJob (wr, yK) = {new Cont<'x> () with
-       override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
-       override xK'.DoWork (wr) = xJ.DoJob (&wr, xK')
-       override xK'.DoCont (wr, _) = xJ.DoJob (&wr, xK')}.DoWork (&wr)}
+      override yJ'.DoJob (wr, yK) = {new ForeverCont<'x> (xJ) with
+       override xK'.DoHandle (wr, e) =
+        Handler.DoHandle (yK, &wr, e)}.DoWork (&wr)}
+
+  type IterateCont<'x> (x2xJ: 'x -> Job<'x>) =
+    inherit Cont<'x> ()
+    override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+    override xK'.DoWork (wr) = (x2xJ xK'.Value).DoJob (&wr, xK')
+    override xK'.DoCont (wr, x) = (x2xJ x).DoJob (&wr, xK')
 
   let iterate (x: 'x) (x2xJ: 'x -> Job<'x>) =
     {new Job<'y> () with
-      override yJ'.DoJob (wr, yK) = {new Cont<_> () with
-       override xK'.DoHandle (wr, e) = Handler.DoHandle (yK, &wr, e)
-       override xK'.DoWork (wr) = (x2xJ xK'.Value).DoJob (&wr, xK')
-       override xK'.DoCont (wr, x) = (x2xJ x).DoJob (&wr, xK')}.DoCont (&wr, x)}
+      override yJ'.DoJob (wr, yK) = {new IterateCont<'x> (x2xJ) with
+       override xK'.DoHandle (wr, e) =
+        Handler.DoHandle (yK, &wr, e)}.DoCont (&wr, x)}
 
   let whileDo (cond: unit -> bool) (xJ: Job<'x>) =
     {new Job<unit> () with
@@ -742,6 +752,22 @@ module Job =
        Worker.PushNew (&wr, {new Work () with
         override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
         override w'.DoWork (wr) = vJ.DoJob (&wr, null)})
+       Work.Do (uK, &wr)}
+
+  ///////////////////////////////////////////////////////////////////////
+
+  let foreverServer (xJ: Job<'x>) =
+    {new Job<unit> () with
+      override uJ'.DoJob (wr, uK) =
+       Worker.PushNew (&wr, ForeverCont<'x> (xJ))
+       Work.Do (uK, &wr)}
+
+  let iterateServer (x: 'x) (x2xJ: 'x -> Job<'x>) =
+    {new Job<unit> () with
+      override uJ'.DoJob (wr, uK) =
+       let xK' = IterateCont<'x> (x2xJ)
+       xK'.Value <- x
+       Worker.PushNew (&wr, xK')
        Work.Do (uK, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
