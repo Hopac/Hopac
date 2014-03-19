@@ -1213,4 +1213,23 @@ type JobBuilder () =
 [<AutoOpen>]
 module TopLevel =
   let job = JobBuilder ()
+
   let inline run x = Job.Global.run x
+
+  let inline asAlt (xA: Alt<'x>) = xA
+  let inline asJob (xJ: Job<'x>) = xJ
+
+  let inline ch () = Ch<'x> ()
+  let inline mb () = Mailbox<'x> ()
+  let inline ivar () = IVar<'x> ()
+  let inline mvar () = MVar<'x> ()
+
+/////////////////////////////////////////////////////////////////////////
+
+module Infixes =
+  let inline (<-?) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
+  let inline (<--) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
+  let inline (<-+) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
+  let inline (<-=) (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
+  let inline (<<-=) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
+  let inline (<<-+) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>

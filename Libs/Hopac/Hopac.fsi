@@ -5,16 +5,16 @@ namespace Hopac
 open System
 open System.Collections.Generic
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// A type that has no public constructors to indicate that a job or function
 /// does not return normally.
 type Void
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-/// Expression builder type for jobs.  Note that the Job module provides
-/// more combinators for building jobs.
+/// Expression builder type for jobs.  Note that the Job module provides more
+/// combinators for building jobs.
 type JobBuilder =
   new : unit -> JobBuilder
   member inline Bind: Job<'x> * ('x -> Job<'y>) -> Job<'y>
@@ -30,18 +30,35 @@ type JobBuilder =
   member inline While: (unit -> bool) * Job<unit> -> Job<unit>
   member inline Zero: unit -> Job<unit>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 [<AutoOpen>]
 module TopLevel =
   /// Default expression builder for jobs.
   val job: JobBuilder
 
-  /// Convenience binding for running Hopac jobs.  This is the same function
-  /// as Job.Global.run.
+  /// This is the same function as Job.Global.run.
   val inline run: Job<'x> -> 'x
 
-/////////////////////////////////////////////////////////////////////////
+  /// Use object as alternative.
+  val inline asAlt: Alt<'x> -> Alt<'x>
+
+  /// Use object as job.
+  val inline asJob: Job<'x> -> Job<'x>
+
+  /// This is the same function as Ch.Now.create.
+  val inline ch: unit -> Ch<'x>
+
+  /// This is the same function as Mailbox.Now.create.
+  val inline mb: unit -> Mailbox<'x>
+
+  /// This is the same function as IVar.Now.create.
+  val inline ivar: unit -> IVar<'x>
+
+  /// This is the same function as MVar.Now.create.
+  val inline mvar: unit -> MVar<'x>
+
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on jobs.
 module Job =
@@ -72,25 +89,25 @@ module Job =
     /// function in a job workflow is not optimal and should never be needed.
     val run: Job<'x> -> 'x
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that schedules the given job to be executed as a separate
   /// concurrent job.  The result, if any, of the concurrent job is ignored.
   /// Use Promise.start if you need to be able to get the result.  Use
   /// Job.server if the job never returns normally.  Note that it is guaranteed
-  /// that the job is executed as a separate job.  This means that a job such
-  /// as "let c = Ch.Now.create () in Job.start (Ch.give c ()) >>. Ch.take c"
-  /// will not deadlock.
+  /// that the job is executed as a separate job.  This means that a job such as
+  /// "let c = Ch.Now.create () in Job.start (Ch.give c ()) >>. Ch.take c" will
+  /// not deadlock.
   val start: Job<_> -> Job<unit>
 
   /// Like Job.start, but the given job is known never to return normally, so
   /// the job can be spawned in a sligthly lighter-weight manner.
   val server: Job<Void> -> Job<unit>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-  /// Creates a job that calls the given function to build a job that will
-  /// then be run.
+  /// Creates a job that calls the given function to build a job that will then
+  /// be run.
   val delay: (unit -> Job<'x>) -> Job<'x>
 
   /// Creates a job that calls the given function with the given value to build
@@ -105,7 +122,7 @@ module Job =
   /// job.
   val thunk: (unit -> 'x) -> Job<'x>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// "unit" is equivalent to "result ()".
   val unit: Job<unit>
@@ -119,9 +136,9 @@ module Job =
   /// Infix operators on jobs.  You can open this module to bring all of the
   /// infix operators into scope.
   module Infixes =
-    /// Creates a job that first runs the given job and then passes the
-    /// result of that job to the given function to build another job which
-    /// will then be run.
+    /// Creates a job that first runs the given job and then passes the result
+    /// of that job to the given function to build another job which will then
+    /// be run.
     val (>>=): Job<'x> -> ('x -> Job<'y>) -> Job<'y>
 
     /// "xJ >>. yJ" is equivalent to "xJ >>= fun _ -> yJ".
@@ -139,59 +156,59 @@ module Job =
     /// "xJ >>! e" is equivalent to "xJ >>= fun _ -> raise e".
     val (>>!): Job<'x> -> exn -> Job<_>
 
-    /// "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun y -> result
-    /// (x, y)".
+    /// "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun y -> result (x,
+    /// y)".
     val (<&>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
-    /// Creates a job that either runs the given jobs sequentially, like <&>,
-    /// or as two separate parallel jobs and returns a pair of their results.
-    /// Note that it is not guaranteed that the jobs would be run as separate
-    /// jobs.  This means that a job such as "let c = Ch.Now.create () in
-    /// Ch.give c () <*> Ch.take c" may deadlock.
+    /// Creates a job that either runs the given jobs sequentially, like <&>, or
+    /// as two separate parallel jobs and returns a pair of their results.  Note
+    /// that it is not guaranteed that the jobs would be run as separate jobs.
+    /// This means that a job such as "let c = Ch.Now.create () in Ch.give c ()
+    /// <*> Ch.take c" may deadlock.
     val (<*>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-  /// Implements the try-in-unless exception handling construct for jobs.
-  /// Both of the continuation jobs "'x -> Job<'y>", for success, and "exn
-  /// -> Job<'y>", for failure, are invoked from a tail position.
+  /// Implements the try-in-unless exception handling construct for jobs.  Both
+  /// of the continuation jobs "'x -> Job<'y>", for success, and "exn ->
+  /// Job<'y>", for failure, are invoked from a tail position.
   val tryIn: Job<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
   val tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
 
-  /// Implements a variation of the try-finally exception handling construct
-  /// for jobs.  The given action, specified as a function, is executed after
-  /// the job has been run, whether it fails or completes successfully.
+  /// Implements a variation of the try-finally exception handling construct for
+  /// jobs.  The given action, specified as a function, is executed after the
+  /// job has been run, whether it fails or completes successfully.
   val tryFinallyFun: Job<'x> -> (unit -> unit) -> Job<'x>
 
-  /// Implements a variation of the try-finally exception handling construct
-  /// for jobs.  The given action, specified as a job, is executed after the
-  /// the job has been run, whether it fails or completes successfully.
+  /// Implements a variation of the try-finally exception handling construct for
+  /// jobs.  The given action, specified as a job, is executed after the the job
+  /// has been run, whether it fails or completes successfully.
   val tryFinallyJob: Job<'x> -> Job<unit> -> Job<'x>
 
-  /// Implements the use construct for jobs.  The Dispose method of the
-  /// given disposable object is called after running the job constructed
-  /// with the disposable object.
+  /// Implements the use construct for jobs.  The Dispose method of the given
+  /// disposable object is called after running the job constructed with the
+  /// disposable object.
   val using: 'x -> ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
 
   /// "catch j" is equivalent to "tryIn j (lift Choice1Of2) (lift Choice2Of2)".
   val catch: Job<'x> -> Job<Choice<'x, exn>>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that runs the given job sequentially the given number of
   /// times.  The results from the jobs are ignored.
   val forN: int -> Job<_> -> Job<unit>
 
   /// "forUpTo lo hi i2xJ" creates a job that sequentially iterates from lo to
-  /// hi (inclusive) and calls the given function to construct jobs that will
-  /// be executed.  The results from the jobs are ignored.
+  /// hi (inclusive) and calls the given function to construct jobs that will be
+  /// executed.  The results from the jobs are ignored.
   val forUpTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
-  /// "forDownTo hi lo i2xJ" creates a job that sequentially iterates from hi
-  /// to lo (inclusive) and calls the given function to construct jobs that
-  /// will be executed.  The results from the jobs are ignored.
+  /// "forDownTo hi lo i2xJ" creates a job that sequentially iterates from hi to
+  /// lo (inclusive) and calls the given function to construct jobs that will be
+  /// executed.  The results from the jobs are ignored.
   val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
   /// "whileDo cond body" creates a job that sequentially executes the body job
@@ -201,14 +218,14 @@ module Job =
   /// "whenDo b uJ" is equivalent to "if b then uJ else Job.unit".
   val inline whenDo: bool -> Job<unit> -> Job<unit>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that runs the given job sequentially for an indefinite
   /// number of times.  It is a common programming pattern to use server jobs
   /// that loop indefinitely and communicate with clients via channels.  When a
   /// job is blocked waiting for communication on one or more channels and the
-  /// channels become garbage (no longer reachable by any other job) the job
-  /// can be garbage collected as well.
+  /// channels become garbage (no longer reachable by any other job) the job can
+  /// be garbage collected as well.
   val forever: Job<_> -> Job<_>
 
   /// Creates a job that indefinitely iterates the given job constructor
@@ -221,10 +238,10 @@ module Job =
   /// well.
   val iterate: 'x -> ('x -> Job<'x>) -> Job<_>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-  /// Creates a job that runs all of the jobs in sequence and returns a
-  /// list of the results.
+  /// Creates a job that runs all of the jobs in sequence and returns a list of
+  /// the results.
   val seqCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs in sequence.  The results of the
@@ -240,7 +257,7 @@ module Job =
   /// ignored.
   val conIgnore: seq<Job<_>> -> Job<unit>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that performs the asynchronous operation defined by the
   /// given pair of begin and end operations.
@@ -248,7 +265,7 @@ module Job =
                  -> (IAsyncResult -> 'x)
                  -> Job<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on first-class synchronous operations or alternatives.
 module Alt =
@@ -258,7 +275,7 @@ module Alt =
   /// committed to.
   val inline always: 'x -> Alt<'x>
 
-  /// Creates an an alternative that is never available for picking.
+  /// Creates an alternative that is never available for picking.
   val never: unit -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
@@ -270,28 +287,28 @@ module Alt =
   val delay: (unit -> Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job constructed with a negative acknowledgement alternative.  The
-  /// negative acknowledgement alternative will be available for picking in
-  /// case some other instantiated alternative involved in the picking is
-  /// committed to instead.  Note that if an alternative created with withNack
-  /// is not instantiated, then no negative acknowledgement is created.  For
-  /// example, given an alternative of the form "always () <|> withNack (...)"
-  /// the withNack alternative is never instantiated.
+  /// given job constructed with a negative acknowledgment alternative.  The
+  /// negative acknowledgment alternative will be available for picking in case
+  /// some other instantiated alternative involved in the picking is committed
+  /// to instead.  Note that if an alternative created with withNack is not
+  /// instantiated, then no negative acknowledgment is created.  For example,
+  /// given an alternative of the form "always () <|> withNack (...)"  the
+  /// withNack alternative is never instantiated.
   val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the
   /// given alternatives is.  More precisely, "choose alts" is equivalent to
-  /// "delay (fun () -> Seq.foldBack (<|>) alts never)", given Seq.foldBack
-  /// with the obvious meaning.
+  /// "delay (fun () -> Seq.foldBack (<|>) alts never)", given Seq.foldBack with
+  /// the obvious meaning.
   val choose: seq<Alt<'x>> -> Alt<'x>
 
   /// "select xAs" is equivalent to "pick (choose xJs)".
   val inline select: seq<Alt<'x>> -> Job<'x>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
-  /// Infix operators on alternatives.  You can open this module to bring all
-  /// of the infix operators into scope.
+  /// Infix operators on alternatives.  You can open this module to bring all of
+  /// the infix operators into scope.
   module Infixes =
     /// Creates an alternative that is available for picking when either of the
     /// given alternatives is available.  The given alternatives are processed
@@ -325,27 +342,27 @@ module Alt =
     /// "xA >>!? e" is equivalent to "xA >>=? fun _ -> raise e".
     val (>>!?): Alt<'x> -> exn -> Alt<_>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// Implements the try-in-unless exception handling construct for
   /// alternatives.  Both of the continuation jobs "'x -> Job<'y>", for success,
   /// and "exn -> Job<'y>", for failure, are invoked from a tail position.
   /// Exceptions from both before and after the commit point can be handled.  An
-  /// exception that occures before a commit point, from the user code in a
+  /// exception that occurs before a commit point, from the user code in a
   /// guard, delay, or withNack, results in treating that exception as the
   /// commit point.  Note you can also use function or job level exception
   /// handling before the commit point within the user code in a guard, delay,
   /// or withNack.
   val tryIn: Alt<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Alt<'y>
 
-  ///////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that instantiates the alternative, waits until it becomes
   /// available for picking and then commits to the alternative and results in
   /// its value.
   val inline pick: Alt<'x> -> Job<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on a wall-clock timer.
 module Timer =
@@ -353,18 +370,18 @@ module Timer =
   /// Operations on the global wall-clock timer.  The global timer is implicitly
   /// associated with the global scheduler.
   module Global =
-    /// Creates an alternative that, after instantiation, becomes pickable
-    /// after the specified time span.  Note that this is simply not intended
-    /// for high precision timing and the resolution of the underlying timing
-    /// mechanism is very coarse (Windows system ticks).
+    /// Creates an alternative that, after instantiation, becomes pickable after
+    /// the specified time span.  Note that this is simply not intended for high
+    /// precision timing and the resolution of the underlying timing mechanism
+    /// is very coarse (Windows system ticks).
     val timeOut: TimeSpan -> Alt<unit>
 
-    /// Creates a job that sleeps for (about) the specified time.  Note that this
-    /// is simply not intended for high precision timing and the resolution of
-    /// the underlying timing mechanism is coarse (Windows system ticks).
+    /// Creates a job that sleeps for (about) the specified time.  Note that
+    /// this is simply not intended for high precision timing and the resolution
+    /// of the underlying timing mechanism is coarse (Windows system ticks).
     val sleep: TimeSpan -> Job<unit>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on synchronous channels.
 module Ch =
@@ -383,37 +400,37 @@ module Ch =
   /// Creates a job that creates a new channel.
   val create: unit -> Job<Ch<'x>>
 
-  /// Creates a job that offers to give the given value to another job on
-  /// the given channel.  A give operation is synchronous.  In other words, a
-  /// give operation waits until another job takes the value.
+  /// Creates a job that offers to give the given value to another job on the
+  /// given channel.  A give operation is synchronous.  In other words, a give
+  /// operation waits until another job takes the value.
   val inline give: Ch<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that sends a value to another job on the given channel.
-  /// A send operation is asynchronous.  In other words, a send operation does
-  /// not wait for another job to give the value to.  Note that channels have
-  /// been optimized for synchronous operations; an occasional send can be
-  /// efficient, but when sends are queued, performance maybe be significantly
-  /// worse than with a Mailbox optimized for buffering.
+  /// Creates a job that sends a value to another job on the given channel.  A
+  /// send operation is asynchronous.  In other words, a send operation does not
+  /// wait for another job to give the value to.  Note that channels have been
+  /// optimized for synchronous operations; an occasional send can be efficient,
+  /// but when sends are queued, performance maybe be significantly worse than
+  /// with a Mailbox optimized for buffering.
   val inline send: Ch<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that offers to take a value from another job on the
-  /// given channel.  In other words, a take operation waits until another job
-  /// gives (or sends) a value.
+  /// Creates a job that offers to take a value from another job on the given
+  /// channel.  In other words, a take operation waits until another job gives
+  /// (or sends) a value.
   val inline take: Ch<'x> -> Job<'x>
 
   /// Selective operations on synchronous channels.
   module Alt =
-    /// Creates an alternative that, at instantiation time, offers to give
-    /// the given value on the given channel, and becomes available for
-    /// picking when another job offers to take the value.
+    /// Creates an alternative that, at instantiation time, offers to give the
+    /// given value on the given channel, and becomes available for picking when
+    /// another job offers to take the value.
     val inline give: Ch<'x> -> 'x -> Alt<unit>
 
-    /// Creates an alternative that, at instantiation time, offers to take
-    /// a value from another job on the given channel, and becomes available
-    /// for picking when another job offers to give a value.
+    /// Creates an alternative that, at instantiation time, offers to take a
+    /// value from another job on the given channel, and becomes available for
+    /// picking when another job offers to give a value.
     val inline take: Ch<'x> -> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on write once variables.
 module IVar =
@@ -427,8 +444,8 @@ module IVar =
 
   /// Creates a job that writes to the given write once variable.  It is an
   /// error to write to a single IVar more than once.  This assumption may be
-  /// used to optimize the implementation and incorrect usage leads to
-  /// undefined behaviour.
+  /// used to optimize the implementation and incorrect usage leads to undefined
+  /// behaviour.
   val inline fill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that, if necessary, waits until the given write once
@@ -437,11 +454,11 @@ module IVar =
 
   /// Selective operations on write once variables.
   module Alt =
-    /// Creates an alternative that becomes available for picking after
-    /// the write once variable has been written to.
+    /// Creates an alternative that becomes available for picking after the
+    /// write once variable has been written to.
     val inline read: IVar<'x> -> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on write many variables.
 module MVar =
@@ -454,18 +471,18 @@ module MVar =
     /// value.
     val inline createFull: 'x -> MVar<'x>
 
-  /// Creates a job that creates a new synchronous variable that is
-  /// initially empty.
+  /// Creates a job that creates a new synchronous variable that is initially
+  /// empty.
   val create: unit -> Job<MVar<'x>>
 
   /// Creates a job that creates a new synchronous variable that initially
   /// contains the given value.
   val createFull: 'x -> Job<MVar<'x>>
 
-  /// Creates a job that writes the given value to the synchronous variable.
-  /// It is an error to write to a MVar that is full.  This assumption may be
-  /// used to optimize the implementation and incorrect usage leads to
-  /// undefined behaviour.
+  /// Creates a job that writes the given value to the synchronous variable.  It
+  /// is an error to write to a MVar that is full.  This assumption may be used
+  /// to optimize the implementation and incorrect usage leads to undefined
+  /// behaviour.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that waits until the synchronous variable contains a
@@ -492,11 +509,11 @@ module MVar =
   /// Selective operations on write many variables.
   module Alt =
     /// Creates an alternative that becomes available for picking when the
-    /// variable contains a value and, if committed to, takes the value from
-    /// the variable.
+    /// variable contains a value and, if committed to, takes the value from the
+    /// variable.
     val inline take: MVar<'x> -> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on buffered mailboxes.
 module Mailbox =
@@ -519,9 +536,9 @@ module Mailbox =
   /// operation never blocks.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that waits until the specified mailbox contains at least
-  /// one value and then takes a value from the mailbox and returns it.  Values
-  /// are taken in FIFO order.
+  /// Creates a job that waits until the specified mailbox contains at least one
+  /// value and then takes a value from the mailbox and returns it.  Values are
+  /// taken in FIFO order.
   val inline take: Mailbox<'x> -> Job<'x>
 
   /// Selective operations on buffered mailboxes.
@@ -531,17 +548,17 @@ module Mailbox =
     /// from the mailbox.
     val inline take: Mailbox<'x> -> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on promises.
 module Promise =
   /// Immediate or non-workflow operations on promises.
   module Now =
-    /// Creates a promise whose value is computed lazily with the given job
-    /// when an attempt is made to read the promise.  Although the job is not
-    /// started immediately, the effect is that the delayed job will be run as
-    /// a separate job, which means it is possible to communicate with it as
-    /// long the delayed job is started before trying to communicate with it.
+    /// Creates a promise whose value is computed lazily with the given job when
+    /// an attempt is made to read the promise.  Although the job is not started
+    /// immediately, the effect is that the delayed job will be run as a
+    /// separate job, which means it is possible to communicate with it as long
+    /// the delayed job is started before trying to communicate with it.
     val inline delay: Job<'x> -> Promise<'x>
 
     /// Creates a promise with the given value.
@@ -550,15 +567,15 @@ module Promise =
     /// Creates a promise with the given failure exception.
     val inline withFailure: exn -> Promise<'x>
 
-  /// Creates a job that creates a promise, whose value is computed eagerly
-  /// with the given job, which is started to run as a separate concurrent job.
+  /// Creates a job that creates a promise, whose value is computed eagerly with
+  /// the given job, which is started to run as a separate concurrent job.
   val start: Job<'x> -> Job<Promise<'x>>
 
   /// Creates a job that creates a promise, whose value is computed with the
   /// given job, when an attempt is made to read the promise.  Although the job
-  /// is not started immediately, the effect is that the delayed job will be
-  /// run as a separate job, which means it is possible to communicate with it
-  /// as long the delayed job is started before trying to communicate with it.
+  /// is not started immediately, the effect is that the delayed job will be run
+  /// as a separate job, which means it is possible to communicate with it as
+  /// long the delayed job is started before trying to communicate with it.
   val delay: Job<'x> -> Job<Promise<'x>>
 
   /// Creates a job that waits for the promise to be computed and then
@@ -572,7 +589,7 @@ module Promise =
     /// promise was delayed, it is started as a separate job.
     val inline read: Promise<'x> -> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on mutual exclusion locks.
 module Lock =
@@ -581,14 +598,14 @@ module Lock =
 
   /// Creates a job that calls the given function so that the lock is held
   /// during the execution of the function.  This locking method is optimized
-  /// for short duration locking so that other jobs contending for the lock
-  /// will keep spinning during the execution of the function.
+  /// for short duration locking so that other jobs contending for the lock will
+  /// keep spinning during the execution of the function.
   val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
 
-  /// Creates a job that runs the given job so that the lock is held during
-  /// the execution of the given job.  This locking method is optimized for
-  /// longer duration locking so that other jobs contending for the lock will
-  /// be blocked to a queue during the execution of the function.  Note that
+  /// Creates a job that runs the given job so that the lock is held during the
+  /// execution of the given job.  This locking method is optimized for longer
+  /// duration locking so that other jobs contending for the lock will be
+  /// blocked to a queue during the execution of the function.  Note that
   /// blocking and resuming a job is much faster than blocking and resuming a
   /// native thread.
   val inline duringJob: Lock -> Job<'x> -> Job<'x>
@@ -598,7 +615,7 @@ module Lock =
     /// Creates a new lock.
     val inline create: unit -> Lock
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 #if NOT_YET_IMPLEMENTED
 /// Operations on condition variables.
 module Cond =
@@ -609,7 +626,7 @@ module Cond =
     val create: unit -> Cond
 #endif
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Extensions to various system modules and types for programming with jobs.
 /// You can open this module to use the extensions much like as if they were
@@ -617,8 +634,8 @@ module Cond =
 module Extensions =
   /// Operations for processing arrays with jobs.
   module Array =
-    /// Sequentially maps the given job constructor to the elements of the
-    /// array and returns an array of the results.
+    /// Sequentially maps the given job constructor to the elements of the array
+    /// and returns an array of the results.
     val mapJob: ('x -> Job<'y>) -> array<'x> -> Job<array<'y>>
 
     /// Sequentially iterates the given job constructor over the given
@@ -661,7 +678,7 @@ module Extensions =
     /// does not start the job.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
 
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /// Operations on schedulers.  Use of this module requires more intimate
 /// knowledge of Hopac, but may allow adapting Hopac to special application
@@ -739,3 +756,26 @@ module Scheduler =
   /// threads are waiting, at the moment.  Note that calling this from a worker
   /// thread, even from an idle handler, always return false.
   val isIdle: Scheduler -> bool
+
+///////////////////////////////////////////////////////////////////////////////
+
+/// Additional infix operators.  You can open this module to bring all of the
+/// infix operators into scope.
+module Infixes =
+  /// "xCh <-? x" is equivalent to "Ch.Alt.give xCh x".
+  val inline (<-?): Ch<'x> -> 'x -> Alt<unit>
+
+  /// "xCh <-+ x" is equivalent to "Ch.give xCh x".
+  val inline (<--): Ch<'x> -> 'x -> Job<unit>
+
+  /// "xCh <-+ x" is equivalent to "Ch.send xCh x".
+  val inline (<-+): Ch<'x> -> 'x -> Job<unit>
+
+  /// "xI <-= x" is equivalent to "IVar.fill xI x".
+  val inline (<-=): IVar<'x> -> 'x -> Job<unit>
+
+  /// "xM <<-= x" is equivalent to "MVar.fill xM x".
+  val inline (<<-=): MVar<'x> -> 'x -> Job<unit>
+
+  /// "xMb <<-+ x" is equivalent to "Mailbox.send xMb x".
+  val inline (<<-+): Mailbox<'x> -> 'x -> Job<unit>
