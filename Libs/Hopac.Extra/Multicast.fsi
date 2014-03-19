@@ -4,13 +4,11 @@ namespace Hopac.Extra
 
 open Hopac
 
-[<AutoOpen>]
-module MulticastTypes =
-  /// A multicast channel for one to many communication.
-  type MChan<'a>
+/// Represents a multicast channel for one to many communication.
+type MChan<'a>
 
-  /// A port for listening to a multicast channel.
-  type MPort<'a>
+/// Represents a port for listening to a multicast channel.
+type MPort<'a>
 
 /// Operations on multicast channels.
 module Multicast =
@@ -20,8 +18,7 @@ module Multicast =
   /// Creates a new port for listening to the given multicast channel.
   val port: MChan<'a> -> Job<MPort<'a>>
 
-  /// Sends a message to all of the ports listening to the multicast
-  /// channel.
+  /// Sends a message to all of the ports listening to the multicast channel.
   val multicast: MChan<'a> -> 'a -> Job<unit>
 
   /// Receives a message from the given port.

@@ -4,29 +4,26 @@ namespace Hopac.Extra
 
 open Hopac
 open Hopac.Infixes
+open Hopac.Job.Infixes
 
-[<AutoOpen>]
-module MulticastTypes =
-  type MPort<'a> =
-   | MPort of Ch<'a>
+type MPort<'a> =
+ | MPort of Ch<'a>
 
-  type Req<'a> =
-   | Multicast of 'a
-   | NewPort
+type Req<'a> =
+ | Multicast of 'a
+ | NewPort
 
-  type MChan<'a> = {
-    ReqCh: Ch<Req<'a>>
-    RepCh: Ch<MPort<'a>>
-  }
+type MChan<'a> = {
+  ReqCh: Ch<Req<'a>>
+  RepCh: Ch<MPort<'a>>
+}
 
-  type Stream<'a> = {
-    Value: 'a
-    Next: IVar<Stream<'a>>
-  }
+type Stream<'a> = {
+  Value: 'a
+  Next: IVar<Stream<'a>>
+}
 
 module Multicast =
-  open Hopac.Job.Infixes
-
   let create () : Job<MChan<'a>> = Job.delay <| fun () ->
     let mc = {ReqCh = ch (); RepCh = ch ()}
     let newPort v =

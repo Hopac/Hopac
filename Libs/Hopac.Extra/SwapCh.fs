@@ -7,10 +7,8 @@ open Hopac.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 
-[<AutoOpen>]
-module SwapChTypes =
-  type SwapCh<'a> =
-   | SwapCh of Ch<'a * Ch<'a>>
+type SwapCh<'a> =
+ | SwapCh of Ch<'a * Ch<'a>>
 
 module SwapCh =
   module Now =

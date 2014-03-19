@@ -6,10 +6,8 @@ open Hopac
 open Hopac.Infixes
 open Hopac.Job.Infixes
 
-[<AutoOpen>]
-module DirChTypes =
-  type InCh<'a> = InCh of Ch<'a>
-  type OutCh<'a> = OutCh of Ch<'a>
+type InCh<'a> = InCh of Ch<'a>
+type OutCh<'a> = OutCh of Ch<'a>
 
 module DirCh =
   module Now =

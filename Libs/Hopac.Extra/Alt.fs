@@ -8,10 +8,10 @@ open Hopac.Alt.Infixes
 
 module Alt =
   let wrapAbort (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
-    Alt.withNack <| fun abortEvt ->
-    Job.start (abortEvt >>. abortAct) >>% evt
+    Alt.withNack <| fun abortAlt ->
+    Job.start (abortAlt >>. abortAct) >>% evt
 
   module Infixes =
     let (<+>) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
-      (xA >>=? fun x -> (yA |>> fun y -> (x, y))) <|>
-      (yA >>=? fun y -> (xA |>> fun x -> (x, y)))
+      (xA >>=? fun x -> yA |>> fun y -> (x, y)) <|>
+      (yA >>=? fun y -> xA |>> fun x -> (x, y))

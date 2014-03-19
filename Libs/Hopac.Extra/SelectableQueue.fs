@@ -4,22 +4,17 @@ namespace Hopac.Extra
 
 open System.Collections.Generic
 open Hopac
+open Hopac.Alt.Infixes
 open Hopac.Infixes
+open Hopac.Job.Infixes
 
-[<AutoOpen>]
-module SelectableQueueTypes =
-  type SelectableQueue<'a> = {
-    SendCh: Ch<'a>
-    TakeCh: Ch<('a -> bool) * Alt<unit> * Ch<'a>>
-  }
+type SelectableQueue<'a> = {
+  SendCh: Ch<'a>
+  TakeCh: Ch<('a -> bool) * Alt<unit> * Ch<'a>>
+}
 
 module SelectableQueue =
-  open Hopac.Alt.Infixes
-  open Hopac.Job.Infixes
-
-  type Queue<'a> = LinkedList<'a>
-  type Node<'a> = LinkedListNode<'a>
-  let nodes (q: Queue<'a>) : seq<Node<'a>> =
+  let nodes (q: LinkedList<'a>) : seq<LinkedListNode<'a>> =
     seq {let node = ref q.First
          while null <> !node do
            yield !node
@@ -27,14 +22,14 @@ module SelectableQueue =
 
   let create () : Job<SelectableQueue<'a>> = Job.delay <| fun () ->
     let q = {SendCh = ch (); TakeCh = ch ()}
-    let msgs = Queue<'a>()
-    let reqs = Queue<('a -> bool) * Alt<unit> * Ch<'a>>()
-    let sendAlt = q.SendCh |>>? fun msg -> msgs.AddLast (Node<_>(msg))
-    let takeAlt = q.TakeCh |>>? fun req -> reqs.AddLast (Node<_>(req))
-    let prepare (reqNode: Node<_>) : Alt<unit> =
+    let msgs = LinkedList<'a>()
+    let reqs = LinkedList<('a -> bool) * Alt<unit> * Ch<'a>>()
+    let sendAlt = q.SendCh |>>? fun m -> msgs.AddLast (LinkedListNode<_>(m))
+    let takeAlt = q.TakeCh |>>? fun r -> reqs.AddLast (LinkedListNode<_>(r))
+    let prepare (reqNode: LinkedListNode<_>) : Alt<unit> =
       let (pred, cancel, replyCh) = reqNode.Value
       let cancelAlt = cancel |>>? fun () -> reqs.Remove reqNode
-      let giveAlt (msgNode: Node<_>) =
+      let giveAlt (msgNode: LinkedListNode<_>) =
         replyCh <-? msgNode.Value |>>? fun () ->
         reqs.Remove reqNode
         msgs.Remove msgNode

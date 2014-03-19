@@ -4,26 +4,24 @@ namespace Hopac.Extra
 
 open Hopac
 
-[<AutoOpen>]
-module DirChTypes =
-  /// A directional input channel.
-  type InCh<'a>
+/// A directional input channel.
+type InCh<'a>
 
-  /// A directional output channel.
-  type OutCh<'a>
+/// A directional output channel.
+type OutCh<'a>
 
 /// Operations on directional channels.
 module DirCh =
   /// Immediate or non-workflow operations.
   module Now =
-    /// Creates a new pair of directional channels.  The created channels
-    /// are associated so that giving a value on the output channel allows the
-    /// value to be taken on the input channel.
+    /// Creates a new pair of directional channels.  The created channels are
+    /// associated so that giving a value on the output channel allows the value
+    /// to be taken on the input channel.
     val create: unit -> InCh<'a> * OutCh<'a>
 
-  /// Creates a new pair of directional channels.  The created channels
-  /// are associated so that giving a value on the output channel allows the
-  /// value to be taken on the input channel.
+  /// Creates a new pair of directional channels.  The created channels are
+  /// associated so that giving a value on the output channel allows the value
+  /// to be taken on the input channel.
   val create: unit -> Job<InCh<'a> * OutCh<'a>>
 
   /// Waits until another job offers to give a value on the associated output
