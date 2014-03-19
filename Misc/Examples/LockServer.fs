@@ -4,6 +4,7 @@ module LockServer
 
 open System.Collections.Generic
 open Hopac
+open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 
@@ -22,13 +23,13 @@ type Server = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-let release s (Lock lock) = Ch.give s.reqCh (Release lock)
+let release s (Lock lock) = s.reqCh <-- Release lock
 
 module Alt =
   let acquire s (Lock lock) = Alt.withNack <| fun nack ->
-    let replyCh = Ch.Now.create ()
-    Ch.send s.reqCh (Acquire (lock, replyCh, nack)) >>%
-    Ch.Alt.take replyCh
+    let replyCh = ch ()
+    s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
+    asAlt replyCh
 
   let withLock s l xJ =
     acquire s l >>=? fun () ->
@@ -44,16 +45,16 @@ module Now =
 
 let start = Job.delay <| fun () ->
   let locks = Dictionary<int64, Queue<Ch<unit> * Alt<unit>>>()
-  let s = {unique = 0L; reqCh = Ch.Now.create ()}
+  let s = {unique = 0L; reqCh = ch ()}
   (Job.server << Job.forever)
-   (Ch.take s.reqCh >>= function
+   (s.reqCh >>= function
      | Acquire (lock, replyCh, abortAlt) ->
        match locks.TryGetValue lock with
         | (true, pending) ->
           pending.Enqueue (replyCh, abortAlt)
           Job.unit
         | _ ->
-          Alt.select [Ch.Alt.give replyCh () |>>? fun () ->
+          Alt.select [replyCh <-? () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->
@@ -65,7 +66,7 @@ let start = Job.delay <| fun () ->
               Job.unit
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
-              Alt.select [Ch.Alt.give replyCh ()
+              Alt.select [replyCh <-? ()
                           abortAlt >>=? assign]
           assign ()
         | _ ->

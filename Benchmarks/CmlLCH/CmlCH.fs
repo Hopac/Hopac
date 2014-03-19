@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open Hopac
+open Hopac.Infixes
 open Hopac.Extra
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
@@ -20,15 +21,15 @@ module EgPaper =
       (op |>>? fun _ -> show "D" kind var)
     let inline spawn x = Job.start (Alt.pick x)
     Job.delay <| fun () ->
-    let x = Ch.Now.create ()
-    let y = Ch.Now.create ()
-    let z = Ch.Now.create ()
-    spawn (make "+" "x" (Ch.Alt.give x ()) <|>
-           make "+" "y" (Ch.Alt.give y ())) >>= fun () ->
-    spawn (make "-" "y" (Ch.Alt.take y) <|>
-           make "-" "z" (Ch.Alt.take z)) >>= fun () ->
-    spawn (make "-" "x" (Ch.Alt.take x)) >>= fun () ->
-    spawn (make "+" "z" (Ch.Alt.give z ()))
+    let x = ch ()
+    let y = ch ()
+    let z = ch ()
+    spawn (make "+" "x" (x <-? ()) <|>
+           make "+" "y" (y <-? ())) >>= fun () ->
+    spawn (make "-" "y" y <|>
+           make "-" "z" z) >>= fun () ->
+    spawn (make "-" "x" x) >>= fun () ->
+    spawn (make "+" "z" (z <-? ()))
 
   let run n =
     printf "EgPaper %8d: " n
@@ -40,20 +41,19 @@ module EgPaper =
 module SwapCh =
   type SwapChannel<'a> = Ch<'a * Ch<'a>>
 
-  module Now =
-    let create () = Ch.Now.create ()
+  let swapch () = ch ()
 
-  let swap ch outMsg =
-    ((ch >>=? fun (inMsg, outCh) ->
-      Ch.give outCh outMsg >>% inMsg) <|>
-     (Alt.delay <| fun () ->
-       let inCh = Ch.Now.create ()
-       Ch.Alt.give ch (outMsg, inCh) >>.? inCh))
+  let swap sCh outMsg =
+    (sCh >>=? fun (inMsg, outCh) ->
+     outCh <-- outMsg >>% inMsg) <|>
+    (Alt.delay <| fun () ->
+     let inCh = ch ()
+     sCh <-? (outMsg, inCh) >>.? inCh)
 
   let bench = Job.delay <| fun () ->
-    let ch = Now.create ()
-    Job.start (swap ch ()) >>= fun () ->
-    Alt.pick (swap ch ())
+    let sCh = swapch ()
+    Job.start (swap sCh ()) >>= fun () ->
+    Alt.pick (swap sCh ())
 
   let run n =
     printf "SwapCh %8d: " n
@@ -65,9 +65,9 @@ module SwapCh =
 module BufferedCh =
   type BufferedCh<'a> = Ch<'a> * Ch<'a>
 
-  let create () = Job.delay <| fun () ->
-    let inCh = Ch.Now.create ()
-    let outCh = Ch.Now.create ()
+  let buff () = Job.delay <| fun () ->
+    let inCh = ch ()
+    let outCh = ch ()
     Job.server
      (Job.iterate ([], [])
        (function
@@ -75,16 +75,16 @@ module BufferedCh =
            inCh |>> fun x -> ([x], [])
          | ((x::xs) as xxs, ys) ->
            (inCh |>>? fun y -> (xxs, y::ys)) <|>
-           (Ch.Alt.give outCh x >>%? (xs, ys)) :> Job<_>
+           (outCh <-? x >>%? (xs, ys)) :> Job<_>
          | ([], ys) ->
            Job.result (List.rev ys, []))) >>%
     (inCh, outCh)
 
-  let send (inCh, _) x = Ch.give inCh x
-  let recv (_, outCh) = Ch.take outCh
+  let send (inCh, _) x = inCh <-- x
+  let recv (_, outCh) = outCh :> Job<_>
 
   let bench =
-    create () >>= fun buf ->
+    buff () >>= fun buf ->
     Job.start (send buf 1) >>= fun () ->
     Job.start (send buf 2) >>= fun () ->
     Job.start (recv buf) >>= fun () ->

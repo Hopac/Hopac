@@ -3,6 +3,7 @@
 module ThreadRing
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Extensions
 open Hopac.Job.Infixes
 open System
@@ -11,18 +12,18 @@ open System.Diagnostics
 module ChGive =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
     Job.forever
-     (Ch.take inCh >>= fun n ->
+     (inCh >>= fun n ->
       if n <> 0 then
-        Ch.give outCh (n-1)
+        outCh <-- n-1
       else
-        Ch.give finishCh name)
+        finishCh <-- name)
 
   let mkChain n finishCh = Job.delay <| fun () ->
-    let ch0 = Ch.Now.create ()
+    let ch0 = ch ()
     seq {1 .. n}
     |> Seq.foldJob
         (fun chIn i ->
-           let chOut = if i=n then ch0 else Ch.Now.create ()
+           let chOut = if i=n then ch0 else ch ()
            proc i chIn chOut finishCh |> Job.server >>%
            chOut)
         ch0
@@ -34,12 +35,12 @@ module ChGive =
       run
        (Job.delay <| fun () ->
         let ps = Array.create p n
-        let finishCh = Ch.Now.create ()
+        let finishCh = ch ()
         ps
         |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
-           Ch.give ch m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+           ch <-- m) >>= fun () ->
+        Seq.Con.mapJob (fun _ -> asJob finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -47,18 +48,18 @@ module ChGive =
 module ChSend =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
     Job.forever
-     (Ch.take inCh >>= fun n ->
+     (inCh >>= fun n ->
       if n <> 0 then
-        Ch.send outCh (n-1)
+        outCh <-+ n-1
       else
-        Ch.give finishCh name)
+        finishCh <-- name)
 
   let mkChain n finishCh = Job.delay <| fun () ->
-    let ch0 = Ch.Now.create ()
+    let ch0 = ch ()
     seq {1 .. n}
     |> Seq.foldJob
         (fun chIn i ->
-           let chOut = if i=n then ch0 else Ch.Now.create ()
+           let chOut = if i=n then ch0 else ch ()
            proc i chIn chOut finishCh |> Job.server >>%
            chOut)
         ch0
@@ -70,12 +71,12 @@ module ChSend =
       run
        (Job.delay <| fun () ->
         let ps = Array.create p n
-        let finishCh = Ch.Now.create ()
+        let finishCh = ch ()
         ps
         |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
-           Ch.send ch m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+           ch <-- m) >>= fun () ->
+        Seq.Con.mapJob (fun _ -> asJob finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -86,18 +87,18 @@ module MbSend =
            (outMS: Mailbox<int>)
            (finishCh: Ch<int>) =
     Job.forever
-     (Mailbox.take inMS >>= fun n ->
+     (inMS >>= fun n ->
       if n <> 0 then
-        Mailbox.send outMS (n-1)
+        outMS <<-+ n-1
       else
-        Ch.give finishCh name)
+        finishCh <-- name)
 
   let mkChain n finishCh = Job.delay <| fun () ->
-    let ms0 = Mailbox.Now.create ()
+    let ms0 = mb ()
     seq {1 .. n}
     |> Seq.foldJob
         (fun msIn i ->
-           let msOut = if i=n then ms0 else Mailbox.Now.create ()
+           let msOut = if i=n then ms0 else mb ()
            proc i msIn msOut finishCh |> Job.server >>%
            msOut)
         ms0
@@ -109,12 +110,12 @@ module MbSend =
       run
        (Job.delay <| fun () ->
         let ps = Array.create p n
-        let finishCh = Ch.Now.create ()
+        let finishCh = ch ()
         ps
         |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ms ->
-           Mailbox.send ms m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> Ch.take finishCh) (seq {1 .. p}))
+           ms <<-+ m) >>= fun () ->
+        Seq.Con.mapJob (fun _ -> asJob finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds

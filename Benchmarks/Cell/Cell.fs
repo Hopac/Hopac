@@ -1,6 +1,7 @@
 ﻿module Cell
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Extensions
@@ -18,17 +19,17 @@ module HopacReq =
   }
 
   let put (c: Cell<'a>) (x: 'a) : Job<unit> =
-    Ch.give c.reqCh (Put x)
+    c.reqCh <-- Put x
 
-  let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
+  let get (c: Cell<'a>) : Job<'a> = c.reqCh <-+ Get >>. c.replyCh
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
-    let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
+    let c = {reqCh = ch (); replyCh = ch ()}
     Job.server
      (Job.iterate x (fun x ->
-       Ch.take c.reqCh >>= function
-        | Get   -> Ch.give c.replyCh x >>% x
-        | Put x -> Job.result x)) >>% c
+      c.reqCh >>= function
+       | Get   -> c.replyCh <-+ x >>% x
+       | Put x -> Job.result x)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacReq: "
@@ -65,20 +66,20 @@ module HopacDyn =
   }
 
   let put (c: Cell<'a>) (x: 'a) : Job<unit> =
-    Ch.give c.reqCh (Put x)
+    c.reqCh <-- Put x
 
   let get (c: Cell<'a>) : Job<'a> = Job.delay <| fun () ->
-    let replyIv = IVar.Now.create ()
-    Ch.give c.reqCh (Get replyIv) >>.
-    IVar.read replyIv
+    let replyIv = ivar ()
+    c.reqCh <-+ Get replyIv >>.
+    replyIv
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
-    let c = {reqCh = Ch.Now.create ()}
+    let c = {reqCh = ch ()}
     Job.server
      (Job.iterate x (fun x ->
-       Ch.take c.reqCh >>= function
-        | Get replyIv-> IVar.fill replyIv x >>% x
-        | Put x -> Job.result x)) >>% c
+      c.reqCh >>= function
+       | Get replyIv-> replyIv <-= x >>% x
+       | Put x -> Job.result x)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacDyn: "
@@ -111,15 +112,15 @@ module HopacAlt =
     putCh: Ch<'a>
   }
 
-  let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
-  let put (c: Cell<'a>) (x: 'a) : Job<unit> = Ch.give c.putCh x
+  let get (c: Cell<'a>) = c.getCh :> Job<_>
+  let put (c: Cell<'a>) (x: 'a) = c.putCh <-- x
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
-    let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
+    let c = {getCh = ch (); putCh = ch ()}
     Job.server
      (Job.iterate x (fun x ->
-       c.putCh <|>
-       (Ch.Alt.give c.getCh x >>%? x) :> Job<_>)) >>% c
+      c.putCh <|>
+      (c.getCh <-? x >>%? x) :> Job<_>)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "

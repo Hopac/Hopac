@@ -3,6 +3,7 @@
 namespace Misc
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Extra.Alt.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
@@ -25,9 +26,9 @@ module BufferedChViaPick =
        | [] ->
          insCh >>= fun x -> loop [x]
        | x::xs ->
-         (Ch.Alt.give remCh x >>=? fun () -> loop xs) <|>
-         (insCh               >>=? fun x  -> loop (buf @ [x])) :> Job<_>
+         (remCh <-? x >>=? fun () -> loop xs) <|>
+         (insCh       >>=? fun x  -> loop (buf @ [x])) :> Job<_>
     Job.server (loop []) >>%
     {InsCh=insCh; RemCh=remCh}
-  let insert b x = Ch.give b.InsCh x
-  let remove b = Ch.take b.RemCh
+  let insert b x = b.InsCh <-- x
+  let remove b = asJob b.RemCh

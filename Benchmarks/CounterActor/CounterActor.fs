@@ -9,6 +9,7 @@ open System
 open System.Diagnostics
 open System.Threading.Tasks
 open Hopac
+open Hopac.Infixes
 open Hopac.Extensions
 open Hopac.Job.Infixes
 
@@ -21,26 +22,26 @@ module ChMsg =
    | CA of Ch<Msg>
 
   let create : Job<CounterActor> = job {
-    let inCh = Ch.Now.create ()
+    let inCh = ch ()
     let state = ref 0L
     do! Job.server
          (Job.forever
-           (Ch.take inCh >>= function
+           (inCh >>= function
              | Add n ->
                state := !state + n
                Job.unit
              | GetAndReset replyVar ->
                let was = !state
                state := 0L
-               IVar.fill replyVar was))
+               replyVar <-= was))
     return CA inCh
   }
 
-  let add (CA inCh) (n: int64) : Job<unit> = Ch.give inCh (Add n)
+  let add (CA inCh) (n: int64) : Job<unit> = inCh <-- Add n
   let getAndReset (CA inCh) : Job<int64> = Job.delay <| fun () ->
-    let replyVar = IVar.Now.create ()
-    Ch.give inCh (GetAndReset replyVar) >>.
-    IVar.read replyVar
+    let replyVar = ivar ()
+    inCh <-+ GetAndReset replyVar >>.
+    replyVar
 
   let run numPerThread =
     printf "ChMsg: "
@@ -66,29 +67,29 @@ module MbMsg =
    | CA of Mailbox<Msg>
 
   let create : Job<CounterActor> = job {
-    let inMb = Mailbox.Now.create ()
+    let inMb = mb ()
     let state = ref 0L
     do! Job.server
          (Job.forever
-           (Mailbox.take inMb >>= function
+           (inMb >>= function
              | Add n ->
                state := !state + n
                Job.unit
              | GetAndReset replyVar ->
                let was = !state
                state := 0L
-               IVar.fill replyVar was))
+               replyVar <-= was))
     return CA inMb
   }
 
   let add (CA inMb) (n: int64) = Mailbox.Global.send inMb (Add n)
   let getAndReset (CA inMb) : Job<int64> = Job.delay <| fun () ->
-    let replyVar = IVar.Now.create ()
-    Mailbox.send inMb (GetAndReset replyVar) >>.
-    IVar.read replyVar
+    let replyVar = ivar ()
+    inMb <<-+ GetAndReset replyVar >>.
+    replyVar
 
   let run numPerThread =
-    printf "ChMsg: "
+    printf "MbMsg: "
     let timer = Stopwatch.StartNew ()
     let r = run <| job {
       let! actor = create

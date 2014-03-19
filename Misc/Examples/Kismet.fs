@@ -3,6 +3,7 @@
 open System
 open System.Collections.Generic
 open Hopac
+open Hopac.Infixes
 open Hopac.Alt
 open Hopac.Alt.Infixes
 open Hopac.Job
@@ -15,12 +16,12 @@ module GameTime =
   type Ticks = int64
   let mutable internal currentTime : Ticks = 0L
 
-  let internal timerReqCh : Ch<Ticks * IVar<unit>> = Ch.Now.create ()
+  let internal timerReqCh : Ch<Ticks * IVar<unit>> = ch ()
 
   let atTime (atTime: Ticks) : Alt<unit> =
     Alt.guard << Job.delay <| fun () ->
-    let replyI = IVar.Now.create ()
-    Ch.send timerReqCh (atTime, replyI) >>%
+    let replyI = ivar ()
+    timerReqCh <-+ (atTime, replyI) >>%
     IVar.Alt.read replyI
 
   let timeOut (afterTicks: Ticks) : Alt<unit> =
@@ -31,9 +32,9 @@ module GameTime =
   let internal requests = Dictionary<Ticks, ResizeArray<IVar<unit>>> ()
 
   let internal timeReqServer =
-    Ch.take timerReqCh >>= fun (atTime, replyI) ->
+    timerReqCh >>= fun (atTime, replyI) ->
     if currentTime <= atTime then
-      IVar.fill replyI ()
+      replyI <-= ()
     else
       let replyIs =
         match requests.TryGetValue atTime with
@@ -51,38 +52,38 @@ module GameTime =
      | (true, replyIs) ->
        requests.Remove currentTime |> ignore
        replyIs
-       |> Seq.iterJob (fun replyI -> IVar.fill replyI ())
+       |> Seq.iterJob (fun replyI -> replyI <-= ())
      | _ ->
        Job.unit
 
 let CompareBool comparand input onTrue onFalse =
-  pick input >>= fun x ->
+  input >>= fun x ->
   if !comparand then onTrue x else onFalse x
 
 let Delay duration start stop finished aborted =
-  pick start >>= fun x ->
+  start >>= fun x ->
   select [stop                         >>=? aborted
           GameTime.timeOut (!duration) >>=? fun () -> finished x]
 
 let Set value target input output =
-  pick input >>= fun x ->
+  input >>= fun x ->
   target := value
   output x
 
 let setup () = job {
-  let ch_1 = Ch.Now.create ()
-  let ch_2 = Ch.Now.create ()
-  let ch_3 = Ch.Now.create ()
+  let ch_1 = ch ()
+  let ch_2 = ch ()
+  let ch_3 = ch ()
   // ...
   let bMoved = ref false
   // ...
   do! CompareBool bMoved
-                  (Ch.Alt.take ch_1)
+                  ch_1
                   (Ch.give ch_2)
                   (fun _ -> Job.unit)
       |> Job.forever |> Job.server
   do! Delay (ref 314L)
-            (Ch.Alt.take ch_2)
+            ch_2
             (Alt.never ())
             (Ch.give ch_3)
             (fun _ -> Job.unit)

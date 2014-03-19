@@ -3,6 +3,7 @@
 namespace Hopac.Extra
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Job.Infixes
 
 [<AutoOpen>]
@@ -11,9 +12,13 @@ module DirChTypes =
   type OutCh<'a> = OutCh of Ch<'a>
 
 module DirCh =
-  let create () = Ch.create () |>> fun ch -> (InCh ch, OutCh ch)
-  let take (InCh ch) = Ch.take ch
-  let give (OutCh ch) x = Ch.give ch x
+  module Now =
+    let create () =
+      let xCh = ch ()
+      (InCh xCh, OutCh xCh)
+  let create () = Job.thunk Now.create
+  let take (InCh ch) = asJob ch
+  let give (OutCh ch) x = ch <-- x
   module Alt =
-    let take (InCh ch) = Ch.Alt.take ch
-    let give (OutCh ch) x = Ch.Alt.give ch x
+    let take (InCh ch) = asAlt ch
+    let give (OutCh ch) x = ch <-? x

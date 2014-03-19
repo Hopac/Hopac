@@ -3,6 +3,7 @@
 module Chameneos
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Extensions
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
@@ -37,7 +38,7 @@ module HopacLock =
   type [<AllowNullLiteral>] Chameneos =
     val mutable Color: Color
     val WakeUp: MVar<Color>
-    new (color) = {Color = color; WakeUp = MVar.Now.create ()}
+    new (color) = {Color = color; WakeUp = mvar ()}
 
   type MeetingPlace =
     inherit Lock
@@ -47,7 +48,7 @@ module HopacLock =
   
   let bench (colors: array<Color>) numMeets = Job.delay <| fun () ->
     let mp = MeetingPlace (numMeets)
-    let resultsMS = Ch.Now.create ()
+    let resultsMS = ch ()
     colors
     |> Seq.iterJob (fun myColor ->
        let me = Chameneos (myColor)
@@ -70,18 +71,18 @@ module HopacLock =
                   other) >>= function
             | null ->
               if !cont then
-                MVar.take me.WakeUp |>> fun otherColor ->
+                me.WakeUp |>> fun otherColor ->
                 myMeets := !myMeets + 1
                 me.Color <- complement me.Color otherColor
               else
-                Ch.give resultsMS (!myMeets)
+                resultsMS <-- !myMeets
             | other ->
               let otherColor = other.Color
-              MVar.fill other.WakeUp me.Color |>> fun () ->
+              other.WakeUp <<-= me.Color |>> fun () ->
               myMeets := !myMeets + 1
               me.Color <- complement me.Color otherColor))) >>= fun () ->
     Seq.foldJob
-     (fun sum _ -> Ch.take resultsMS |>> fun n -> sum+n)
+     (fun sum _ -> resultsMS |>> fun n -> sum+n)
      0
      (seq {1 .. colors.Length})
 
@@ -102,35 +103,35 @@ module HopacMV =
     | Empty of int
     | Waiter of int * Chameneos
 
-  let bench (colors: array<Color>) numMeets =
-    MVar.create () >>= fun meetingPlace ->
-    MVar.fill meetingPlace (Empty numMeets) >>= fun () ->
-    Ch.create () >>= fun resultsMS ->
+  let bench (colors: array<Color>) numMeets = Job.delay <| fun () ->
+    let resultsMS = ch ()
+    let meetingPlace = mvar ()
+    meetingPlace <<-= Empty numMeets >>= fun () ->
     colors
     |> Seq.iterJob (fun myColor ->
-       MVar.create () >>= fun me ->
+       let me = mvar ()
        let myMeets = ref 0
        let myColor = ref myColor
        let cont = ref true
        Job.start
         (Job.whileDo (fun () -> !cont)
-          (MVar.take meetingPlace >>= function
+          (meetingPlace >>= function
             | (Empty 0) as state ->
-              MVar.fill meetingPlace state >>= fun () ->
+              meetingPlace <<-= state >>= fun () ->
               cont := false
-              Ch.give resultsMS (!myMeets)
+              resultsMS <-- !myMeets
             | Empty n ->
-              MVar.fill meetingPlace (Waiter (n, Chameneos (!myColor, me))) >>= fun () ->
-              MVar.take me |>> fun (Chameneos (otherColor, other)) ->
+              meetingPlace <<-= Waiter (n, Chameneos (!myColor, me)) >>= fun () ->
+              me |>> fun (Chameneos (otherColor, other)) ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor
             | Waiter (n, Chameneos (otherColor, other)) ->
-              MVar.fill other (Chameneos (!myColor, me)) >>= fun () ->
-              MVar.fill meetingPlace (Empty (n-1)) |>> fun () ->
+              other <<-= Chameneos (!myColor, me) >>= fun () ->
+              meetingPlace <<-= Empty (n-1) |>> fun () ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor))) >>= fun () ->
     Seq.foldJob
-     (fun sum _ -> Ch.take resultsMS |>> fun n -> sum+n)
+     (fun sum _ -> resultsMS |>> fun n -> sum+n)
      0
      (seq {1 .. colors.Length})
 
@@ -153,34 +154,30 @@ module HopacAlt =
     }
 
   module CountedSwapCh =
-    let create n : Job<CountedSwapCh<'x>> = job {
-      let ch = Ch.Now.create ()
-      let d = IVar.Now.create ()
-      return {N = n; Ch = ch; Done = d}
-    }
+    let create n : Job<CountedSwapCh<'x>> = Job.thunk <| fun () ->
+      {N = n; Ch = ch (); Done = ivar ()}
 
     let swap (csch: CountedSwapCh<'x>) (msgOut: 'x) : Alt<Option<'x>> =
-      (Ch.Alt.take csch.Ch >>=? fun (msgIn, outCh) ->
+      (csch.Ch >>=? fun (msgIn, outCh) ->
        let n = System.Threading.Interlocked.Decrement &csch.N
        if n > 0 then
-         Ch.send outCh (Some msgOut) >>% Some msgIn
+         outCh <-+ Some msgOut >>% Some msgIn
        elif n = 0 then
-         IVar.fill csch.Done None >>= fun () ->
-         Ch.send outCh (Some msgOut) >>% Some msgIn
+         csch.Done <-= None >>= fun () ->
+         outCh <-+ Some msgOut >>% Some msgIn
        else
-         Ch.send outCh None >>% None) <|>
+         outCh <-+ None >>% None) <|>
       (Alt.delay <| fun () ->
-       let inCh = Ch.Now.create ()
-       (Ch.Alt.give csch.Ch (msgOut, inCh) >>=? fun () ->
-        Ch.take inCh) <|>
-       IVar.Alt.read csch.Done)
+       let inCh = ch ()
+       (csch.Ch <-? (msgOut, inCh) >>=? fun () -> inCh :> Job<_>) <|>
+       csch.Done)
 
   module Creature =
     let run (swap: Color -> Alt<Option<Color>>)
             (report: int -> Job<unit>)
             (myColor: Color) =
       let rec loop myColor myMeets =
-        swap myColor |> Alt.pick >>= function
+        swap myColor >>= function
           | None ->
             report myMeets
           | Some otherColor ->
@@ -189,7 +186,7 @@ module HopacAlt =
 
   let bench (colors: array<Color>) numMeets finishCh = job {
     let! place = CountedSwapCh.create numMeets
-    let results = Ch.Now.create ()
+    let results = ch ()
     for color in colors do
       do! Creature.run
            (CountedSwapCh.swap place)
@@ -198,11 +195,11 @@ module HopacAlt =
     let! n =
       Seq.foldJob
        (fun sum _ ->
-          Ch.take results |>> fun n ->
+          results |>> fun n ->
           sum+n)
        0
        colors
-    do! Ch.give finishCh n
+    do! finishCh <-- n
   }
 
   let run numMeets =
@@ -210,11 +207,11 @@ module HopacAlt =
     let timer = Stopwatch.StartNew ()
     let (n, m) =
       run <| job {
-        let finishCh = Ch.Now.create ()
+        let finishCh = ch ()
         do! Job.start (bench colors10 numMeets finishCh)
         do! Job.start (bench colorsAll numMeets finishCh)
-        let! n = Ch.take finishCh
-        let! m = Ch.take finishCh
+        let! n = finishCh
+        let! m = finishCh
         return (n, m)
       }
     let d = timer.Elapsed
@@ -223,7 +220,7 @@ module HopacAlt =
 /////////////////////////////////////////////////////////////////////////
 
 let cleanup () =
-  for i=1 to 10 do
+  for i=1 to 5 do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     Threading.Thread.Sleep 50

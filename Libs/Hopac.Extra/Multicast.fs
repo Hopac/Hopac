@@ -3,19 +3,20 @@
 namespace Hopac.Extra
 
 open Hopac
+open Hopac.Infixes
 
 [<AutoOpen>]
 module MulticastTypes =
   type MPort<'a> =
    | MPort of Ch<'a>
 
-  type Request<'a> =
+  type Req<'a> =
    | Multicast of 'a
    | NewPort
 
   type MChan<'a> = {
-    RequestCh: Ch<Request<'a>>
-    ReplyCh: Ch<MPort<'a>>
+    ReqCh: Ch<Req<'a>>
+    RepCh: Ch<MPort<'a>>
   }
 
   type Stream<'a> = {
@@ -27,39 +28,31 @@ module Multicast =
   open Hopac.Job.Infixes
 
   let create () : Job<MChan<'a>> = Job.delay <| fun () ->
-    let requestCh = Ch.Now.create ()
-    let replyCh = Ch.Now.create ()
+    let mc = {ReqCh = ch (); RepCh = ch ()}
     let newPort v =
-      let outCh = Ch.Now.create ()
-      let rec tee v =
-        IVar.read v >>= fun r ->
-        Ch.give outCh r.Value >>= fun () ->
-        tee r.Next
-      Job.server (tee v) >>%
+      let outCh = ch ()
+      let tee v = v >>= fun r -> outCh <-- r.Value >>% r.Next
+      Job.server (Job.iterate v tee) >>%
       MPort outCh
-    let rec server v =
-      Ch.take requestCh >>= function
+    let server v =
+      mc.ReqCh >>= function
        | NewPort ->
-         newPort v >>=
-         Ch.give replyCh >>= fun () ->
-         server v
+         newPort v >>= Ch.give mc.RepCh >>% v
        | Multicast x ->
-         let nV = IVar.Now.create ()
-         IVar.fill v {Value = x; Next = nV} >>= fun () ->
-         server nV
-    Job.server (IVar.create () >>= server) >>%
-    {RequestCh = requestCh; ReplyCh = replyCh}
+         let nV = ivar ()
+         v <-= {Value = x; Next = nV} >>% nV
+    Job.server (Job.iterate (ivar ()) server) >>% mc
 
   let port (mc: MChan<'a>) : Job<MPort<'a>> =
-    Ch.give mc.RequestCh NewPort >>.
-    Ch.take mc.ReplyCh
+    mc.ReqCh <-+ NewPort >>.
+    asJob mc.RepCh
 
   let multicast (mc: MChan<'a>) (x: 'a) : Job<unit> =
-    Ch.give mc.RequestCh (Multicast x)
+    mc.ReqCh <-- Multicast x
 
   let recv (MPort port) =
-    Ch.take port
+    asJob port
 
   module Alt =
     let recv (MPort port) =
-      Ch.Alt.take port
+      asAlt port

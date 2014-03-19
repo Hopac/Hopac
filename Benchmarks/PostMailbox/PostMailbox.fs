@@ -29,6 +29,7 @@ module Async =
 
 module MbSend =
   open Hopac
+  open Hopac.Infixes
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
@@ -37,13 +38,13 @@ module MbSend =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mb = Mailbox.Now.create ()
+    let mMb = mb ()
     do run <| job {
          do! Job.server
               (Job.forever
-                (Mailbox.take mb |>> fun msg ->
+                (mMb |>> fun msg ->
                  if msg = max then ping.Set ()))
-         do! data |> Array.iterJob (fun i -> Mailbox.send mb i)
+         do! data |> Array.iterJob (fun i -> mMb <<-+ i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -52,6 +53,7 @@ module MbSend =
 
 module MbSendNow =
   open Hopac
+  open Hopac.Infixes
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
@@ -60,12 +62,12 @@ module MbSendNow =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mb = Mailbox.Now.create ()
+    let mMb = mb ()
     Job.Global.server
      (Job.forever
-       (Mailbox.take mb |>> fun msg ->
+       (mMb |>> fun msg ->
         if msg = max then ping.Set ()))
-    data |> Array.iter (fun i -> Mailbox.Global.send mb i)
+    data |> Array.iter (fun i -> Mailbox.Global.send mMb i)
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
@@ -73,6 +75,7 @@ module MbSendNow =
 
 module ChGive =
   open Hopac
+  open Hopac.Infixes
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
@@ -81,13 +84,13 @@ module ChGive =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mb = Ch.Now.create ()
+    let mb = ch ()
     do run <| job {
          do! Job.server 
               (Job.forever
-                (Ch.take mb |>> fun msg ->
+                (mb |>> fun msg ->
                  if msg = max then ping.Set ()))
-         do! data |> Array.iterJob (fun i -> Ch.give mb i)
+         do! data |> Array.iterJob (fun i -> mb <-- i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -96,6 +99,7 @@ module ChGive =
 
 module ChSend =
   open Hopac
+  open Hopac.Infixes
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
@@ -104,13 +108,13 @@ module ChSend =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mb = Ch.Now.create ()
+    let mb = ch ()
     do run <| job {
          do! Job.server 
               (Job.forever
-                (Ch.take mb |>> fun msg ->
+                (mb |>> fun msg ->
                  if msg = max then ping.Set ()))
-         do! data |> Array.iterJob (fun i -> Ch.send mb i)
+         do! data |> Array.iterJob (fun i -> mb <-+ i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -119,6 +123,7 @@ module ChSend =
 
 module ChSendNow =
   open Hopac
+  open Hopac.Infixes
   open Hopac.Job.Infixes
   open Hopac.Extensions
 
@@ -127,10 +132,10 @@ module ChSendNow =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let ch = Ch.Now.create ()
+    let ch = ch ()
     Job.Global.server
      (Job.forever
-       (Ch.take ch |>> fun msg ->
+       (ch |>> fun msg ->
         if msg = max then ping.Set ()))
     data |> Array.iter (fun i -> Ch.Global.send ch i)
     let d1 = timer.Elapsed

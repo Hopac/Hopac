@@ -5,6 +5,7 @@
 open System
 open System.Diagnostics
 open Hopac
+open Hopac.Infixes
 open Hopac.Job.Infixes
 
 module Literal =
@@ -13,16 +14,16 @@ module Literal =
     let timer = Stopwatch.StartNew ()
     let i =
       run <| job {
-        let ch = Ch.Now.create ()
+        let iCh = ch ()
         let rec writer i = job {
           if i = 0 then
-            return! Ch.give ch 0
+            return! iCh <-- 0
           else
-            do! Ch.give ch i
+            do! iCh <-- i
             return! writer (i-1)
         }
         let rec reader sum = job {
-          let! x = Ch.take ch
+          let! x = iCh
           if x = 0 then
             return sum
           else
@@ -40,15 +41,15 @@ module Tweaked =
     let timer = Stopwatch.StartNew ()
     let i =
       run <| job {
-        let ch = Ch.Now.create ()
+        let iCh = ch ()
         let rec writer i =
-          Ch.give ch i >>= fun () ->
+          iCh <-- i >>= fun () ->
           if i = 0 then
             Job.unit
           else
             writer (i-1)
         let rec reader sum =
-          Ch.take ch >>= fun x ->
+          iCh >>= fun x ->
           if x = 0 then
             Job.result sum
           else

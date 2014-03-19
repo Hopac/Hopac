@@ -12,8 +12,8 @@ module Stream =
   type Out<'x> = 'x -> Alt<unit>
 
   let inline imp (mk: Out<_> -> Job<unit>) = Job.delay <| fun () ->
-    let ch = Ch.Now.create ()
-    mk (Ch.Alt.give ch) >>% Ch.Alt.take ch
+    let ch = ch ()
+    mk (Ch.Alt.give ch) >>% (ch :> Alt<_>)
 
   let inline forever x = Job.forever x |> Job.server
   let inline iterate x x2xJ = Job.iterate x x2xJ |> Job.server

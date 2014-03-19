@@ -3,6 +3,7 @@
 // Inspired by: http://letitcrash.com/post/20397701710/50-million-messages-per-second-on-a-single-machine
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Job.Infixes
 open System
 open System.Diagnostics
@@ -14,22 +15,22 @@ module Ch =
     printf "Ch: "
     let timer = Stopwatch.StartNew ()
     run <| job {
-      let chEnd = Ch.Now.create ()
+      let chEnd = ch ()
       do! Job.forN numPairs <| job {
-        let chPing = Ch.Now.create ()
-        let chPong = Ch.Now.create ()
+        let chPing = ch ()
+        let chPong = ch ()
         do! Job.server
-             (Job.forever (Ch.take chPing >>= fun (Msg (chPong, msg)) ->
-                           Ch.send chPong (Msg (chPing, msg))))
+             (Job.forever (chPing >>= fun (Msg (chPong, msg)) ->
+                           chPong <-- Msg (chPing, msg)))
         do! Job.start <| job {
-          do! Ch.give chPing (Msg (chPong, "msg"))
+          do! chPing <-- Msg (chPong, "msg")
           do! Job.forN (numMsgsPerPair-1)
-               (Ch.take chPong >>= fun (Msg (chPing, msg)) ->
-                Ch.send chPing (Msg (chPong, msg)))
-          do! Ch.give chEnd ()
+               (chPong >>= fun (Msg (chPing, msg)) ->
+                chPing <-+ Msg (chPong, msg))
+          do! chEnd <-- ()
         }
       }
-      do! Job.forN numPairs (Ch.take chEnd)
+      do! Job.forN numPairs chEnd
     }
     let d = timer.Elapsed
     let total = numPairs * numMsgsPerPair

@@ -14,6 +14,13 @@ module DirChTypes =
 
 /// Operations on directional channels.
 module DirCh =
+  /// Immediate or non-workflow operations.
+  module Now =
+    /// Creates a new pair of directional channels.  The created channels
+    /// are associated so that giving a value on the output channel allows the
+    /// value to be taken on the input channel.
+    val create: unit -> InCh<'a> * OutCh<'a>
+
   /// Creates a new pair of directional channels.  The created channels
   /// are associated so that giving a value on the output channel allows the
   /// value to be taken on the input channel.
