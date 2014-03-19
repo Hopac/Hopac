@@ -29,7 +29,7 @@ module Multicast =
     let newPort v =
       let outCh = ch ()
       let tee v = v >>= fun r -> outCh <-- r.Value >>% r.Next
-      Job.server (Job.iterate v tee) >>%
+      Job.iterateServer v tee >>%
       MPort outCh
     let server v =
       mc.ReqCh >>= function
@@ -38,7 +38,7 @@ module Multicast =
        | Multicast x ->
          let nV = ivar ()
          v <-= {Value = x; Next = nV} >>% nV
-    Job.server (Job.iterate (ivar ()) server) >>% mc
+    Job.iterateServer (ivar ()) server >>% mc
 
   let port (mc: MChan<'a>) : Job<MPort<'a>> =
     mc.ReqCh <-+ NewPort >>.

@@ -24,16 +24,15 @@ module ChMsg =
   let create : Job<CounterActor> = job {
     let inCh = ch ()
     let state = ref 0L
-    do! Job.server
-         (Job.forever
-           (inCh >>= function
-             | Add n ->
-               state := !state + n
-               Job.unit
-             | GetAndReset replyVar ->
-               let was = !state
-               state := 0L
-               replyVar <-= was))
+    do! Job.foreverServer
+         (inCh >>= function
+           | Add n ->
+             state := !state + n
+             Job.unit
+           | GetAndReset replyVar ->
+             let was = !state
+             state := 0L
+             replyVar <-= was)
     return CA inCh
   }
 
@@ -69,16 +68,15 @@ module MbMsg =
   let create : Job<CounterActor> = job {
     let inMb = mb ()
     let state = ref 0L
-    do! Job.server
-         (Job.forever
-           (inMb >>= function
-             | Add n ->
-               state := !state + n
-               Job.unit
-             | GetAndReset replyVar ->
-               let was = !state
-               state := 0L
-               replyVar <-= was))
+    do! Job.foreverServer
+         (inMb >>= function
+           | Add n ->
+             state := !state + n
+             Job.unit
+           | GetAndReset replyVar ->
+             let was = !state
+             state := 0L
+             replyVar <-= was)
     return CA inMb
   }
 

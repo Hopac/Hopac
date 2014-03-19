@@ -46,7 +46,7 @@ module Now =
 let start = Job.delay <| fun () ->
   let locks = Dictionary<int64, Queue<Ch<unit> * Alt<unit>>>()
   let s = {unique = 0L; reqCh = ch ()}
-  (Job.server << Job.forever)
+  Job.foreverServer
    (s.reqCh >>= function
      | Acquire (lock, replyCh, abortAlt) ->
        match locks.TryGetValue lock with

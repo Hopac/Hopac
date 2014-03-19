@@ -25,11 +25,10 @@ module HopacReq =
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {reqCh = ch (); replyCh = ch ()}
-    Job.server
-     (Job.iterate x (fun x ->
-      c.reqCh >>= function
-       | Get   -> c.replyCh <-+ x >>% x
-       | Put x -> Job.result x)) >>% c
+    Job.iterateServer x (fun x ->
+     c.reqCh >>= function
+      | Get   -> c.replyCh <-+ x >>% x
+      | Put x -> Job.result x) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacReq: "
@@ -75,11 +74,10 @@ module HopacDyn =
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {reqCh = ch ()}
-    Job.server
-     (Job.iterate x (fun x ->
+    Job.iterateServer x (fun x ->
       c.reqCh >>= function
        | Get replyIv-> replyIv <-= x >>% x
-       | Put x -> Job.result x)) >>% c
+       | Put x -> Job.result x) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacDyn: "
@@ -117,10 +115,8 @@ module HopacAlt =
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {getCh = ch (); putCh = ch ()}
-    Job.server
-     (Job.iterate x (fun x ->
-      c.putCh <|>
-      (c.getCh <-? x >>%? x) :> Job<_>)) >>% c
+    Job.iterateServer x (fun x ->
+      c.putCh <|> (c.getCh <-? x >>%? x) :> Job<_>) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "

@@ -11,7 +11,7 @@ open System.Diagnostics
 
 module ChGive =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
-    Job.forever
+    Job.foreverServer
      (inCh >>= fun n ->
       if n <> 0 then
         outCh <-- n-1
@@ -24,8 +24,7 @@ module ChGive =
     |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else ch ()
-           proc i chIn chOut finishCh |> Job.server >>%
-           chOut)
+           proc i chIn chOut finishCh >>% chOut)
         ch0
 
   let run n m p =
@@ -47,7 +46,7 @@ module ChGive =
 
 module ChSend =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
-    Job.forever
+    Job.foreverServer
      (inCh >>= fun n ->
       if n <> 0 then
         outCh <-+ n-1
@@ -60,8 +59,7 @@ module ChSend =
     |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else ch ()
-           proc i chIn chOut finishCh |> Job.server >>%
-           chOut)
+           proc i chIn chOut finishCh >>% chOut)
         ch0
 
   let run n m p =
@@ -86,7 +84,7 @@ module MbSend =
            (inMS: Mailbox<int>)
            (outMS: Mailbox<int>)
            (finishCh: Ch<int>) =
-    Job.forever
+    Job.foreverServer
      (inMS >>= fun n ->
       if n <> 0 then
         outMS <<-+ n-1
@@ -99,8 +97,7 @@ module MbSend =
     |> Seq.foldJob
         (fun msIn i ->
            let msOut = if i=n then ms0 else mb ()
-           proc i msIn msOut finishCh |> Job.server >>%
-           msOut)
+           proc i msIn msOut finishCh >>% msOut)
         ms0
 
   let run n m p =

@@ -81,12 +81,12 @@ let setup () = job {
                   ch_1
                   (Ch.give ch_2)
                   (fun _ -> Job.unit)
-      |> Job.forever |> Job.server
+      |> Job.foreverServer
   do! Delay (ref 314L)
             ch_2
             (Alt.never ())
             (Ch.give ch_3)
             (fun _ -> Job.unit)
-      |> Job.forever |> Job.server
+      |> Job.foreverServer
   // ...
 }

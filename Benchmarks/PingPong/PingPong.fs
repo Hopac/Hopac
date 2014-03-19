@@ -19,9 +19,9 @@ module Ch =
       do! Job.forN numPairs <| job {
         let chPing = ch ()
         let chPong = ch ()
-        do! Job.server
-             (Job.forever (chPing >>= fun (Msg (chPong, msg)) ->
-                           chPong <-- Msg (chPing, msg)))
+        do! Job.foreverServer
+             (chPing >>= fun (Msg (chPong, msg)) ->
+              chPong <-- Msg (chPing, msg))
         do! Job.start <| job {
           do! chPing <-- Msg (chPong, "msg")
           do! Job.forN (numMsgsPerPair-1)

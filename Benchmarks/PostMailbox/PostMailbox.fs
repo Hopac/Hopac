@@ -40,10 +40,9 @@ module MbSend =
     use ping = new ManualResetEventSlim ()
     let mMb = mb ()
     do run <| job {
-         do! Job.server
-              (Job.forever
-                (mMb |>> fun msg ->
-                 if msg = max then ping.Set ()))
+         do! Job.foreverServer
+              (mMb |>> fun msg ->
+               if msg = max then ping.Set ())
          do! data |> Array.iterJob (fun i -> mMb <<-+ i)
        }
     let d1 = timer.Elapsed
@@ -86,10 +85,9 @@ module ChGive =
     use ping = new ManualResetEventSlim ()
     let mb = ch ()
     do run <| job {
-         do! Job.server 
-              (Job.forever
-                (mb |>> fun msg ->
-                 if msg = max then ping.Set ()))
+         do! Job.foreverServer
+              (mb |>> fun msg ->
+               if msg = max then ping.Set ())
          do! data |> Array.iterJob (fun i -> mb <-- i)
        }
     let d1 = timer.Elapsed
@@ -110,10 +108,9 @@ module ChSend =
     use ping = new ManualResetEventSlim ()
     let mb = ch ()
     do run <| job {
-         do! Job.server 
-              (Job.forever
-                (mb |>> fun msg ->
-                 if msg = max then ping.Set ()))
+         do! Job.foreverServer
+              (mb |>> fun msg ->
+               if msg = max then ping.Set ())
          do! data |> Array.iterJob (fun i -> mb <-+ i)
        }
     let d1 = timer.Elapsed

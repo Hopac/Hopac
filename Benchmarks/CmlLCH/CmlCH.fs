@@ -68,16 +68,15 @@ module BufferedCh =
   let buff () = Job.delay <| fun () ->
     let inCh = ch ()
     let outCh = ch ()
-    Job.server
-     (Job.iterate ([], [])
-       (function
-         | ([], []) ->
-           inCh |>> fun x -> ([x], [])
-         | ((x::xs) as xxs, ys) ->
-           (inCh |>>? fun y -> (xxs, y::ys)) <|>
-           (outCh <-? x >>%? (xs, ys)) :> Job<_>
-         | ([], ys) ->
-           Job.result (List.rev ys, []))) >>%
+    Job.iterateServer ([], [])
+     (function
+       | ([], []) ->
+         inCh |>> fun x -> ([x], [])
+       | ((x::xs) as xxs, ys) ->
+         (inCh |>>? fun y -> (xxs, y::ys)) <|>
+         (outCh <-? x >>%? (xs, ys)) :> Job<_>
+       | ([], ys) ->
+         Job.result (List.rev ys, [])) >>%
     (inCh, outCh)
 
   let send (inCh, _) x = inCh <-- x
