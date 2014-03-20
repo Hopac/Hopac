@@ -307,6 +307,34 @@ As you can see above, I've used **delay** only once and if you count the number
 of words and lines, you'll find out that that the code is more concise.  I
 personally find the monadic code roughly as readable as the workflow notation.
 
+In addition to the monadic job combinators, Hopac also provides symbolic
+operators for some of the message passing operations.  Also, many of the
+operations in Hopac are simple upcasts along the inheritance chain and can
+either be eliminated completely or replaced by an actual **upcast** operation.
+Furthermore, Hopac also provides a few shortcut convenience bindings and
+combined operations for frequently used operations and programming idioms.
+Using those shortcuts, and dropping unnecessary type ascriptions, we can write
+the above cell example as:
+
+```fsharp
+let put c x = c.reqCh <-- Put x
+
+let get c = c.reqCh <-- Get >>. c.replyCh
+
+let create x = Job.delay <| fun () ->
+  let c = {reqCh = ch (); replyCh = ch ()}
+  Job.iterateServer x (fun x ->
+   c.reqCh >>= function
+    | Get -> c.replyCh <-- x >>% x
+    | Put x -> Job.result x) >>% c
+```
+
+In this document, we will use type ascriptions so that one see the types without
+compiling the code.  We will also avoid many of the shortcuts for conceptual and
+syntactic clarity.  So, while you can take a value from a channel just by
+binding it, and you might want to use that in production code, we will avoid
+doing that in the examples of this document.
+
 **Exercise:** As an alternative to having two preallocated channels **reqCh**
 and **replyCh** one could also make it so that the reply channel required by a
 **get** operation allocates a new channel for the reply and passes it to the
@@ -523,13 +551,13 @@ let bMoved = ref false
 do! CompareBool bMoved
                 (Ch.Alt.take ch_1)
                 (Ch.give ch_2)
-                (fun _ -> Job.unit)
+                (fun _ -> Job.unit ())
     |> Job.forever |> Job.server
 do! Delay (ref (TimeSpan.FromSeconds 3.14))
           (Ch.Alt.take ch_2)
           (Alt.never ())
           (Ch.give ch_3)
-          (fun _ -> Job.unit)
+          (fun _ -> Job.unit ())
     |> Job.forever |> Job.server
 // ...
 ```
@@ -1235,7 +1263,7 @@ let timeReqServer =
          requests.Add (atTime, replyChs)
          replyChs
     replyIvs.Add replyCh
-    Job.unit
+    Job.unit ()
 ```
 
 The time request server also uses an asynchronous send to reply to requests.
@@ -1264,7 +1292,7 @@ let tick = Job.delay <| fun () ->
      replyChs
      |> Seq.iterJob (fun replyCh -> Ch.send replyCh ())
    | _ ->
-     Job.unit
+     Job.unit ()
 ```
 
 That concludes the implementation of the time server itself.
@@ -1460,7 +1488,7 @@ let start = Job.delay <| fun () ->
        match locks.TryGetValue lock with
         | (true, pending) ->
           pending.Enqueue (replyCh, abortAlt)
-          Job.unit
+          Job.unit ()
         | _ ->
           Alt.select [Ch.Alt.give replyCh () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
@@ -1471,7 +1499,7 @@ let start = Job.delay <| fun () ->
           let rec assign () =
             if 0 = pending.Count then
               locks.Remove lock |> ignore
-              Job.unit
+              Job.unit ()
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
               Alt.select [Ch.Alt.give replyCh ()
@@ -1479,7 +1507,7 @@ let start = Job.delay <| fun () ->
           assign ()
         | _ ->
           // We just ignore the erroneous release request
-          Job.unit) >>% s
+          Job.unit ()) >>% s
 ```
 
 As usual, the above server is implemented as a job that loops indefinitely
