@@ -28,12 +28,12 @@ namespace Hopac {
 
   public static class CommonAssemblyInfo {
     public const string Description =
-      "A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#";
+      "A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.";
     public const string Configuration = "";
     public const string Product = "Hopac";
     public const string Company = "Housemarque Inc.";
     public const string Copyright = "© Housemarque Inc.";
-    public const string Version = "0.0.0.0";
+    public const string Version = "0.0.0.1";
     public const string FileVersion = Version;
     public const string Trademark = "";
     public const string Culture = "";
