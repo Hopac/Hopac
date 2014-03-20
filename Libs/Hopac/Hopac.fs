@@ -22,8 +22,11 @@ module Util =
   let inline dec (i: byref<int>) : int =
     let j = i-1 in i <- j ; j
 
-  let inline forward (e: exn) : 'x =
+  let forward (e: exn) : 'x =
     raise (exn ("forwarded", e))
+
+  let aggrExn (exns: ResizeArray<exn>) =
+    if exns.Count = 1 then exns.[0] else upcast AggregateException exns
 
   module Option =
     let orDefaultOf x =
@@ -187,13 +190,16 @@ module Promise =
 /////////////////////////////////////////////////////////////////////////
 
 module Alt =
-  let inline always (x: 'x) =
-    Always<'x> (x) :> Alt<'x>
+  let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
+
+  let inline unit () = StaticData.unit
 
   let never () =
     {new Alt<'x> () with
       override xA'.DoJob (wr, _) = ()
       override xA'.TryAlt (wr, i, pk, xK, xE) = xE.TryElse (&wr, i, pk, xK)}
+
+  let inline zero () = StaticData.zero
 
   type GuardJobCont<'x> (xK: Cont<'x>) =
     inherit Cont<Alt<'x>> ()
@@ -216,14 +222,13 @@ module Alt =
         override xAK'.DoCont (wr, xA) =
          Pick.Unclaim pk
          xA.TryAlt (&wr, i, pk, xK, xE)}
-       if Pick.Claim pk then
-         xAJ.DoJob (&wr, xAK')}
+       Pick.ClaimAndDoJob(pk, &wr, xAJ, xAK')}
 
   let delay (u2xA: unit -> Alt<'x>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) = (u2xA ()).DoJob (&wr, xK)
       override xA'.TryAlt (wr, i, pk, xK, xE) =
-       if Pick.Claim pk then
+       if 0 = Pick.Claim pk then
          let mutable e = null
          let mutable xA = null
          try
@@ -238,8 +243,7 @@ module Alt =
             Pick.Unclaim pk
             xA.TryAlt (&wr, i, pk, xK, xE)}
 
-  let inline pick (xA: Alt<'x>) =
-    xA :> Job<'x>
+  let inline pick (xA: Alt<'x>) = xA :> Job<'x>
      
   type WithNackElse<'x> (nk: Nack, xE: Else<'x>) =
     inherit Else<'x> ()
@@ -253,18 +257,18 @@ module Alt =
        Pick.PickClaimed pk
        Handler.DoHandle (xK, &wr, e)
       override xAK'.DoWork (wr) =
-       Pick.Unclaim pk
        let nk = pk.Nacks
+       Pick.Unclaim pk
        xAK'.Value.TryAlt (&wr, nk.I0, pk, xK, WithNackElse (nk, xE))
       override xAK'.DoCont (wr, xA) =
-       Pick.Unclaim pk
        let nk = pk.Nacks
+       Pick.Unclaim pk
        xA.TryAlt (&wr, nk.I0, pk, xK, WithNackElse (nk, xE))}
 
   let withNack (nack2xAJ: Alt<unit> -> Job<Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
-       (nack2xAJ (never ())).DoJob (&wr, GuardJobCont xK)
+       (nack2xAJ StaticData.zero).DoJob (&wr, GuardJobCont xK)
       override xA'.TryAlt (wr, i, pk, xK, xE) =
        match Pick.AddNack (pk, i) with
         | null -> ()
@@ -552,14 +556,18 @@ module Job =
       override self.DoJob (wr, xK) =
        Cont.Do (xK, &wr, x)}
 
+  let inline unit () = StaticData.unit :> Job<_>
+
+  let abort () =
+    {new Job<_> () with
+      override xJ'.DoJob (_, _) = ()}
+
   let raises (e: exn) =
     {new Job<_> () with
       override xJ.DoJob (wr, xK) = Handler.DoHandle (xK, &wr, e)}
 
-  let unit = result ()
-
   let inline whenDo (b: bool) (uJ: Job<unit>) =
-    if b then uJ else unit
+    if b then uJ else StaticData.unit :> Job<_>
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -826,7 +834,7 @@ module Job =
        wr.Handler <- ysK
        match cc'.Exns with
         | null -> ysK.DoWork (&wr)
-        | exns -> Handler.DoHandle (ysK, &wr, AggregateException exns)
+        | exns -> Handler.DoHandle (ysK, &wr, aggrExn exns)
     static member inline Done (cc': ConCollect<'y>, wr: byref<Worker>) =
      if cc'.ysK.Value.Count < Util.inc &cc'.N then
        ConCollect<'y>.Continue (cc', &wr)
@@ -898,7 +906,7 @@ module Job =
      wr.Handler <- uK
      match self.Exns with
       | null -> uK.DoWork (&wr)
-      | exns -> Handler.DoHandle (uK, &wr, AggregateException exns)
+      | exns -> Handler.DoHandle (uK, &wr, aggrExn exns)
     static member inline Dec (self: ConIgnore, wr: byref<Worker>) =
      if Interlocked.Increment &self.Finished = self.Started then
        ConIgnore.Continue (self, &wr)
@@ -989,8 +997,7 @@ module Timer =
           (WorkTimedUnitCont (Environment.TickCount + ms, i, pk, uK))
          uE.TryElse (&wr, i+1, pk, uK)}
 
-    let sleep (span: TimeSpan) =
-      timeOut span :> Job<unit>
+    let sleep (span: TimeSpan) = timeOut span :> Job<unit>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -1234,7 +1241,7 @@ type JobBuilder () =
     Job.using x x2yJ
   member inline job.While (u2b: unit -> bool, uJ: Job<unit>) : Job<unit> =
     Job.whileDo u2b uJ
-  member inline job.Zero () : Job<unit> = Job.unit
+  member inline job.Zero () : Job<unit> = StaticData.unit :> Job<unit>
 
 [<AutoOpen>]
 module TopLevel =

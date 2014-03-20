@@ -39,7 +39,7 @@ module ChGive =
         |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
            ch <-- m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> asJob finishCh) (seq {1 .. p}))
+        Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -74,7 +74,7 @@ module ChSend =
         |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ch ->
            ch <-- m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> asJob finishCh) (seq {1 .. p}))
+        Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -112,7 +112,7 @@ module MbSend =
         |> Seq.Con.iterJob (fun n ->
            mkChain n finishCh >>= fun ms ->
            ms <<-+ m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> asJob finishCh) (seq {1 .. p}))
+        Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p}))
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds

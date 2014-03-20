@@ -23,6 +23,7 @@ namespace Hopac {
     internal Scheduler(int numWorkers,
                        FSharpFunc<Exception, Job<Unit>> topLevelHandler,
                        Job<int> idleHandler) {
+      StaticData.Init();
       TopLevelHandler = topLevelHandler;
       IdleHandler = idleHandler;
       WaiterStack = -1;

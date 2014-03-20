@@ -17,13 +17,13 @@ module Stream =
 
   let filterFun x2b (xIn: In<_>) (xOut: Out<_>) =
     Job.foreverServer
-     (xIn >>= fun x -> if x2b x then xOut x :> Job<_> else Job.unit)
+     (xIn >>= fun x -> if x2b x then xOut x :> Job<_> else Job.unit ())
 
   let filterJob (x2bJ: 'x -> Job<_>) (xIn: In<_>) (xOut: Out<_>) =
     Job.foreverServer
      (xIn >>= fun x ->
       x2bJ x >>= fun b ->
-      if b then xOut x :> Job<_> else Job.unit)
+      if b then xOut x :> Job<_> else Job.unit ())
 
   let iterateFun x x2x (xOut: Out<_>) =
     Job.iterateServer x (fun x -> xOut x >>% x2x x)

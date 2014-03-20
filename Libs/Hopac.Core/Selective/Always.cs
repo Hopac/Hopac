@@ -1,6 +1,7 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
 namespace Hopac.Core {
+  using Microsoft.FSharp.Core;
   using System.Runtime.CompilerServices;
 
   /// Internal implementation detail.
@@ -26,6 +27,26 @@ namespace Hopac.Core {
       Pick.SetNacks(ref wr, i, pkSelf);
 
       Cont.Do(xK, ref wr, this.value);
+
+    AlreadyPicked:
+      return;
+    }
+  }
+
+  internal sealed class AlwaysUnit : Alt<Unit> {
+    internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+      uK.DoWork(ref wr);
+    }
+
+    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
+    TryPick:
+      var stSelf = Pick.TryPick(pkSelf);
+      if (stSelf > 0) goto AlreadyPicked;
+      if (stSelf < 0) goto TryPick;
+
+      Pick.SetNacks(ref wr, i, pkSelf);
+
+      Work.Do(uK, ref wr);
 
     AlreadyPicked:
       return;

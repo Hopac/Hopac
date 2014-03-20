@@ -44,7 +44,7 @@ module GameTime =
            requests.Add (atTime, replyIs)
            replyIs
       replyIs.Add replyI
-      Job.unit
+      Job.unit ()
 
   let tick = Job.delay <| fun () ->
     currentTime <- currentTime + 1L
@@ -54,7 +54,7 @@ module GameTime =
        replyIs
        |> Seq.iterJob (fun replyI -> replyI <-= ())
      | _ ->
-       Job.unit
+       Job.unit ()
 
 let CompareBool comparand input onTrue onFalse =
   input >>= fun x ->
@@ -80,13 +80,13 @@ let setup () = job {
   do! CompareBool bMoved
                   ch_1
                   (Ch.give ch_2)
-                  (fun _ -> Job.unit)
+                  (fun _ -> Job.unit ())
       |> Job.foreverServer
   do! Delay (ref 314L)
             ch_2
             (Alt.never ())
             (Ch.give ch_3)
-            (fun _ -> Job.unit)
+            (fun _ -> Job.unit ())
       |> Job.foreverServer
   // ...
 }

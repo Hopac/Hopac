@@ -19,7 +19,7 @@ module Async =
         async {
           while true do
             let! msg = inbox.Receive ()
-            if msg = max then ping.Set () else ()
+            if msg = max then ping.Set ()
         })
     do data |> Array.iter (fun i -> agent.Post i)
     let d1 = timer.Elapsed

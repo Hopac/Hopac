@@ -30,7 +30,7 @@ namespace Hopac.Core {
       var state = this.State;
       if (state > Initial) goto Signaled;
       if (state < Initial) goto Spin;
-      if (Initial != Interlocked.CompareExchange(ref this.State, Locked, Initial)) goto Spin;
+      if (Initial != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
 
       WaitQueue.AddTaker(ref this.Takers, uK);
       this.State = Initial;
@@ -45,7 +45,7 @@ namespace Hopac.Core {
       var state = this.State;
       if (state > Initial) goto TryPick;
       if (state < Initial) goto Spin;
-      if (Initial != Interlocked.CompareExchange(ref this.State, Locked, Initial)) goto Spin;
+      if (Initial != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
 
       WaitQueue.AddTaker(ref this.Takers, i, pkSelf, uK);
       this.State = Initial;
@@ -70,7 +70,7 @@ namespace Hopac.Core {
       var state = nk.State;
       if (state > Initial) goto JustExit; // XXX Can this happen?
       if (state < Initial) goto Spin;
-      if (Initial != Interlocked.CompareExchange(ref nk.State, Signaled, Initial)) goto Spin;
+      if (Initial != Interlocked.CompareExchange(ref nk.State, state+1, state)) goto Spin;
 
       var takers = nk.Takers;
       if (null == takers)

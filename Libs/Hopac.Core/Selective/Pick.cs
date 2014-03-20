@@ -1,6 +1,7 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
 namespace Hopac.Core {
+  using Microsoft.FSharp.Core;
   using System;
   using System.Runtime.CompilerServices;
   using System.Threading;
@@ -14,16 +15,21 @@ namespace Hopac.Core {
       return Interlocked.CompareExchange(ref pk.State, -1, 0);
     }
 
-    internal static bool Claim(Pick pk) {
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static int Claim(Pick pk) {
     TryClaim:
-      var state = pk.State;
-      if (state > 0) goto AlreadyPicked;
-      if (state < 0) goto TryClaim;
-      if (0 != Interlocked.CompareExchange(ref pk.State, ~state, state)) goto TryClaim;
-      return true;
+      var st = TryClaim(pk);
+      if (st < 0) goto TryClaim;
+      return st;
+    }
 
-    AlreadyPicked:
-      return false;
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void ClaimAndDoJob<T>(Pick pk, ref Worker wr, Job<T> tJ, Cont<T> tK) {
+    TryClaim:
+      var st = TryClaim(pk);
+      if (st < 0) goto TryClaim;
+      if (st == 0)
+        tJ.DoJob(ref wr, tK);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -62,6 +68,7 @@ namespace Hopac.Core {
     internal static void SetNacks(ref Worker wr, int i, Pick pk) {
       Nack nk = pk.Nacks;
       if (null != nk) {
+        pk.Nacks = null;
         SetNacks(ref wr, i, nk);
       }
     }

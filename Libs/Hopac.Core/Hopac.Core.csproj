@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -57,6 +57,7 @@
     <Compile Include="Communication\Promise.cs" />
     <Compile Include="Communication\WaitQueue.cs" />
     <Compile Include="Engine\Scheduler.cs" />
+    <Compile Include="Engine\StaticData.cs" />
     <Compile Include="Engine\Work.cs" />
     <Compile Include="Engine\Worker.cs" />
     <Compile Include="Engine\Timer.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Selective\Else.cs" />
     <Compile Include="Selective\Nack.cs" />
     <Compile Include="Selective\Pick.cs" />
+    <Compile Include="Selective\Zero.cs" />
     <Compile Include="Util\AggressiveInlining.cs" />
     <Compile Include="Util\Condition.cs" />
     <Compile Include="Util\SpinlockTTAS.cs" />

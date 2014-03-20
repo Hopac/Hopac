@@ -46,4 +46,4 @@ module SelectableQueue =
     let take (q: SelectableQueue<'a>) (p: 'a -> bool) : Alt<'a> =
       Alt.withNack <| fun nack ->
       let replyCh = ch ()
-      q.TakeCh <-- (p, nack, replyCh) >>% asAlt replyCh
+      q.TakeCh <-- (p, nack, replyCh) >>% upcast replyCh

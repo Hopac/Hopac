@@ -29,7 +29,7 @@ module Alt =
   let acquire s (Lock lock) = Alt.withNack <| fun nack ->
     let replyCh = ch ()
     s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
-    asAlt replyCh
+    upcast replyCh
 
   let withLock s l xJ =
     acquire s l >>=? fun () ->
@@ -52,7 +52,7 @@ let start = Job.delay <| fun () ->
        match locks.TryGetValue lock with
         | (true, pending) ->
           pending.Enqueue (replyCh, abortAlt)
-          Job.unit
+          Job.unit ()
         | _ ->
           Alt.select [replyCh <-? () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
@@ -63,7 +63,7 @@ let start = Job.delay <| fun () ->
           let rec assign () =
             if 0 = pending.Count then
               locks.Remove lock |> ignore
-              Job.unit
+              Job.unit ()
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
               Alt.select [replyCh <-? ()
@@ -71,4 +71,4 @@ let start = Job.delay <| fun () ->
           assign ()
         | _ ->
           // We just ignore the erroneous release request
-          Job.unit) >>% s
+          Job.unit ()) >>% s
