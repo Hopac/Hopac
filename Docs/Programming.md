@@ -8,6 +8,7 @@ The book
 is the most comprehensive introduction to Concurrent ML style programming.  This
 document contains some discussion and examples on Hopac programming techniques.
 In the future, this document might grow to a proper introduction to Hopac.
+Feedback is welcome!
 
 The
 [Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)

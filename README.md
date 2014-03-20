@@ -16,6 +16,15 @@ Hopac is licensed under a MIT-style license.  See
 [LICENSE.md](https://github.com/VesaKarvonen/Hopac/blob/master/LICENSE.md) for
 details.
 
+Packages
+--------
+
+Prebuilt [Hopac](http://www.nuget.org/packages/Hopac/) and
+[Hopac.Extra](http://www.nuget.org/packages/Hopac.Extra/) packages are available
+via [NuGet](http://www.nuget.org/).  At the moment, these packages are
+considered to have experimental status.  Please report any problems you might
+encounter.
+
 Status
 ------
 
@@ -53,12 +62,11 @@ is the most comprehensive introduction to Concurrent ML style programming.  The
 articles and blog posts that discuss programming in Concurrent ML or languages
 inspired by it.
 
-Documentation on Hopac is minimal at the moment, but hopefully this will be
-rectified shortly.  In particular, the document
+The document
 [Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
-will hopefully grow to a proper introduction to programming in Hopac.  In
-addition, the Hopac library code contains documentation comments on individual
-Hopac primitives.  The
+contains some notes and examples on programming with Hopac.  Feedback on the
+document is welcome!  In addition, the Hopac library code contains documentation
+comments on individual Hopac primitives.  The
 [Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
 signature file contains most of those documentation comments.  There are also
 some
