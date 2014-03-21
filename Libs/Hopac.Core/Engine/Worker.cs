@@ -81,6 +81,8 @@ namespace Hopac.Core {
 #else
       wr.Init(sr);
 #endif
+      Scheduler.Inc(sr);
+
       try {
         wr.Handler = work;
         work.DoWork(ref wr);
@@ -88,7 +90,7 @@ namespace Hopac.Core {
         wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
       }
 
-      Scheduler.PushAll(sr, wr.WorkStack);
+      Scheduler.PushAllAndDec(sr, wr.WorkStack);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -99,6 +101,8 @@ namespace Hopac.Core {
 #else
       wr.Init(sr);
 #endif
+      Scheduler.Inc(sr);
+
       try {
         wr.Handler = tK;
         tJ.DoJob(ref wr, tK);
@@ -106,7 +110,7 @@ namespace Hopac.Core {
         wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
       }
 
-      Scheduler.PushAll(sr, wr.WorkStack);
+      Scheduler.PushAllAndDec(sr, wr.WorkStack);
     }
     
     internal static void Run(Scheduler sr, int me) {
@@ -191,6 +195,7 @@ namespace Hopac.Core {
           goto EnterScheduler;
         } catch (KillException) {
           Scheduler.Kill(sr);
+          Scheduler.Dec(sr);
           sr = null;
         } catch (Exception e) {
           wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);
@@ -198,7 +203,7 @@ namespace Hopac.Core {
       }
     }
 
-    internal class IdleCont : Cont<int> {
+    internal sealed class IdleCont : Cont<int> {
       internal override void DoHandle(ref Worker wr, Exception e) {
         Handler.DoHandle(null, ref wr, e);
       }

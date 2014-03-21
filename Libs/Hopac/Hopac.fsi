@@ -765,14 +765,13 @@ module Scheduler =
       /// handler simply prints out a message to the console.
       TopLevelHandler: option<exn -> Job<unit>>
      
-      /// Specifies the idle handler of the scheduler.  The idle handler is run
-      /// whenever a worker runs out of work.  The idle handler must return an
-      /// integer value that specifies how many milliseconds the worker is
-      /// allowed to sleep.  Timeout.Infinite puts the worker into sleep until
-      /// the scheduler explicitly wakes it up.  0 means that the idle handler
-      /// found some new work and the worker should immediately look for it.
-      /// The default idle handler simply returns Timeout.Infinite.  See also
-      /// "Scheduler.signal".
+      /// Specifies the idle handler for workers.  The worker idle handler is
+      /// run whenever an individual worker runs out of work.  The idle handler
+      /// must return an integer value that specifies how many milliseconds the
+      /// worker is allowed to sleep.  Timeout.Infinite puts the worker into
+      /// sleep until the scheduler explicitly wakes it up.  0 means that the
+      /// idle handler found some new work and the worker should immediately
+      /// look for it.
       IdleHandler: option<Job<int>>
     }
     
@@ -799,10 +798,8 @@ module Scheduler =
   /// so the job can be spawned in a sligthly lighter-weight manner.
   val server: Scheduler -> Job<Void> -> unit
 
-  /// Returns true if the scheduler is completely idle, meaning that all worker
-  /// threads are waiting, at the moment.  Note that calling this from a worker
-  /// thread, even from an idle handler, always returns false.
-  val isIdle: Scheduler -> bool
+  /// Waits until the scheduler becomes completely idle.
+  val wait: Scheduler -> unit
 
   /// Kills the worker threads of the scheduler one-by-one.  This should only
   /// be used with a local scheduler that is known to be idle.

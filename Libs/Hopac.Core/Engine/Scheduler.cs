@@ -16,6 +16,7 @@ namespace Hopac {
     internal int NumWorkStack;
     internal int WaiterStack;
     internal int NumActive;
+    internal int NumPulseWaiters;
     internal WorkerEvent[] Events;
     internal FSharpFunc<Exception, Job<Unit>> TopLevelHandler;
     internal Job<int> IdleHandler;
@@ -39,15 +40,6 @@ namespace Hopac {
       }
       for (int i=0; i < numWorkers; ++i)
         threads[i].Start();
-    }
-
-    /// <summary>Returns true if the scheduler is completely idle, meaning that
-    /// all worker threads are waiting, at the moment.  Note that calling this
-    /// from a worker thread, even from an idle handler, always returns
-    /// false.</summary>
-    [MethodImpl(AggressiveInlining.Flag)]
-    public static bool IsIdle(Scheduler sr) {
-      return 0 == sr.NumActive;
     }
 
     /// <summary>Kills the worker threads of the scheduler one-by-one.  This
@@ -89,10 +81,35 @@ namespace Hopac {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Inc(Scheduler sr) {
+      Enter(sr);
+      sr.NumActive += 1;
+      Exit(sr);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void UnsafeDec(Scheduler sr) {
+      var numActive = sr.NumActive - 1;
+      sr.NumActive = numActive;
+      if (0 == numActive && 0 != sr.NumPulseWaiters) {
+        Monitor.Enter(sr);
+        Monitor.PulseAll(sr);
+        Monitor.Exit(sr);
+      }
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void Dec(Scheduler sr) {
+      Enter(sr);
+      UnsafeDec(sr);
+      Exit(sr);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal static void UnsafeWait(Scheduler sr, int ms, WorkerEvent ev) {
       ev.Next = sr.WaiterStack;
       sr.WaiterStack = ev.Me;
-      sr.NumActive -= 1;
+      UnsafeDec(sr);
       Exit(sr);
       ev.Wait(ms);
       ev.Reset();
@@ -125,6 +142,37 @@ namespace Hopac {
 
     FoundLast:
       Push(sr, work, last, n);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void PushAndDec(Scheduler sr, Work work, Work last, int n) {
+      Enter(sr);
+      last.Next = sr.WorkStack;
+      sr.WorkStack = work;
+      sr.NumWorkStack += n;
+      sr.NumActive -= 1;
+      UnsafeSignal(sr);
+      Exit(sr);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void PushAllAndDec(Scheduler sr, Work work) {
+      if (null == work) {
+        Dec(sr);
+      } else {
+        var n = 1;
+        var last = work;
+      FindLast:
+        var next = last.Next;
+        if (null == next)
+          goto FoundLast;
+        n += 1;
+        last = next;
+        goto FindLast;
+
+      FoundLast:
+        PushAndDec(sr, work, last, n);
+      }
     }
   }
 

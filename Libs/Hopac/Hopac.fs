@@ -387,6 +387,7 @@ module Scheduler =
      TopLevelHandler: option<exn -> Job<unit>>
      IdleHandler: option<Job<int>>}
     static member Def: Create =
+      StaticData.Init ()
       {NumWorkers = None
        TopLevelHandler = None
        IdleHandler = None}
@@ -432,8 +433,14 @@ module Scheduler =
      | null -> xK'.Value
      | e -> Util.forward e
 
-  let isIdle (sr: Scheduler) =
-    Scheduler.IsIdle sr
+  let wait (sr: Scheduler) =
+    if sr.NumActive > 0 then
+      Interlocked.Increment &sr.NumPulseWaiters |> ignore
+      Monitor.Enter sr
+      while sr.NumActive > 0 do
+        Monitor.Wait sr |> ignore
+      Monitor.Exit sr
+      Interlocked.Decrement &sr.NumPulseWaiters |> ignore
 
   let kill (sr: Scheduler) =
     Scheduler.Kill sr
