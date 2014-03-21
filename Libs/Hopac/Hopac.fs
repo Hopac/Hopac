@@ -432,11 +432,11 @@ module Scheduler =
      | null -> xK'.Value
      | e -> Util.forward e
 
-  let signal (sr: Scheduler) =
-    Scheduler.Signal sr
-
   let isIdle (sr: Scheduler) =
     Scheduler.IsIdle sr
+
+  let kill (sr: Scheduler) =
+    Scheduler.Kill sr
 
 /////////////////////////////////////////////////////////////////////////
 

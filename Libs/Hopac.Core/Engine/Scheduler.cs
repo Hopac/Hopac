@@ -41,9 +41,21 @@ namespace Hopac {
         threads[i].Start();
     }
 
+    /// <summary>Returns true if the scheduler is completely idle, meaning that
+    /// all worker threads are waiting, at the moment.  Note that calling this
+    /// from a worker thread, even from an idle handler, always returns
+    /// false.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static bool IsIdle(Scheduler sr) {
+    public static bool IsIdle(Scheduler sr) {
       return 0 == sr.NumActive;
+    }
+
+    /// <summary>Kills the worker threads of the scheduler one-by-one.  This
+    /// should only be used with a local scheduler that is known to be
+    /// idle.</summary>
+    public static void Kill(Scheduler sr) {
+      var work = new AbortWork();
+      PushAll(sr, work);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -113,6 +125,18 @@ namespace Hopac {
 
     FoundLast:
       Push(sr, work, last, n);
+    }
+  }
+
+  internal class KillException : Exception { }
+
+  internal class AbortWork : Work {
+    internal override void DoHandle(ref Worker wr, Exception e) {
+      throw new KillException();
+    }
+
+    internal override void DoWork(ref Worker wr) {
+      throw new KillException();
     }
   }
 }

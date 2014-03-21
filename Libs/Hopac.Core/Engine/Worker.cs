@@ -189,8 +189,8 @@ namespace Hopac.Core {
 
           Scheduler.UnsafeWait(sr, iK.Value, mine);
           goto EnterScheduler;
-        } catch (ThreadAbortException) {
-          Scheduler.Signal(sr);
+        } catch (KillException) {
+          Scheduler.Kill(sr);
           sr = null;
         } catch (Exception e) {
           wr.WorkStack = new FailWork(wr.WorkStack, e, wr.Handler);

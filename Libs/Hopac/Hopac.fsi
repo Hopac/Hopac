@@ -799,15 +799,14 @@ module Scheduler =
   /// so the job can be spawned in a sligthly lighter-weight manner.
   val server: Scheduler -> Job<Void> -> unit
 
-  /// Assuming that at least one worker thread is currently sleeping, wakes up
-  /// one worker thread.  The woken up worker may then wake up further workers
-  /// assuming there is plenty of work.
-  val signal: Scheduler -> unit
-
   /// Returns true if the scheduler is completely idle, meaning that all worker
   /// threads are waiting, at the moment.  Note that calling this from a worker
-  /// thread, even from an idle handler, always return false.
+  /// thread, even from an idle handler, always returns false.
   val isIdle: Scheduler -> bool
+
+  /// Kills the worker threads of the scheduler one-by-one.  This should only
+  /// be used with a local scheduler that is known to be idle.
+  val kill: Scheduler -> unit
 
 ///////////////////////////////////////////////////////////////////////////////
 
