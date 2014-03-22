@@ -1,5 +1,13 @@
 // Copyright (C) by Housemarque, Inc.
 
+/// Hopac is a library for F# with the aim of making it easier to write
+/// efficient parallel, asynchronous and concurrent programs.  The design of
+/// Hopac draws inspiration from Concurrent ML.  Similar to Concurrent ML, Hopac
+/// provides message passing primitives and supports the construction of
+/// first-class synchronous abstractions.  Parallel jobs (light-weight threads)
+/// in Hopac are created using techniques similar to the F# Async framework.
+/// Hopac runs parallel jobs using a work distributing scheduler in a
+/// non-preemptive fashion.
 namespace Hopac
 
 open System
@@ -32,6 +40,7 @@ type JobBuilder =
 
 ///////////////////////////////////////////////////////////////////////////////
 
+/// Convenience bindings for programming with Hopac.
 [<AutoOpen>]
 module TopLevel =
   /// Default expression builder for jobs.
@@ -40,7 +49,7 @@ module TopLevel =
   /// Starts running the given job on the global scheduler, but does not wait
   /// for the job to finish.  The result, if any, of the job is ignored.  Note
   /// that using this function in a job workflow is not optimal and you should
-  /// use Job.start instead.  This is the same function as Job.Global.run.
+  /// use "Job.start" instead.  This is the same function as "Job.Global.run".
   val inline run: Job<'x> -> 'x
 
   /// Use object as alternative.  This function is a NOP and is provided as a
@@ -51,18 +60,19 @@ module TopLevel =
   /// syntactic alternative to using a type cast.
   val inline asJob: Job<'x> -> Job<'x>
 
-  /// Creates a new channel.  This is the same function as Ch.Now.create.
+  /// Creates a new channel.  This is the same function as "Ch.Now.create".
   val inline ch: unit -> Ch<'x>
 
-  /// Creates a new mailbox.  This is the same function as Mailbox.Now.create.
+  /// Creates a new mailbox.  This is the same function as
+  /// "Mailbox.Now.create".
   val inline mb: unit -> Mailbox<'x>
 
   /// Creates a new write once variable.  This is the same function as
-  /// IVar.Now.create.
+  /// "IVar.Now.create".
   val inline ivar: unit -> IVar<'x>
 
   /// Creates a new synchronous variable that is initially empty.  This is the
-  /// same function as MVar.Now.create.
+  /// same function as "MVar.Now.create".
   val inline mvar: unit -> MVar<'x>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -77,8 +87,9 @@ module Job =
     /// Starts running the given job on the global scheduler, but does not wait
     /// for the job to finish.  Upon the failure or success of the job, one of
     /// the given actions is called once.  Note that using this function in a
-    /// job workflow is not optimal and you should instead use Job.start with
-    /// desired Job exception handling construct (e.g. Job.tryIn or Job.catch).
+    /// job workflow is not optimal and you should instead use "Job.start" with
+    /// desired Job exception handling construct (e.g. "Job.tryIn" or
+    /// "Job.catch").
     val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
     /// Starts running the given job on the global scheduler, but does not wait
@@ -100,14 +111,11 @@ module Job =
 
   /// Creates a job that schedules the given job to be executed as a separate
   /// concurrent job.  The result, if any, of the concurrent job is ignored.
-  /// Use Promise.start if you need to be able to get the result.  Use
-  /// Job.server if the job never returns normally.  Note that it is guaranteed
-  /// that the job is executed as a separate job.  This means that a job such as
-  /// "let c = Ch.Now.create () in Job.start (Ch.give c ()) >>. Ch.take c" will
-  /// not deadlock.
+  /// Use "Promise.start" if you need to be able to get the result.  Use
+  /// "Job.server" if the job never returns normally.
   val start: Job<_> -> Job<unit>
 
-  /// Like Job.start, but the given job is known never to return normally, so
+  /// Like "Job.start", but the given job is known never to return normally, so
   /// the job can be spawned in a sligthly lighter-weight manner.
   val server: Job<Void> -> Job<unit>
 
@@ -182,9 +190,9 @@ module Job =
     /// y -> result (x, y)".
     val (<&>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
-    /// Creates a job that either runs the given jobs sequentially, like <&>, or
-    /// as two separate parallel jobs and returns a pair of their results.  Note
-    /// that when the jobs are run in parallel and both of them raise an
+    /// Creates a job that either runs the given jobs sequentially, like "<&>",
+    /// or as two separate parallel jobs and returns a pair of their results.
+    /// Note that when the jobs are run in parallel and both of them raise an
     /// exception then the created job raises an AggregateException.  Note that
     /// it is not guaranteed that the jobs would be run as separate jobs.  This
     /// means that a job such as "let c = Ch.Now.create () in Ch.give c () <*>
@@ -315,8 +323,8 @@ module Alt =
   /// committed to.
   val inline always: 'x -> Alt<'x>
 
-  /// Returns an alternative that is always available for picking and results
-  /// in the unit value.  "unit ()" is equivalent to "always ()".
+  /// Returns an alternative that is always available for picking and results in
+  /// the unit value.  "unit ()" is equivalent to "always ()".
   val inline unit: unit -> Alt<unit>
 
   /// Creates an alternative that is never available for picking.
@@ -346,14 +354,14 @@ module Alt =
 
   /// Creates an alternative that is available for picking when any one of the
   /// given alternatives is.  More precisely, "choose alts" is equivalent to
-  /// "delay (fun () -> Seq.foldBack (<|>) alts never)", given Seq.foldBack with
-  /// the obvious meaning.
+  /// "delay (fun () -> Seq.foldBack (<|>) alts never)", given "Seq.foldBack"
+  /// with the obvious meaning.
   val choose: seq<Alt<'x>> -> Alt<'x>
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Infix operators on alternatives.  You can open this module to bring all of
-  /// the infix operators into scope.
+  /// Infix operators on alternatives.  You can open this module to bring all
+  /// of the infix operators into scope.
   module Infixes =
     /// Creates an alternative that is available for picking when either of the
     /// given alternatives is available.  The given alternatives are processed
@@ -446,7 +454,7 @@ module Ch =
   module Global =
     /// Sends the given value to the specified channel.  Note that using this
     /// function in a job workflow is not generally optimal and you should use
-    /// Ch.send instead.
+    /// "Ch.send" instead.
     val send: Ch<'x> -> 'x -> unit
 
   /// Creates a job that creates a new channel.
@@ -495,7 +503,7 @@ module IVar =
   val create: unit -> Job<IVar<'x>>
 
   /// Creates a job that writes to the given write once variable.  It is an
-  /// error to write to a single IVar more than once.  This assumption may be
+  /// error to write to a single "IVar" more than once.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.
   val inline fill: IVar<'x> -> 'x -> Job<unit>
@@ -537,25 +545,25 @@ module MVar =
   /// behavior.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that waits until the synchronous variable contains a
-  /// value and then takes the value contained by the synchronous variable
-  /// leaving the variable empty.
+  /// Creates a job that waits until the synchronous variable contains a value
+  /// and then takes the value contained by the synchronous variable leaving the
+  /// variable empty.
   val inline take: MVar<'x> -> Job<'x>
 
   /// Creates a job that takes the value of the variable and then fills the
   /// variable with the result of performing the given function.  Note that this
   /// operation is not atomic.  However, it is a common programming pattern to
-  /// make it so that only the job that has emptied an MVar by taking a value
-  /// from it is allowed to fill the MVar.  Such an access pattern makes
-  /// operations on the MVar appear as atomic.
+  /// make it so that only the job that has emptied an "MVar" by taking a value
+  /// from it is allowed to fill the "MVar".  Such an access pattern makes
+  /// operations on the "MVar" appear as atomic.
   val inline modifyFun: ('x -> 'x * 'y) -> MVar<'x> -> Job<'y>
 
   /// Creates a job that takes the value of the variable and then fills the
   /// variable with the result of performing the given job.  Note that this
   /// operation is not atomic.  However, it is a common programming pattern to
   /// make it so that only the job that has emptied an MVar by taking a value
-  /// from it is allowed to fill the MVar.  Such an access pattern makes
-  /// operations on the MVar appear as atomic.
+  /// from it is allowed to fill the "MVar".  Such an access pattern makes
+  /// operations on the "MVar" appear as atomic.
   val inline modifyJob: ('x -> Job<'x * 'y>) -> MVar<'x> -> Job<'y>
 
   /// Selective operations on write many variables.
@@ -630,9 +638,9 @@ module Promise =
   /// long the delayed job is started before trying to communicate with it.
   val delay: Job<'x> -> Job<Promise<'x>>
 
-  /// Creates a job that waits for the promise to be computed and then
-  /// returns its value (or fails with exception).  If the job of promise was
-  /// delayed, it is first started as a separate job.
+  /// Creates a job that waits for the promise to be computed and then returns
+  /// its value (or fails with exception).  If the job of promise was delayed,
+  /// it is first started as a separate job.
   val inline read: Promise<'x> -> Job<'x>
 
   /// Selective operations on promises.
@@ -668,17 +676,6 @@ module Lock =
     val inline create: unit -> Lock
 
 ///////////////////////////////////////////////////////////////////////////////
-#if NOT_YET_IMPLEMENTED
-/// Operations on condition variables.
-module Cond =
-  val create: Lock -> (unit -> bool) -> Job<Cond>
-  val wait: Cond -> Job<unit>
-  val signal: Cond -> Job<unit>
-  module Now =
-    val create: unit -> Cond
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
 
 /// Extensions to various system modules and types for programming with jobs.
 /// You can open this module to use the extensions much like as if they were
@@ -690,14 +687,14 @@ module Extensions =
     /// and returns an array of the results.
     val mapJob: ('x -> Job<'y>) -> array<'x> -> Job<array<'y>>
 
-    /// Sequentially iterates the given job constructor over the given
-    /// array.  The results, if any, of the jobs are ignored.
+    /// Sequentially iterates the given job constructor over the given array.
+    /// The results, if any, of the jobs are ignored.
     val iterJob: ('x -> Job<_>) -> array<'x> -> Job<unit>
 
   /// Operations for processing sequences with jobs.
   module Seq =
-    /// Sequentially iterates the given job constructor over the given
-    /// sequence.  The results, if any, of the jobs are ignored.
+    /// Sequentially iterates the given job constructor over the given sequence.
+    /// The results, if any, of the jobs are ignored.
     val iterJob: ('x -> Job<_>) -> seq<'x> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
@@ -751,9 +748,10 @@ module Scheduler =
   /// A record of scheduler configuration options.
   type Create =
     {
-      /// Number of worker threads.  The default is Environment.ProcessorCount.
-      /// Using more than Environment.ProcessorCount is not optimal and may, in
-      /// some cases, significantly reduce performance.
+      /// Number of worker threads.  Using more than
+      /// "Environment.ProcessorCount" is not optimal and may, in some cases,
+      /// significantly reduce performance.  The default is
+      /// "Environment.ProcessorCount".
       NumWorkers: option<int>
 
       /// Specifies the top level exception handler job constructor of the
@@ -768,8 +766,8 @@ module Scheduler =
       /// Specifies the idle handler for workers.  The worker idle handler is
       /// run whenever an individual worker runs out of work.  The idle handler
       /// must return an integer value that specifies how many milliseconds the
-      /// worker is allowed to sleep.  Timeout.Infinite puts the worker into
-      /// sleep until the scheduler explicitly wakes it up.  0 means that the
+      /// worker is allowed to sleep.  "Timeout.Infinite" puts the worker into
+      /// sleep until the scheduler explicitly wakes it up.  "0" means that the
       /// idle handler found some new work and the worker should immediately
       /// look for it.
       IdleHandler: option<Job<int>>
@@ -785,24 +783,27 @@ module Scheduler =
   /// Starts running the given job, but does not wait for the job to finish.
   /// Upon the failure or success of the job, one of the given actions is called
   /// once.  Note that using this function in a job workflow is not optimal and
-  /// you should instead use Job.start with desired Job exception handling
-  /// construct (e.g. Job.tryIn or Job.catch).
-  val startWithActions: Scheduler -> (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
+  /// you should instead use "Job.start" with desired Job exception handling
+  /// construct (e.g. "Job.tryIn" or "Job.catch").
+  val startWithActions: Scheduler
+                     -> (exn -> unit)
+                     -> ('x -> unit)
+                     -> Job<'x> -> unit
 
   /// Starts running the given job, but does not wait for the job to finish.
   /// The result, if any, of the job is ignored.  Note that using this function
-  /// in a job workflow is not optimal and you should use Job.start instead.
+  /// in a job workflow is not optimal and you should use "Job.start" instead.
   val start: Scheduler -> Job<_> -> unit
 
-  /// Like Scheduler.start, but the given job is known never to return normally,
-  /// so the job can be spawned in a sligthly lighter-weight manner.
+  /// Like "Scheduler.start", but the given job is known never to return
+  /// normally, so the job can be spawned in a sligthly lighter-weight manner.
   val server: Scheduler -> Job<Void> -> unit
 
   /// Waits until the scheduler becomes completely idle.
   val wait: Scheduler -> unit
 
-  /// Kills the worker threads of the scheduler one-by-one.  This should only
-  /// be used with a local scheduler that is known to be idle.
+  /// Kills the worker threads of the scheduler one-by-one.  This should only be
+  /// used with a local scheduler that is known to be idle.
   val kill: Scheduler -> unit
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -832,7 +833,7 @@ module Infixes =
   val inline (<-+): Ch<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes to the given write once variable.  It is an
-  /// error to write to a single IVar more than once.  This assumption may be
+  /// error to write to a single "IVar" more than once.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.  "xI <-= x" is equivalent to "IVar.fill xI x".
   val inline (<-=): IVar<'x> -> 'x -> Job<unit>

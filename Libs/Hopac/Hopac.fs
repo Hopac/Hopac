@@ -1015,6 +1015,16 @@ module Lock =
   let inline duringFun (l: Lock) (xF: unit -> 'x) = LockDuringFun<'x> (l, xF) :> Job<'x>
   let inline duringJob (l: Lock) (xJ: Job<'x>) = LockDuringJob<'x> (l, xJ) :> Job<'x>
 
+#if NOT_YET_IMPLEMENTED
+/// Operations on condition variables.
+module Cond =
+  val create: Lock -> (unit -> bool) -> Job<Cond>
+  val wait: Cond -> Job<unit>
+  val signal: Cond -> Job<unit>
+  module Now =
+    val create: unit -> Cond
+#endif
+
 /////////////////////////////////////////////////////////////////////////
 
 module MVar =

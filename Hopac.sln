@@ -49,6 +49,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AdHocTests", "Tests\AdHocTe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6B539F10-FF76-4EA2-9A2F-594F377CEEC2}"
 	ProjectSection(SolutionItems) = preProject
+		Docs\Hopac.html = Docs\Hopac.html
 		Docs\Internals.md = Docs\Internals.md
 		Docs\Programming.md = Docs\Programming.md
 		Docs\README.md = Docs\README.md
@@ -56,9 +57,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6B539F10-F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-FF76-4EA2-9A2F-594F387CEEC2}"
 	ProjectSection(SolutionItems) = preProject
+		Hopac.fsx = Hopac.fsx
 		LICENSE.md = LICENSE.md
 		README.md = README.md
-		Hopac.fsx = Hopac.fsx
+		RefGen.fsx = RefGen.fsx
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cell", "Benchmarks\Cell\Cell.fsproj", "{68C52C21-42A4-445B-812D-1392515E2C6E}"
