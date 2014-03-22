@@ -13,11 +13,14 @@ Feedback is welcome!
 The
 [Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
 signature contains documentation comments on the Hopac primitives used in this
-document.  It is recommended that you open the Hopac solution in Visual Studio,
-or otherwise open Hopac.fsi in whatever editor or IDE you prefer (I'm writing
-this in [Emacs](http://www.gnu.org/software/emacs/)) and start the F#
-interactive shell so that you can look at the documentation comments and quickly
-try out examples from this document.  You can use the
+document.  There is also a
+[Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
+manual generated from the signature file.  It is recommended that you open the
+Hopac solution in Visual Studio, or otherwise open Hopac.fsi in whatever editor
+or IDE you prefer (I'm writing this in
+[Emacs](http://www.gnu.org/software/emacs/)) and start the F# interactive shell
+so that you can look at the documentation comments and quickly try out examples
+from this document.  You can use the
 [Hopac.fsx](https://github.com/VesaKarvonen/Hopac/blob/master/Hopac.fsx) script
 to prepare an environment in which you should be able to directly evaluate
 example code from this document.

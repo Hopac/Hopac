@@ -68,8 +68,9 @@ contains some notes and examples on programming with Hopac.  Feedback on the
 document is welcome!  In addition, the Hopac library code contains documentation
 comments on individual Hopac primitives.  The
 [Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
-signature file contains most of those documentation comments.  There are also
-some
+signature file contains most of those documentation comments.  There is also a
+[Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
+manual generated from the signature file.  There are also some
 [Notes on the Internal Implementation of Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Internals.md),
 but that document is not meant to be something that a user of the library would
 need to be intimately familiar with.
