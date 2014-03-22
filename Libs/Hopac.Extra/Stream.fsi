@@ -14,9 +14,9 @@ module Stream =
   type In<'x> = Alt<'x>
 
   /// For flexibility, output of stream combinators is represented as action
-  /// alternative constructors.  Typically the alternative gives a message on a
-  /// channel, but other alternatives can also be used.
-  type Out<'x> = 'x -> Alt<unit>
+  /// job constructors.  Typically the job gives a message on a channel, but
+  /// other actions can also be used.
+  type Out<'x> = 'x -> Job<unit>
 
   /// Creates a new channel and passes it as the output action to the given
   /// partially applied stream.

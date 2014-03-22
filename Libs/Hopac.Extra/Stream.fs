@@ -9,11 +9,11 @@ open Hopac.Job.Infixes
 
 module Stream =
   type In<'x> = Alt<'x>
-  type Out<'x> = 'x -> Alt<unit>
+  type Out<'x> = 'x -> Job<unit>
 
   let inline imp (mk: Out<_> -> Job<unit>) = Job.delay <| fun () ->
     let ch = ch ()
-    mk (Ch.Alt.give ch) >>% (ch :> Alt<_>)
+    mk (Ch.give ch) >>% (ch :> Alt<_>)
 
   let filterFun x2b (xIn: In<_>) (xOut: Out<_>) =
     Job.foreverServer
@@ -23,7 +23,7 @@ module Stream =
     Job.foreverServer
      (xIn >>= fun x ->
       x2bJ x >>= fun b ->
-      if b then xOut x :> Job<_> else Job.unit ())
+      if b then xOut x else Job.unit ())
 
   let iterateFun x x2x (xOut: Out<_>) =
     Job.iterateServer x (fun x -> xOut x >>% x2x x)
@@ -32,16 +32,13 @@ module Stream =
     Job.iterateServer x (fun x -> xOut x >>. x2xJ x)
 
   let mapFun x2y (xIn: In<_>) (yOut: Out<_>) =
-    Job.foreverServer (xIn >>= fun x -> yOut (x2y x) :> Job<_>)
+    Job.foreverServer (xIn >>= fun x -> yOut (x2y x))
 
   let mapJob (x2yJ: _ -> Job<_>) (xIn: In<_>) (yOut: Out<_>) =
-    Job.foreverServer (xIn >>= fun x -> x2yJ x >>= fun y -> yOut y :> Job<_>)
+    Job.foreverServer (xIn >>= fun x -> x2yJ x >>= yOut)
 
   let sumWithFun xy2z (xIn: In<_>) (yIn: In<_>) (zOut: Out<_>) =
-    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> zOut (xy2z x y) :> Job<_>)
+    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> zOut (xy2z x y))
 
   let sumWithJob (xy2zJ: _ -> _ -> Job<_>) xIn yIn (zOut: Out<_>) =
-    Job.foreverServer
-     (xIn <+> yIn >>= fun (x, y) ->
-      xy2zJ x y >>= fun z ->
-      zOut z :> Job<_>)
+    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> xy2zJ x y >>= zOut)
