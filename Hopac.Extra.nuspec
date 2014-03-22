@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac.Extra</id>
-    <version>0.0.0.1</version>
+    <version>0.0.0.2</version>
     <title>Hopac.Extra</title>
     <summary>Additional utilities for programming with Hopac: A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -10,7 +10,7 @@
     <licenseUrl>https://github.com/VesaKarvonen/Hopac/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/VesaKarvonen/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
+    <description>Additional utilities for programming with Hopac. Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
     <releaseNotes></releaseNotes>
     <copyright>© Housemarque Inc.</copyright>
     <tags>f# fsharp parallel async concurrent</tags>
