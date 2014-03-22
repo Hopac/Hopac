@@ -249,8 +249,8 @@ module Job =
   /// will be executed.  The results from the jobs are ignored.
   val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
-  /// "whileDo cond body" creates a job that sequentially executes the body job
-  /// as long as cond returns true.  The results from the jobs are ignored.
+  /// "whileDo u2b xJ" creates a job that sequentially executes the "xJ" job as
+  /// long as "u2b ()" returns "true".  The results from the jobs are ignored.
   val whileDo: (unit -> bool) -> Job<_> -> Job<unit>
 
   /// "whenDo b uJ" is equivalent to "if b then uJ else Job.unit ()".
