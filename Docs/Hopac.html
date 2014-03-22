@@ -460,12 +460,12 @@
 </blockquote>
 <pre id="def:Hopac.Job.forUpTo"><b>val</b> <a id=":Hopac.Job.forUpTo" href="#dec:Hopac.Job.forUpTo">forUpTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
-<blockquote><code>forUpTo lo hi i2xJ</code> creates a job that sequentially iterates from lo to hi (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</blockquote>
+<blockquote><code>forUpTo lo hi i2xJ</code> creates a job that sequentially iterates from <code>lo</code> to <code>hi</code> (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Job.forDownTo"><b>val</b> <a id=":Hopac.Job.forDownTo" href="#dec:Hopac.Job.forDownTo">forDownTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
-<blockquote><code>forDownTo hi lo i2xJ</code> creates a job that sequentially iterates from hi to lo (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</blockquote>
+<blockquote><code>forDownTo hi lo i2xJ</code> creates a job that sequentially iterates from <code>hi</code> to <code>lo</code> (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Job.whileDo"><b>val</b> <a id=":Hopac.Job.whileDo" href="#dec:Hopac.Job.whileDo">whileDo</a><b>:</b> (unit <b>-&gt;</b> bool) <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
@@ -567,7 +567,7 @@
 </blockquote>
 <pre id="def:Hopac.Alt.withNack"><b>val</b> <a id=":Hopac.Alt.withNack" href="#dec:Hopac.Alt.withNack">withNack</a><b>:</b> (Alt&lt;unit&gt; <b>-&gt;</b> Job&lt;Alt&lt;'x&gt;&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<blockquote>Creates an alternative that is computed at instantiation time with the given job constructed with a negative acknowledgment alternative.  The negative acknowledgment alternative will be available for picking in case some other instantiated alternative involved in the picking is committed to instead.  Note that if an alternative created with withNack is not instantiated, then no negative acknowledgment is created.  For example, given an alternative of the form <code>always () &lt;|&gt; withNack (...)</code>  the withNack alternative is never instantiated.</blockquote>
+<blockquote>Creates an alternative that is computed at instantiation time with the given job constructed with a negative acknowledgment alternative.  The negative acknowledgment alternative will be available for picking in case some other instantiated alternative involved in the picking is committed to instead.  Note that if an alternative created with <code>withNack</code> is not instantiated, then no negative acknowledgment is created.  For example, given an alternative of the form <code>always () &lt;|&gt; withNack (...)</code>  the <code>withNack</code> alternative is never instantiated.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Alt.choose"><b>val</b> <a id=":Hopac.Alt.choose" href="#dec:Hopac.Alt.choose">choose</a><b>:</b> seq&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
@@ -617,7 +617,7 @@
 </blockquote>
 <pre id="def:Hopac.Alt.tryIn"><b>val</b> <a id=":Hopac.Alt.tryIn" href="#dec:Hopac.Alt.tryIn">tryIn</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Alt&lt;'y&gt;
 </pre>
-<blockquote>Implements the try-in-unless exception handling construct for alternatives.  Both of the continuation jobs <code>'x -&gt; Job&lt;'y&gt;</code>, for success, and <code>exn -&gt; Job&lt;'y&gt;</code>, for failure, are invoked from a tail position. Exceptions from both before and after the commit point can be handled.  An exception that occurs before a commit point, from the user code in a guard, delay, or withNack, results in treating that exception as the commit point.  Note you can also use function or job level exception handling before the commit point within the user code in a guard, delay, or withNack.</blockquote>
+<blockquote>Implements the try-in-unless exception handling construct for alternatives.  Both of the continuation jobs <code>'x -&gt; Job&lt;'y&gt;</code>, for success, and <code>exn -&gt; Job&lt;'y&gt;</code>, for failure, are invoked from a tail position. Exceptions from both before and after the commit point can be handled.  An exception that occurs before a commit point, from the user code in a <code>guard</code>, <code>delay</code>, or <code>withNack</code>, results in treating that exception as the commit point.  Note you can also use function or job level exception handling before the commit point within the user code in a <code>guard</code>, <code>delay</code>, or <code>withNack</code>.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Alt.pick"><b>val</b> <a id=":Hopac.Alt.pick" href="#dec:Hopac.Alt.pick">pick</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
@@ -1056,7 +1056,7 @@
 <blockquote>
 <pre id="def:Hopac.Scheduler.Global.setTopLevelHandler"><b>val</b> <a id=":Hopac.Scheduler.Global.setTopLevelHandler" href="#dec:Hopac.Scheduler.Global.setTopLevelHandler">setTopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt; <b>-&gt;</b> unit
 </pre>
-<blockquote>Sets the top level exception handler job constructor of the global scheduler.  When a job fails with an otherwise unhandled exception, the job is killed and a new job is constructed with the top level handler constructor and then started.  To avoid infinite loops, in case the top level handler job raises exceptions, it is simply killed after printing a message to the console.  The default top level handler, or None, simply prints out a message to the console.</blockquote>
+<blockquote>Sets the top level exception handler job constructor of the global scheduler.  When a job fails with an otherwise unhandled exception, the job is killed and a new job is constructed with the top level handler constructor and then started.  To avoid infinite loops, in case the top level handler job raises exceptions, it is simply killed after printing a message to the console.  The default top level handler, or <code>None</code>, simply prints out a message to the console.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>

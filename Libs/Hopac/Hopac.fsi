@@ -239,14 +239,14 @@ module Job =
   /// times.  The results from the jobs are ignored.
   val forN: int -> Job<_> -> Job<unit>
 
-  /// "forUpTo lo hi i2xJ" creates a job that sequentially iterates from lo to
-  /// hi (inclusive) and calls the given function to construct jobs that will be
-  /// executed.  The results from the jobs are ignored.
+  /// "forUpTo lo hi i2xJ" creates a job that sequentially iterates from "lo" to
+  /// "hi" (inclusive) and calls the given function to construct jobs that will
+  /// be executed.  The results from the jobs are ignored.
   val forUpTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
-  /// "forDownTo hi lo i2xJ" creates a job that sequentially iterates from hi to
-  /// lo (inclusive) and calls the given function to construct jobs that will be
-  /// executed.  The results from the jobs are ignored.
+  /// "forDownTo hi lo i2xJ" creates a job that sequentially iterates from "hi"
+  /// to "lo" (inclusive) and calls the given function to construct jobs that
+  /// will be executed.  The results from the jobs are ignored.
   val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
   /// "whileDo cond body" creates a job that sequentially executes the body job
@@ -355,10 +355,10 @@ module Alt =
   /// given job constructed with a negative acknowledgment alternative.  The
   /// negative acknowledgment alternative will be available for picking in case
   /// some other instantiated alternative involved in the picking is committed
-  /// to instead.  Note that if an alternative created with withNack is not
+  /// to instead.  Note that if an alternative created with "withNack" is not
   /// instantiated, then no negative acknowledgment is created.  For example,
   /// given an alternative of the form "always () <|> withNack (...)"  the
-  /// withNack alternative is never instantiated.
+  /// "withNack" alternative is never instantiated.
   val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the
@@ -411,10 +411,10 @@ module Alt =
   /// and "exn -> Job<'y>", for failure, are invoked from a tail position.
   /// Exceptions from both before and after the commit point can be handled.  An
   /// exception that occurs before a commit point, from the user code in a
-  /// guard, delay, or withNack, results in treating that exception as the
+  /// "guard", "delay", or "withNack", results in treating that exception as the
   /// commit point.  Note you can also use function or job level exception
-  /// handling before the commit point within the user code in a guard, delay,
-  /// or withNack.
+  /// handling before the commit point within the user code in a "guard",
+  /// "delay", or "withNack".
   val tryIn: Alt<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Alt<'y>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -791,7 +791,7 @@ module Scheduler =
     /// job is killed and a new job is constructed with the top level handler
     /// constructor and then started.  To avoid infinite loops, in case the top
     /// level handler job raises exceptions, it is simply killed after printing
-    /// a message to the console.  The default top level handler, or None,
+    /// a message to the console.  The default top level handler, or "None",
     /// simply prints out a message to the console.
     val setTopLevelHandler: option<exn -> Job<unit>> -> unit
 
