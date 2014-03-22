@@ -34,8 +34,10 @@ module DirCh =
 
   /// Selective operations on directional channels.
   module Alt =
-    /// An alternative to take a value on the input channel.
+    /// An alternative to take a value to be given on the associated output
+    /// channel.
     val take: InCh<'a> -> Alt<'a>
 
-    /// An alternative to give a value on the input channel.
+    /// An alternative to give a value to be taken on the associated input
+    /// channel.
     val give: OutCh<'a> -> 'a -> Alt<unit>
