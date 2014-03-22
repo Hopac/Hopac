@@ -470,7 +470,7 @@
 </blockquote>
 <pre id="def:Hopac.Job.whileDo"><b>val</b> <a id=":Hopac.Job.whileDo" href="#dec:Hopac.Job.whileDo">whileDo</a><b>:</b> (unit <b>-&gt;</b> bool) <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
-<blockquote><code>whileDo cond body</code> creates a job that sequentially executes the body job as long as cond returns true.  The results from the jobs are ignored.</blockquote>
+<blockquote><code>whileDo u2b xJ</code> creates a job that sequentially executes the <code>xJ</code> job as long as <code>u2b ()</code> returns <code>true</code>.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Job.whenDo"><b>val</b> <a id=":Hopac.Job.whenDo" href="#dec:Hopac.Job.whenDo">whenDo</a><b>:</b> bool <b>-&gt;</b> Job&lt;unit&gt; <b>-&gt;</b> Job&lt;unit&gt;

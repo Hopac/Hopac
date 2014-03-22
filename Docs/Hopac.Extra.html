@@ -47,7 +47,7 @@
 </pre>
 <pre id="dec:Stream"><b>module</b> <a id="dec:Hopac.Extra.Stream" href="#def:Hopac.Extra.Stream">Stream</a> =
   <b>type</b> <a id="dec:Hopac.Extra.Stream.In&lt;'x&gt;" href="#def:Hopac.Extra.Stream.In&lt;'x&gt;">In&lt;'x&gt;</a> = Alt&lt;'x&gt;
-  <b>type</b> <a id="dec:Hopac.Extra.Stream.Out&lt;'x&gt;" href="#def:Hopac.Extra.Stream.Out&lt;'x&gt;">Out&lt;'x&gt;</a> = 'x <b>-&gt;</b> Alt&lt;unit&gt;
+  <b>type</b> <a id="dec:Hopac.Extra.Stream.Out&lt;'x&gt;" href="#def:Hopac.Extra.Stream.Out&lt;'x&gt;">Out&lt;'x&gt;</a> = 'x <b>-&gt;</b> Job&lt;unit&gt;
   <b>val</b> <a id="dec:Hopac.Extra.Stream.imp" href="#def:Hopac.Extra.Stream.imp">imp</a><b>:</b> (Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;) <b>-&gt;</b> Job&lt;In&lt;'x&gt;&gt;
   <b>val</b> <a id="dec:Hopac.Extra.Stream.filterFun" href="#def:Hopac.Extra.Stream.filterFun">filterFun</a><b>:</b> ('x <b>-&gt;</b> bool) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
   <b>val</b> <a id="dec:Hopac.Extra.Stream.filterJob" href="#def:Hopac.Extra.Stream.filterJob">filterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;bool&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
@@ -136,12 +136,12 @@
 <blockquote>
 <pre id="def:Hopac.Extra.DirCh.Alt.take"><b>val</b> <a id=":Hopac.Extra.DirCh.Alt.take" href="#dec:Hopac.Extra.DirCh.Alt.take">take</a><b>:</b> InCh&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
 </pre>
-<blockquote>An alternative to take a value on the input channel.</blockquote>
+<blockquote>An alternative to take a value to be given on the associated output channel.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Extra.DirCh.Alt.give"><b>val</b> <a id=":Hopac.Extra.DirCh.Alt.give" href="#dec:Hopac.Extra.DirCh.Alt.give">give</a><b>:</b> OutCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
-<blockquote>An alternative to give a value on the input channel.</blockquote>
+<blockquote>An alternative to give a value to be taken on the associated input channel.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
@@ -230,9 +230,9 @@
 <blockquote>For flexibility, input to stream combinators is represented as alternatives.  Typically the alternative takes a message on a channel, but other alternatives can also be used.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extra.Stream.Out&lt;'x&gt;"><b>type</b> <a id=":Hopac.Extra.Stream.Out&lt;'x&gt;" href="#dec:Hopac.Extra.Stream.Out&lt;'x&gt;">Out&lt;'x&gt;</a> = 'x <b>-&gt;</b> Alt&lt;unit&gt;
+<pre id="def:Hopac.Extra.Stream.Out&lt;'x&gt;"><b>type</b> <a id=":Hopac.Extra.Stream.Out&lt;'x&gt;" href="#dec:Hopac.Extra.Stream.Out&lt;'x&gt;">Out&lt;'x&gt;</a> = 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
-<blockquote>For flexibility, output of stream combinators is represented as action alternative constructors.  Typically the alternative gives a message on a channel, but other alternatives can also be used.</blockquote>
+<blockquote>For flexibility, output of stream combinators is represented as action job constructors.  Typically the job gives a message on a channel, but other actions can also be used.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.Extra.Stream.imp"><b>val</b> <a id=":Hopac.Extra.Stream.imp" href="#dec:Hopac.Extra.Stream.imp">imp</a><b>:</b> (Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;) <b>-&gt;</b> Job&lt;In&lt;'x&gt;&gt;
