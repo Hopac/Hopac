@@ -8,8 +8,9 @@ open Hopac
 /// sends a value and receives a value.
 type SwapCh<'a>
 
-/// Operations on swap channeles.
+/// Operations on swap channels.
 module SwapCh =
+  /// Immediate or non-workflow operations on swap channels.
   module Now =
     /// Creates a new swap channel.
     val create: unit -> SwapCh<'a>

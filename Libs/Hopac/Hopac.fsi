@@ -21,7 +21,7 @@ type Void
 
 ///////////////////////////////////////////////////////////////////////////////
 
-/// Expression builder type for jobs.  Note that the Job module provides more
+/// Expression builder type for jobs.  Note that the "Job" module provides more
 /// combinators for building jobs.
 type JobBuilder =
   new : unit -> JobBuilder
@@ -77,9 +77,13 @@ module TopLevel =
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#if DOC
+/// Represents a lightweight thread of execution.
+type Job<'x>
+#endif
+
 /// Operations on jobs.
 module Job =
-
   /// Operations on the global scheduler.  Note that in a typical program there
   /// should only be a few points (maybe just one) where jobs are started or run
   /// outside of job workflows.
@@ -95,11 +99,11 @@ module Job =
     /// Starts running the given job on the global scheduler, but does not wait
     /// for the job to finish.  The result, if any, of the job is ignored.  Note
     /// that using this function in a job workflow is not optimal and you should
-    /// use Job.start instead.
+    /// use "Job.start" instead.
     val start: Job<_> -> unit
 
-    /// Like Job.start, but the given job is known never to return normally, so
-    /// the job can be spawned in a sligthly lighter-weight manner.
+    /// Like "Job.start", but the given job is known never to return normally,
+    /// so the job can be spawned in a sligthly lighter-weight manner.
     val server: Job<Void> -> unit
 
     /// Starts running the job on the global scheduler and then waits for the
@@ -139,7 +143,7 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Returns a job that does nothing and returns ().  "unit ()" is equivalent
+  /// Returns a job that does nothing and returns "()".  "unit ()" is equivalent
   /// to "result ()".
   val inline unit: unit -> Job<unit>
 
@@ -193,10 +197,10 @@ module Job =
     /// Creates a job that either runs the given jobs sequentially, like "<&>",
     /// or as two separate parallel jobs and returns a pair of their results.
     /// Note that when the jobs are run in parallel and both of them raise an
-    /// exception then the created job raises an AggregateException.  Note that
-    /// it is not guaranteed that the jobs would be run as separate jobs.  This
-    /// means that a job such as "let c = Ch.Now.create () in Ch.give c () <*>
-    /// Ch.take c" may deadlock.
+    /// exception then the created job raises an "AggregateException".  Note
+    /// that it is not guaranteed that the jobs would be run as separate jobs.
+    /// This means that a job such as "let c = Ch.Now.create () in Ch.give c ()
+    /// <*> Ch.take c" may deadlock.
     val (<*>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -296,13 +300,13 @@ module Job =
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// returns a list of the results.  Note that when multiple jobs raise
-  /// exceptions, then the created job raises an AggregateException.
+  /// exceptions, then the created job raises an "AggregateException".
   val conCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// then waits for all of the jobs to finish.  The results of the jobs are
   /// ignored.  Note that when multiple jobs raise exceptions, then the created
-  /// job raises an AggregateException.
+  /// job raises an "AggregateException".
   val conIgnore: seq<Job<_>> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -314,6 +318,11 @@ module Job =
                  -> Job<'x>
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a first class synchronous operation.
+type Alt<'x> :> Job<'x>
+#endif
 
 /// Operations on first-class synchronous operations or alternatives.
 module Alt =
@@ -443,6 +452,11 @@ module Timer =
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#if DOC
+/// Represents a synchronous channel.
+type Ch<'x> :> Alt<'x>
+#endif
+
 /// Operations on synchronous channels.
 module Ch =
   /// Immediate or non-workflow operations on synchronous channels.
@@ -470,7 +484,7 @@ module Ch =
   /// wait for another job to give the value to.  Note that channels have been
   /// optimized for synchronous operations; an occasional send can be efficient,
   /// but when sends are queued, performance maybe be significantly worse than
-  /// with a Mailbox optimized for buffering.
+  /// with a "Mailbox" optimized for buffering.
   val inline send: Ch<'x> -> 'x -> Job<unit>
 
   /// Creates a job that offers to take a value from another job on the given
@@ -491,6 +505,11 @@ module Ch =
     val inline take: Ch<'x> -> Alt<'x>
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a synchronized write once variable.
+type IVar<'x> :> Alt<'x>
+#endif
 
 /// Operations on write once variables.
 module IVar =
@@ -520,6 +539,11 @@ module IVar =
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#if DOC
+/// Represents a synchronized variable.
+type MVar<'x> :> Alt<'x>
+#endif
+
 /// Operations on write many variables.
 module MVar =
   /// Immediate or non-workflow operations on write many variables.
@@ -540,8 +564,8 @@ module MVar =
   val createFull: 'x -> Job<MVar<'x>>
 
   /// Creates a job that writes the given value to the synchronous variable.  It
-  /// is an error to write to a MVar that is full.  This assumption may be used
-  /// to optimize the implementation and incorrect usage leads to undefined
+  /// is an error to write to a "MVar" that is full.  This assumption may be
+  /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
@@ -561,7 +585,7 @@ module MVar =
   /// Creates a job that takes the value of the variable and then fills the
   /// variable with the result of performing the given job.  Note that this
   /// operation is not atomic.  However, it is a common programming pattern to
-  /// make it so that only the job that has emptied an MVar by taking a value
+  /// make it so that only the job that has emptied an "MVar" by taking a value
   /// from it is allowed to fill the "MVar".  Such an access pattern makes
   /// operations on the "MVar" appear as atomic.
   val inline modifyJob: ('x -> Job<'x * 'y>) -> MVar<'x> -> Job<'y>
@@ -575,6 +599,11 @@ module MVar =
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#if DOC
+/// Represents a asynchronous, unbounded buffered mailbox.
+type Mailbox<'x> :> Alt<'x>
+#endif
+
 /// Operations on buffered mailboxes.
 module Mailbox =
   /// Immediate or non-workflow operations on buffered mailboxes.
@@ -586,7 +615,7 @@ module Mailbox =
   module Global =
     /// Sends the given value to the specified mailbox.  Note that using this
     /// function in a job workflow is not generally optimal and you should use
-    /// Mailbox.send instead.
+    /// "Mailbox.send" instead.
     val send: Mailbox<'x> -> 'x -> unit
 
   /// Creates a job that creates a new mailbox.
@@ -609,6 +638,11 @@ module Mailbox =
     val inline take: Mailbox<'x> -> Alt<'x>
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a lazy promise or eager future (depending on construction).
+type Promise<'x> :> Alt<'x>
+#endif
 
 /// Operations on promises.
 module Promise =
@@ -650,6 +684,17 @@ module Promise =
     val inline read: Promise<'x> -> Alt<'x>
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// A non-recursive mutual exclusion lock for jobs.  Note that this lock is for
+/// synchronizing at the level of jobs that might even block while holding the
+/// lock.  In most cases you should rather use higher-level message passing
+/// primitives such as "Ch", "Mailbox", "MVar" or "IVar", but in some cases a
+/// simple lock might be more natural to use.  For short non-blocking critical
+/// sections, native locks (e.g. "Monitor" and "SpinLock"), concurrent data
+/// structures or interlocked operations should be faster.
+type Lock
+#endif
 
 /// Operations on mutual exclusion locks.
 module Lock =
@@ -728,6 +773,11 @@ module Extensions =
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a scheduler that manages a number of worker threads.
+type Scheduler
+#endif
 
 /// Operations on schedulers.  Use of this module requires more intimate
 /// knowledge of Hopac, but may allow adapting Hopac to special application
@@ -828,7 +878,7 @@ module Infixes =
   /// wait for another job to give the value to.  Note that channels have been
   /// optimized for synchronous operations; an occasional send can be efficient,
   /// but when sends are queued, performance maybe be significantly worse than
-  /// with a Mailbox optimized for buffering.  "xCh <-+ x" is equivalent to
+  /// with a "Mailbox" optimized for buffering.  "xCh <-+ x" is equivalent to
   /// "Ch.send xCh x".
   val inline (<-+): Ch<'x> -> 'x -> Job<unit>
 
@@ -839,8 +889,8 @@ module Infixes =
   val inline (<-=): IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes the given value to the synchronous variable.  It
-  /// is an error to write to a MVar that is full.  This assumption may be used
-  /// to optimize the implementation and incorrect usage leads to undefined
+  /// is an error to write to a "MVar" that is full.  This assumption may be
+  /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.  "xM <<-= x" is equivalent to "MVar.fill xM x".
   val inline (<<-=): MVar<'x> -> 'x -> Job<unit>
 

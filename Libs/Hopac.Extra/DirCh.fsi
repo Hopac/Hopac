@@ -12,7 +12,7 @@ type OutCh<'a>
 
 /// Operations on directional channels.
 module DirCh =
-  /// Immediate or non-workflow operations.
+  /// Immediate or non-workflow operations on directional channels.
   module Now =
     /// Creates a new pair of directional channels.  The created channels are
     /// associated so that giving a value on the output channel allows the value

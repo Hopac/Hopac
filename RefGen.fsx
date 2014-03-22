@@ -129,13 +129,6 @@ let rec itemize ls =
   match outside -1 [] [] [] ls with
    | (items, _) -> items
 
-let model =
-  input "Libs/Hopac/Hopac.fsi"
-  |> itemize
-  |> function
-   | [item] -> item
-   | items -> failwithf "Expected one item, but got %A" items
-
 let asText (s: string) =
   let b = StringBuilder ()
   for i=0 to s.Length-1 do
@@ -174,70 +167,71 @@ let formatDesc (text: string) =
       failwithf "Failed to escape text properly: %s" text
   outside 0
 
-let printElem elem =
+let printElem wr elem =
   match elem with
    | "member" | "module" | "namespace" | "new" | "static" | "type" | "val"
    | "(" | ")" | "->" | "{" | "}" | ":" ->
-     printf "<b>%s</b>" (asText elem)
+     fprintf wr "<b>%s</b>" (asText elem)
    | _ ->
-     printf "%s" (asText elem)    
+     fprintf wr "%s" (asText elem)    
 
-let printText path inSection toSection item =
+let printText wr path inSection toSection item =
   let linked = ref false
   let printLink elem =
     if not (!linked) && item.Doc.Length > 0 && Some elem = item.Name then
       linked := true
       let text = asText elem
       let link = asText (String.concat "." (List.rev (elem::path)))
-      printf "<a id=\"%s:%s\" href=\"#%s:%s\">%s</a>" inSection link toSection link text
+      fprintf wr "<a id=\"%s:%s\" href=\"#%s:%s\">%s</a>" inSection link toSection link text
     else
-      printElem elem
+      printElem wr elem
   let rec loop space elems =
     match elems with
-     | "("::elem::")"::elems ->
-       if space then printf " "
-       printElem "("
+     | "("::elem::")"::":"::elems ->
+       if space then fprintf wr " "
+       printElem wr "("
        printLink elem
-       printElem ")"
+       printElem wr ")"
+       printElem wr ":"
        loop true elems
      | elem::":"::elems ->
-       if space then printf " "
+       if space then fprintf wr " "
        printLink elem
-       printElem ":"
+       printElem wr ":"
        loop true elems
      | elem::"="::elems ->
-       if space then printf " "
+       if space then fprintf wr " "
        printLink elem
-       printElem " ="
+       printElem wr " ="
        loop true elems
      | elem::elems ->
-       if space then printf " "
+       if space then fprintf wr " "
        printLink elem
        loop true elems
      | [] ->
-       printf "\n"
+       fprintf wr "\n"
   loop false item.Text
 
-let rec printSummary deep path inSection toSection drop item =
+let rec printSummary wr deep path inSection toSection drop item =
   let indent = max (item.Indent - drop) 0
   let prefix = String.replicate indent " "
-  let print s = printf "%s%s\n" prefix (asText s)
+  let print s = fprintf wr "%s%s\n" prefix (asText s)
   item.Attr
   |> Seq.iter (fun attr ->
-     printf "%s<b>%s</b>%s<b>%s</b>\n"
+     fprintf wr "%s<b>%s</b>%s<b>%s</b>\n"
       <| prefix
       <| asText "[<"
       <| asText (attr.Substring (2, attr.Length-4))
       <| asText ">]")
-  printf "%s" prefix
-  printText path inSection toSection item
+  fprintf wr "%s" prefix
+  printText wr path inSection toSection item
   let path =
     match item.Name with
      | None -> path
      | Some name -> name::path
   if deep then
     item.Body
-    |> Seq.iter (printSummary deep path inSection toSection drop)
+    |> Seq.iter (printSummary wr deep path inSection toSection drop)
   else
     if not (List.exists (fun item -> Option.isSome item.Name) item.Body) then
       item.Body
@@ -245,52 +239,84 @@ let rec printSummary deep path inSection toSection drop item =
          match item.Text with
           | "{"::_ | "}"::_ -> false
           | _ -> true)
-      |> Seq.iter (printSummary false path inSection toSection drop)
+      |> Seq.iter (printSummary wr false path inSection toSection drop)
 
-let rec printDescription path item =
+let rec printDescription wr path item =
   if Option.isSome item.Name &&
      (not (List.isEmpty item.Doc) ||
       not (List.isEmpty item.Body)) then
     match item.Name with
      | None ->
-       printf "<pre>"
+       fprintf wr "<pre>"
      | Some name ->
        let link = List.rev (name::path) |> String.concat "." |> asText
-       printf "<pre id=\"def:%s\">" link
-    printSummary false path "" "dec" item.Indent item
-    printf "</pre>\n"
+       fprintf wr "<pre id=\"def:%s\">" link
+    printSummary wr false path "" "dec" item.Indent item
+    fprintf wr "</pre>\n"
     match item.Doc with
      | [] -> ()
      | lines ->
-       printf "<blockquote>%s</blockquote>\n" (String.concat " " lines |> formatDesc)
-    printf "<blockquote>\n"
+       fprintf wr "<blockquote>%s</blockquote>\n" (String.concat " " lines |> formatDesc)
+    fprintf wr "<blockquote>\n"
     let path =
       match item.Name with
        | None -> path
        | Some name -> name::path
     item.Body
-    |> Seq.iter (printDescription path)
-    printf "</blockquote>\n"
+    |> Seq.iter (printDescription wr path)
+    fprintf wr "</blockquote>\n"
 
-do printf "<!DOCTYPE html>\n\
-           <html>\n\
-           <title>Hopac Library Reference</title>\n\
-           <h1>Hopac Library Reference</h1>\n\
-           <p>This document provides a reference manual of the Hopac library and is generated \
-              from the library source code.</p>\n"
-   printf "<h2>Synopsis</h2>\n"
-   printf "<pre id=\"dec:%s\">" (Option.get model.Name)
-   printText [] "dec" "def" model
-   printf "</pre>\n"
-   model.Body
-   |> Seq.iter (fun item ->
-      match item.Name with
-       | None ->
-         printf "<pre>"
-       | Some name ->
-         printf "<pre id=\"dec:%s\">" name
-      printSummary true [Option.get model.Name] "dec" "def" 0 item
-      printf "</pre>\n")
-   printf "<h2>Description</h2>\n"
-   printDescription [] model
-   printf "</html>\n"
+let generate wr title path =
+  let units =
+    Directory.EnumerateFiles (path, "*.fsi")
+    |> Seq.map (input >> itemize)
+    |> List.ofSeq
+  let model =
+    let collect field =
+      units
+      |> List.collect (fun items ->
+         items |> List.collect field)
+    match units with
+     | (unit::_)::_ ->
+       {unit with
+         Doc = collect (fun item -> item.Doc)
+         Attr = collect (fun item -> item.Attr)
+         Body = collect (fun item -> item.Body)}
+     | _ -> failwith "Expected some!"
+  fprintf wr "<!DOCTYPE html>\n\
+              <html>\n"
+  fprintf wr "%s" title
+  fprintf wr "<h2>Synopsis</h2>\n"
+  fprintf wr "<pre id=\"dec:%s\">" (Option.get model.Name)
+  printText wr [] "dec" "def" model
+  fprintf wr "</pre>\n"
+  model.Body
+  |> Seq.iter (fun item ->
+     match item.Name with
+      | None ->
+        fprintf wr "<pre>"
+      | Some name ->
+        fprintf wr "<pre id=\"dec:%s\">" name
+     printSummary wr true [Option.get model.Name] "dec" "def" 0 item
+     fprintf wr "</pre>\n")
+  fprintf wr "<h2>Description</h2>\n"
+  printDescription wr [] model
+  fprintf wr "</html>\n"
+
+let hopacTitle =
+  "<title>Hopac Library Reference</title>\n\
+   <h1>Hopac Library Reference</h1>\n\
+   <p>This document provides a reference manual for the Hopac library and is \
+      generated from the library source code.</p>\n"
+
+let extraTitle =
+  "<title>Hopac.Extra Library Reference</title>\n\
+   <h1>Hopac.Extra Library Reference</h1>\n\
+   <p>This document provides a reference manual for the Hopac.Extra library \
+      and is generated from the library source code.</p>\n"
+
+do use wr = new StreamWriter ("Docs/Hopac.html")
+   generate wr hopacTitle "Libs/Hopac"
+
+do use wr = new StreamWriter ("Docs/Hopac.Extra.html")
+   generate wr extraTitle "Libs/Hopac.Extra"

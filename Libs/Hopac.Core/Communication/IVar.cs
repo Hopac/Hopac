@@ -7,7 +7,7 @@ namespace Hopac {
   using System.Threading;
   using System;
 
-  /// <summary>A synchronized write once variable.</summary>
+  /// <summary>Represents a synchronized write once variable.</summary>
   public class IVar<T> : Alt<T> {
     internal T Value;
     internal volatile int State;

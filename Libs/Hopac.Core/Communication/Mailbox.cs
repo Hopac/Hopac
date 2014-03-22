@@ -6,7 +6,7 @@ namespace Hopac {
   using System.Collections.Generic;
   using System.Runtime.CompilerServices;
 
-  /// <summary>A asynchronous, unbounded buffered mailbox.</summary>
+  /// <summary>Represents a asynchronous, unbounded buffered mailbox.</summary>
   public class Mailbox<T> : Alt<T> {
     internal SpinlockTTAS Lock;
     internal readonly Queue<T> Values;

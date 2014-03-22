@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<title>Hopac.Extra Library Reference</title>
+<h1>Hopac.Extra Library Reference</h1>
+<p>This document provides a reference manual for the Hopac.Extra library and is generated from the library source code.</p>
+<h2>Synopsis</h2>
+<pre id="dec:Hopac.Extra"><b>namespace</b> <a id="dec:Hopac.Extra" href="#def:Hopac.Extra">Hopac.Extra</a>
+</pre>
+<pre id="dec:Alt"><b>module</b> <a id="dec:Hopac.Extra.Alt" href="#def:Hopac.Extra.Alt">Alt</a> =
+  <b>val</b> <a id="dec:Hopac.Extra.Alt.wrapAbort" href="#def:Hopac.Extra.Alt.wrapAbort">wrapAbort</a><b>:</b> Job&lt;unit&gt; <b>-&gt;</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+  <b>module</b> <a id="dec:Hopac.Extra.Alt.Infixes" href="#def:Hopac.Extra.Alt.Infixes">Infixes</a> =
+    <b>val</b> <b>(</b><a id="dec:Hopac.Extra.Alt.Infixes.&lt;+&gt;" href="#def:Hopac.Extra.Alt.Infixes.&lt;+&gt;">&lt;+&gt;</a><b>)</b><b>:</b> Alt&lt;'a&gt; <b>-&gt;</b> Alt&lt;'b&gt; <b>-&gt;</b> Alt&lt;'a * 'b&gt;
+</pre>
+<pre id="dec:InCh<'a>"><b>type</b> <a id="dec:Hopac.Extra.InCh&lt;'a&gt;" href="#def:Hopac.Extra.InCh&lt;'a&gt;">InCh&lt;'a&gt;</a>
+</pre>
+<pre id="dec:OutCh<'a>"><b>type</b> <a id="dec:Hopac.Extra.OutCh&lt;'a&gt;" href="#def:Hopac.Extra.OutCh&lt;'a&gt;">OutCh&lt;'a&gt;</a>
+</pre>
+<pre id="dec:DirCh"><b>module</b> <a id="dec:Hopac.Extra.DirCh" href="#def:Hopac.Extra.DirCh">DirCh</a> =
+  <b>module</b> <a id="dec:Hopac.Extra.DirCh.Now" href="#def:Hopac.Extra.DirCh.Now">Now</a> =
+    <b>val</b> <a id="dec:Hopac.Extra.DirCh.Now.create" href="#def:Hopac.Extra.DirCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> InCh&lt;'a&gt; * OutCh&lt;'a&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.DirCh.create" href="#def:Hopac.Extra.DirCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;InCh&lt;'a&gt; * OutCh&lt;'a&gt;&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.DirCh.take" href="#def:Hopac.Extra.DirCh.take">take</a><b>:</b> InCh&lt;'a&gt; <b>-&gt;</b> Job&lt;'a&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.DirCh.give" href="#def:Hopac.Extra.DirCh.give">give</a><b>:</b> OutCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;unit&gt;
+  <b>module</b> <a id="dec:Hopac.Extra.DirCh.Alt" href="#def:Hopac.Extra.DirCh.Alt">Alt</a> =
+    <b>val</b> <a id="dec:Hopac.Extra.DirCh.Alt.take" href="#def:Hopac.Extra.DirCh.Alt.take">take</a><b>:</b> InCh&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
+    <b>val</b> <a id="dec:Hopac.Extra.DirCh.Alt.give" href="#def:Hopac.Extra.DirCh.Alt.give">give</a><b>:</b> OutCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
+</pre>
+<pre id="dec:MChan<'a>"><b>type</b> <a id="dec:Hopac.Extra.MChan&lt;'a&gt;" href="#def:Hopac.Extra.MChan&lt;'a&gt;">MChan&lt;'a&gt;</a>
+</pre>
+<pre id="dec:MPort<'a>"><b>type</b> <a id="dec:Hopac.Extra.MPort&lt;'a&gt;" href="#def:Hopac.Extra.MPort&lt;'a&gt;">MPort&lt;'a&gt;</a>
+</pre>
+<pre id="dec:Multicast"><b>module</b> <a id="dec:Hopac.Extra.Multicast" href="#def:Hopac.Extra.Multicast">Multicast</a> =
+  <b>val</b> <a id="dec:Hopac.Extra.Multicast.create" href="#def:Hopac.Extra.Multicast.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;MChan&lt;'a&gt;&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Multicast.port" href="#def:Hopac.Extra.Multicast.port">port</a><b>:</b> MChan&lt;'a&gt; <b>-&gt;</b> Job&lt;MPort&lt;'a&gt;&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Multicast.multicast" href="#def:Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> MChan&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Multicast.recv" href="#def:Hopac.Extra.Multicast.recv">recv</a><b>:</b> MPort&lt;'a&gt; <b>-&gt;</b> Job&lt;'a&gt;
+  <b>module</b> <a id="dec:Hopac.Extra.Multicast.Alt" href="#def:Hopac.Extra.Multicast.Alt">Alt</a> =
+    <b>val</b> <a id="dec:Hopac.Extra.Multicast.Alt.recv" href="#def:Hopac.Extra.Multicast.Alt.recv">recv</a><b>:</b> MPort&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<pre id="dec:SelectableQueue<'a>"><b>type</b> <a id="dec:Hopac.Extra.SelectableQueue&lt;'a&gt;" href="#def:Hopac.Extra.SelectableQueue&lt;'a&gt;">SelectableQueue&lt;'a&gt;</a>
+</pre>
+<pre id="dec:SelectableQueue"><b>module</b> <a id="dec:Hopac.Extra.SelectableQueue" href="#def:Hopac.Extra.SelectableQueue">SelectableQueue</a> =
+  <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.create" href="#def:Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SelectableQueue&lt;'a&gt;&gt;
+  <b>module</b> <a id="dec:Hopac.Extra.SelectableQueue.Alt" href="#def:Hopac.Extra.SelectableQueue.Alt">Alt</a> =
+    <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.Alt.send" href="#def:Hopac.Extra.SelectableQueue.Alt.send">send</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
+    <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.Alt.take" href="#def:Hopac.Extra.SelectableQueue.Alt.take">take</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> ('a <b>-&gt;</b> bool) <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<pre id="dec:Stream"><b>module</b> <a id="dec:Hopac.Extra.Stream" href="#def:Hopac.Extra.Stream">Stream</a> =
+  <b>type</b> <a id="dec:Hopac.Extra.Stream.In&lt;'x&gt;" href="#def:Hopac.Extra.Stream.In&lt;'x&gt;">In&lt;'x&gt;</a> = Alt&lt;'x&gt;
+  <b>type</b> <a id="dec:Hopac.Extra.Stream.Out&lt;'x&gt;" href="#def:Hopac.Extra.Stream.Out&lt;'x&gt;">Out&lt;'x&gt;</a> = 'x <b>-&gt;</b> Alt&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.imp" href="#def:Hopac.Extra.Stream.imp">imp</a><b>:</b> (Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;) <b>-&gt;</b> Job&lt;In&lt;'x&gt;&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.filterFun" href="#def:Hopac.Extra.Stream.filterFun">filterFun</a><b>:</b> ('x <b>-&gt;</b> bool) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.filterJob" href="#def:Hopac.Extra.Stream.filterJob">filterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;bool&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.iterateFun" href="#def:Hopac.Extra.Stream.iterateFun">iterateFun</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> 'x) <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.iterateJob" href="#def:Hopac.Extra.Stream.iterateJob">iterateJob</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.mapFun" href="#def:Hopac.Extra.Stream.mapFun">mapFun</a><b>:</b> ('x <b>-&gt;</b> 'y <b>)</b> <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'y&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.mapJob" href="#def:Hopac.Extra.Stream.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'y&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.sumWithFun" href="#def:Hopac.Extra.Stream.sumWithFun">sumWithFun</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> 'z) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> In&lt;'y&gt; <b>-&gt;</b> Out&lt;'z&gt; <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.Stream.sumWithJob" href="#def:Hopac.Extra.Stream.sumWithJob">sumWithJob</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'z&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> In&lt;'y&gt; <b>-&gt;</b> Out&lt;'z&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<pre id="dec:SwapCh<'a>"><b>type</b> <a id="dec:Hopac.Extra.SwapCh&lt;'a&gt;" href="#def:Hopac.Extra.SwapCh&lt;'a&gt;">SwapCh&lt;'a&gt;</a>
+</pre>
+<pre id="dec:SwapCh"><b>module</b> <a id="dec:Hopac.Extra.SwapCh" href="#def:Hopac.Extra.SwapCh">SwapCh</a> =
+  <b>module</b> <a id="dec:Hopac.Extra.SwapCh.Now" href="#def:Hopac.Extra.SwapCh.Now">Now</a> =
+    <b>val</b> <a id="dec:Hopac.Extra.SwapCh.Now.create" href="#def:Hopac.Extra.SwapCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> SwapCh&lt;'a&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.SwapCh.create" href="#def:Hopac.Extra.SwapCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SwapCh&lt;'a&gt;&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.SwapCh.swap" href="#def:Hopac.Extra.SwapCh.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<h2>Description</h2>
+<pre id="def:Hopac.Extra"><b>namespace</b> <a id=":Hopac.Extra" href="#dec:Hopac.Extra">Hopac.Extra</a>
+</pre>
+<blockquote>The Hopac.Extra library provides additional utilities for programming with Hopac.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.Alt"><b>module</b> <a id=":Hopac.Extra.Alt" href="#dec:Hopac.Extra.Alt">Alt</a> =
+</pre>
+<blockquote>Additional operations on alternatives.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.Alt.wrapAbort"><b>val</b> <a id=":Hopac.Extra.Alt.wrapAbort" href="#dec:Hopac.Extra.Alt.wrapAbort">wrapAbort</a><b>:</b> Job&lt;unit&gt; <b>-&gt;</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+</pre>
+<blockquote>Returns a new alternative that upon picking time makes it so that the given job will be started if the given alternative isn't the one being picked.  Note that <code>wrapAbort</code> is a derived operation and is implemented via <code>withNack</code>.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Alt.Infixes"><b>module</b> <a id=":Hopac.Extra.Alt.Infixes" href="#dec:Hopac.Extra.Alt.Infixes">Infixes</a> =
+</pre>
+<blockquote>Additional infix operators on alternatives.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.Alt.Infixes.&lt;+&gt;"><b>val</b> <b>(</b><a id=":Hopac.Extra.Alt.Infixes.&lt;+&gt;" href="#dec:Hopac.Extra.Alt.Infixes.&lt;+&gt;">&lt;+&gt;</a><b>)</b><b>:</b> Alt&lt;'a&gt; <b>-&gt;</b> Alt&lt;'b&gt; <b>-&gt;</b> Alt&lt;'a * 'b&gt;
+</pre>
+<blockquote>An alternative that is equivalent to first picking either one of the given alternatives and then picking the other alternative.  Note that this is not the same as picking the alternatives in a single transaction.  Such an operation would require a more complex synchronization protocol like with the so called Transactional Events.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.InCh&lt;'a&gt;"><b>type</b> <a id=":Hopac.Extra.InCh&lt;'a&gt;" href="#dec:Hopac.Extra.InCh&lt;'a&gt;">InCh&lt;'a&gt;</a>
+</pre>
+<blockquote>A directional input channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.OutCh&lt;'a&gt;"><b>type</b> <a id=":Hopac.Extra.OutCh&lt;'a&gt;" href="#dec:Hopac.Extra.OutCh&lt;'a&gt;">OutCh&lt;'a&gt;</a>
+</pre>
+<blockquote>A directional output channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.DirCh"><b>module</b> <a id=":Hopac.Extra.DirCh" href="#dec:Hopac.Extra.DirCh">DirCh</a> =
+</pre>
+<blockquote>Operations on directional channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.DirCh.Now"><b>module</b> <a id=":Hopac.Extra.DirCh.Now" href="#dec:Hopac.Extra.DirCh.Now">Now</a> =
+</pre>
+<blockquote>Immediate or non-workflow operations on directional channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.DirCh.Now.create"><b>val</b> <a id=":Hopac.Extra.DirCh.Now.create" href="#dec:Hopac.Extra.DirCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> InCh&lt;'a&gt; * OutCh&lt;'a&gt;
+</pre>
+<blockquote>Creates a new pair of directional channels.  The created channels are associated so that giving a value on the output channel allows the value to be taken on the input channel.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.DirCh.create"><b>val</b> <a id=":Hopac.Extra.DirCh.create" href="#dec:Hopac.Extra.DirCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;InCh&lt;'a&gt; * OutCh&lt;'a&gt;&gt;
+</pre>
+<blockquote>Creates a new pair of directional channels.  The created channels are associated so that giving a value on the output channel allows the value to be taken on the input channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.DirCh.take"><b>val</b> <a id=":Hopac.Extra.DirCh.take" href="#dec:Hopac.Extra.DirCh.take">take</a><b>:</b> InCh&lt;'a&gt; <b>-&gt;</b> Job&lt;'a&gt;
+</pre>
+<blockquote>Waits until another job offers to give a value on the associated output channel and then takes the value.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.DirCh.give"><b>val</b> <a id=":Hopac.Extra.DirCh.give" href="#dec:Hopac.Extra.DirCh.give">give</a><b>:</b> OutCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Waits until another job offers to take a value on the associated input channel and then gives the value.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.DirCh.Alt"><b>module</b> <a id=":Hopac.Extra.DirCh.Alt" href="#dec:Hopac.Extra.DirCh.Alt">Alt</a> =
+</pre>
+<blockquote>Selective operations on directional channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.DirCh.Alt.take"><b>val</b> <a id=":Hopac.Extra.DirCh.Alt.take" href="#dec:Hopac.Extra.DirCh.Alt.take">take</a><b>:</b> InCh&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<blockquote>An alternative to take a value on the input channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.DirCh.Alt.give"><b>val</b> <a id=":Hopac.Extra.DirCh.Alt.give" href="#dec:Hopac.Extra.DirCh.Alt.give">give</a><b>:</b> OutCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
+</pre>
+<blockquote>An alternative to give a value on the input channel.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.MChan&lt;'a&gt;"><b>type</b> <a id=":Hopac.Extra.MChan&lt;'a&gt;" href="#dec:Hopac.Extra.MChan&lt;'a&gt;">MChan&lt;'a&gt;</a>
+</pre>
+<blockquote>Represents a multicast channel for one to many communication.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.MPort&lt;'a&gt;"><b>type</b> <a id=":Hopac.Extra.MPort&lt;'a&gt;" href="#dec:Hopac.Extra.MPort&lt;'a&gt;">MPort&lt;'a&gt;</a>
+</pre>
+<blockquote>Represents a port for listening to a multicast channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Multicast"><b>module</b> <a id=":Hopac.Extra.Multicast" href="#dec:Hopac.Extra.Multicast">Multicast</a> =
+</pre>
+<blockquote>Operations on multicast channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.Multicast.create"><b>val</b> <a id=":Hopac.Extra.Multicast.create" href="#dec:Hopac.Extra.Multicast.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;MChan&lt;'a&gt;&gt;
+</pre>
+<blockquote>Creates a new multicast channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Multicast.port"><b>val</b> <a id=":Hopac.Extra.Multicast.port" href="#dec:Hopac.Extra.Multicast.port">port</a><b>:</b> MChan&lt;'a&gt; <b>-&gt;</b> Job&lt;MPort&lt;'a&gt;&gt;
+</pre>
+<blockquote>Creates a new port for listening to the given multicast channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Multicast.multicast"><b>val</b> <a id=":Hopac.Extra.Multicast.multicast" href="#dec:Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> MChan&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Sends a message to all of the ports listening to the multicast channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Multicast.recv"><b>val</b> <a id=":Hopac.Extra.Multicast.recv" href="#dec:Hopac.Extra.Multicast.recv">recv</a><b>:</b> MPort&lt;'a&gt; <b>-&gt;</b> Job&lt;'a&gt;
+</pre>
+<blockquote>Receives a message from the given port.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Multicast.Alt"><b>module</b> <a id=":Hopac.Extra.Multicast.Alt" href="#dec:Hopac.Extra.Multicast.Alt">Alt</a> =
+</pre>
+<blockquote>Selective operations on multicast channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.Multicast.Alt.recv"><b>val</b> <a id=":Hopac.Extra.Multicast.Alt.recv" href="#dec:Hopac.Extra.Multicast.Alt.recv">recv</a><b>:</b> MPort&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<blockquote>Alternative to receive a message from the given port.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SelectableQueue&lt;'a&gt;"><b>type</b> <a id=":Hopac.Extra.SelectableQueue&lt;'a&gt;" href="#dec:Hopac.Extra.SelectableQueue&lt;'a&gt;">SelectableQueue&lt;'a&gt;</a>
+</pre>
+<blockquote>Represents a selectable buffered queue.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SelectableQueue"><b>module</b> <a id=":Hopac.Extra.SelectableQueue" href="#dec:Hopac.Extra.SelectableQueue">SelectableQueue</a> =
+</pre>
+<blockquote>Implements a selectable buffered queue similar to what is described in the paper ``Kill-Safe Synchronization Abstractions'' by Matthew Flatt and Robert Bruce Findler.  Note that Hopac doesn't, at least not yet, provide all the operations on threads necessary to make the abstraction kill-safe as described in the paper.  Even without the full kill-safety properties this queue can be quite useful and serves as an interesting example of Concurrent ML -style programming making use of a dynamic number of alternatives.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.SelectableQueue.create"><b>val</b> <a id=":Hopac.Extra.SelectableQueue.create" href="#dec:Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SelectableQueue&lt;'a&gt;&gt;
+</pre>
+<blockquote>Creates a new selectable queue.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SelectableQueue.Alt"><b>module</b> <a id=":Hopac.Extra.SelectableQueue.Alt" href="#dec:Hopac.Extra.SelectableQueue.Alt">Alt</a> =
+</pre>
+<blockquote>Selective operations on selectable queues.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.SelectableQueue.Alt.send"><b>val</b> <a id=":Hopac.Extra.SelectableQueue.Alt.send" href="#dec:Hopac.Extra.SelectableQueue.Alt.send">send</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
+</pre>
+<blockquote>Constructs an alternative that sends the given message to the selectable queue.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SelectableQueue.Alt.take"><b>val</b> <a id=":Hopac.Extra.SelectableQueue.Alt.take" href="#dec:Hopac.Extra.SelectableQueue.Alt.take">take</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> ('a <b>-&gt;</b> bool) <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<blockquote>Constructs an alternative that takes a message that satisfies the given predicate from the specified selectable queue.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream"><b>module</b> <a id=":Hopac.Extra.Stream" href="#dec:Hopac.Extra.Stream">Stream</a> =
+</pre>
+<blockquote>Operations for programming with (synchronous) streams.  Both the inputs and the outputs of these stream combinators are given explicitly so that streams can be combined flexibly.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.Stream.In&lt;'x&gt;"><b>type</b> <a id=":Hopac.Extra.Stream.In&lt;'x&gt;" href="#dec:Hopac.Extra.Stream.In&lt;'x&gt;">In&lt;'x&gt;</a> = Alt&lt;'x&gt;
+</pre>
+<blockquote>For flexibility, input to stream combinators is represented as alternatives.  Typically the alternative takes a message on a channel, but other alternatives can also be used.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.Out&lt;'x&gt;"><b>type</b> <a id=":Hopac.Extra.Stream.Out&lt;'x&gt;" href="#dec:Hopac.Extra.Stream.Out&lt;'x&gt;">Out&lt;'x&gt;</a> = 'x <b>-&gt;</b> Alt&lt;unit&gt;
+</pre>
+<blockquote>For flexibility, output of stream combinators is represented as action alternative constructors.  Typically the alternative gives a message on a channel, but other alternatives can also be used.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.imp"><b>val</b> <a id=":Hopac.Extra.Stream.imp" href="#dec:Hopac.Extra.Stream.imp">imp</a><b>:</b> (Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;) <b>-&gt;</b> Job&lt;In&lt;'x&gt;&gt;
+</pre>
+<blockquote>Creates a new channel and passes it as the output action to the given partially applied stream.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.filterFun"><b>val</b> <a id=":Hopac.Extra.Stream.filterFun" href="#dec:Hopac.Extra.Stream.filterFun">filterFun</a><b>:</b> ('x <b>-&gt;</b> bool) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that forwards those messages from the given input to the output that satisfy the given predicate.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.filterJob"><b>val</b> <a id=":Hopac.Extra.Stream.filterJob" href="#dec:Hopac.Extra.Stream.filterJob">filterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;bool&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that forwards those messages from the given input to the output that satisfy the given predicate.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.iterateFun"><b>val</b> <a id=":Hopac.Extra.Stream.iterateFun" href="#dec:Hopac.Extra.Stream.iterateFun">iterateFun</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> 'x) <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that iterates the given operation to create a stream of messages.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.iterateJob"><b>val</b> <a id=":Hopac.Extra.Stream.iterateJob" href="#dec:Hopac.Extra.Stream.iterateJob">iterateJob</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Out&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that iterates the given operation to create a stream of messages.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.mapFun"><b>val</b> <a id=":Hopac.Extra.Stream.mapFun" href="#dec:Hopac.Extra.Stream.mapFun">mapFun</a><b>:</b> ('x <b>-&gt;</b> 'y <b>)</b> <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'y&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that maps messages from the given input to the given output with the given operation.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.mapJob"><b>val</b> <a id=":Hopac.Extra.Stream.mapJob" href="#dec:Hopac.Extra.Stream.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> Out&lt;'y&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that maps messages from the given input to the given output with the given operation.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.sumWithFun"><b>val</b> <a id=":Hopac.Extra.Stream.sumWithFun" href="#dec:Hopac.Extra.Stream.sumWithFun">sumWithFun</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> 'z) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> In&lt;'y&gt; <b>-&gt;</b> Out&lt;'z&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that maps messages from the given pair of inputs to the given output with the given operation.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.Stream.sumWithJob"><b>val</b> <a id=":Hopac.Extra.Stream.sumWithJob" href="#dec:Hopac.Extra.Stream.sumWithJob">sumWithJob</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'z&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> In&lt;'y&gt; <b>-&gt;</b> Out&lt;'z&gt; <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote>Creates a server that maps messages from the given pair of inputs to the given output with the given operation.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SwapCh&lt;'a&gt;"><b>type</b> <a id=":Hopac.Extra.SwapCh&lt;'a&gt;" href="#dec:Hopac.Extra.SwapCh&lt;'a&gt;">SwapCh&lt;'a&gt;</a>
+</pre>
+<blockquote>Synchronous swap channel: when two jobs communicate on a swap channel, each sends a value and receives a value.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SwapCh"><b>module</b> <a id=":Hopac.Extra.SwapCh" href="#dec:Hopac.Extra.SwapCh">SwapCh</a> =
+</pre>
+<blockquote>Operations on swap channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.SwapCh.Now"><b>module</b> <a id=":Hopac.Extra.SwapCh.Now" href="#dec:Hopac.Extra.SwapCh.Now">Now</a> =
+</pre>
+<blockquote>Immediate or non-workflow operations on swap channels.</blockquote>
+<blockquote>
+<pre id="def:Hopac.Extra.SwapCh.Now.create"><b>val</b> <a id=":Hopac.Extra.SwapCh.Now.create" href="#dec:Hopac.Extra.SwapCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> SwapCh&lt;'a&gt;
+</pre>
+<blockquote>Creates a new swap channel.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SwapCh.create"><b>val</b> <a id=":Hopac.Extra.SwapCh.create" href="#dec:Hopac.Extra.SwapCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SwapCh&lt;'a&gt;&gt;
+</pre>
+<blockquote>Creates a new swap channel.</blockquote>
+<blockquote>
+</blockquote>
+<pre id="def:Hopac.Extra.SwapCh.swap"><b>val</b> <a id=":Hopac.Extra.SwapCh.swap" href="#dec:Hopac.Extra.SwapCh.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<blockquote>Swap values with another job.</blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</html>

@@ -1,5 +1,7 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
+/// The Hopac.Extra library provides additional utilities for programming with
+/// Hopac.
 namespace Hopac.Extra
 
 open Hopac
@@ -8,8 +10,8 @@ open Hopac
 module Alt =
   /// Returns a new alternative that upon picking time makes it so that the
   /// given job will be started if the given alternative isn't the one being
-  /// picked.  Note that wrapAbort is a derived operation and is implemented
-  /// via withNack.
+  /// picked.  Note that "wrapAbort" is a derived operation and is implemented
+  /// via "withNack".
   val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
 
   /// Additional infix operators on alternatives.

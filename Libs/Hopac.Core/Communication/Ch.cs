@@ -6,7 +6,7 @@ namespace Hopac {
   using System.Runtime.CompilerServices;
   using System;
 
-  /// <summary>A synchronous channel.</summary>
+  /// <summary>Represents a synchronous channel.</summary>
   public class Ch<T> : Alt<T> {
     internal SpinlockTTAS Lock;
     internal Send<T> Givers;

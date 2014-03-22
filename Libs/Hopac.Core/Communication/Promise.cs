@@ -6,7 +6,7 @@ namespace Hopac {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  /// <summary>A lazy promise or eager future (depending on
+  /// <summary>Represents a lazy promise or eager future (depending on
   /// construction).</summary>
   public class Promise<T> : Alt<T> {
     internal T Value;
