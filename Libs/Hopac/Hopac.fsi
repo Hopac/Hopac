@@ -428,7 +428,7 @@ module Alt =
   /// Creates a job that instantiates the given sequence of alternatives
   /// one-by-one, waits until at least one of them becomes available for picking
   /// and then commits to the alternative resulting in its value.  "select xAs"
-  /// is equivalent to "pick (choose xJs)".
+  /// is equivalent to "pick (choose xAs)".
   val inline select: seq<Alt<'x>> -> Job<'x>
 
 ///////////////////////////////////////////////////////////////////////////////
