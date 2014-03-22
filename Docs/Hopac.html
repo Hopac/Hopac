@@ -34,7 +34,7 @@
   <b>val</b> <a id="dec:Hopac.TopLevel.ivar" href="#def:Hopac.TopLevel.ivar">ivar</a><b>:</b> unit <b>-&gt;</b> IVar&lt;'x&gt;
   <b>val</b> <a id="dec:Hopac.TopLevel.mvar" href="#def:Hopac.TopLevel.mvar">mvar</a><b>:</b> unit <b>-&gt;</b> MVar&lt;'x&gt;
 </pre>
-<pre id="dec:Job<'x>"><b>type</b> <a id="dec:Hopac.Job&lt;'x&gt;" href="#def:Hopac.Job&lt;'x&gt;">Job&lt;'x&gt;</a>
+<pre id="dec:Job&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.Job&lt;'x&gt;" href="#def:Hopac.Job&lt;'x&gt;">Job&lt;'x&gt;</a>
 </pre>
 <pre id="dec:Job"><b>module</b> <a id="dec:Hopac.Job" href="#def:Hopac.Job">Job</a> =
   <b>module</b> <a id="dec:Hopac.Job.Global" href="#def:Hopac.Job.Global">Global</a> =
@@ -84,7 +84,7 @@
                  <b>-&gt;</b> (IAsyncResult <b>-&gt;</b> 'x)
                  <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
-<pre id="dec:Alt<'x>"><b>type</b> <a id="dec:Hopac.Alt&lt;'x&gt;" href="#def:Hopac.Alt&lt;'x&gt;">Alt&lt;'x&gt;</a> :&gt; Job&lt;'x&gt;
+<pre id="dec:Alt&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.Alt&lt;'x&gt;" href="#def:Hopac.Alt&lt;'x&gt;">Alt&lt;'x&gt;</a> :&gt; Job&lt;'x&gt;
 </pre>
 <pre id="dec:Alt"><b>module</b> <a id="dec:Hopac.Alt" href="#def:Hopac.Alt">Alt</a> =
   <b>val</b> <a id="dec:Hopac.Alt.always" href="#def:Hopac.Alt.always">always</a><b>:</b> 'x <b>-&gt;</b> Alt&lt;'x&gt;
@@ -112,7 +112,7 @@
     <b>val</b> <a id="dec:Hopac.Timer.Global.timeOut" href="#def:Hopac.Timer.Global.timeOut">timeOut</a><b>:</b> TimeSpan <b>-&gt;</b> Alt&lt;unit&gt;
     <b>val</b> <a id="dec:Hopac.Timer.Global.sleep" href="#def:Hopac.Timer.Global.sleep">sleep</a><b>:</b> TimeSpan <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
-<pre id="dec:Ch<'x>"><b>type</b> <a id="dec:Hopac.Ch&lt;'x&gt;" href="#def:Hopac.Ch&lt;'x&gt;">Ch&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="dec:Ch&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.Ch&lt;'x&gt;" href="#def:Hopac.Ch&lt;'x&gt;">Ch&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <pre id="dec:Ch"><b>module</b> <a id="dec:Hopac.Ch" href="#def:Hopac.Ch">Ch</a> =
   <b>module</b> <a id="dec:Hopac.Ch.Now" href="#def:Hopac.Ch.Now">Now</a> =
@@ -127,7 +127,7 @@
     <b>val</b> <a id="dec:Hopac.Ch.Alt.give" href="#def:Hopac.Ch.Alt.give">give</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Alt&lt;unit&gt;
     <b>val</b> <a id="dec:Hopac.Ch.Alt.take" href="#def:Hopac.Ch.Alt.take">take</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<pre id="dec:IVar<'x>"><b>type</b> <a id="dec:Hopac.IVar&lt;'x&gt;" href="#def:Hopac.IVar&lt;'x&gt;">IVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="dec:IVar&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.IVar&lt;'x&gt;" href="#def:Hopac.IVar&lt;'x&gt;">IVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <pre id="dec:IVar"><b>module</b> <a id="dec:Hopac.IVar" href="#def:Hopac.IVar">IVar</a> =
   <b>module</b> <a id="dec:Hopac.IVar.Now" href="#def:Hopac.IVar.Now">Now</a> =
@@ -138,7 +138,7 @@
   <b>module</b> <a id="dec:Hopac.IVar.Alt" href="#def:Hopac.IVar.Alt">Alt</a> =
     <b>val</b> <a id="dec:Hopac.IVar.Alt.read" href="#def:Hopac.IVar.Alt.read">read</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<pre id="dec:MVar<'x>"><b>type</b> <a id="dec:Hopac.MVar&lt;'x&gt;" href="#def:Hopac.MVar&lt;'x&gt;">MVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="dec:MVar&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.MVar&lt;'x&gt;" href="#def:Hopac.MVar&lt;'x&gt;">MVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <pre id="dec:MVar"><b>module</b> <a id="dec:Hopac.MVar" href="#def:Hopac.MVar">MVar</a> =
   <b>module</b> <a id="dec:Hopac.MVar.Now" href="#def:Hopac.MVar.Now">Now</a> =
@@ -153,7 +153,7 @@
   <b>module</b> <a id="dec:Hopac.MVar.Alt" href="#def:Hopac.MVar.Alt">Alt</a> =
     <b>val</b> <a id="dec:Hopac.MVar.Alt.take" href="#def:Hopac.MVar.Alt.take">take</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<pre id="dec:Mailbox<'x>"><b>type</b> <a id="dec:Hopac.Mailbox&lt;'x&gt;" href="#def:Hopac.Mailbox&lt;'x&gt;">Mailbox&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="dec:Mailbox&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.Mailbox&lt;'x&gt;" href="#def:Hopac.Mailbox&lt;'x&gt;">Mailbox&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <pre id="dec:Mailbox"><b>module</b> <a id="dec:Hopac.Mailbox" href="#def:Hopac.Mailbox">Mailbox</a> =
   <b>module</b> <a id="dec:Hopac.Mailbox.Now" href="#def:Hopac.Mailbox.Now">Now</a> =
@@ -166,7 +166,7 @@
   <b>module</b> <a id="dec:Hopac.Mailbox.Alt" href="#def:Hopac.Mailbox.Alt">Alt</a> =
     <b>val</b> <a id="dec:Hopac.Mailbox.Alt.take" href="#def:Hopac.Mailbox.Alt.take">take</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<pre id="dec:Promise<'x>"><b>type</b> <a id="dec:Hopac.Promise&lt;'x&gt;" href="#def:Hopac.Promise&lt;'x&gt;">Promise&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="dec:Promise&lt;'x&gt;"><b>type</b> <a id="dec:Hopac.Promise&lt;'x&gt;" href="#def:Hopac.Promise&lt;'x&gt;">Promise&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <pre id="dec:Promise"><b>module</b> <a id="dec:Hopac.Promise" href="#def:Hopac.Promise">Promise</a> =
   <b>module</b> <a id="dec:Hopac.Promise.Now" href="#def:Hopac.Promise.Now">Now</a> =

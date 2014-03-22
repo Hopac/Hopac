@@ -296,7 +296,7 @@ let generate wr title path =
       | None ->
         fprintf wr "<pre>"
       | Some name ->
-        fprintf wr "<pre id=\"dec:%s\">" name
+        fprintf wr "<pre id=\"dec:%s\">" (asText name)
      printSummary wr true [Option.get model.Name] "dec" "def" 0 item
      fprintf wr "</pre>\n")
   fprintf wr "<h2>Description</h2>\n"

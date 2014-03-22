@@ -11,9 +11,9 @@
   <b>module</b> <a id="dec:Hopac.Extra.Alt.Infixes" href="#def:Hopac.Extra.Alt.Infixes">Infixes</a> =
     <b>val</b> <b>(</b><a id="dec:Hopac.Extra.Alt.Infixes.&lt;+&gt;" href="#def:Hopac.Extra.Alt.Infixes.&lt;+&gt;">&lt;+&gt;</a><b>)</b><b>:</b> Alt&lt;'a&gt; <b>-&gt;</b> Alt&lt;'b&gt; <b>-&gt;</b> Alt&lt;'a * 'b&gt;
 </pre>
-<pre id="dec:InCh<'a>"><b>type</b> <a id="dec:Hopac.Extra.InCh&lt;'a&gt;" href="#def:Hopac.Extra.InCh&lt;'a&gt;">InCh&lt;'a&gt;</a>
+<pre id="dec:InCh&lt;'a&gt;"><b>type</b> <a id="dec:Hopac.Extra.InCh&lt;'a&gt;" href="#def:Hopac.Extra.InCh&lt;'a&gt;">InCh&lt;'a&gt;</a>
 </pre>
-<pre id="dec:OutCh<'a>"><b>type</b> <a id="dec:Hopac.Extra.OutCh&lt;'a&gt;" href="#def:Hopac.Extra.OutCh&lt;'a&gt;">OutCh&lt;'a&gt;</a>
+<pre id="dec:OutCh&lt;'a&gt;"><b>type</b> <a id="dec:Hopac.Extra.OutCh&lt;'a&gt;" href="#def:Hopac.Extra.OutCh&lt;'a&gt;">OutCh&lt;'a&gt;</a>
 </pre>
 <pre id="dec:DirCh"><b>module</b> <a id="dec:Hopac.Extra.DirCh" href="#def:Hopac.Extra.DirCh">DirCh</a> =
   <b>module</b> <a id="dec:Hopac.Extra.DirCh.Now" href="#def:Hopac.Extra.DirCh.Now">Now</a> =
@@ -25,9 +25,9 @@
     <b>val</b> <a id="dec:Hopac.Extra.DirCh.Alt.take" href="#def:Hopac.Extra.DirCh.Alt.take">take</a><b>:</b> InCh&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
     <b>val</b> <a id="dec:Hopac.Extra.DirCh.Alt.give" href="#def:Hopac.Extra.DirCh.Alt.give">give</a><b>:</b> OutCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
-<pre id="dec:MChan<'a>"><b>type</b> <a id="dec:Hopac.Extra.MChan&lt;'a&gt;" href="#def:Hopac.Extra.MChan&lt;'a&gt;">MChan&lt;'a&gt;</a>
+<pre id="dec:MChan&lt;'a&gt;"><b>type</b> <a id="dec:Hopac.Extra.MChan&lt;'a&gt;" href="#def:Hopac.Extra.MChan&lt;'a&gt;">MChan&lt;'a&gt;</a>
 </pre>
-<pre id="dec:MPort<'a>"><b>type</b> <a id="dec:Hopac.Extra.MPort&lt;'a&gt;" href="#def:Hopac.Extra.MPort&lt;'a&gt;">MPort&lt;'a&gt;</a>
+<pre id="dec:MPort&lt;'a&gt;"><b>type</b> <a id="dec:Hopac.Extra.MPort&lt;'a&gt;" href="#def:Hopac.Extra.MPort&lt;'a&gt;">MPort&lt;'a&gt;</a>
 </pre>
 <pre id="dec:Multicast"><b>module</b> <a id="dec:Hopac.Extra.Multicast" href="#def:Hopac.Extra.Multicast">Multicast</a> =
   <b>val</b> <a id="dec:Hopac.Extra.Multicast.create" href="#def:Hopac.Extra.Multicast.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;MChan&lt;'a&gt;&gt;
@@ -37,7 +37,7 @@
   <b>module</b> <a id="dec:Hopac.Extra.Multicast.Alt" href="#def:Hopac.Extra.Multicast.Alt">Alt</a> =
     <b>val</b> <a id="dec:Hopac.Extra.Multicast.Alt.recv" href="#def:Hopac.Extra.Multicast.Alt.recv">recv</a><b>:</b> MPort&lt;'a&gt; <b>-&gt;</b> Alt&lt;'a&gt;
 </pre>
-<pre id="dec:SelectableQueue<'a>"><b>type</b> <a id="dec:Hopac.Extra.SelectableQueue&lt;'a&gt;" href="#def:Hopac.Extra.SelectableQueue&lt;'a&gt;">SelectableQueue&lt;'a&gt;</a>
+<pre id="dec:SelectableQueue&lt;'a&gt;"><b>type</b> <a id="dec:Hopac.Extra.SelectableQueue&lt;'a&gt;" href="#def:Hopac.Extra.SelectableQueue&lt;'a&gt;">SelectableQueue&lt;'a&gt;</a>
 </pre>
 <pre id="dec:SelectableQueue"><b>module</b> <a id="dec:Hopac.Extra.SelectableQueue" href="#def:Hopac.Extra.SelectableQueue">SelectableQueue</a> =
   <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.create" href="#def:Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SelectableQueue&lt;'a&gt;&gt;
@@ -58,7 +58,7 @@
   <b>val</b> <a id="dec:Hopac.Extra.Stream.sumWithFun" href="#def:Hopac.Extra.Stream.sumWithFun">sumWithFun</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> 'z) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> In&lt;'y&gt; <b>-&gt;</b> Out&lt;'z&gt; <b>-&gt;</b> Job&lt;unit&gt;
   <b>val</b> <a id="dec:Hopac.Extra.Stream.sumWithJob" href="#def:Hopac.Extra.Stream.sumWithJob">sumWithJob</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'z&gt;) <b>-&gt;</b> In&lt;'x&gt; <b>-&gt;</b> In&lt;'y&gt; <b>-&gt;</b> Out&lt;'z&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
-<pre id="dec:SwapCh<'a>"><b>type</b> <a id="dec:Hopac.Extra.SwapCh&lt;'a&gt;" href="#def:Hopac.Extra.SwapCh&lt;'a&gt;">SwapCh&lt;'a&gt;</a>
+<pre id="dec:SwapCh&lt;'a&gt;"><b>type</b> <a id="dec:Hopac.Extra.SwapCh&lt;'a&gt;" href="#def:Hopac.Extra.SwapCh&lt;'a&gt;">SwapCh&lt;'a&gt;</a>
 </pre>
 <pre id="dec:SwapCh"><b>module</b> <a id="dec:Hopac.Extra.SwapCh" href="#def:Hopac.Extra.SwapCh">SwapCh</a> =
   <b>module</b> <a id="dec:Hopac.Extra.SwapCh.Now" href="#def:Hopac.Extra.SwapCh.Now">Now</a> =
