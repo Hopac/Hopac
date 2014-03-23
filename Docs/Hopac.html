@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-<title>Hopac Library Reference</title>
+<head><title>Hopac Library Reference</title></head>
+<body><table width="80%" align="center"><tr><td>
 <h1>Hopac Library Reference</h1>
 <p>This document provides a reference manual for the Hopac library and is generated from the library source code.</p>
 <h2>Synopsis</h2>
@@ -234,291 +235,291 @@
   <b>val</b> <b>(</b><a id="dec:Hopac.Infixes.&lt;&lt;-+" href="#def:Hopac.Infixes.&lt;&lt;-+">&lt;&lt;-+</a><b>)</b><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <h2>Description</h2>
-<pre id="def:Hopac"><b>namespace</b> <a id=":Hopac" href="#dec:Hopac">Hopac</a>
+<pre id="def:Hopac"><b>namespace</b> <a href="#dec:Hopac">Hopac</a>
 </pre>
 <blockquote>Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs.  The design of Hopac draws inspiration from Concurrent ML.  Similar to Concurrent ML, Hopac provides message passing primitives and supports the construction of first-class synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are created using techniques similar to the F# Async framework. Hopac runs parallel jobs using a work distributing scheduler in a non-preemptive fashion.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Void"><b>type</b> <a id=":Hopac.Void" href="#dec:Hopac.Void">Void</a>
+<pre id="def:Hopac.Void"><b>type</b> <a href="#dec:Hopac.Void">Void</a>
 </pre>
 <blockquote>A type that has no public constructors to indicate that a job or function does not return normally.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.JobBuilder"><b>type</b> <a id=":Hopac.JobBuilder" href="#dec:Hopac.JobBuilder">JobBuilder</a> =
+<pre id="def:Hopac.JobBuilder"><b>type</b> <a href="#dec:Hopac.JobBuilder">JobBuilder</a> =
 </pre>
 <blockquote>Expression builder type for jobs.  Note that the <code>Job</code> module provides more combinators for building jobs.</blockquote>
 <blockquote>
 </blockquote>
 <pre id="def:Hopac.TopLevel"><b>[&lt;</b>AutoOpen<b>&gt;]</b>
-<b>module</b> <a id=":Hopac.TopLevel" href="#dec:Hopac.TopLevel">TopLevel</a> =
+<b>module</b> <a href="#dec:Hopac.TopLevel">TopLevel</a> =
 </pre>
 <blockquote>Convenience bindings for programming with Hopac.</blockquote>
 <blockquote>
-<pre id="def:Hopac.TopLevel.job"><b>val</b> <a id=":Hopac.TopLevel.job" href="#dec:Hopac.TopLevel.job">job</a><b>:</b> JobBuilder
+<pre id="def:Hopac.TopLevel.job"><b>val</b> <a href="#dec:Hopac.TopLevel.job">job</a><b>:</b> JobBuilder
 </pre>
 <blockquote>Default expression builder for jobs.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.run"><b>val</b> <a id=":Hopac.TopLevel.run" href="#dec:Hopac.TopLevel.run">run</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> 'x
+<pre id="def:Hopac.TopLevel.run"><b>val</b> <a href="#dec:Hopac.TopLevel.run">run</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> 'x
 </pre>
 <blockquote>Starts running the given job on the global scheduler, but does not wait for the job to finish.  The result, if any, of the job is ignored.  Note that using this function in a job workflow is not optimal and you should use <code>Job.start</code> instead.  This is the same function as <code>Job.Global.run</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.asAlt"><b>val</b> <a id=":Hopac.TopLevel.asAlt" href="#dec:Hopac.TopLevel.asAlt">asAlt</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.TopLevel.asAlt"><b>val</b> <a href="#dec:Hopac.TopLevel.asAlt">asAlt</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Use object as alternative.  This function is a NOP and is provided as a kind syntactic alternative to using a type cast.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.asJob"><b>val</b> <a id=":Hopac.TopLevel.asJob" href="#dec:Hopac.TopLevel.asJob">asJob</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.TopLevel.asJob"><b>val</b> <a href="#dec:Hopac.TopLevel.asJob">asJob</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Use object as job.  This function is a NOP and is provided as a kind syntactic alternative to using a type cast.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.ch"><b>val</b> <a id=":Hopac.TopLevel.ch" href="#dec:Hopac.TopLevel.ch">ch</a><b>:</b> unit <b>-&gt;</b> Ch&lt;'x&gt;
+<pre id="def:Hopac.TopLevel.ch"><b>val</b> <a href="#dec:Hopac.TopLevel.ch">ch</a><b>:</b> unit <b>-&gt;</b> Ch&lt;'x&gt;
 </pre>
 <blockquote>Creates a new channel.  This is the same function as <code>Ch.Now.create</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.mb"><b>val</b> <a id=":Hopac.TopLevel.mb" href="#dec:Hopac.TopLevel.mb">mb</a><b>:</b> unit <b>-&gt;</b> Mailbox&lt;'x&gt;
+<pre id="def:Hopac.TopLevel.mb"><b>val</b> <a href="#dec:Hopac.TopLevel.mb">mb</a><b>:</b> unit <b>-&gt;</b> Mailbox&lt;'x&gt;
 </pre>
 <blockquote>Creates a new mailbox.  This is the same function as <code>Mailbox.Now.create</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.ivar"><b>val</b> <a id=":Hopac.TopLevel.ivar" href="#dec:Hopac.TopLevel.ivar">ivar</a><b>:</b> unit <b>-&gt;</b> IVar&lt;'x&gt;
+<pre id="def:Hopac.TopLevel.ivar"><b>val</b> <a href="#dec:Hopac.TopLevel.ivar">ivar</a><b>:</b> unit <b>-&gt;</b> IVar&lt;'x&gt;
 </pre>
 <blockquote>Creates a new write once variable.  This is the same function as <code>IVar.Now.create</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.TopLevel.mvar"><b>val</b> <a id=":Hopac.TopLevel.mvar" href="#dec:Hopac.TopLevel.mvar">mvar</a><b>:</b> unit <b>-&gt;</b> MVar&lt;'x&gt;
+<pre id="def:Hopac.TopLevel.mvar"><b>val</b> <a href="#dec:Hopac.TopLevel.mvar">mvar</a><b>:</b> unit <b>-&gt;</b> MVar&lt;'x&gt;
 </pre>
 <blockquote>Creates a new synchronous variable that is initially empty.  This is the same function as <code>MVar.Now.create</code>.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Job&lt;'x&gt;"><b>type</b> <a id=":Hopac.Job&lt;'x&gt;" href="#dec:Hopac.Job&lt;'x&gt;">Job&lt;'x&gt;</a>
+<pre id="def:Hopac.Job&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.Job&lt;'x&gt;">Job&lt;'x&gt;</a>
 </pre>
 <blockquote>Represents a lightweight thread of execution.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job"><b>module</b> <a id=":Hopac.Job" href="#dec:Hopac.Job">Job</a> =
+<pre id="def:Hopac.Job"><b>module</b> <a href="#dec:Hopac.Job">Job</a> =
 </pre>
 <blockquote>Operations on jobs.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Job.Global"><b>module</b> <a id=":Hopac.Job.Global" href="#dec:Hopac.Job.Global">Global</a> =
+<pre id="def:Hopac.Job.Global"><b>module</b> <a href="#dec:Hopac.Job.Global">Global</a> =
 </pre>
 <blockquote>Operations on the global scheduler.  Note that in a typical program there should only be a few points (maybe just one) where jobs are started or run outside of job workflows.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Job.Global.startWithActions"><b>val</b> <a id=":Hopac.Job.Global.startWithActions" href="#dec:Hopac.Job.Global.startWithActions">startWithActions</a><b>:</b> (exn <b>-&gt;</b> unit) <b>-&gt;</b> ('x <b>-&gt;</b> unit) <b>-&gt;</b> Job&lt;'x&gt; <b>-&gt;</b> unit
+<pre id="def:Hopac.Job.Global.startWithActions"><b>val</b> <a href="#dec:Hopac.Job.Global.startWithActions">startWithActions</a><b>:</b> (exn <b>-&gt;</b> unit) <b>-&gt;</b> ('x <b>-&gt;</b> unit) <b>-&gt;</b> Job&lt;'x&gt; <b>-&gt;</b> unit
 </pre>
 <blockquote>Starts running the given job on the global scheduler, but does not wait for the job to finish.  Upon the failure or success of the job, one of the given actions is called once.  Note that using this function in a job workflow is not optimal and you should instead use <code>Job.start</code> with desired Job exception handling construct (e.g. <code>Job.tryIn</code> or <code>Job.catch</code>).</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Global.start"><b>val</b> <a id=":Hopac.Job.Global.start" href="#dec:Hopac.Job.Global.start">start</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> unit
+<pre id="def:Hopac.Job.Global.start"><b>val</b> <a href="#dec:Hopac.Job.Global.start">start</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> unit
 </pre>
 <blockquote>Starts running the given job on the global scheduler, but does not wait for the job to finish.  The result, if any, of the job is ignored.  Note that using this function in a job workflow is not optimal and you should use <code>Job.start</code> instead.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Global.server"><b>val</b> <a id=":Hopac.Job.Global.server" href="#dec:Hopac.Job.Global.server">server</a><b>:</b> Job&lt;Void&gt; <b>-&gt;</b> unit
+<pre id="def:Hopac.Job.Global.server"><b>val</b> <a href="#dec:Hopac.Job.Global.server">server</a><b>:</b> Job&lt;Void&gt; <b>-&gt;</b> unit
 </pre>
 <blockquote>Like <code>Job.start</code>, but the given job is known never to return normally, so the job can be spawned in a sligthly lighter-weight manner.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Global.run"><b>val</b> <a id=":Hopac.Job.Global.run" href="#dec:Hopac.Job.Global.run">run</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> 'x
+<pre id="def:Hopac.Job.Global.run"><b>val</b> <a href="#dec:Hopac.Job.Global.run">run</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> 'x
 </pre>
 <blockquote>Starts running the job on the global scheduler and then waits for the job to either return successfully or fail.  Note that using this function in a job workflow is not optimal and should never be needed.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.start"><b>val</b> <a id=":Hopac.Job.start" href="#dec:Hopac.Job.start">start</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.start"><b>val</b> <a href="#dec:Hopac.Job.start">start</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that schedules the given job to be executed as a separate concurrent job.  The result, if any, of the concurrent job is ignored. Use <code>Promise.start</code> if you need to be able to get the result.  Use <code>Job.server</code> if the job never returns normally.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.server"><b>val</b> <a id=":Hopac.Job.server" href="#dec:Hopac.Job.server">server</a><b>:</b> Job&lt;Void&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.server"><b>val</b> <a href="#dec:Hopac.Job.server">server</a><b>:</b> Job&lt;Void&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Like <code>Job.start</code>, but the given job is known never to return normally, so the job can be spawned in a sligthly lighter-weight manner.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.delay"><b>val</b> <a id=":Hopac.Job.delay" href="#dec:Hopac.Job.delay">delay</a><b>:</b> (unit <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.delay"><b>val</b> <a href="#dec:Hopac.Job.delay">delay</a><b>:</b> (unit <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that calls the given function to build a job that will then be run.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.delayWith"><b>val</b> <a id=":Hopac.Job.delayWith" href="#dec:Hopac.Job.delayWith">delayWith</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.delayWith"><b>val</b> <a href="#dec:Hopac.Job.delayWith">delayWith</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that calls the given function with the given value to build a job that will then be run.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.lift"><b>val</b> <a id=":Hopac.Job.lift" href="#dec:Hopac.Job.lift">lift</a><b>:</b> ('x <b>-&gt;</b> 'y) <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.lift"><b>val</b> <a href="#dec:Hopac.Job.lift">lift</a><b>:</b> ('x <b>-&gt;</b> 'y) <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that calls the given function with the given value to compute the result of the job.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.thunk"><b>val</b> <a id=":Hopac.Job.thunk" href="#dec:Hopac.Job.thunk">thunk</a><b>:</b> (unit <b>-&gt;</b> 'x) <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.thunk"><b>val</b> <a href="#dec:Hopac.Job.thunk">thunk</a><b>:</b> (unit <b>-&gt;</b> 'x) <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that invokes the given thunk to compute the result of the job.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.unit"><b>val</b> <a id=":Hopac.Job.unit" href="#dec:Hopac.Job.unit">unit</a><b>:</b> unit <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.unit"><b>val</b> <a href="#dec:Hopac.Job.unit">unit</a><b>:</b> unit <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Returns a job that does nothing and returns <code>()</code>.  <code>unit ()</code> is equivalent to <code>result ()</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.result"><b>val</b> <a id=":Hopac.Job.result" href="#dec:Hopac.Job.result">result</a><b>:</b> 'x <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.result"><b>val</b> <a href="#dec:Hopac.Job.result">result</a><b>:</b> 'x <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job with the given result.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.abort"><b>val</b> <a id=":Hopac.Job.abort" href="#dec:Hopac.Job.abort">abort</a><b>:</b> unit <b>-&gt;</b> Job&lt;_&gt;
+<pre id="def:Hopac.Job.abort"><b>val</b> <a href="#dec:Hopac.Job.abort">abort</a><b>:</b> unit <b>-&gt;</b> Job&lt;_&gt;
 </pre>
 <blockquote>Creates a job that immediately terminates the current job.  Note that in order to execute clean-up operations implemented with <code>using</code> or <code>tryFinallyFun</code> or <code>tryFinallyJob</code> the job must either return normally or raise an exception.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.raises"><b>val</b> <a id=":Hopac.Job.raises" href="#dec:Hopac.Job.raises">raises</a><b>:</b> exn <b>-&gt;</b> Job&lt;_&gt;
+<pre id="def:Hopac.Job.raises"><b>val</b> <a href="#dec:Hopac.Job.raises">raises</a><b>:</b> exn <b>-&gt;</b> Job&lt;_&gt;
 </pre>
 <blockquote>Creates a job that has the effect of raising the specified exception. <code>raises e</code> is equivalent to <code>delay &lt;| fun () -&gt; raise e</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes"><b>module</b> <a id=":Hopac.Job.Infixes" href="#dec:Hopac.Job.Infixes">Infixes</a> =
+<pre id="def:Hopac.Job.Infixes"><b>module</b> <a href="#dec:Hopac.Job.Infixes">Infixes</a> =
 </pre>
 <blockquote>Infix operators on jobs.  You can open this module to bring all of the infix operators into scope.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Job.Infixes.&gt;&gt;="><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.&gt;&gt;=" href="#dec:Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.Infixes.&gt;&gt;="><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that first runs the given job and then passes the result of that job to the given function to build another job which will then be run.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes.&gt;&gt;."><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.&gt;&gt;." href="#dec:Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a><b>)</b><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.Infixes.&gt;&gt;."><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a><b>)</b><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that runs the given two jobs and returns the result of the second job.  <code>xJ &gt;&gt;. yJ</code> is equivalent to <code>xJ &gt;&gt;= fun _ -&gt; yJ</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes..&gt;&gt;"><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes..&gt;&gt;" href="#dec:Hopac.Job.Infixes..&gt;&gt;">.&gt;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.Infixes..&gt;&gt;"><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes..&gt;&gt;">.&gt;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that runs the given two jobs and returns the result of the first job.  <code>xJ .&gt;&gt; yJ</code> is equivalent to <code>xJ &gt;&gt;= fun x -&gt; yJ &gt;&gt;% x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes.|&gt;&gt;"><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.|&gt;&gt;" href="#dec:Hopac.Job.Infixes.|&gt;&gt;">|&gt;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> 'y) <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.Infixes.|&gt;&gt;"><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.|&gt;&gt;">|&gt;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> 'y) <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that runs the given job and maps the result of the job with the given function.  <code>xJ |&gt;&gt; x2y</code> is equivalent to <code>xJ &gt;&gt;= (x2y &gt;&gt; result)</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes.&gt;&gt;%"><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.&gt;&gt;%" href="#dec:Hopac.Job.Infixes.&gt;&gt;%">&gt;&gt;%</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.Infixes.&gt;&gt;%"><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.&gt;&gt;%">&gt;&gt;%</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that runs the given job and then returns the given value. <code>xJ &gt;&gt;% y</code> is equivalent to <code>xJ &gt;&gt;= fun _ -&gt; result y</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes.&gt;&gt;!"><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.&gt;&gt;!" href="#dec:Hopac.Job.Infixes.&gt;&gt;!">&gt;&gt;!</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> exn <b>-&gt;</b> Job&lt;_&gt;
+<pre id="def:Hopac.Job.Infixes.&gt;&gt;!"><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.&gt;&gt;!">&gt;&gt;!</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> exn <b>-&gt;</b> Job&lt;_&gt;
 </pre>
 <blockquote>Creates a job that runs the given job and then raises the given exception.  <code>xJ &gt;&gt;! e</code> is equivalent to <code>xJ &gt;&gt;= fun _ -&gt; raise e</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes.&lt;&amp;&gt;"><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.&lt;&amp;&gt;" href="#dec:Hopac.Job.Infixes.&lt;&amp;&gt;">&lt;&amp;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'x * 'y&gt;
+<pre id="def:Hopac.Job.Infixes.&lt;&amp;&gt;"><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.&lt;&amp;&gt;">&lt;&amp;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'x * 'y&gt;
 </pre>
 <blockquote>Creates a job that runs the given two jobs and then returns a pair of their results.  <code>xJ &lt;&amp;&gt; yJ</code> is equivalent to <code>xJ &gt;&gt;= fun x -&gt; yK &gt;&gt;= fun y -&gt; result (x, y)</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.Infixes.&lt;*&gt;"><b>val</b> <b>(</b><a id=":Hopac.Job.Infixes.&lt;*&gt;" href="#dec:Hopac.Job.Infixes.&lt;*&gt;">&lt;*&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'x * 'y&gt;
+<pre id="def:Hopac.Job.Infixes.&lt;*&gt;"><b>val</b> <b>(</b><a href="#dec:Hopac.Job.Infixes.&lt;*&gt;">&lt;*&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'x * 'y&gt;
 </pre>
 <blockquote>Creates a job that either runs the given jobs sequentially, like <code>&lt;&amp;&gt;</code>, or as two separate parallel jobs and returns a pair of their results. Note that when the jobs are run in parallel and both of them raise an exception then the created job raises an <code>AggregateException</code>.  Note that it is not guaranteed that the jobs would be run as separate jobs. This means that a job such as <code>let c = Ch.Now.create () in Ch.give c () &lt;*&gt; Ch.take c</code> may deadlock.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.tryIn"><b>val</b> <a id=":Hopac.Job.tryIn" href="#dec:Hopac.Job.tryIn">tryIn</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.Job.tryIn"><b>val</b> <a href="#dec:Hopac.Job.tryIn">tryIn</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Implements the try-in-unless exception handling construct for jobs.  Both of the continuation jobs <code>'x -&gt; Job&lt;'y&gt;</code>, for success, and <code>exn -&gt; Job&lt;'y&gt;</code>, for failure, are invoked from a tail position.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.tryWith"><b>val</b> <a id=":Hopac.Job.tryWith" href="#dec:Hopac.Job.tryWith">tryWith</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.tryWith"><b>val</b> <a href="#dec:Hopac.Job.tryWith">tryWith</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Implements the try-with exception handling construct for jobs.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.tryFinallyFun"><b>val</b> <a id=":Hopac.Job.tryFinallyFun" href="#dec:Hopac.Job.tryFinallyFun">tryFinallyFun</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> (unit <b>-&gt;</b> unit) <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.tryFinallyFun"><b>val</b> <a href="#dec:Hopac.Job.tryFinallyFun">tryFinallyFun</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> (unit <b>-&gt;</b> unit) <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Implements a variation of the try-finally exception handling construct for jobs.  The given action, specified as a function, is executed after the job has been run, whether it fails or completes successfully.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.tryFinallyJob"><b>val</b> <a id=":Hopac.Job.tryFinallyJob" href="#dec:Hopac.Job.tryFinallyJob">tryFinallyJob</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Job.tryFinallyJob"><b>val</b> <a href="#dec:Hopac.Job.tryFinallyJob">tryFinallyJob</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Implements a variation of the try-finally exception handling construct for jobs.  The given action, specified as a job, is executed after the the job has been run, whether it fails or completes successfully.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.using"><b>val</b> <a id=":Hopac.Job.using" href="#dec:Hopac.Job.using">using</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Job&lt;'y&gt; when 'x :&gt; IDisposable
+<pre id="def:Hopac.Job.using"><b>val</b> <a href="#dec:Hopac.Job.using">using</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Job&lt;'y&gt; when 'x :&gt; IDisposable
 </pre>
 <blockquote>Implements the use construct for jobs.  The Dispose method of the given disposable object is called after running the job constructed with the disposable object.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.catch"><b>val</b> <a id=":Hopac.Job.catch" href="#dec:Hopac.Job.catch">catch</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;Choice&lt;'x, exn&gt;&gt;
+<pre id="def:Hopac.Job.catch"><b>val</b> <a href="#dec:Hopac.Job.catch">catch</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;Choice&lt;'x, exn&gt;&gt;
 </pre>
 <blockquote>Creates a job that runs the given job and results in either the ordinary result of the job or the exception raised by the job.  <code>catch j</code> is equivalent to <code>tryIn j (lift Choice1Of2) (lift Choice2Of2)</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.forN"><b>val</b> <a id=":Hopac.Job.forN" href="#dec:Hopac.Job.forN">forN</a><b>:</b> int <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.forN"><b>val</b> <a href="#dec:Hopac.Job.forN">forN</a><b>:</b> int <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that runs the given job sequentially the given number of times.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.forUpTo"><b>val</b> <a id=":Hopac.Job.forUpTo" href="#dec:Hopac.Job.forUpTo">forUpTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.forUpTo"><b>val</b> <a href="#dec:Hopac.Job.forUpTo">forUpTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote><code>forUpTo lo hi i2xJ</code> creates a job that sequentially iterates from <code>lo</code> to <code>hi</code> (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.forDownTo"><b>val</b> <a id=":Hopac.Job.forDownTo" href="#dec:Hopac.Job.forDownTo">forDownTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.forDownTo"><b>val</b> <a href="#dec:Hopac.Job.forDownTo">forDownTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote><code>forDownTo hi lo i2xJ</code> creates a job that sequentially iterates from <code>hi</code> to <code>lo</code> (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.whileDo"><b>val</b> <a id=":Hopac.Job.whileDo" href="#dec:Hopac.Job.whileDo">whileDo</a><b>:</b> (unit <b>-&gt;</b> bool) <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.whileDo"><b>val</b> <a href="#dec:Hopac.Job.whileDo">whileDo</a><b>:</b> (unit <b>-&gt;</b> bool) <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote><code>whileDo u2b xJ</code> creates a job that sequentially executes the <code>xJ</code> job as long as <code>u2b ()</code> returns <code>true</code>.  The results from the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.whenDo"><b>val</b> <a id=":Hopac.Job.whenDo" href="#dec:Hopac.Job.whenDo">whenDo</a><b>:</b> bool <b>-&gt;</b> Job&lt;unit&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.whenDo"><b>val</b> <a href="#dec:Hopac.Job.whenDo">whenDo</a><b>:</b> bool <b>-&gt;</b> Job&lt;unit&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote><code>whenDo b uJ</code> is equivalent to <code>if b then uJ else Job.unit ()</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.forever"><b>val</b> <a id=":Hopac.Job.forever" href="#dec:Hopac.Job.forever">forever</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;_&gt;
+<pre id="def:Hopac.Job.forever"><b>val</b> <a href="#dec:Hopac.Job.forever">forever</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;_&gt;
 </pre>
 <blockquote>Creates a job that repeats the given job indefinitely.  Note that the results, if any, from the given job are ignored.  It is a common programming pattern to use server jobs that loop indefinitely and communicate with clients via channels.  When a job is blocked waiting for communication on one or more channels and the channels become garbage (no longer reachable by any other job) the job can be garbage collected as well.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.iterate"><b>val</b> <a id=":Hopac.Job.iterate" href="#dec:Hopac.Job.iterate">iterate</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;_&gt;
+<pre id="def:Hopac.Job.iterate"><b>val</b> <a href="#dec:Hopac.Job.iterate">iterate</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;_&gt;
 </pre>
 <blockquote>Creates a job that indefinitely iterates the given job constructor starting with the given value.  More precisely, <code>iter x x2xJ</code> is equivalent to <code>let rec lp x = x2xJ x &gt;&gt;= lp in lp x</code>.  It is a common programming pattern to use server jobs that loop indefinitely and communicate with clients via channels.  When a job is blocked waiting for communication on one or more channels and the channels become garbage (no longer reachable by any other job) the job can be garbage collected as well.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.foreverServer"><b>val</b> <a id=":Hopac.Job.foreverServer" href="#dec:Hopac.Job.foreverServer">foreverServer</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.foreverServer"><b>val</b> <a href="#dec:Hopac.Job.foreverServer">foreverServer</a><b>:</b> Job&lt;_&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that starts a separate server job that repeats the given job indefinitely.  <code>foreverServer xJ</code> is equivalent to <code>forever xJ |&gt; server</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.iterateServer"><b>val</b> <a id=":Hopac.Job.iterateServer" href="#dec:Hopac.Job.iterateServer">iterateServer</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.iterateServer"><b>val</b> <a href="#dec:Hopac.Job.iterateServer">iterateServer</a><b>:</b> 'x <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that starts a separate server job that indefinitely iterates the given job constructor starting with the given value.  <code>iterateServer x x2xJ</code> is equivalent to <code>iterate x x2xJ |&gt; server</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.seqCollect"><b>val</b> <a id=":Hopac.Job.seqCollect" href="#dec:Hopac.Job.seqCollect">seqCollect</a><b>:</b> seq&lt;Job&lt;'x&gt;&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'x&gt;&gt;
+<pre id="def:Hopac.Job.seqCollect"><b>val</b> <a href="#dec:Hopac.Job.seqCollect">seqCollect</a><b>:</b> seq&lt;Job&lt;'x&gt;&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that runs all of the jobs in sequence and returns a list of the results.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.seqIgnore"><b>val</b> <a id=":Hopac.Job.seqIgnore" href="#dec:Hopac.Job.seqIgnore">seqIgnore</a><b>:</b> seq&lt;Job&lt;_&gt;&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.seqIgnore"><b>val</b> <a href="#dec:Hopac.Job.seqIgnore">seqIgnore</a><b>:</b> seq&lt;Job&lt;_&gt;&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that runs all of the jobs in sequence.  The results of the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.conCollect"><b>val</b> <a id=":Hopac.Job.conCollect" href="#dec:Hopac.Job.conCollect">conCollect</a><b>:</b> seq&lt;Job&lt;'x&gt;&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'x&gt;&gt;
+<pre id="def:Hopac.Job.conCollect"><b>val</b> <a href="#dec:Hopac.Job.conCollect">conCollect</a><b>:</b> seq&lt;Job&lt;'x&gt;&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that runs all of the jobs as separate concurrent jobs and returns a list of the results.  Note that when multiple jobs raise exceptions, then the created job raises an <code>AggregateException</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.conIgnore"><b>val</b> <a id=":Hopac.Job.conIgnore" href="#dec:Hopac.Job.conIgnore">conIgnore</a><b>:</b> seq&lt;Job&lt;_&gt;&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Job.conIgnore"><b>val</b> <a href="#dec:Hopac.Job.conIgnore">conIgnore</a><b>:</b> seq&lt;Job&lt;_&gt;&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that runs all of the jobs as separate concurrent jobs and then waits for all of the jobs to finish.  The results of the jobs are ignored.  Note that when multiple jobs raise exceptions, then the created job raises an <code>AggregateException</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Job.fromBeginEnd"><b>val</b> <a id=":Hopac.Job.fromBeginEnd" href="#dec:Hopac.Job.fromBeginEnd">fromBeginEnd</a><b>:</b> (AsyncCallback * obj <b>-&gt;</b> IAsyncResult)
+<pre id="def:Hopac.Job.fromBeginEnd"><b>val</b> <a href="#dec:Hopac.Job.fromBeginEnd">fromBeginEnd</a><b>:</b> (AsyncCallback * obj <b>-&gt;</b> IAsyncResult)
                <b>-&gt;</b> (IAsyncResult <b>-&gt;</b> 'x)
                <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
@@ -526,571 +527,571 @@
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt&lt;'x&gt;"><b>type</b> <a id=":Hopac.Alt&lt;'x&gt;" href="#dec:Hopac.Alt&lt;'x&gt;">Alt&lt;'x&gt;</a> :&gt; Job&lt;'x&gt;
+<pre id="def:Hopac.Alt&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.Alt&lt;'x&gt;">Alt&lt;'x&gt;</a> :&gt; Job&lt;'x&gt;
 </pre>
 <blockquote>Represents a first class synchronous operation.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt"><b>module</b> <a id=":Hopac.Alt" href="#dec:Hopac.Alt">Alt</a> =
+<pre id="def:Hopac.Alt"><b>module</b> <a href="#dec:Hopac.Alt">Alt</a> =
 </pre>
 <blockquote>Operations on first-class synchronous operations or alternatives.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Alt.always"><b>val</b> <a id=":Hopac.Alt.always" href="#dec:Hopac.Alt.always">always</a><b>:</b> 'x <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.always"><b>val</b> <a href="#dec:Hopac.Alt.always">always</a><b>:</b> 'x <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is always available for picking and results in the given value.  Note that when there are alternatives immediately available for picking in a disjunction, the first such alternative will be committed to.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.unit"><b>val</b> <a id=":Hopac.Alt.unit" href="#dec:Hopac.Alt.unit">unit</a><b>:</b> unit <b>-&gt;</b> Alt&lt;unit&gt;
+<pre id="def:Hopac.Alt.unit"><b>val</b> <a href="#dec:Hopac.Alt.unit">unit</a><b>:</b> unit <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
 <blockquote>Returns an alternative that is always available for picking and results in the unit value.  <code>unit ()</code> is equivalent to <code>always ()</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.never"><b>val</b> <a id=":Hopac.Alt.never" href="#dec:Hopac.Alt.never">never</a><b>:</b> unit <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.never"><b>val</b> <a href="#dec:Hopac.Alt.never">never</a><b>:</b> unit <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is never available for picking.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.zero"><b>val</b> <a id=":Hopac.Alt.zero" href="#dec:Hopac.Alt.zero">zero</a><b>:</b> unit <b>-&gt;</b> Alt&lt;unit&gt;
+<pre id="def:Hopac.Alt.zero"><b>val</b> <a href="#dec:Hopac.Alt.zero">zero</a><b>:</b> unit <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
 <blockquote>Return an alternative that is never available for picking.  <code>zero ()</code> is equivalent to <code>never ()</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.guard"><b>val</b> <a id=":Hopac.Alt.guard" href="#dec:Hopac.Alt.guard">guard</a><b>:</b> Job&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.guard"><b>val</b> <a href="#dec:Hopac.Alt.guard">guard</a><b>:</b> Job&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is computed at instantiation time with the given job.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.delay"><b>val</b> <a id=":Hopac.Alt.delay" href="#dec:Hopac.Alt.delay">delay</a><b>:</b> (unit <b>-&gt;</b> Alt&lt;'x&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.delay"><b>val</b> <a href="#dec:Hopac.Alt.delay">delay</a><b>:</b> (unit <b>-&gt;</b> Alt&lt;'x&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is computed at instantiation time with the given thunk.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.withNack"><b>val</b> <a id=":Hopac.Alt.withNack" href="#dec:Hopac.Alt.withNack">withNack</a><b>:</b> (Alt&lt;unit&gt; <b>-&gt;</b> Job&lt;Alt&lt;'x&gt;&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.withNack"><b>val</b> <a href="#dec:Hopac.Alt.withNack">withNack</a><b>:</b> (Alt&lt;unit&gt; <b>-&gt;</b> Job&lt;Alt&lt;'x&gt;&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is computed at instantiation time with the given job constructed with a negative acknowledgment alternative.  The negative acknowledgment alternative will be available for picking in case some other instantiated alternative involved in the picking is committed to instead.  Note that if an alternative created with <code>withNack</code> is not instantiated, then no negative acknowledgment is created.  For example, given an alternative of the form <code>always () &lt;|&gt; withNack (...)</code>  the <code>withNack</code> alternative is never instantiated.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.choose"><b>val</b> <a id=":Hopac.Alt.choose" href="#dec:Hopac.Alt.choose">choose</a><b>:</b> seq&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.choose"><b>val</b> <a href="#dec:Hopac.Alt.choose">choose</a><b>:</b> seq&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is available for picking when any one of the given alternatives is.  More precisely, <code>choose alts</code> is equivalent to <code>delay (fun () -&gt; Seq.foldBack (&lt;|&gt;) alts never)</code>, given <code>Seq.foldBack</code> with the obvious meaning.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes"><b>module</b> <a id=":Hopac.Alt.Infixes" href="#dec:Hopac.Alt.Infixes">Infixes</a> =
+<pre id="def:Hopac.Alt.Infixes"><b>module</b> <a href="#dec:Hopac.Alt.Infixes">Infixes</a> =
 </pre>
 <blockquote>Infix operators on alternatives.  You can open this module to bring all of the infix operators into scope.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Alt.Infixes.&lt;|&gt;"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes.&lt;|&gt;" href="#dec:Hopac.Alt.Infixes.&lt;|&gt;">&lt;|&gt;</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.Infixes.&lt;|&gt;"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes.&lt;|&gt;">&lt;|&gt;</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that is available for picking when either of the given alternatives is available.  The given alternatives are processed in a left-to-right order with short-cut evaluation.  In other words, given an alternative of the form <code>first &lt;|&gt; second</code>, the <code>first</code> alternative is first instantiated and, if it is pickable, is committed to and the <code>second</code> alternative will not be instantiated at all.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes.&gt;&gt;=?"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes.&gt;&gt;=?" href="#dec:Hopac.Alt.Infixes.&gt;&gt;=?">&gt;&gt;=?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Alt&lt;'y&gt;
+<pre id="def:Hopac.Alt.Infixes.&gt;&gt;=?"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes.&gt;&gt;=?">&gt;&gt;=?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Alt&lt;'y&gt;
 </pre>
 <blockquote>Creates an alternative whose result is passed to the given job constructor and processed with the resulting job after the given alternative has been committed to.  Although this operator has a type similar to a monadic bind operation, alternatives do not form a monad (with the always alternative constructor).  So called Transactional Events do form a monad, but require a more complex synchronization protocol.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes.&gt;&gt;.?"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes.&gt;&gt;.?" href="#dec:Hopac.Alt.Infixes.&gt;&gt;.?">&gt;&gt;.?</a><b>)</b><b>:</b> Alt&lt;_&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Alt&lt;'y&gt;
+<pre id="def:Hopac.Alt.Infixes.&gt;&gt;.?"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes.&gt;&gt;.?">&gt;&gt;.?</a><b>)</b><b>:</b> Alt&lt;_&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Alt&lt;'y&gt;
 </pre>
 <blockquote><code>xA &gt;&gt;.? yJ</code> is equivalent to <code>xA &gt;&gt;=? fun _ -&gt; yJ</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes..&gt;&gt;?"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes..&gt;&gt;?" href="#dec:Hopac.Alt.Infixes..&gt;&gt;?">.&gt;&gt;?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Alt.Infixes..&gt;&gt;?"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes..&gt;&gt;?">.&gt;&gt;?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote><code>xA .&gt;&gt;? yJ</code> is equivalent to <code>xA &gt;&gt;=? fun x -&gt; yJ &gt;&gt;% x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes.|&gt;&gt;?"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes.|&gt;&gt;?" href="#dec:Hopac.Alt.Infixes.|&gt;&gt;?">|&gt;&gt;?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> 'y) <b>-&gt;</b> Alt&lt;'y&gt;
+<pre id="def:Hopac.Alt.Infixes.|&gt;&gt;?"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes.|&gt;&gt;?">|&gt;&gt;?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> 'y) <b>-&gt;</b> Alt&lt;'y&gt;
 </pre>
 <blockquote><code>xA |&gt;&gt;? x2y</code> is equivalent to <code>xA &gt;&gt;=? (x2y &gt;&gt; result)</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes.&gt;&gt;%?"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes.&gt;&gt;%?" href="#dec:Hopac.Alt.Infixes.&gt;&gt;%?">&gt;&gt;%?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> 'y <b>-&gt;</b> Alt&lt;'y&gt;
+<pre id="def:Hopac.Alt.Infixes.&gt;&gt;%?"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes.&gt;&gt;%?">&gt;&gt;%?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> 'y <b>-&gt;</b> Alt&lt;'y&gt;
 </pre>
 <blockquote><code>xA &gt;&gt;%? y</code> is equivalent to <code>xA &gt;&gt;=? fun _ -&gt; result y</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.Infixes.&gt;&gt;!?"><b>val</b> <b>(</b><a id=":Hopac.Alt.Infixes.&gt;&gt;!?" href="#dec:Hopac.Alt.Infixes.&gt;&gt;!?">&gt;&gt;!?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> exn <b>-&gt;</b> Alt&lt;_&gt;
+<pre id="def:Hopac.Alt.Infixes.&gt;&gt;!?"><b>val</b> <b>(</b><a href="#dec:Hopac.Alt.Infixes.&gt;&gt;!?">&gt;&gt;!?</a><b>)</b><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> exn <b>-&gt;</b> Alt&lt;_&gt;
 </pre>
 <blockquote><code>xA &gt;&gt;!? e</code> is equivalent to <code>xA &gt;&gt;=? fun _ -&gt; raise e</code>.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.tryIn"><b>val</b> <a id=":Hopac.Alt.tryIn" href="#dec:Hopac.Alt.tryIn">tryIn</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Alt&lt;'y&gt;
+<pre id="def:Hopac.Alt.tryIn"><b>val</b> <a href="#dec:Hopac.Alt.tryIn">tryIn</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> (exn <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> Alt&lt;'y&gt;
 </pre>
 <blockquote>Implements the try-in-unless exception handling construct for alternatives.  Both of the continuation jobs <code>'x -&gt; Job&lt;'y&gt;</code>, for success, and <code>exn -&gt; Job&lt;'y&gt;</code>, for failure, are invoked from a tail position. Exceptions from both before and after the commit point can be handled.  An exception that occurs before a commit point, from the user code in a <code>guard</code>, <code>delay</code>, or <code>withNack</code>, results in treating that exception as the commit point.  Note you can also use function or job level exception handling before the commit point within the user code in a <code>guard</code>, <code>delay</code>, or <code>withNack</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.pick"><b>val</b> <a id=":Hopac.Alt.pick" href="#dec:Hopac.Alt.pick">pick</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Alt.pick"><b>val</b> <a href="#dec:Hopac.Alt.pick">pick</a><b>:</b> Alt&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that instantiates the alternative, waits until it becomes available for picking and then commits to the alternative and results in its value.  This function is a NOP and is provided as a kind of syntactic alternative to using a type ascription or a type cast.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Alt.select"><b>val</b> <a id=":Hopac.Alt.select" href="#dec:Hopac.Alt.select">select</a><b>:</b> seq&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Alt.select"><b>val</b> <a href="#dec:Hopac.Alt.select">select</a><b>:</b> seq&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that instantiates the given sequence of alternatives one-by-one, waits until at least one of them becomes available for picking and then commits to the alternative resulting in its value.  <code>select xAs</code> is equivalent to <code>pick (choose xAs)</code>.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Timer"><b>module</b> <a id=":Hopac.Timer" href="#dec:Hopac.Timer">Timer</a> =
+<pre id="def:Hopac.Timer"><b>module</b> <a href="#dec:Hopac.Timer">Timer</a> =
 </pre>
 <blockquote>Operations on a wall-clock timer.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Timer.Global"><b>module</b> <a id=":Hopac.Timer.Global" href="#dec:Hopac.Timer.Global">Global</a> =
+<pre id="def:Hopac.Timer.Global"><b>module</b> <a href="#dec:Hopac.Timer.Global">Global</a> =
 </pre>
 <blockquote>Operations on the global wall-clock timer.  The global timer is implicitly associated with the global scheduler.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Timer.Global.timeOut"><b>val</b> <a id=":Hopac.Timer.Global.timeOut" href="#dec:Hopac.Timer.Global.timeOut">timeOut</a><b>:</b> TimeSpan <b>-&gt;</b> Alt&lt;unit&gt;
+<pre id="def:Hopac.Timer.Global.timeOut"><b>val</b> <a href="#dec:Hopac.Timer.Global.timeOut">timeOut</a><b>:</b> TimeSpan <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
 <blockquote>Creates an alternative that, after instantiation, becomes pickable after the specified time span.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is very coarse (Windows system ticks).</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Timer.Global.sleep"><b>val</b> <a id=":Hopac.Timer.Global.sleep" href="#dec:Hopac.Timer.Global.sleep">sleep</a><b>:</b> TimeSpan <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Timer.Global.sleep"><b>val</b> <a href="#dec:Hopac.Timer.Global.sleep">sleep</a><b>:</b> TimeSpan <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that sleeps for (about) the specified time.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is coarse (Windows system ticks).</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch&lt;'x&gt;"><b>type</b> <a id=":Hopac.Ch&lt;'x&gt;" href="#dec:Hopac.Ch&lt;'x&gt;">Ch&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="def:Hopac.Ch&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.Ch&lt;'x&gt;">Ch&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <blockquote>Represents a synchronous channel.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch"><b>module</b> <a id=":Hopac.Ch" href="#dec:Hopac.Ch">Ch</a> =
+<pre id="def:Hopac.Ch"><b>module</b> <a href="#dec:Hopac.Ch">Ch</a> =
 </pre>
 <blockquote>Operations on synchronous channels.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Ch.Now"><b>module</b> <a id=":Hopac.Ch.Now" href="#dec:Hopac.Ch.Now">Now</a> =
+<pre id="def:Hopac.Ch.Now"><b>module</b> <a href="#dec:Hopac.Ch.Now">Now</a> =
 </pre>
 <blockquote>Immediate or non-workflow operations on synchronous channels.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Ch.Now.create"><b>val</b> <a id=":Hopac.Ch.Now.create" href="#dec:Hopac.Ch.Now.create">create</a><b>:</b> unit <b>-&gt;</b> Ch&lt;'x&gt;
+<pre id="def:Hopac.Ch.Now.create"><b>val</b> <a href="#dec:Hopac.Ch.Now.create">create</a><b>:</b> unit <b>-&gt;</b> Ch&lt;'x&gt;
 </pre>
 <blockquote>Creates a new channel.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.Global"><b>module</b> <a id=":Hopac.Ch.Global" href="#dec:Hopac.Ch.Global">Global</a> =
+<pre id="def:Hopac.Ch.Global"><b>module</b> <a href="#dec:Hopac.Ch.Global">Global</a> =
 </pre>
 <blockquote>Operations bound to the global scheduler.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Ch.Global.send"><b>val</b> <a id=":Hopac.Ch.Global.send" href="#dec:Hopac.Ch.Global.send">send</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> unit
+<pre id="def:Hopac.Ch.Global.send"><b>val</b> <a href="#dec:Hopac.Ch.Global.send">send</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> unit
 </pre>
 <blockquote>Sends the given value to the specified channel.  Note that using this function in a job workflow is not generally optimal and you should use <code>Ch.send</code> instead.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.create"><b>val</b> <a id=":Hopac.Ch.create" href="#dec:Hopac.Ch.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;Ch&lt;'x&gt;&gt;
+<pre id="def:Hopac.Ch.create"><b>val</b> <a href="#dec:Hopac.Ch.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;Ch&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a new channel.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.give"><b>val</b> <a id=":Hopac.Ch.give" href="#dec:Hopac.Ch.give">give</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Ch.give"><b>val</b> <a href="#dec:Hopac.Ch.give">give</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that offers to give the given value to another job on the given channel.  A give operation is synchronous.  In other words, a give operation waits until another job takes the value.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.send"><b>val</b> <a id=":Hopac.Ch.send" href="#dec:Hopac.Ch.send">send</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Ch.send"><b>val</b> <a href="#dec:Hopac.Ch.send">send</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that sends a value to another job on the given channel.  A send operation is asynchronous.  In other words, a send operation does not wait for another job to give the value to.  Note that channels have been optimized for synchronous operations; an occasional send can be efficient, but when sends are queued, performance maybe be significantly worse than with a <code>Mailbox</code> optimized for buffering.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.take"><b>val</b> <a id=":Hopac.Ch.take" href="#dec:Hopac.Ch.take">take</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Ch.take"><b>val</b> <a href="#dec:Hopac.Ch.take">take</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that offers to take a value from another job on the given channel.  In other words, a take operation waits until another job gives (or sends) a value.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.Alt"><b>module</b> <a id=":Hopac.Ch.Alt" href="#dec:Hopac.Ch.Alt">Alt</a> =
+<pre id="def:Hopac.Ch.Alt"><b>module</b> <a href="#dec:Hopac.Ch.Alt">Alt</a> =
 </pre>
 <blockquote>Selective operations on synchronous channels.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Ch.Alt.give"><b>val</b> <a id=":Hopac.Ch.Alt.give" href="#dec:Hopac.Ch.Alt.give">give</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Alt&lt;unit&gt;
+<pre id="def:Hopac.Ch.Alt.give"><b>val</b> <a href="#dec:Hopac.Ch.Alt.give">give</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
 <blockquote>Creates an alternative that, at instantiation time, offers to give the given value on the given channel, and becomes available for picking when another job offers to take the value.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Ch.Alt.take"><b>val</b> <a id=":Hopac.Ch.Alt.take" href="#dec:Hopac.Ch.Alt.take">take</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Ch.Alt.take"><b>val</b> <a href="#dec:Hopac.Ch.Alt.take">take</a><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that, at instantiation time, offers to take a value from another job on the given channel, and becomes available for picking when another job offers to give a value.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.IVar&lt;'x&gt;"><b>type</b> <a id=":Hopac.IVar&lt;'x&gt;" href="#dec:Hopac.IVar&lt;'x&gt;">IVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="def:Hopac.IVar&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.IVar&lt;'x&gt;">IVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <blockquote>Represents a synchronized write once variable.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.IVar"><b>module</b> <a id=":Hopac.IVar" href="#dec:Hopac.IVar">IVar</a> =
+<pre id="def:Hopac.IVar"><b>module</b> <a href="#dec:Hopac.IVar">IVar</a> =
 </pre>
 <blockquote>Operations on write once variables.</blockquote>
 <blockquote>
-<pre id="def:Hopac.IVar.Now"><b>module</b> <a id=":Hopac.IVar.Now" href="#dec:Hopac.IVar.Now">Now</a> =
+<pre id="def:Hopac.IVar.Now"><b>module</b> <a href="#dec:Hopac.IVar.Now">Now</a> =
 </pre>
 <blockquote>Immediate or non-workflow operations on write once variables.</blockquote>
 <blockquote>
-<pre id="def:Hopac.IVar.Now.create"><b>val</b> <a id=":Hopac.IVar.Now.create" href="#dec:Hopac.IVar.Now.create">create</a><b>:</b> unit <b>-&gt;</b> IVar&lt;'x&gt;
+<pre id="def:Hopac.IVar.Now.create"><b>val</b> <a href="#dec:Hopac.IVar.Now.create">create</a><b>:</b> unit <b>-&gt;</b> IVar&lt;'x&gt;
 </pre>
 <blockquote>Creates a new write once variable.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.IVar.create"><b>val</b> <a id=":Hopac.IVar.create" href="#dec:Hopac.IVar.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;IVar&lt;'x&gt;&gt;
+<pre id="def:Hopac.IVar.create"><b>val</b> <a href="#dec:Hopac.IVar.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;IVar&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a new write once variable.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.IVar.fill"><b>val</b> <a id=":Hopac.IVar.fill" href="#dec:Hopac.IVar.fill">fill</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.IVar.fill"><b>val</b> <a href="#dec:Hopac.IVar.fill">fill</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that writes to the given write once variable.  It is an error to write to a single <code>IVar</code> more than once.  This assumption may be used to optimize the implementation and incorrect usage leads to undefined behavior.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.IVar.read"><b>val</b> <a id=":Hopac.IVar.read" href="#dec:Hopac.IVar.read">read</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.IVar.read"><b>val</b> <a href="#dec:Hopac.IVar.read">read</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that, if necessary, waits until the given write once variable is written and then returns the written value.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.IVar.Alt"><b>module</b> <a id=":Hopac.IVar.Alt" href="#dec:Hopac.IVar.Alt">Alt</a> =
+<pre id="def:Hopac.IVar.Alt"><b>module</b> <a href="#dec:Hopac.IVar.Alt">Alt</a> =
 </pre>
 <blockquote>Selective operations on write once variables.</blockquote>
 <blockquote>
-<pre id="def:Hopac.IVar.Alt.read"><b>val</b> <a id=":Hopac.IVar.Alt.read" href="#dec:Hopac.IVar.Alt.read">read</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.IVar.Alt.read"><b>val</b> <a href="#dec:Hopac.IVar.Alt.read">read</a><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that becomes available for picking after the write once variable has been written to.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar&lt;'x&gt;"><b>type</b> <a id=":Hopac.MVar&lt;'x&gt;" href="#dec:Hopac.MVar&lt;'x&gt;">MVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="def:Hopac.MVar&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.MVar&lt;'x&gt;">MVar&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <blockquote>Represents a synchronized variable.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar"><b>module</b> <a id=":Hopac.MVar" href="#dec:Hopac.MVar">MVar</a> =
+<pre id="def:Hopac.MVar"><b>module</b> <a href="#dec:Hopac.MVar">MVar</a> =
 </pre>
 <blockquote>Operations on write many variables.</blockquote>
 <blockquote>
-<pre id="def:Hopac.MVar.Now"><b>module</b> <a id=":Hopac.MVar.Now" href="#dec:Hopac.MVar.Now">Now</a> =
+<pre id="def:Hopac.MVar.Now"><b>module</b> <a href="#dec:Hopac.MVar.Now">Now</a> =
 </pre>
 <blockquote>Immediate or non-workflow operations on write many variables.</blockquote>
 <blockquote>
-<pre id="def:Hopac.MVar.Now.create"><b>val</b> <a id=":Hopac.MVar.Now.create" href="#dec:Hopac.MVar.Now.create">create</a><b>:</b> unit <b>-&gt;</b> MVar&lt;'x&gt;
+<pre id="def:Hopac.MVar.Now.create"><b>val</b> <a href="#dec:Hopac.MVar.Now.create">create</a><b>:</b> unit <b>-&gt;</b> MVar&lt;'x&gt;
 </pre>
 <blockquote>Creates a new synchronous variable that is initially empty.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.Now.createFull"><b>val</b> <a id=":Hopac.MVar.Now.createFull" href="#dec:Hopac.MVar.Now.createFull">createFull</a><b>:</b> 'x <b>-&gt;</b> MVar&lt;'x&gt;
+<pre id="def:Hopac.MVar.Now.createFull"><b>val</b> <a href="#dec:Hopac.MVar.Now.createFull">createFull</a><b>:</b> 'x <b>-&gt;</b> MVar&lt;'x&gt;
 </pre>
 <blockquote>Creates a new synchronous variable that initially contains the given value.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.create"><b>val</b> <a id=":Hopac.MVar.create" href="#dec:Hopac.MVar.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;MVar&lt;'x&gt;&gt;
+<pre id="def:Hopac.MVar.create"><b>val</b> <a href="#dec:Hopac.MVar.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;MVar&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a new synchronous variable that is initially empty.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.createFull"><b>val</b> <a id=":Hopac.MVar.createFull" href="#dec:Hopac.MVar.createFull">createFull</a><b>:</b> 'x <b>-&gt;</b> Job&lt;MVar&lt;'x&gt;&gt;
+<pre id="def:Hopac.MVar.createFull"><b>val</b> <a href="#dec:Hopac.MVar.createFull">createFull</a><b>:</b> 'x <b>-&gt;</b> Job&lt;MVar&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a new synchronous variable that initially contains the given value.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.fill"><b>val</b> <a id=":Hopac.MVar.fill" href="#dec:Hopac.MVar.fill">fill</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.MVar.fill"><b>val</b> <a href="#dec:Hopac.MVar.fill">fill</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that writes the given value to the synchronous variable.  It is an error to write to a <code>MVar</code> that is full.  This assumption may be used to optimize the implementation and incorrect usage leads to undefined behavior.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.take"><b>val</b> <a id=":Hopac.MVar.take" href="#dec:Hopac.MVar.take">take</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.MVar.take"><b>val</b> <a href="#dec:Hopac.MVar.take">take</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that waits until the synchronous variable contains a value and then takes the value contained by the synchronous variable leaving the variable empty.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.modifyFun"><b>val</b> <a id=":Hopac.MVar.modifyFun" href="#dec:Hopac.MVar.modifyFun">modifyFun</a><b>:</b> ('x <b>-&gt;</b> 'x * 'y) <b>-&gt;</b> MVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.MVar.modifyFun"><b>val</b> <a href="#dec:Hopac.MVar.modifyFun">modifyFun</a><b>:</b> ('x <b>-&gt;</b> 'x * 'y) <b>-&gt;</b> MVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that takes the value of the variable and then fills the variable with the result of performing the given function.  Note that this operation is not atomic.  However, it is a common programming pattern to make it so that only the job that has emptied an <code>MVar</code> by taking a value from it is allowed to fill the <code>MVar</code>.  Such an access pattern makes operations on the <code>MVar</code> appear as atomic.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.modifyJob"><b>val</b> <a id=":Hopac.MVar.modifyJob" href="#dec:Hopac.MVar.modifyJob">modifyJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'x * 'y&gt;) <b>-&gt;</b> MVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt;
+<pre id="def:Hopac.MVar.modifyJob"><b>val</b> <a href="#dec:Hopac.MVar.modifyJob">modifyJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'x * 'y&gt;) <b>-&gt;</b> MVar&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt;
 </pre>
 <blockquote>Creates a job that takes the value of the variable and then fills the variable with the result of performing the given job.  Note that this operation is not atomic.  However, it is a common programming pattern to make it so that only the job that has emptied an <code>MVar</code> by taking a value from it is allowed to fill the <code>MVar</code>.  Such an access pattern makes operations on the <code>MVar</code> appear as atomic.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.MVar.Alt"><b>module</b> <a id=":Hopac.MVar.Alt" href="#dec:Hopac.MVar.Alt">Alt</a> =
+<pre id="def:Hopac.MVar.Alt"><b>module</b> <a href="#dec:Hopac.MVar.Alt">Alt</a> =
 </pre>
 <blockquote>Selective operations on write many variables.</blockquote>
 <blockquote>
-<pre id="def:Hopac.MVar.Alt.take"><b>val</b> <a id=":Hopac.MVar.Alt.take" href="#dec:Hopac.MVar.Alt.take">take</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.MVar.Alt.take"><b>val</b> <a href="#dec:Hopac.MVar.Alt.take">take</a><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative that becomes available for picking when the variable contains a value and, if committed to, takes the value from the variable.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox&lt;'x&gt;"><b>type</b> <a id=":Hopac.Mailbox&lt;'x&gt;" href="#dec:Hopac.Mailbox&lt;'x&gt;">Mailbox&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="def:Hopac.Mailbox&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.Mailbox&lt;'x&gt;">Mailbox&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <blockquote>Represents a asynchronous, unbounded buffered mailbox.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox"><b>module</b> <a id=":Hopac.Mailbox" href="#dec:Hopac.Mailbox">Mailbox</a> =
+<pre id="def:Hopac.Mailbox"><b>module</b> <a href="#dec:Hopac.Mailbox">Mailbox</a> =
 </pre>
 <blockquote>Operations on buffered mailboxes.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Mailbox.Now"><b>module</b> <a id=":Hopac.Mailbox.Now" href="#dec:Hopac.Mailbox.Now">Now</a> =
+<pre id="def:Hopac.Mailbox.Now"><b>module</b> <a href="#dec:Hopac.Mailbox.Now">Now</a> =
 </pre>
 <blockquote>Immediate or non-workflow operations on buffered mailboxes.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Mailbox.Now.create"><b>val</b> <a id=":Hopac.Mailbox.Now.create" href="#dec:Hopac.Mailbox.Now.create">create</a><b>:</b> unit <b>-&gt;</b> Mailbox&lt;'x&gt;
+<pre id="def:Hopac.Mailbox.Now.create"><b>val</b> <a href="#dec:Hopac.Mailbox.Now.create">create</a><b>:</b> unit <b>-&gt;</b> Mailbox&lt;'x&gt;
 </pre>
 <blockquote>Creates a new mailbox.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox.Global"><b>module</b> <a id=":Hopac.Mailbox.Global" href="#dec:Hopac.Mailbox.Global">Global</a> =
+<pre id="def:Hopac.Mailbox.Global"><b>module</b> <a href="#dec:Hopac.Mailbox.Global">Global</a> =
 </pre>
 <blockquote>Operations bound to the global scheduler.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Mailbox.Global.send"><b>val</b> <a id=":Hopac.Mailbox.Global.send" href="#dec:Hopac.Mailbox.Global.send">send</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> unit
+<pre id="def:Hopac.Mailbox.Global.send"><b>val</b> <a href="#dec:Hopac.Mailbox.Global.send">send</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> unit
 </pre>
 <blockquote>Sends the given value to the specified mailbox.  Note that using this function in a job workflow is not generally optimal and you should use <code>Mailbox.send</code> instead.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox.create"><b>val</b> <a id=":Hopac.Mailbox.create" href="#dec:Hopac.Mailbox.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;Mailbox&lt;'x&gt;&gt;
+<pre id="def:Hopac.Mailbox.create"><b>val</b> <a href="#dec:Hopac.Mailbox.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;Mailbox&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a new mailbox.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox.send"><b>val</b> <a id=":Hopac.Mailbox.send" href="#dec:Hopac.Mailbox.send">send</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Mailbox.send"><b>val</b> <a href="#dec:Hopac.Mailbox.send">send</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that sends the given value to the specified mailbox.  This operation never blocks.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox.take"><b>val</b> <a id=":Hopac.Mailbox.take" href="#dec:Hopac.Mailbox.take">take</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Mailbox.take"><b>val</b> <a href="#dec:Hopac.Mailbox.take">take</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that waits until the specified mailbox contains at least one value and then takes a value from the mailbox and returns it.  Values are taken in FIFO order.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Mailbox.Alt"><b>module</b> <a id=":Hopac.Mailbox.Alt" href="#dec:Hopac.Mailbox.Alt">Alt</a> =
+<pre id="def:Hopac.Mailbox.Alt"><b>module</b> <a href="#dec:Hopac.Mailbox.Alt">Alt</a> =
 </pre>
 <blockquote>Selective operations on buffered mailboxes.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Mailbox.Alt.take"><b>val</b> <a id=":Hopac.Mailbox.Alt.take" href="#dec:Hopac.Mailbox.Alt.take">take</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Mailbox.Alt.take"><b>val</b> <a href="#dec:Hopac.Mailbox.Alt.take">take</a><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates and alternative that becomes available for picking when the mailbox contains at least one value and, if committed to, takes a value from the mailbox.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise&lt;'x&gt;"><b>type</b> <a id=":Hopac.Promise&lt;'x&gt;" href="#dec:Hopac.Promise&lt;'x&gt;">Promise&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
+<pre id="def:Hopac.Promise&lt;'x&gt;"><b>type</b> <a href="#dec:Hopac.Promise&lt;'x&gt;">Promise&lt;'x&gt;</a> :&gt; Alt&lt;'x&gt;
 </pre>
 <blockquote>Represents a lazy promise or eager future (depending on construction).</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise"><b>module</b> <a id=":Hopac.Promise" href="#dec:Hopac.Promise">Promise</a> =
+<pre id="def:Hopac.Promise"><b>module</b> <a href="#dec:Hopac.Promise">Promise</a> =
 </pre>
 <blockquote>Operations on promises.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Promise.Now"><b>module</b> <a id=":Hopac.Promise.Now" href="#dec:Hopac.Promise.Now">Now</a> =
+<pre id="def:Hopac.Promise.Now"><b>module</b> <a href="#dec:Hopac.Promise.Now">Now</a> =
 </pre>
 <blockquote>Immediate or non-workflow operations on promises.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Promise.Now.delay"><b>val</b> <a id=":Hopac.Promise.Now.delay" href="#dec:Hopac.Promise.Now.delay">delay</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Promise&lt;'x&gt;
+<pre id="def:Hopac.Promise.Now.delay"><b>val</b> <a href="#dec:Hopac.Promise.Now.delay">delay</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Promise&lt;'x&gt;
 </pre>
 <blockquote>Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise.Now.withValue"><b>val</b> <a id=":Hopac.Promise.Now.withValue" href="#dec:Hopac.Promise.Now.withValue">withValue</a><b>:</b> 'x <b>-&gt;</b> Promise&lt;'x&gt;
+<pre id="def:Hopac.Promise.Now.withValue"><b>val</b> <a href="#dec:Hopac.Promise.Now.withValue">withValue</a><b>:</b> 'x <b>-&gt;</b> Promise&lt;'x&gt;
 </pre>
 <blockquote>Creates a promise with the given value.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise.Now.withFailure"><b>val</b> <a id=":Hopac.Promise.Now.withFailure" href="#dec:Hopac.Promise.Now.withFailure">withFailure</a><b>:</b> exn <b>-&gt;</b> Promise&lt;'x&gt;
+<pre id="def:Hopac.Promise.Now.withFailure"><b>val</b> <a href="#dec:Hopac.Promise.Now.withFailure">withFailure</a><b>:</b> exn <b>-&gt;</b> Promise&lt;'x&gt;
 </pre>
 <blockquote>Creates a promise with the given failure exception.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise.start"><b>val</b> <a id=":Hopac.Promise.start" href="#dec:Hopac.Promise.start">start</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;Promise&lt;'x&gt;&gt;
+<pre id="def:Hopac.Promise.start"><b>val</b> <a href="#dec:Hopac.Promise.start">start</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;Promise&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a promise, whose value is computed eagerly with the given job, which is started to run as a separate concurrent job.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise.delay"><b>val</b> <a id=":Hopac.Promise.delay" href="#dec:Hopac.Promise.delay">delay</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;Promise&lt;'x&gt;&gt;
+<pre id="def:Hopac.Promise.delay"><b>val</b> <a href="#dec:Hopac.Promise.delay">delay</a><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;Promise&lt;'x&gt;&gt;
 </pre>
 <blockquote>Creates a job that creates a promise, whose value is computed with the given job, when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise.read"><b>val</b> <a id=":Hopac.Promise.read" href="#dec:Hopac.Promise.read">read</a><b>:</b> Promise&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Promise.read"><b>val</b> <a href="#dec:Hopac.Promise.read">read</a><b>:</b> Promise&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that waits for the promise to be computed and then returns its value (or fails with exception).  If the job of promise was delayed, it is first started as a separate job.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Promise.Alt"><b>module</b> <a id=":Hopac.Promise.Alt" href="#dec:Hopac.Promise.Alt">Alt</a> =
+<pre id="def:Hopac.Promise.Alt"><b>module</b> <a href="#dec:Hopac.Promise.Alt">Alt</a> =
 </pre>
 <blockquote>Selective operations on promises.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Promise.Alt.read"><b>val</b> <a id=":Hopac.Promise.Alt.read" href="#dec:Hopac.Promise.Alt.read">read</a><b>:</b> Promise&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
+<pre id="def:Hopac.Promise.Alt.read"><b>val</b> <a href="#dec:Hopac.Promise.Alt.read">read</a><b>:</b> Promise&lt;'x&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
 <blockquote>Creates an alternative for reading the promise.  If the job of the promise was delayed, it is started as a separate job.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Lock"><b>type</b> <a id=":Hopac.Lock" href="#dec:Hopac.Lock">Lock</a>
+<pre id="def:Hopac.Lock"><b>type</b> <a href="#dec:Hopac.Lock">Lock</a>
 </pre>
 <blockquote>A non-recursive mutual exclusion lock for jobs.  Note that this lock is for synchronizing at the level of jobs that might even block while holding the lock.  In most cases you should rather use higher-level message passing primitives such as <code>Ch</code>, <code>Mailbox</code>, <code>MVar</code> or <code>IVar</code>, but in some cases a simple lock might be more natural to use.  For short non-blocking critical sections, native locks (e.g. <code>Monitor</code> and <code>SpinLock</code>), concurrent data structures or interlocked operations should be faster.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Lock"><b>module</b> <a id=":Hopac.Lock" href="#dec:Hopac.Lock">Lock</a> =
+<pre id="def:Hopac.Lock"><b>module</b> <a href="#dec:Hopac.Lock">Lock</a> =
 </pre>
 <blockquote>Operations on mutual exclusion locks.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Lock.create"><b>val</b> <a id=":Hopac.Lock.create" href="#dec:Hopac.Lock.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;Lock&gt;
+<pre id="def:Hopac.Lock.create"><b>val</b> <a href="#dec:Hopac.Lock.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;Lock&gt;
 </pre>
 <blockquote>Creates a job that creates a new mutual exclusion lock.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Lock.duringFun"><b>val</b> <a id=":Hopac.Lock.duringFun" href="#dec:Hopac.Lock.duringFun">duringFun</a><b>:</b> Lock <b>-&gt;</b> (unit <b>-&gt;</b> 'x) <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Lock.duringFun"><b>val</b> <a href="#dec:Hopac.Lock.duringFun">duringFun</a><b>:</b> Lock <b>-&gt;</b> (unit <b>-&gt;</b> 'x) <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that calls the given function so that the lock is held during the execution of the function.  This locking method is optimized for short duration locking so that other jobs contending for the lock will keep spinning during the execution of the function.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Lock.duringJob"><b>val</b> <a id=":Hopac.Lock.duringJob" href="#dec:Hopac.Lock.duringJob">duringJob</a><b>:</b> Lock <b>-&gt;</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Lock.duringJob"><b>val</b> <a href="#dec:Hopac.Lock.duringJob">duringJob</a><b>:</b> Lock <b>-&gt;</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that runs the given job so that the lock is held during the execution of the given job.  This locking method is optimized for longer duration locking so that other jobs contending for the lock will be blocked to a queue during the execution of the function.  Note that blocking and resuming a job is much faster than blocking and resuming a native thread.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Lock.Now"><b>module</b> <a id=":Hopac.Lock.Now" href="#dec:Hopac.Lock.Now">Now</a> =
+<pre id="def:Hopac.Lock.Now"><b>module</b> <a href="#dec:Hopac.Lock.Now">Now</a> =
 </pre>
 <blockquote>Immediate or non-workflow operations on locks.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Lock.Now.create"><b>val</b> <a id=":Hopac.Lock.Now.create" href="#dec:Hopac.Lock.Now.create">create</a><b>:</b> unit <b>-&gt;</b> Lock
+<pre id="def:Hopac.Lock.Now.create"><b>val</b> <a href="#dec:Hopac.Lock.Now.create">create</a><b>:</b> unit <b>-&gt;</b> Lock
 </pre>
 <blockquote>Creates a new lock.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions"><b>module</b> <a id=":Hopac.Extensions" href="#dec:Hopac.Extensions">Extensions</a> =
+<pre id="def:Hopac.Extensions"><b>module</b> <a href="#dec:Hopac.Extensions">Extensions</a> =
 </pre>
 <blockquote>Extensions to various system modules and types for programming with jobs. You can open this module to use the extensions much like as if they were part of the existing modules and types.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Extensions.Array"><b>module</b> <a id=":Hopac.Extensions.Array" href="#dec:Hopac.Extensions.Array">Array</a> =
+<pre id="def:Hopac.Extensions.Array"><b>module</b> <a href="#dec:Hopac.Extensions.Array">Array</a> =
 </pre>
 <blockquote>Operations for processing arrays with jobs.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Extensions.Array.mapJob"><b>val</b> <a id=":Hopac.Extensions.Array.mapJob" href="#dec:Hopac.Extensions.Array.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> array&lt;'x&gt; <b>-&gt;</b> Job&lt;array&lt;'y&gt;&gt;
+<pre id="def:Hopac.Extensions.Array.mapJob"><b>val</b> <a href="#dec:Hopac.Extensions.Array.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> array&lt;'x&gt; <b>-&gt;</b> Job&lt;array&lt;'y&gt;&gt;
 </pre>
 <blockquote>Sequentially maps the given job constructor to the elements of the array and returns an array of the results.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Array.iterJob"><b>val</b> <a id=":Hopac.Extensions.Array.iterJob" href="#dec:Hopac.Extensions.Array.iterJob">iterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> array&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Extensions.Array.iterJob"><b>val</b> <a href="#dec:Hopac.Extensions.Array.iterJob">iterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> array&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Sequentially iterates the given job constructor over the given array. The results, if any, of the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Seq"><b>module</b> <a id=":Hopac.Extensions.Seq" href="#dec:Hopac.Extensions.Seq">Seq</a> =
+<pre id="def:Hopac.Extensions.Seq"><b>module</b> <a href="#dec:Hopac.Extensions.Seq">Seq</a> =
 </pre>
 <blockquote>Operations for processing sequences with jobs.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Extensions.Seq.iterJob"><b>val</b> <a id=":Hopac.Extensions.Seq.iterJob" href="#dec:Hopac.Extensions.Seq.iterJob">iterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Extensions.Seq.iterJob"><b>val</b> <a href="#dec:Hopac.Extensions.Seq.iterJob">iterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Sequentially iterates the given job constructor over the given sequence. The results, if any, of the jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Seq.mapJob"><b>val</b> <a id=":Hopac.Extensions.Seq.mapJob" href="#dec:Hopac.Extensions.Seq.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'y&gt;&gt;
+<pre id="def:Hopac.Extensions.Seq.mapJob"><b>val</b> <a href="#dec:Hopac.Extensions.Seq.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'y&gt;&gt;
 </pre>
 <blockquote>Sequentially maps the given job constructor to the elements of the sequence and returns a list of the results.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Seq.foldJob"><b>val</b> <a id=":Hopac.Extensions.Seq.foldJob" href="#dec:Hopac.Extensions.Seq.foldJob">foldJob</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> 'x <b>-&gt;</b> seq&lt;'y&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Extensions.Seq.foldJob"><b>val</b> <a href="#dec:Hopac.Extensions.Seq.foldJob">foldJob</a><b>:</b> ('x <b>-&gt;</b> 'y <b>-&gt;</b> Job&lt;'x&gt;) <b>-&gt;</b> 'x <b>-&gt;</b> seq&lt;'y&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Sequentially folds the job constructor over the given sequence and returns the result of the fold.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Seq.Con"><b>module</b> <a id=":Hopac.Extensions.Seq.Con" href="#dec:Hopac.Extensions.Seq.Con">Con</a> =
+<pre id="def:Hopac.Extensions.Seq.Con"><b>module</b> <a href="#dec:Hopac.Extensions.Seq.Con">Con</a> =
 </pre>
 <blockquote>Operations for processing sequences using concurrent Hopac jobs.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Extensions.Seq.Con.iterJob"><b>val</b> <a id=":Hopac.Extensions.Seq.Con.iterJob" href="#dec:Hopac.Extensions.Seq.Con.iterJob">iterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Extensions.Seq.Con.iterJob"><b>val</b> <a href="#dec:Hopac.Extensions.Seq.Con.iterJob">iterJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;_&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Iterates the given job constructor over the given sequence, runs the constructed jobs as separate concurrent jobs and waits until all of the jobs have finished.  The results of the created jobs are ignored.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Seq.Con.mapJob"><b>val</b> <a id=":Hopac.Extensions.Seq.Con.mapJob" href="#dec:Hopac.Extensions.Seq.Con.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'y&gt;&gt;
+<pre id="def:Hopac.Extensions.Seq.Con.mapJob"><b>val</b> <a href="#dec:Hopac.Extensions.Seq.Con.mapJob">mapJob</a><b>:</b> ('x <b>-&gt;</b> Job&lt;'y&gt;) <b>-&gt;</b> seq&lt;'x&gt; <b>-&gt;</b> Job&lt;ResizeArray&lt;'y&gt;&gt;
 </pre>
 <blockquote>Iterates the given job constructor over the given sequence, runs the constructed jobs as separate concurrent jobs and waits until all of the jobs have finished collecting the results into a list.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Task"><b>type</b> <a id=":Hopac.Extensions.Task" href="#dec:Hopac.Extensions.Task">Task</a> =
+<pre id="def:Hopac.Extensions.Task"><b>type</b> <a href="#dec:Hopac.Extensions.Task">Task</a> =
 </pre>
 <blockquote>Operations for interfacing tasks with jobs.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Extensions.Task.awaitJob"><b>static</b> <b>member</b> <a id=":Hopac.Extensions.Task.awaitJob" href="#dec:Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading.Tasks.Task&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
+<pre id="def:Hopac.Extensions.Task.awaitJob"><b>static</b> <b>member</b> <a href="#dec:Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading.Tasks.Task&lt;'x&gt; <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote>Creates a job that waits for the given task to finish and then returns the result of the task.  Note that this does not start the job.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Extensions.Task.awaitJob"><b>static</b> <b>member</b> <a id=":Hopac.Extensions.Task.awaitJob" href="#dec:Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading.Tasks.Task <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Extensions.Task.awaitJob"><b>static</b> <b>member</b> <a href="#dec:Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading.Tasks.Task <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that waits until the given task finishes.  Note that this does not start the job.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler"><b>type</b> <a id=":Hopac.Scheduler" href="#dec:Hopac.Scheduler">Scheduler</a>
+<pre id="def:Hopac.Scheduler"><b>type</b> <a href="#dec:Hopac.Scheduler">Scheduler</a>
 </pre>
 <blockquote>Represents a scheduler that manages a number of worker threads.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler"><b>module</b> <a id=":Hopac.Scheduler" href="#dec:Hopac.Scheduler">Scheduler</a> =
+<pre id="def:Hopac.Scheduler"><b>module</b> <a href="#dec:Hopac.Scheduler">Scheduler</a> =
 </pre>
 <blockquote>Operations on schedulers.  Use of this module requires more intimate knowledge of Hopac, but may allow adapting Hopac to special application requirements.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Scheduler.Global"><b>module</b> <a id=":Hopac.Scheduler.Global" href="#dec:Hopac.Scheduler.Global">Global</a> =
+<pre id="def:Hopac.Scheduler.Global"><b>module</b> <a href="#dec:Hopac.Scheduler.Global">Global</a> =
 </pre>
 <blockquote>Operations on the global scheduler.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Scheduler.Global.setTopLevelHandler"><b>val</b> <a id=":Hopac.Scheduler.Global.setTopLevelHandler" href="#dec:Hopac.Scheduler.Global.setTopLevelHandler">setTopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt; <b>-&gt;</b> unit
+<pre id="def:Hopac.Scheduler.Global.setTopLevelHandler"><b>val</b> <a href="#dec:Hopac.Scheduler.Global.setTopLevelHandler">setTopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt; <b>-&gt;</b> unit
 </pre>
 <blockquote>Sets the top level exception handler job constructor of the global scheduler.  When a job fails with an otherwise unhandled exception, the job is killed and a new job is constructed with the top level handler constructor and then started.  To avoid infinite loops, in case the top level handler job raises exceptions, it is simply killed after printing a message to the console.  The default top level handler, or <code>None</code>, simply prints out a message to the console.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.Create"><b>type</b> <a id=":Hopac.Scheduler.Create" href="#dec:Hopac.Scheduler.Create">Create</a> =
+<pre id="def:Hopac.Scheduler.Create"><b>type</b> <a href="#dec:Hopac.Scheduler.Create">Create</a> =
 </pre>
 <blockquote>A record of scheduler configuration options.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Scheduler.Create.NumWorkers"><a id=":Hopac.Scheduler.Create.NumWorkers" href="#dec:Hopac.Scheduler.Create.NumWorkers">NumWorkers</a><b>:</b> option&lt;int&gt;
+<pre id="def:Hopac.Scheduler.Create.NumWorkers"><a href="#dec:Hopac.Scheduler.Create.NumWorkers">NumWorkers</a><b>:</b> option&lt;int&gt;
 </pre>
 <blockquote>Number of worker threads.  Using more than <code>Environment.ProcessorCount</code> is not optimal and may, in some cases, significantly reduce performance.  The default is <code>Environment.ProcessorCount</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.Create.TopLevelHandler"><a id=":Hopac.Scheduler.Create.TopLevelHandler" href="#dec:Hopac.Scheduler.Create.TopLevelHandler">TopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt;
+<pre id="def:Hopac.Scheduler.Create.TopLevelHandler"><a href="#dec:Hopac.Scheduler.Create.TopLevelHandler">TopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt;
 </pre>
 <blockquote>Specifies the top level exception handler job constructor of the scheduler.  When a job fails with an otherwise unhandled exception, the job is killed and a new job is constructed with the top level handler constructor and then started.  To avoid infinite loops, in case the top level handler job raises exceptions, it is simply killed after printing a message to the console.  The default top level handler simply prints out a message to the console.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.Create.IdleHandler"><a id=":Hopac.Scheduler.Create.IdleHandler" href="#dec:Hopac.Scheduler.Create.IdleHandler">IdleHandler</a><b>:</b> option&lt;Job&lt;int&gt;&gt;
+<pre id="def:Hopac.Scheduler.Create.IdleHandler"><a href="#dec:Hopac.Scheduler.Create.IdleHandler">IdleHandler</a><b>:</b> option&lt;Job&lt;int&gt;&gt;
 </pre>
 <blockquote>Specifies the idle handler for workers.  The worker idle handler is run whenever an individual worker runs out of work.  The idle handler must return an integer value that specifies how many milliseconds the worker is allowed to sleep.  <code>Timeout.Infinite</code> puts the worker into sleep until the scheduler explicitly wakes it up.  <code>0</code> means that the idle handler found some new work and the worker should immediately look for it.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.Create.Def"><b>static</b> <b>member</b> <a id=":Hopac.Scheduler.Create.Def" href="#dec:Hopac.Scheduler.Create.Def">Def</a><b>:</b> Create
+<pre id="def:Hopac.Scheduler.Create.Def"><b>static</b> <b>member</b> <a href="#dec:Hopac.Scheduler.Create.Def">Def</a><b>:</b> Create
 </pre>
 <blockquote>Default options.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.create"><b>val</b> <a id=":Hopac.Scheduler.create" href="#dec:Hopac.Scheduler.create">create</a><b>:</b> Create <b>-&gt;</b> Scheduler
+<pre id="def:Hopac.Scheduler.create"><b>val</b> <a href="#dec:Hopac.Scheduler.create">create</a><b>:</b> Create <b>-&gt;</b> Scheduler
 </pre>
 <blockquote>Creates a new local scheduler.  Note that a local scheduler does not automatically implement services such as the global wall-clock timer.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.startWithActions"><b>val</b> <a id=":Hopac.Scheduler.startWithActions" href="#dec:Hopac.Scheduler.startWithActions">startWithActions</a><b>:</b> Scheduler
+<pre id="def:Hopac.Scheduler.startWithActions"><b>val</b> <a href="#dec:Hopac.Scheduler.startWithActions">startWithActions</a><b>:</b> Scheduler
                    <b>-&gt;</b> (exn <b>-&gt;</b> unit)
                    <b>-&gt;</b> ('x <b>-&gt;</b> unit)
                    <b>-&gt;</b> Job&lt;'x&gt; <b>-&gt;</b> unit
@@ -1098,61 +1099,62 @@
 <blockquote>Starts running the given job, but does not wait for the job to finish. Upon the failure or success of the job, one of the given actions is called once.  Note that using this function in a job workflow is not optimal and you should instead use <code>Job.start</code> with desired Job exception handling construct (e.g. <code>Job.tryIn</code> or <code>Job.catch</code>).</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.start"><b>val</b> <a id=":Hopac.Scheduler.start" href="#dec:Hopac.Scheduler.start">start</a><b>:</b> Scheduler <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> unit
+<pre id="def:Hopac.Scheduler.start"><b>val</b> <a href="#dec:Hopac.Scheduler.start">start</a><b>:</b> Scheduler <b>-&gt;</b> Job&lt;_&gt; <b>-&gt;</b> unit
 </pre>
 <blockquote>Starts running the given job, but does not wait for the job to finish. The result, if any, of the job is ignored.  Note that using this function in a job workflow is not optimal and you should use <code>Job.start</code> instead.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.server"><b>val</b> <a id=":Hopac.Scheduler.server" href="#dec:Hopac.Scheduler.server">server</a><b>:</b> Scheduler <b>-&gt;</b> Job&lt;Void&gt; <b>-&gt;</b> unit
+<pre id="def:Hopac.Scheduler.server"><b>val</b> <a href="#dec:Hopac.Scheduler.server">server</a><b>:</b> Scheduler <b>-&gt;</b> Job&lt;Void&gt; <b>-&gt;</b> unit
 </pre>
 <blockquote>Like <code>Scheduler.start</code>, but the given job is known never to return normally, so the job can be spawned in a sligthly lighter-weight manner.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.wait"><b>val</b> <a id=":Hopac.Scheduler.wait" href="#dec:Hopac.Scheduler.wait">wait</a><b>:</b> Scheduler <b>-&gt;</b> unit
+<pre id="def:Hopac.Scheduler.wait"><b>val</b> <a href="#dec:Hopac.Scheduler.wait">wait</a><b>:</b> Scheduler <b>-&gt;</b> unit
 </pre>
 <blockquote>Waits until the scheduler becomes completely idle.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Scheduler.kill"><b>val</b> <a id=":Hopac.Scheduler.kill" href="#dec:Hopac.Scheduler.kill">kill</a><b>:</b> Scheduler <b>-&gt;</b> unit
+<pre id="def:Hopac.Scheduler.kill"><b>val</b> <a href="#dec:Hopac.Scheduler.kill">kill</a><b>:</b> Scheduler <b>-&gt;</b> unit
 </pre>
 <blockquote>Kills the worker threads of the scheduler one-by-one.  This should only be used with a local scheduler that is known to be idle.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
-<pre id="def:Hopac.Infixes"><b>module</b> <a id=":Hopac.Infixes" href="#dec:Hopac.Infixes">Infixes</a> =
+<pre id="def:Hopac.Infixes"><b>module</b> <a href="#dec:Hopac.Infixes">Infixes</a> =
 </pre>
 <blockquote>Additional infix operators.  You can open this module to bring all of the infix operators into scope.</blockquote>
 <blockquote>
-<pre id="def:Hopac.Infixes.&lt;-?"><b>val</b> <b>(</b><a id=":Hopac.Infixes.&lt;-?" href="#dec:Hopac.Infixes.&lt;-?">&lt;-?</a><b>)</b><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Alt&lt;unit&gt;
+<pre id="def:Hopac.Infixes.&lt;-?"><b>val</b> <b>(</b><a href="#dec:Hopac.Infixes.&lt;-?">&lt;-?</a><b>)</b><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Alt&lt;unit&gt;
 </pre>
 <blockquote>Creates an alternative that, at instantiation time, offers to give the given value on the given channel, and becomes available for picking when another job offers to take the value.  <code>xCh &lt;-? x</code> is equivalent to <code>Ch.Alt.give xCh x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Infixes.&lt;--"><b>val</b> <b>(</b><a id=":Hopac.Infixes.&lt;--" href="#dec:Hopac.Infixes.&lt;--">&lt;--</a><b>)</b><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Infixes.&lt;--"><b>val</b> <b>(</b><a href="#dec:Hopac.Infixes.&lt;--">&lt;--</a><b>)</b><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that offers to give the given value to another job on the given channel.  A give operation is synchronous.  In other words, a give operation waits until another job takes the value.  <code>xCh &lt;-- x</code> is equivalent to <code>Ch.give xCh x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Infixes.&lt;-+"><b>val</b> <b>(</b><a id=":Hopac.Infixes.&lt;-+" href="#dec:Hopac.Infixes.&lt;-+">&lt;-+</a><b>)</b><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Infixes.&lt;-+"><b>val</b> <b>(</b><a href="#dec:Hopac.Infixes.&lt;-+">&lt;-+</a><b>)</b><b>:</b> Ch&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that sends a value to another job on the given channel.  A send operation is asynchronous.  In other words, a send operation does not wait for another job to give the value to.  Note that channels have been optimized for synchronous operations; an occasional send can be efficient, but when sends are queued, performance maybe be significantly worse than with a <code>Mailbox</code> optimized for buffering.  <code>xCh &lt;-+ x</code> is equivalent to <code>Ch.send xCh x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Infixes.&lt;-="><b>val</b> <b>(</b><a id=":Hopac.Infixes.&lt;-=" href="#dec:Hopac.Infixes.&lt;-=">&lt;-=</a><b>)</b><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Infixes.&lt;-="><b>val</b> <b>(</b><a href="#dec:Hopac.Infixes.&lt;-=">&lt;-=</a><b>)</b><b>:</b> IVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that writes to the given write once variable.  It is an error to write to a single <code>IVar</code> more than once.  This assumption may be used to optimize the implementation and incorrect usage leads to undefined behavior.  <code>xI &lt;-= x</code> is equivalent to <code>IVar.fill xI x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Infixes.&lt;&lt;-="><b>val</b> <b>(</b><a id=":Hopac.Infixes.&lt;&lt;-=" href="#dec:Hopac.Infixes.&lt;&lt;-=">&lt;&lt;-=</a><b>)</b><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Infixes.&lt;&lt;-="><b>val</b> <b>(</b><a href="#dec:Hopac.Infixes.&lt;&lt;-=">&lt;&lt;-=</a><b>)</b><b>:</b> MVar&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that writes the given value to the synchronous variable.  It is an error to write to a <code>MVar</code> that is full.  This assumption may be used to optimize the implementation and incorrect usage leads to undefined behavior.  <code>xM &lt;&lt;-= x</code> is equivalent to <code>MVar.fill xM x</code>.</blockquote>
 <blockquote>
 </blockquote>
-<pre id="def:Hopac.Infixes.&lt;&lt;-+"><b>val</b> <b>(</b><a id=":Hopac.Infixes.&lt;&lt;-+" href="#dec:Hopac.Infixes.&lt;&lt;-+">&lt;&lt;-+</a><b>)</b><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
+<pre id="def:Hopac.Infixes.&lt;&lt;-+"><b>val</b> <b>(</b><a href="#dec:Hopac.Infixes.&lt;&lt;-+">&lt;&lt;-+</a><b>)</b><b>:</b> Mailbox&lt;'x&gt; <b>-&gt;</b> 'x <b>-&gt;</b> Job&lt;unit&gt;
 </pre>
 <blockquote>Creates a job that sends the given value to the specified mailbox.  This operation never blocks.  <code>xMb &lt;&lt;-+ x</code> is equivalent to <code>Mailbox.send xMb x</code>.</blockquote>
 <blockquote>
 </blockquote>
 </blockquote>
 </blockquote>
+</td></tr></table></body>
 </html>

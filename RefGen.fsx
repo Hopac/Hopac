@@ -182,7 +182,10 @@ let printText wr path inSection toSection item =
       linked := true
       let text = asText elem
       let link = asText (String.concat "." (List.rev (elem::path)))
-      fprintf wr "<a id=\"%s:%s\" href=\"#%s:%s\">%s</a>" inSection link toSection link text
+      let id = match inSection with
+                | None -> " "
+                | Some inSection -> sprintf " id=\"%s:%s\" " inSection link
+      fprintf wr "<a%shref=\"#%s:%s\">%s</a>" id toSection link text
     else
       printElem wr elem
   let rec loop space elems =
@@ -251,7 +254,7 @@ let rec printDescription wr path item =
      | Some name ->
        let link = List.rev (name::path) |> String.concat "." |> asText
        fprintf wr "<pre id=\"def:%s\">" link
-    printSummary wr false path "" "dec" item.Indent item
+    printSummary wr false path None "dec" item.Indent item
     fprintf wr "</pre>\n"
     match item.Doc with
      | [] -> ()
@@ -285,10 +288,14 @@ let generate wr title path =
      | _ -> failwith "Expected some!"
   fprintf wr "<!DOCTYPE html>\n\
               <html>\n"
-  fprintf wr "%s" title
+  fprintf wr "<head><title>%s Library Reference</title></head>\n" title
+  fprintf wr "<body><table width=\"80%%\" align=\"center\"><tr><td>\n"
+  fprintf wr "<h1>Hopac Library Reference</h1>\n\
+              <p>This document provides a reference manual for the %s library \
+                 and is generated from the library source code.</p>\n" title
   fprintf wr "<h2>Synopsis</h2>\n"
   fprintf wr "<pre id=\"dec:%s\">" (Option.get model.Name)
-  printText wr [] "dec" "def" model
+  printText wr [] (Some "dec") "def" model
   fprintf wr "</pre>\n"
   model.Body
   |> Seq.iter (fun item ->
@@ -297,26 +304,15 @@ let generate wr title path =
         fprintf wr "<pre>"
       | Some name ->
         fprintf wr "<pre id=\"dec:%s\">" (asText name)
-     printSummary wr true [Option.get model.Name] "dec" "def" 0 item
+     printSummary wr true [Option.get model.Name] (Some "dec") "def" 0 item
      fprintf wr "</pre>\n")
   fprintf wr "<h2>Description</h2>\n"
   printDescription wr [] model
+  fprintf wr "</td></tr></table></body>\n"
   fprintf wr "</html>\n"
 
-let hopacTitle =
-  "<title>Hopac Library Reference</title>\n\
-   <h1>Hopac Library Reference</h1>\n\
-   <p>This document provides a reference manual for the Hopac library and is \
-      generated from the library source code.</p>\n"
-
-let extraTitle =
-  "<title>Hopac.Extra Library Reference</title>\n\
-   <h1>Hopac.Extra Library Reference</h1>\n\
-   <p>This document provides a reference manual for the Hopac.Extra library \
-      and is generated from the library source code.</p>\n"
-
 do use wr = new StreamWriter ("Docs/Hopac.html")
-   generate wr hopacTitle "Libs/Hopac"
+   generate wr "Hopac" "Libs/Hopac"
 
 do use wr = new StreamWriter ("Docs/Hopac.Extra.html")
-   generate wr extraTitle "Libs/Hopac.Extra"
+   generate wr "Hopac.Extra" "Libs/Hopac.Extra"
