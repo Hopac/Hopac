@@ -3,80 +3,67 @@ Hopac - Higher-Order, Parallel, Asynchronous and Concurrent
 
 Hopac is a library for F# with the aim of making it easier to write efficient
 parallel, asynchronous and concurrent programs.  The design of Hopac draws
-inspiration from Concurrent ML.  Similar to Concurrent ML, Hopac provides
-message passing primitives and supports the construction of first-class
-synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are
-created using techniques similar to the F# Async framework.  Hopac runs parallel
-jobs using a work distributing scheduler in a non-preemptive fashion.
+inspiration from languages such Concurrent ML and Cilk.  Similar to Concurrent
+ML, Hopac provides message passing primitives and supports the construction of
+first-class synchronous abstractions.  Parallel jobs (light-weight threads) in
+Hopac are created using techniques similar to the F# Async framework.  Hopac
+runs parallel jobs using a work distributing scheduler in a non-preemptive
+fashion.
 
-Licensing
----------
+License
+-------
 
 Hopac is licensed under a MIT-style license.  See
 [LICENSE.md](https://github.com/VesaKarvonen/Hopac/blob/master/LICENSE.md) for
 details.
 
-Packages
+Download
 --------
 
 Prebuilt [Hopac](http://www.nuget.org/packages/Hopac/) and
 [Hopac.Extra](http://www.nuget.org/packages/Hopac.Extra/) packages are available
 via [NuGet](http://www.nuget.org/).  At the moment, these packages are
-considered to have experimental status.  Please report any problems you might
-encounter.
+considered to have experimental status, but major API changes are not expected
+before first release.  Please report any problems you might encounter.
 
-Status
-------
-
-The Hopac library has been in development and in internal use for some time now.
-Currently it is being prepared for tagging a first release.  Documentation is
-being written and the interfaces polished (e.g. naming orthogonalized and some
-missing primitives being added).
-
-Performance
------------
-
-One of the main reasons Hopac was developed is that existing solutions provided
-by the .Net framework made it difficult to meet performance goals.  An extra
-minute of delay and not being able to run an application within typical
-workstation memory limits sometimes makes a big difference.  So, how fast is
-Hopac?  How well does it scale to multicore machines?  How much memory do Hopac
-primitives take?  In order to measure and improve the performance of Hopac,
-several
-[benchmark programs](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks)
-have been written and some of these programs also test similar algorithms
-written using the .Net thread pool, tasks and async.  Those benchmarks are
-readily available in this project and they should be very easy to compile and
-run on your machine.  So, why don't you try and run those benchmark programs, or
-write your own benchmark, on your multicore machine and see for yourself?
-
-Programming in Hopac
---------------------
+Documentation
+-------------
 
 Hopac provides a programming model that is heavily inspired by
 [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.
 The book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
 is the most comprehensive introduction to Concurrent ML style programming.  The
-*Further Reading* section at the end of this document contains links to some
-articles and blog posts that discuss programming in Concurrent ML or languages
-inspired by it.
+[Further Reading](https://github.com/VesaKarvonen/Hopac#further-reading) section
+at the end of this document contains links to some articles and blog posts that
+discuss programming in Concurrent ML or languages inspired by it.
 
 The document
 [Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
 contains some notes and examples on programming with Hopac.  Feedback on the
-document is welcome!  In addition, the Hopac library code contains documentation
-comments on individual Hopac primitives.  The
-[Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
-signature file contains most of those documentation comments.  There is also a
+document is welcome!  There is also a
 [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
-manual generated from the signature file for the Hopac library and the
+manual generated from the Hopac library sources and the
 [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
-manual is generated from the signatures of the Hopac.Extra library.  There are
-also some
+manual is generated from the Hopac.Extra library sources.  There are also some
 [Notes on the Internal Implementation of Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Internals.md),
 but that document is not meant to be something that a user of the library would
 need to be intimately familiar with.
+
+Performance
+-----------
+
+One of the main reasons Hopac was developed is that existing solutions provided
+by the .Net framework made it difficult to meet performance goals.  So, how fast
+is Hopac?  How well does it scale to multicore machines?  How much memory do
+Hopac primitives take?  In order to measure and improve the performance of
+Hopac, several
+[benchmark programs](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks)
+have been written and some of these programs also test similar algorithms
+written using the .Net thread pool, tasks and async.  Those benchmarks are
+readily available in this project and they should be very easy to compile and
+run on your machine.  So, why don't you try and run those benchmark programs, or
+write your own benchmark, on your multicore machine and see for yourself?
 
 Rationale: Why Hopac?
 ---------------------

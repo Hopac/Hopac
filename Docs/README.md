@@ -1,11 +1,14 @@
-Here you will find documents describing Hopac.  At the moment, the amount
-of documentation is very limited, but hopefully this will improve shortly.
+Here you will find documents describing Hopac.
 
 * [Programming in
   Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
   contains some discussion and examples on Hopac programming
   techniques. In the future, this document might grow to a proper
   introduction to Hopac.
+* [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
+  manual is generated from the Hopac library source code.
+* [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
+  manual is generated from the Hopac.Extra library source code.
 * [Notes on the Internal Implementation of
   Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Internals.md)
   describes some aspects of the internal implementation of Hopac.  This
