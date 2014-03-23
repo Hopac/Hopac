@@ -248,25 +248,23 @@ let rec printDescription wr path item =
   if Option.isSome item.Name &&
      (not (List.isEmpty item.Doc) ||
       not (List.isEmpty item.Body)) then
-    match item.Name with
-     | None ->
-       fprintf wr "<pre>"
-     | Some name ->
-       let link = List.rev (name::path) |> String.concat "." |> asText
-       fprintf wr "<pre id=\"def:%s\">" link
-    printSummary wr false path None "dec" item.Indent item
+    fprintf wr "<pre>"
+    printSummary wr false path (Some "def") "dec" item.Indent item
     fprintf wr "</pre>\n"
+    fprintf wr "<blockquote>"
     match item.Doc with
      | [] -> ()
      | lines ->
-       fprintf wr "<blockquote>%s</blockquote>\n" (String.concat " " lines |> formatDesc)
-    fprintf wr "<blockquote>\n"
-    let path =
-      match item.Name with
-       | None -> path
-       | Some name -> name::path
-    item.Body
-    |> Seq.iter (printDescription wr path)
+       fprintf wr "<p>%s</p>\n" (String.concat " " lines |> formatDesc)
+    match item.Body with
+     | [] -> ()
+     | body ->
+       let path =
+         match item.Name with
+          | None -> path
+          | Some name -> name::path
+       body
+       |> Seq.iter (printDescription wr path)
     fprintf wr "</blockquote>\n"
 
 let generate wr title path =
@@ -294,16 +292,12 @@ let generate wr title path =
               <p>This document provides a reference manual for the %s library \
                  and is generated from the library source code.</p>\n" title
   fprintf wr "<h2>Synopsis</h2>\n"
-  fprintf wr "<pre id=\"dec:%s\">" (Option.get model.Name)
+  fprintf wr "<pre>"
   printText wr [] (Some "dec") "def" model
   fprintf wr "</pre>\n"
   model.Body
   |> Seq.iter (fun item ->
-     match item.Name with
-      | None ->
-        fprintf wr "<pre>"
-      | Some name ->
-        fprintf wr "<pre id=\"dec:%s\">" (asText name)
+     fprintf wr "<pre>"
      printSummary wr true [Option.get model.Name] (Some "dec") "def" 0 item
      fprintf wr "</pre>\n")
   fprintf wr "<h2>Description</h2>\n"
