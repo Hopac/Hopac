@@ -103,9 +103,12 @@ module Util =
 
   let reallyGlobalScheduler () =
     lock typeof<Scheduler> <| fun () ->
-    let sr = Scheduler (Environment.ProcessorCount,
-                        Unchecked.defaultof<_>,
-                        null)
+    let sr = Scheduler (false,
+                        null,
+                        0,
+                        Environment.ProcessorCount,
+                        ThreadPriority.Normal,
+                        Unchecked.defaultof<_>)
     globalScheduler <- sr
     sr
 
@@ -383,24 +386,35 @@ module Scheduler =
       sr.TopLevelHandler <- Option.orDefaultOf e2uJO
 
   type Create =
-    {NumWorkers: option<int>
-     TopLevelHandler: option<exn -> Job<unit>>
-     IdleHandler: option<Job<int>>}
+    {Foreground: option<bool>
+     IdleHandler: option<Job<int>>
+     MaxStackSize: option<int>
+     NumWorkers: option<int>
+     Priority: option<ThreadPriority>
+     TopLevelHandler: option<exn -> Job<unit>>}
     static member Def: Create =
       StaticData.Init ()
-      {NumWorkers = None
-       TopLevelHandler = None
-       IdleHandler = None}
+      {Foreground = None
+       IdleHandler = None
+       MaxStackSize = None
+       NumWorkers = None
+       Priority = None
+       TopLevelHandler = None}
 
   let create (c: Create) =
-    Scheduler ((match c.NumWorkers with
+    Scheduler (Option.orDefaultOf c.Foreground,
+               Option.orDefaultOf c.IdleHandler,
+               Option.orDefaultOf c.MaxStackSize,
+               (match c.NumWorkers with
                  | None -> Environment.ProcessorCount
                  | Some n ->
                    if n < 1 then
                      failwith "Invalid number of workers specified: %d" n
                    n),
-               Option.orDefaultOf c.TopLevelHandler,
-               Option.orDefaultOf c.IdleHandler)
+               (match c.Priority with
+                 | None -> ThreadPriority.Normal
+                 | Some p -> p),
+               Option.orDefaultOf c.TopLevelHandler)
 
   let startWithActions (sr: Scheduler)
                        (eF: exn -> unit)

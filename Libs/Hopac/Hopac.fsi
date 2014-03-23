@@ -798,21 +798,15 @@ module Scheduler =
   /// A record of scheduler configuration options.
   type Create =
     {
-      /// Number of worker threads.  Using more than
-      /// "Environment.ProcessorCount" is not optimal and may, in some cases,
-      /// significantly reduce performance.  The default is
-      /// "Environment.ProcessorCount".
-      NumWorkers: option<int>
+      /// Specifies whether worker threads are run as background threads or as
+      /// foreground threads.  The default is to run workers as background
+      /// threads.  If you want to run worker threads as foreground threads,
+      /// then you will have to explicitly kill the worker threads.  Using
+      /// foreground threads is probably preferable if your application
+      /// dynamically creates and kills local schedulers to make sure the
+      /// worker threads are properly killed.
+      Foreground: option<bool>
 
-      /// Specifies the top level exception handler job constructor of the
-      /// scheduler.  When a job fails with an otherwise unhandled exception,
-      /// the job is killed and a new job is constructed with the top level
-      /// handler constructor and then started.  To avoid infinite loops, in
-      /// case the top level handler job raises exceptions, it is simply killed
-      /// after printing a message to the console.  The default top level
-      /// handler simply prints out a message to the console.
-      TopLevelHandler: option<exn -> Job<unit>>
-     
       /// Specifies the idle handler for workers.  The worker idle handler is
       /// run whenever an individual worker runs out of work.  The idle handler
       /// must return an integer value that specifies how many milliseconds the
@@ -821,6 +815,29 @@ module Scheduler =
       /// idle handler found some new work and the worker should immediately
       /// look for it.
       IdleHandler: option<Job<int>>
+
+      /// Specifies the maximum stack size for worker threads.  The default
+      /// is to use the default maximum stack size of the "Thread" class.
+      MaxStackSize: option<int>
+
+      /// Number of worker threads.  Using more than
+      /// "Environment.ProcessorCount" is not optimal and may, in some cases,
+      /// significantly reduce performance.  The default is
+      /// "Environment.ProcessorCount".
+      NumWorkers: option<int>
+
+      /// Specifies the priority of the worker threads.  The default is to use
+      /// "Normal" priority.
+      Priority: option<System.Threading.ThreadPriority>
+     
+      /// Specifies the top level exception handler job constructor of the
+      /// scheduler.  When a job fails with an otherwise unhandled exception,
+      /// the job is killed and a new job is constructed with the top level
+      /// handler constructor and then started.  To avoid infinite loops, in
+      /// case the top level handler job raises exceptions, it is simply killed
+      /// after printing a message to the console.  The default top level
+      /// handler simply prints out a message to the console.
+      TopLevelHandler: option<exn -> Job<unit>>
     }
     
     /// Default options.
