@@ -77,6 +77,7 @@
     <Compile Include="Util\Condition.cs" />
     <Compile Include="Util\SpinlockTTAS.cs" />
     <Compile Include="Util\SpinlockMCS.cs" />
+    <Compile Include="Util\TicketLock.cs" />
     <Compile Include="Util\WorkQueueLock.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
