@@ -42,6 +42,8 @@
 </pre>
 <pre><b>module</b> <a id="dec:Hopac.Extra.SelectableQueue" href="#def:Hopac.Extra.SelectableQueue">SelectableQueue</a> =
   <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.create" href="#def:Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SelectableQueue&lt;'a&gt;&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.send" href="#def:Hopac.Extra.SelectableQueue.send">send</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;unit&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.take" href="#def:Hopac.Extra.SelectableQueue.take">take</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> ('a <b>-&gt;</b> bool) <b>-&gt;</b> Job&lt;'a&gt;
   <b>module</b> <a id="dec:Hopac.Extra.SelectableQueue.Alt" href="#def:Hopac.Extra.SelectableQueue.Alt">Alt</a> =
     <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.Alt.send" href="#def:Hopac.Extra.SelectableQueue.Alt.send">send</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;unit&gt;
     <b>val</b> <a id="dec:Hopac.Extra.SelectableQueue.Alt.take" href="#def:Hopac.Extra.SelectableQueue.Alt.take">take</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> ('a <b>-&gt;</b> bool) <b>-&gt;</b> Alt&lt;'a&gt;
@@ -65,7 +67,9 @@
   <b>module</b> <a id="dec:Hopac.Extra.SwapCh.Now" href="#def:Hopac.Extra.SwapCh.Now">Now</a> =
     <b>val</b> <a id="dec:Hopac.Extra.SwapCh.Now.create" href="#def:Hopac.Extra.SwapCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> SwapCh&lt;'a&gt;
   <b>val</b> <a id="dec:Hopac.Extra.SwapCh.create" href="#def:Hopac.Extra.SwapCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job&lt;SwapCh&lt;'a&gt;&gt;
-  <b>val</b> <a id="dec:Hopac.Extra.SwapCh.swap" href="#def:Hopac.Extra.SwapCh.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;'a&gt;
+  <b>val</b> <a id="dec:Hopac.Extra.SwapCh.swap" href="#def:Hopac.Extra.SwapCh.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;'a&gt;
+  <b>module</b> <a id="dec:Hopac.Extra.SwapCh.Alt" href="#def:Hopac.Extra.SwapCh.Alt">Alt</a> =
+    <b>val</b> <a id="dec:Hopac.Extra.SwapCh.Alt.swap" href="#def:Hopac.Extra.SwapCh.Alt.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;'a&gt;
 </pre>
 <h2>Description</h2>
 <pre><b>namespace</b> <a id="def:Hopac.Extra" href="#dec:Hopac.Extra">Hopac.Extra</a>
@@ -178,6 +182,14 @@
 </pre>
 <blockquote><p>Creates a new selectable queue.</p>
 </blockquote>
+<pre><b>val</b> <a id="def:Hopac.Extra.SelectableQueue.send" href="#dec:Hopac.Extra.SelectableQueue.send">send</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;unit&gt;
+</pre>
+<blockquote><p>Creates a job that sends the given message to the selectable queue.</p>
+</blockquote>
+<pre><b>val</b> <a id="def:Hopac.Extra.SelectableQueue.take" href="#dec:Hopac.Extra.SelectableQueue.take">take</a><b>:</b> SelectableQueue&lt;'a&gt; <b>-&gt;</b> ('a <b>-&gt;</b> bool) <b>-&gt;</b> Job&lt;'a&gt;
+</pre>
+<blockquote><p>Constructs a job that takes a message that satisfies the given predicate from the specified selectable queue.</p>
+</blockquote>
 <pre><b>module</b> <a id="def:Hopac.Extra.SelectableQueue.Alt" href="#dec:Hopac.Extra.SelectableQueue.Alt">Alt</a> =
 </pre>
 <blockquote><p>Selective operations on selectable queues.</p>
@@ -258,9 +270,17 @@
 </pre>
 <blockquote><p>Creates a new swap channel.</p>
 </blockquote>
-<pre><b>val</b> <a id="def:Hopac.Extra.SwapCh.swap" href="#dec:Hopac.Extra.SwapCh.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;'a&gt;
+<pre><b>val</b> <a id="def:Hopac.Extra.SwapCh.swap" href="#dec:Hopac.Extra.SwapCh.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Job&lt;'a&gt;
 </pre>
 <blockquote><p>Swap values with another job.</p>
+</blockquote>
+<pre><b>module</b> <a id="def:Hopac.Extra.SwapCh.Alt" href="#dec:Hopac.Extra.SwapCh.Alt">Alt</a> =
+</pre>
+<blockquote><p>Selective operations on swap channels.</p>
+<pre><b>val</b> <a id="def:Hopac.Extra.SwapCh.Alt.swap" href="#dec:Hopac.Extra.SwapCh.Alt.swap">swap</a><b>:</b> SwapCh&lt;'a&gt; <b>-&gt;</b> 'a <b>-&gt;</b> Alt&lt;'a&gt;
+</pre>
+<blockquote><p>Alternative to swap values with another job.</p>
+</blockquote>
 </blockquote>
 </blockquote>
 </blockquote>

@@ -211,9 +211,12 @@
     <b>val</b> <a id="dec:Hopac.Scheduler.Global.setTopLevelHandler" href="#def:Hopac.Scheduler.Global.setTopLevelHandler">setTopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt; <b>-&gt;</b> unit
   <b>type</b> <a id="dec:Hopac.Scheduler.Create" href="#def:Hopac.Scheduler.Create">Create</a> =
     <b>{</b>
-      <a id="dec:Hopac.Scheduler.Create.NumWorkers" href="#def:Hopac.Scheduler.Create.NumWorkers">NumWorkers</a><b>:</b> option&lt;int&gt;
-      <a id="dec:Hopac.Scheduler.Create.TopLevelHandler" href="#def:Hopac.Scheduler.Create.TopLevelHandler">TopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt;
+      <a id="dec:Hopac.Scheduler.Create.Foreground" href="#def:Hopac.Scheduler.Create.Foreground">Foreground</a><b>:</b> option&lt;bool&gt;
       <a id="dec:Hopac.Scheduler.Create.IdleHandler" href="#def:Hopac.Scheduler.Create.IdleHandler">IdleHandler</a><b>:</b> option&lt;Job&lt;int&gt;&gt;
+      <a id="dec:Hopac.Scheduler.Create.MaxStackSize" href="#def:Hopac.Scheduler.Create.MaxStackSize">MaxStackSize</a><b>:</b> option&lt;int&gt;
+      <a id="dec:Hopac.Scheduler.Create.NumWorkers" href="#def:Hopac.Scheduler.Create.NumWorkers">NumWorkers</a><b>:</b> option&lt;int&gt;
+      <a id="dec:Hopac.Scheduler.Create.Priority" href="#def:Hopac.Scheduler.Create.Priority">Priority</a><b>:</b> option&lt;System.Threading.ThreadPriority&gt;
+      <a id="dec:Hopac.Scheduler.Create.TopLevelHandler" href="#def:Hopac.Scheduler.Create.TopLevelHandler">TopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt;
     <b>}</b>
     <b>static</b> <b>member</b> <a id="dec:Hopac.Scheduler.Create.Def" href="#def:Hopac.Scheduler.Create.Def">Def</a><b>:</b> Create
   <b>val</b> <a id="dec:Hopac.Scheduler.create" href="#def:Hopac.Scheduler.create">create</a><b>:</b> Create <b>-&gt;</b> Scheduler
@@ -899,17 +902,29 @@
 <pre><b>type</b> <a id="def:Hopac.Scheduler.Create" href="#dec:Hopac.Scheduler.Create">Create</a> =
 </pre>
 <blockquote><p>A record of scheduler configuration options.</p>
-<pre><a id="def:Hopac.Scheduler.Create.NumWorkers" href="#dec:Hopac.Scheduler.Create.NumWorkers">NumWorkers</a><b>:</b> option&lt;int&gt;
+<pre><a id="def:Hopac.Scheduler.Create.Foreground" href="#dec:Hopac.Scheduler.Create.Foreground">Foreground</a><b>:</b> option&lt;bool&gt;
 </pre>
-<blockquote><p>Number of worker threads.  Using more than <code>Environment.ProcessorCount</code> is not optimal and may, in some cases, significantly reduce performance.  The default is <code>Environment.ProcessorCount</code>.</p>
-</blockquote>
-<pre><a id="def:Hopac.Scheduler.Create.TopLevelHandler" href="#dec:Hopac.Scheduler.Create.TopLevelHandler">TopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt;
-</pre>
-<blockquote><p>Specifies the top level exception handler job constructor of the scheduler.  When a job fails with an otherwise unhandled exception, the job is killed and a new job is constructed with the top level handler constructor and then started.  To avoid infinite loops, in case the top level handler job raises exceptions, it is simply killed after printing a message to the console.  The default top level handler simply prints out a message to the console.</p>
+<blockquote><p>Specifies whether worker threads are run as background threads or as foreground threads.  The default is to run workers as background threads.  If you want to run worker threads as foreground threads, then you will have to explicitly kill the worker threads.  Using foreground threads is probably preferable if your application dynamically creates and kills local schedulers to make sure the worker threads are properly killed.</p>
 </blockquote>
 <pre><a id="def:Hopac.Scheduler.Create.IdleHandler" href="#dec:Hopac.Scheduler.Create.IdleHandler">IdleHandler</a><b>:</b> option&lt;Job&lt;int&gt;&gt;
 </pre>
 <blockquote><p>Specifies the idle handler for workers.  The worker idle handler is run whenever an individual worker runs out of work.  The idle handler must return an integer value that specifies how many milliseconds the worker is allowed to sleep.  <code>Timeout.Infinite</code> puts the worker into sleep until the scheduler explicitly wakes it up.  <code>0</code> means that the idle handler found some new work and the worker should immediately look for it.</p>
+</blockquote>
+<pre><a id="def:Hopac.Scheduler.Create.MaxStackSize" href="#dec:Hopac.Scheduler.Create.MaxStackSize">MaxStackSize</a><b>:</b> option&lt;int&gt;
+</pre>
+<blockquote><p>Specifies the maximum stack size for worker threads.  The default is to use the default maximum stack size of the <code>Thread</code> class.</p>
+</blockquote>
+<pre><a id="def:Hopac.Scheduler.Create.NumWorkers" href="#dec:Hopac.Scheduler.Create.NumWorkers">NumWorkers</a><b>:</b> option&lt;int&gt;
+</pre>
+<blockquote><p>Number of worker threads.  Using more than <code>Environment.ProcessorCount</code> is not optimal and may, in some cases, significantly reduce performance.  The default is <code>Environment.ProcessorCount</code>.</p>
+</blockquote>
+<pre><a id="def:Hopac.Scheduler.Create.Priority" href="#dec:Hopac.Scheduler.Create.Priority">Priority</a><b>:</b> option&lt;System.Threading.ThreadPriority&gt;
+</pre>
+<blockquote><p>Specifies the priority of the worker threads.  The default is to use <code>Normal</code> priority.</p>
+</blockquote>
+<pre><a id="def:Hopac.Scheduler.Create.TopLevelHandler" href="#dec:Hopac.Scheduler.Create.TopLevelHandler">TopLevelHandler</a><b>:</b> option&lt;exn <b>-&gt;</b> Job&lt;unit&gt;&gt;
+</pre>
+<blockquote><p>Specifies the top level exception handler job constructor of the scheduler.  When a job fails with an otherwise unhandled exception, the job is killed and a new job is constructed with the top level handler constructor and then started.  To avoid infinite loops, in case the top level handler job raises exceptions, it is simply killed after printing a message to the console.  The default top level handler simply prints out a message to the console.</p>
 </blockquote>
 <pre><b>static</b> <b>member</b> <a id="def:Hopac.Scheduler.Create.Def" href="#dec:Hopac.Scheduler.Create.Def">Def</a><b>:</b> Create
 </pre>

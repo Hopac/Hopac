@@ -47,3 +47,6 @@ module SelectableQueue =
       Alt.withNack <| fun nack ->
       let replyCh = ch ()
       q.TakeCh <-- (p, nack, replyCh) >>% upcast replyCh
+
+  let inline send q x = Alt.send q x :> Job<_>
+  let inline take q p = Alt.take q p :> Job<_>

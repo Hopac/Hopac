@@ -18,6 +18,13 @@ module SelectableQueue =
   /// Creates a new selectable queue.
   val create: unit -> Job<SelectableQueue<'a>>
 
+  /// Creates a job that sends the given message to the selectable queue.
+  val inline send: SelectableQueue<'a> -> 'a -> Job<unit>
+
+  /// Constructs a job that takes a message that satisfies the given predicate
+  /// from the specified selectable queue.
+  val inline take: SelectableQueue<'a> -> ('a -> bool) -> Job<'a>
+
   /// Selective operations on selectable queues.
   module Alt =
     /// Constructs an alternative that sends the given message to the selectable

@@ -14,8 +14,10 @@ module SwapCh =
   module Now =
     let create () = SwapCh (ch ())
   let create () = Job.thunk Now.create
-  let swap (SwapCh sCh) (msgOut: 'a) : Alt<'a> =
-    (sCh >>=? fun (msgIn, outCh) -> outCh <-- msgOut >>% msgIn) <|>
-    (Alt.delay <| fun () ->
-     let inCh = ch ()
-     sCh <-? (msgOut, inCh) >>.? inCh)
+  module Alt =
+    let swap (SwapCh sCh) (msgOut: 'a) : Alt<'a> =
+      (sCh >>=? fun (msgIn, outCh) -> outCh <-- msgOut >>% msgIn) <|>
+      (Alt.delay <| fun () ->
+       let inCh = ch ()
+       sCh <-? (msgOut, inCh) >>.? inCh)
+  let inline swap sCh x = Alt.swap sCh x :> Job<_>
