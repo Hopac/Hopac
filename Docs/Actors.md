@@ -231,11 +231,11 @@ let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI <-= r
 Consider the following echo agent:
 
 ```fsharp
-type Echo<'a> = Echo of AsyncReplyChannel<'a> 
+type Echo<'x> = Echo of 'x * AsyncReplyChannel<'x>
 let echo () = MailboxProcessor.Start <| fun inbox -> async {
   while true do
-    let! Echo arc = inbox.Receive ()
-    do arc.Reply ()
+    let! Echo (x, xArc) = inbox.Receive ()
+    do xArc.Reply x
 }
 ```
 
@@ -243,11 +243,11 @@ Using the previously defined combinators, we could express a similar agent as
 follows:
 
 ```fsharp
-type Echo<'a> = Echo of IVar<'a>
+type Echo<'x> = Echo of 'x * IVar<'x>
 let echo () = actor <| fun inbox -> job {
   while true do
-    let! Echo iv = receive inbox
-    do! reply iv ()
+    let! Echo (x, xI) = receive inbox
+    do! reply xI x
 }
 ```
 
@@ -270,9 +270,9 @@ and possibly more concisely.  For example, here is a more concise implementation
 of the above echo example using operations directly available with Hopac:
 
 ```fsharp
-type Echo<'a> = Echo of IVar<'a>
+type Echo<'x> = Echo of 'x * IVar<'x>
 let echo () = actor <| fun mb ->
-  Job.forever (mb >>= fun (Echo iv) -> iv <-= ())
+  Job.forever (mb >>= fun (Echo (x, xI)) -> xI <-= x)
 ```
 
 Aside from being more concise, this version is also likely to be faster.
