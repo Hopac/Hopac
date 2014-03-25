@@ -170,7 +170,8 @@ More practical actor style programming in Hopac
 A merit of many of the actor models is that due to the marriage of threads and
 mailboxes within those models there are often idiomatic ways to structure
 programs.  The model provided by Hopac, due to the separation of threads and
-channels, often allows for many more ways to structure computations.  In this
+channels, often allows for many more ways to structure computations and while
+such flexibility can be advantageous it can also be overwhelming.  In this
 section, we'll consider how some actor style idioms might translate to practical
 programming styles in Hopac.
 
