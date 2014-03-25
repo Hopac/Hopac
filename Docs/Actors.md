@@ -38,13 +38,15 @@ What is the model provided by Hopac?
 Unlike those actor models, Hopac and
 [Concurrent ML](http://en.wikipedia.org/wiki/Concurrent_ML), which is the
 inspiration behind Hopac, provide a model in which threads of execution and
-means of communication are separate similar to
+means of communication are separate similar to the
 [π-calculus](http://en.wikipedia.org/wiki/%CE%A0-calculus).  In Hopac, threads
 of execution are called *jobs* and various communication primitives, such as,
-synchronous *channels*, asynchronous *mailboxes*, synchronous write once *ivars*
-and write many *mvars* variables are provided.  In addition, a form of
-*selective communication* called *alternatives* is provided that allows the
-expression of first-class synchronous abstractions.
+synchronous *channels*, asynchronous *mailboxes*, synchronous write once *ivar*
+and write many *mvar* variables are provided.  In addition, a form of *selective
+communication* called *alternatives* is provided that allows the expression of
+first-class synchronous abstractions.  The document
+[Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
+contains some discussion and examples on Hopac programming techniques.
 
 Unlike the way actor models combine a thread of execution and a mailbox into an
 actor, in Hopac, a single concurrent job may be receiving messages via any
@@ -82,9 +84,10 @@ channels can be created using **ch** and different channels may have different
 types.  Within a thread of execution one can then perform **give** and **take**
 operations on channels.  Both **give** and **take** operations are synchronous
 and block the executing job until the other party of the communication is
-present and the operation can be completed.  Note that the above signature
-snippet is not a precise subset of Hopac and that Hopac provides a much more
-comprehensive model as described in the
+present and the operation can be completed.
+
+Please note that the above signature snippet is not a precise subset of Hopac
+and that Hopac provides a much more comprehensive model as described in the
 [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
 manual.
 
@@ -228,12 +231,11 @@ Consider the following echo agent:
 
 ```fsharp
 type Echo<'a> = Echo of AsyncReplyChannel<'a> 
-let echo () =
-  MailboxProcessor.Start <| fun inbox -> async {
-    while true do
-      let! Echo arc = inbox.Receive ()
-      do arc.Reply ()
-  }
+let echo () = MailboxProcessor.Start <| fun inbox -> async {
+  while true do
+    let! Echo arc = inbox.Receive ()
+    do arc.Reply ()
+}
 ```
 
 Using the previously defined combinators, we could express a similar agent as
@@ -272,5 +274,4 @@ let echo () = actor <| fun mb ->
   Job.forever (mb >>= fun (Echo iv) -> iv <-= ())
 ```
 
-Aside from being more concise, this version is also likely to be significantly
-faster.
+Aside from being more concise, this version is also likely to be faster.
