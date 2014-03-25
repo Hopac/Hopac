@@ -112,8 +112,13 @@ thread is started using **start**, which also returns a handle for sending
 messages to the actor using the **send** function.  The **send** operation is
 asynchronous and does not block.  If the destination of a **send** operation is
 not immediately ready to receive the message, then that message is queued to the
-mailbox of the actor.  Note that the above sketch of an actor model does not
-attempt to precisely capture any specific actor model such as Akka or Erlang.
+mailbox of the actor.
+
+Please note that the above sketch of an actor model does not attempt to
+precisely capture any specific actor model such as Akka or Erlang.  Like the
+actual model provided by the Hopac library and the model specified in the
+HopacModel signature, the above ActorModel is also drastically simpler than many
+actual actor models.
 
 ### Encoding the actor model using Hopac
 
@@ -155,3 +160,66 @@ possible to implement actor models and program in actor model like styles
 directly within Hopac.  While the above uses the actual Hopac library, so that
 you can directly compile the above code, it makes no use of any primitives in
 Hopac beyond what is in the previous HopacModel signature.
+
+More practical actor style programming in Hopac
+-----------------------------------------------
+
+A merit of many the actor models is that due to the marriage of threads and
+mailboxes within those models there are often idiomatic ways to structure
+programs.  The model provided by Hopac, due to the separation threads and
+channels, often allows for many more ways to structure computations.  In this
+section, we'll consider how some actor style idioms might translate to practical
+programming styles in Hopac.
+
+### Mailbox processor
+
+Let's start by implementing something similar to a subset of the F#
+MailboxProcessor within Hopac.  We'll just define an actor as an asynchronous
+mailbox:
+
+```fsharp
+type Actor<'m> = Mailbox<'m>
+```
+
+To start an actor, we use a helper function that constructs a job that creates a
+mailbox and starts a job with that mailbox:
+
+```fsharp
+let actor (body: Mailbox<'m> -> Job<unit>) : Job<Actor<'m>> = Job.delay <| fun () ->
+  let mA = mb ()
+  Job.start (body mA) >>% mA
+```
+
+For sending messages to an actor started with the help of **actor**, we can
+simply use the operations provided for mailboxes.  But let's make that a bit
+more concrete:
+
+```fsharp
+let post (mA: Actor<'m>) (m: 'm) : Job<unit> = mA <<-+ m
+```
+
+To allow an actor to provide a reply to a message, we can, similar to
+MailboxProcessor, send the actor a message passing object of some kind.  In
+Hopac we could use one of many different message passing objects.  Closest to
+the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
+would be in IVar.
+
+```fsharp
+let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->
+  let i = ivar ()
+  mA <<-+ i2m i >>. i
+```
+
+To reply to a message, the agent then needs to write to the given **IVar**:
+
+```fsharp
+let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI <-= r
+```
+
+This is just a small sketch and omits many features of the MailboxProcessor.
+You could continue extending these snippets to quite straightforwardly add
+support for most of what the MailboxProcessor provides, including features such
+as error events.  In most cases, however, there is no practical need to work
+like that.  While the above **actor** and **postAndReply** functions could be
+handy shortcuts in some cases, most of the other operations are readily
+available within Hopac or similar functionality can be expressed more flexibly.
