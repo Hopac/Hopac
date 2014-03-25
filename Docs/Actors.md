@@ -153,7 +153,7 @@ encoding, that is, an implementation of the **HopacModel** using the
 **ActorModel**, is left as an exercise for the reader.
 
 Please note that the above is not meant to demonstrate a practical way to do
-actor style programming in Hopac.  The above is meant as an illustrative,
+actor style programming in Hopac.  The above is meant as an illustrative
 encoding that hopefully helps to understand both models.  The above encoding is
 not very practical, because it is very inefficient in a number of ways and it is
 possible to implement actor models and program in actor model like styles
@@ -166,12 +166,12 @@ More practical actor style programming in Hopac
 
 A merit of many the actor models is that due to the marriage of threads and
 mailboxes within those models there are often idiomatic ways to structure
-programs.  The model provided by Hopac, due to the separation threads and
+programs.  The model provided by Hopac, due to the separation of threads and
 channels, often allows for many more ways to structure computations.  In this
 section, we'll consider how some actor style idioms might translate to practical
 programming styles in Hopac.
 
-### Mailbox processor
+### MailboxProcessor
 
 Let's start by implementing something similar to a subset of the F#
 MailboxProcessor within Hopac.  We'll just define an actor as an asynchronous
@@ -202,7 +202,7 @@ To allow an actor to provide a reply to a message, we can, similar to
 MailboxProcessor, send the actor a message passing object of some kind.  In
 Hopac we could use one of many different message passing objects.  Closest to
 the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
-would be in IVar.
+would be in IVar:
 
 ```fsharp
 let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->
