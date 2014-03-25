@@ -32,14 +32,17 @@ let destination ch =
 
 let client count ch finished =
     let rec loop = function
-        | 0, 0 -> Job.result (0, 0)
+        | 0, 1 -> Ch.take ch
         | sent, received ->
-            Alt.select [
-                Ch.Alt.take ch >>=? fun () -> loop (sent, received - 1)
-                Ch.Alt.give ch () >>=? fun () -> loop (sent - 1, received)
-            ]
-    loop (count, count)
-    >>. Ch.give finished ()
+            Job.delay (fun () ->
+                Ch.take ch
+                >>= Ch.give ch
+                >>. loop (sent - 1, received - 1)
+            )
+
+    Ch.give ch ()
+    >>. loop (count - 1, count)
+    >>= Ch.give finished
     |> Job.start
 
 let benchmark actorPairs =
