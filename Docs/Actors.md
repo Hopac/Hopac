@@ -216,6 +216,35 @@ To reply to a message, the agent then needs to write to the given **IVar**:
 let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI <-= r
 ```
 
+Consider the following echo agent:
+
+```fsharp
+type Echo<'a> = Echo of AsyncReplyChannel<'a> 
+let echo () =
+  MailboxProcessor.Start <| fun inbox -> async {
+    while true do
+      let! Echo arc = inbox.Receive ()
+      do arc.Reply ()
+  }
+```
+
+Using the previously defined combinators, we could express a similar agent as
+follows:
+
+```fsharp
+type Echo<'a> = Echo of IVar<'a>
+let echo () = actor <| fun mb ->
+  Job.forever (mb >>= fun (Echo iv) -> iv <-= ())
+```
+
+One difference in the MailboxProcessor like operations implemented with Hopac
+here is they return jobs that then need to be run.  This is intentional.  The
+implementation of Hopac is such that the concurrent operations within Hopac run
+fastest when they are executed by worker threads of a Hopac scheduler.  Running
+individual concurrent operations outside of workers incurs potentially
+significant overheads.  Therefore the operations sketched here return jobs that
+can then potentially be composed into longer jobs to run.
+
 This is just a small sketch and omits many features of the MailboxProcessor.
 You could continue extending these snippets to quite straightforwardly add
 support for most of what the MailboxProcessor provides, including features such
