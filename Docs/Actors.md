@@ -10,7 +10,7 @@ Hopac have?
 What are actors?
 ----------------
 
-It is somewhat difficult to pin down what exactly are actors, because there are
+It is somewhat difficult to pin down what exactly actors are, because there are
 many different incarnations of actors.  For example,
 [Erlang](http://www.erlang.org/) is often called an actor language and
 [Akka](http://akka.io/) could be called an actor library.  While there are
@@ -39,11 +39,11 @@ Unlike those actor models, Hopac and
 [Concurrent ML](http://en.wikipedia.org/wiki/Concurrent_ML), which is the
 inspiration behind Hopac, provide a model in which threads of execution and
 means of communication are separate similar to
-[&piv;-calculus](http://en.wikipedia.org/wiki/%CE%A0-calculus).  In Hopac,
-threads of execution are called *jobs* and various communication primitives,
-such as, synchronous *channels*, asynchronous *mailboxes*, synchronous write
-once *ivars* and write many *mvars* variables are provided.  In addition, a form
-of *selective communication* called *alternatives* is provided that allows the
+[π-calculus](http://en.wikipedia.org/wiki/%CE%A0-calculus).  In Hopac, threads
+of execution are called *jobs* and various communication primitives, such as,
+synchronous *channels*, asynchronous *mailboxes*, synchronous write once *ivars*
+and write many *mvars* variables are provided.  In addition, a form of
+*selective communication* called *alternatives* is provided that allows the
 expression of first-class synchronous abstractions.
 
 Unlike the way actor models combine a thread of execution and a mailbox into an
@@ -77,9 +77,9 @@ module HopacModel =
 ```
 
 Using the monadic operations, **>>=** and **result**, one can define a thread of
-execution and that thread can be started with **start**.  Any number of channels
-can be created using **ch** and different channels may have different types.
-Within a thread of execution one can then perform **give** and **take**
+execution and such threads can be started with **start**.  Any number of
+channels can be created using **ch** and different channels may have different
+types.  Within a thread of execution one can then perform **give** and **take**
 operations on channels.  Both **give** and **take** operations are synchronous
 and block the executing job until the other party of the communication is
 present and the operation can be completed.  Note that the above signature
@@ -127,7 +127,7 @@ module ActorModel =
   let unAT (AT x) = x
   let (>>=) (xA: ActorThread<'a, 'x>)
             (x2yA: 'x -> ActorThread<'a, 'y>) : ActorThread<'a, 'y> =
-    AT (fun aCh -> Job.Infixes.(>>=) (unAT xA aCh) (fun x -> unAT (x2yA x) aCh))
+    AT (fun aCh -> Job.Infixes.(&gt;&gt;=) (unAT xA aCh) (fun x -> unAT (x2yA x) aCh))
   let result (x: 'x) : ActorThread<'a, 'x> =
     AT (fun aCh -> Job.result x)
   let receive : ActorThread<'a, 'a> =
@@ -142,14 +142,16 @@ module ActorModel =
     Job.Global.start (Ch.give (unA aA) a)
 ```
 
-Please note that the above is not meant to be a practical, but rather an
-illustrative, encoding that hopefully helps to understand both models.
+As can be seen above, it is fairly straightforward to encode an actor model
+using only a small subset of Hopac.  The reverse encoding, that is, an
+implementation of the **HopacModel** using the **ActorModel**, is left as an
+exercise for the reader.
 
-The above encoding is very inefficient in a number of ways and it is possible to
-implement actor models and program in actor model like styles directly within
-Hopac.  While the above uses the actual Hopac library, so that you can directly
-compile the above code, it makes no use of any primitives in Hopac beyond what
-is in the previous HopacModel signature.
-
-Now, as an instructive exercise for the reader, consider how you might do the
-reverse, that is, implement the HopacModel using the ActorModel.
+Please note that the above is not meant to demonstrate a practical way to do
+actor style programming in Hopac.  The above is meant as an illustrative,
+encoding that hopefully helps to understand both models.  The above encoding is
+not very practical, because it is very inefficient in a number of ways and it is
+possible to implement actor models and program in actor model like styles
+directly within Hopac.  While the above uses the actual Hopac library, so that
+you can directly compile the above code, it makes no use of any primitives in
+Hopac beyond what is in the previous HopacModel signature.
