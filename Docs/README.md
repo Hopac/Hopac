@@ -1,10 +1,11 @@
 Here you will find documents describing Hopac.
 
-* [Programming in
-  Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
-  contains some discussion and examples on Hopac programming
-  techniques. In the future, this document might grow to a proper
-  introduction to Hopac.
+* [Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
+  contains some discussion and examples on Hopac programming techniques.  In the
+  future, this document might grow to a proper introduction to Hopac.
+* [Actors and Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Actors.md)
+  discusses the similaries and differences between actor models and the
+  programming model provided by Hopac.
 * [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
   manual is generated from the Hopac library source code.
 * [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)

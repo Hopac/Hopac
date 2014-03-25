@@ -40,8 +40,11 @@ discuss programming in Concurrent ML or languages inspired by it.
 
 The document
 [Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
-contains some notes and examples on programming with Hopac.  Feedback on the
-document is welcome!  There is also a
+contains some notes and examples on programming with Hopac.  The document
+[Actors and Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Actors.md)
+discusses the similaries and differences between actor models and the
+programming model provided by Hopac.  Feedback on these documents is welcome!
+There is also a
 [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
 manual generated from the Hopac library sources and the
 [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
