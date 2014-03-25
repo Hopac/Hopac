@@ -26,7 +26,7 @@ some form implicitly takes messages from the mailbox associated with the actor.
 
 To confuse the matter further, the
 [MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx)
-abstraction, also often described as an actor model, provided with F# async
+abstraction, also often described as an actor model, provided with the F# async
 model gives an explicit name to the mailbox.  However, the MailboxProcessor
 model requires that there is at most one concurrent reader of a particular
 MailboxProcessor active at any moment.  This means that a MailboxProcessor is
@@ -125,9 +125,8 @@ using Hopac:
 module ActorModel =
   type ActorThread<'a, 'x> = AT of (Ch<'a> -> Job<'x>)
   let unAT (AT x) = x
-  let (>>=) (xA: ActorThread<'a, 'x>)
-            (x2yA: 'x -> ActorThread<'a, 'y>) : ActorThread<'a, 'y> =
-    AT (fun aCh -> Job.Infixes.(&gt;&gt;=) (unAT xA aCh) (fun x -> unAT (x2yA x) aCh))
+  let (>>=) (xA: ActorThread<'a, 'x>) (x2yA: 'x -> ActorThread<'a, 'y>) : ActorThread<'a, 'y> =
+    AT (fun aCh -> unAT xA aCh >>= fun x -> unAT (x2yA x) aCh)
   let result (x: 'x) : ActorThread<'a, 'x> =
     AT (fun aCh -> Job.result x)
   let receive : ActorThread<'a, 'a> =
@@ -143,9 +142,10 @@ module ActorModel =
 ```
 
 As can be seen above, it is fairly straightforward to encode an actor model
-using only a small subset of Hopac.  The reverse encoding, that is, an
-implementation of the **HopacModel** using the **ActorModel**, is left as an
-exercise for the reader.
+using only a small subset of Hopac.  (Note that the **>>=** operation used
+within the definition of **>>=** is the Hopac bind operation.)  The reverse
+encoding, that is, an implementation of the **HopacModel** using the
+**ActorModel**, is left as an exercise for the reader.
 
 Please note that the above is not meant to demonstrate a practical way to do
 actor style programming in Hopac.  The above is meant as an illustrative,
