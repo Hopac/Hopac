@@ -164,7 +164,7 @@ Hopac beyond what is in the previous HopacModel signature.
 More practical actor style programming in Hopac
 -----------------------------------------------
 
-A merit of many the actor models is that due to the marriage of threads and
+A merit of many of the actor models is that due to the marriage of threads and
 mailboxes within those models there are often idiomatic ways to structure
 programs.  The model provided by Hopac, due to the separation of threads and
 channels, often allows for many more ways to structure computations.  In this
@@ -175,7 +175,7 @@ programming styles in Hopac.
 
 Let's start by implementing something similar to a subset of the F#
 MailboxProcessor within Hopac.  We'll just define an actor as an asynchronous
-mailbox:
+[Mailbox](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:Hopac.Mailbox%3C%27x%3E):
 
 ```fsharp
 type Actor<'m> = Mailbox<'m>
@@ -190,6 +190,13 @@ let actor (body: Mailbox<'m> -> Job<unit>) : Job<Actor<'m>> = Job.delay <| fun (
   Job.start (body mA) >>% mA
 ```
 
+Within the body of an actor, the actor can simply receive messages from the
+mailbox.  Let's make that a bit more concrete:
+
+```fsharp
+let receive (mA: Mailbox<'m>) : Job<'m> = Mailbox.take mA
+```
+
 For sending messages to an actor started with the help of **actor**, we can
 simply use the operations provided for mailboxes.  But let's make that a bit
 more concrete:
@@ -202,7 +209,8 @@ To allow an actor to provide a reply to a message, we can, similar to
 MailboxProcessor, send the actor a message passing object of some kind.  In
 Hopac we could use one of many different message passing objects.  Closest to
 the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
-would be in IVar:
+would be in
+[IVar](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:Hopac.IVar%3C%27x%3E):
 
 ```fsharp
 let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->
@@ -233,8 +241,11 @@ follows:
 
 ```fsharp
 type Echo<'a> = Echo of IVar<'a>
-let echo () = actor <| fun mb ->
-  Job.forever (mb >>= fun (Echo iv) -> iv <-= ())
+let echo () = actor <| fun inbox -> job {
+  while true do
+    let! Echo iv = receive inbox
+    do! reply iv ()
+}
 ```
 
 One difference in the MailboxProcessor like operations implemented with Hopac
@@ -251,4 +262,15 @@ support for most of what the MailboxProcessor provides, including features such
 as error events.  In most cases, however, there is no practical need to work
 like that.  While the above **actor** and **postAndReply** functions could be
 handy shortcuts in some cases, most of the other operations are readily
-available within Hopac or similar functionality can be expressed more flexibly.
+available within Hopac or similar functionality can be expressed more flexibly
+and possibly more concisely.  For example, here is a more concise implementation
+of the above echo example using operations directly available with Hopac:
+
+```fsharp
+type Echo<'a> = Echo of IVar<'a>
+let echo () = actor <| fun mb ->
+  Job.forever (mb >>= fun (Echo iv) -> iv <-= ())
+```
+
+Aside from being more concise, this version is also likely to be significantly
+faster.
