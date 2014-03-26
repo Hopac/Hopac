@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac.Extra</id>
-    <version>0.0.0.2</version>
+    <version>0.0.0.3</version>
     <title>Hopac.Extra</title>
     <summary>Additional utilities for programming with Hopac: A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -19,7 +19,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Libs\Hopac.Extra\bin\Release\Hopac.Extra.dll" target="lib\net451" />
-    <file src="Libs\Hopac.Extra\bin\Release\Hopac.Extra.xml" target="lib\net451" />
+    <file src="..\Libs\Hopac.Extra\bin\Release\Hopac.Extra.dll" target="lib\net451" />
+    <file src="..\Libs\Hopac.Extra\bin\Release\Hopac.Extra.xml" target="lib\net451" />
   </files>
 </package>

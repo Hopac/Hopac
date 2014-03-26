@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac</id>
-    <version>0.0.0.4</version>
+    <version>0.0.0.5</version>
     <title>Hopac</title>
     <summary>A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -16,9 +16,9 @@
     <tags>f# fsharp parallel async concurrent</tags>
   </metadata>
   <files>
-    <file src="Libs\Hopac\bin\Release\Hopac.Core.dll" target="lib\net451" />
-    <file src="Libs\Hopac\bin\Release\Hopac.Core.xml" target="lib\net451" />
-    <file src="Libs\Hopac\bin\Release\Hopac.dll" target="lib\net451" />
-    <file src="Libs\Hopac\bin\Release\Hopac.xml" target="lib\net451" />
+    <file src="..\Libs\Hopac\bin\Release\Hopac.Core.dll" target="lib\net451" />
+    <file src="..\Libs\Hopac\bin\Release\Hopac.Core.xml" target="lib\net451" />
+    <file src="..\Libs\Hopac\bin\Release\Hopac.dll" target="lib\net451" />
+    <file src="..\Libs\Hopac\bin\Release\Hopac.xml" target="lib\net451" />
   </files>
 </package>
