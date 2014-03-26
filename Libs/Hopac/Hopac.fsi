@@ -268,7 +268,7 @@ module Job =
   val forever: Job<_> -> Job<_>
 
   /// Creates a job that indefinitely iterates the given job constructor
-  /// starting with the given value.  More precisely, "iter x x2xJ" is
+  /// starting with the given value.  More precisely, "iterate x x2xJ" is
   /// equivalent to "let rec lp x = x2xJ x >>= lp in lp x".  It is a common
   /// programming pattern to use server jobs that loop indefinitely and
   /// communicate with clients via channels.  When a job is blocked waiting for
@@ -765,11 +765,11 @@ module Extensions =
   /// Operations for interfacing tasks with jobs.
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
-    /// the result of the task.  Note that this does not start the job.
+    /// the result of the task.  Note that this does not start the task.
     static member inline awaitJob: Threading.Tasks.Task<'x> -> Job<'x>
 
     /// Creates a job that waits until the given task finishes.  Note that this
-    /// does not start the job.
+    /// does not start the task.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
 
 ///////////////////////////////////////////////////////////////////////////////
