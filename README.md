@@ -43,9 +43,9 @@ examples on programming with Hopac.  The document
 [Actors and Hopac](Docs/Actors.md) discusses the similaries and differences
 between actor models and the programming model provided by Hopac.  Feedback on
 these documents is welcome!  There is also a
-[Hopac Library Reference](http://htmlpreview.github.io/?Docs/Hopac.html) manual
-generated from the Hopac library sources and the
-[Hopac.Extra Library Reference](http://htmlpreview.github.io/?Docs/Hopac.Extra.html)
+[Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
+manual generated from the Hopac library sources and the
+[Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
 manual is generated from the Hopac.Extra library sources.  There are also some
 [Notes on the Internal Implementation of Hopac](Docs/Internals.md), but that
 document is not meant to be something that a user of the library would need to
