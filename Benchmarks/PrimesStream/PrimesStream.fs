@@ -89,25 +89,23 @@ module HopacCh =
 module HopacPromise =
   type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Promise<Stream<'a>>}
 
-  let rec iterate (step: 'a -> 'a) (init: 'a) : Job<Stream<_>> =
-    Job.result
-     {Value = init;
-      Next = Promise.Now.delay (Job.delay <| fun () -> iterate step (step init))}
+  let rec iterate (step: 'a -> 'a) (init: 'a) : Job<Stream<_>> = Job.thunk <| fun () ->
+    {Value = init;
+     Next = Promise.Now.delay (iterate step (step init))}
 
   let rec filter (pred: 'a -> bool) (xs: Stream<'a>) : Job<Stream<'a>> =
-    let next = Promise.read xs.Next >>= filter pred
+    let next = xs.Next >>= filter pred
     if pred xs.Value then
       Job.result {Value = xs.Value; Next = Promise.Now.delay next}
     else
       next
 
   let sieve : Job<Stream<_>> =
-    let rec sieve nats =
+    let rec sieve nats = Job.thunk <| fun () ->
       let prime = nats.Value
-      Job.result
-       {Value = prime;
-        Next =
-         Promise.Now.delay (Promise.read nats.Next >>= filter (fun x -> x % prime <> 0) >>= sieve)}
+      {Value = prime;
+       Next =
+        Promise.Now.delay (nats.Next >>= filter (fun x -> x % prime <> 0) >>= sieve)}
     iterate (fun x -> x+1) 2 >>= sieve
     
   let primes n = Job.delay <| fun () ->
@@ -115,7 +113,7 @@ module HopacPromise =
     let rec loop i primes =
       if i < n then
         result.[i] <- primes.Value
-        Promise.read primes.Next >>= loop (i+1)
+        primes.Next >>= loop (i+1)
       else
         Job.result result
     sieve >>= loop 0
