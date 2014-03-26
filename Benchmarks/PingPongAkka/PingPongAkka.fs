@@ -2,6 +2,13 @@
 open Hopac
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
+open System.Management
+
+let cpuInfo source field =
+    use ma = new ManagementObjectSearcher(sprintf "select * from %s" source)
+    ma.Get()
+    |> Seq.cast<ManagementBaseObject>
+    |> Seq.sumBy (fun x -> x.[field] |> string |> int)
 
 let workerThreads, _ = System.Threading.ThreadPool.GetAvailableThreads()
 
@@ -14,13 +21,15 @@ printfn "Hopac port"
 gray()
 printfn "Worker threads: %i" workerThreads
 printfn "OSVersion: %A" Environment.OSVersion
-printfn "ProcessorCount: %A" Environment.ProcessorCount
+printfn "ProcessorCount: %i (%i)" (cpuInfo "Win32_Processor" "NumberOfCores") (cpuInfo "Win32_ComputerSystem" "NumberOfLogicalProcessors")
 printfn "ClockSpeed: %s MHZ" (
     try
-        use mo = new System.Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
+        use mo = new ManagementObject("Win32_Processor.DeviceID='CPU0'")
         string mo.["CurrentClockSpeed"]
     with _ -> "0"
 )
+
+
 printfn "Throughput Setting: 1\n"
 printfn "Actor count, Messages/sec"
 
