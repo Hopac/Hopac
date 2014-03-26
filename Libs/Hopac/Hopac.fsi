@@ -632,7 +632,7 @@ module Mailbox =
 
   /// Selective operations on buffered mailboxes.
   module Alt =
-    /// Creates and alternative that becomes available for picking when the
+    /// Creates an alternative that becomes available for picking when the
     /// mailbox contains at least one value and, if committed to, takes a value
     /// from the mailbox.
     val inline take: Mailbox<'x> -> Alt<'x>
