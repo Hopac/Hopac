@@ -615,8 +615,8 @@ One unfortunate thing in the above example is that the program returns
 immediately and the two jobs keep running in the background.  The **Job.start**
 primitive doesn't implicitly provide for any way to wait for the started job to
 finish.  This is intentional, because it is quite common to start jobs that
-don't need to return.  Hopac **Promise**s allow a parent job to wait for child
-jobs:
+don't need to return.  A **Promise** allows a parent job to wait for a child
+job:
 
 ```fsharp
 > run <| job {
