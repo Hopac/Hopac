@@ -45,8 +45,8 @@ synchronous *channels*, asynchronous *mailboxes*, synchronous write once *ivar*
 and write many *mvar* variables are provided.  In addition, a form of *selective
 communication* called *alternatives* is provided that allows the expression of
 first-class synchronous abstractions.  The document
-[Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
-contains some discussion and examples on Hopac programming techniques.
+[Programming in Hopac](Programming.md) contains some discussion and examples on
+Hopac programming techniques.
 
 Unlike the way actor models combine a thread of execution and a mailbox into an
 actor, in Hopac, a single concurrent job may be receiving messages via any

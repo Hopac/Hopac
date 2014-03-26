@@ -13,8 +13,9 @@ jobs using a work distributing scheduler in a non-preemptive fashion.
 License
 -------
 
-Hopac is licensed under a MIT-style license.  See [LICENSE.md](LICENSE.md) for
-details.
+Hopac is available under a
+[MIT-style license](http://en.wikipedia.org/wiki/MIT_License).  See
+[LICENSE.md](LICENSE.md) for details.
 
 Download
 --------
