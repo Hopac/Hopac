@@ -168,7 +168,7 @@ namespace Hopac {
         var pr = this.pr;
       Spin:
         var state = pr.State;
-        if (state == Locked) goto Spin;
+        if (state > Running) goto Spin;
         if (Running != Interlocked.CompareExchange(ref pr.State, Locked, Running)) goto Spin;
 
         var readers = pr.Readers;
@@ -204,7 +204,7 @@ namespace Hopac {
         pr.Value = v;
       Spin:
         var state = pr.State;
-        if (state == Locked) goto Spin;
+        if (state > Running) goto Spin;
         if (Running != Interlocked.CompareExchange(ref pr.State, Completed, Running)) goto Spin;
 
         var readers = pr.Readers;
