@@ -24,26 +24,40 @@ printfn "ClockSpeed: %s MHZ" (
 printfn "Throughput Setting: 1\n"
 printfn "Actor count, Messages/sec"
 
-let destination ch =
-    Ch.take ch
-    >>= Ch.give ch
-    |> Job.forever
-    |> Job.server
+let inline curry f a b = f (a, b)
+let inline uncurry f (a, b) = f a b
 
-let client count ch finished =
-    let rec loop = function
-        | 0, 1 -> Ch.take ch
-        | sent, received ->
-            Job.delay (fun () ->
-                Ch.take ch
-                >>= Ch.give ch
-                >>. loop (sent - 1, received - 1)
-            )
+let destination() =
+    job {
+        let! incoming = Ch.create()
 
-    Ch.give ch ()
-    >>. loop (count - 1, count)
-    >>= Ch.give finished
-    |> Job.start
+        do! Ch.take incoming
+            >>= uncurry Ch.give
+            |> Job.foreverServer
+
+        return incoming
+    }
+
+let client count destination finished =
+    job {
+        let! reply = Ch.create()
+        let give = curry (Ch.give destination) reply
+
+        let rec loop = function
+            | 0, 1 -> Ch.take reply
+            | sent, received ->
+                Job.delay (fun () ->
+                    Ch.take reply
+                    >>= give
+                    >>. loop (sent - 1, received - 1)
+                )
+
+        return!
+            give ()
+            >>. loop (count - 1, count)
+            >>= Ch.give finished
+            |> Job.start
+    }
 
 let benchmark actorPairs =
     let repeatFactor = 500
@@ -58,28 +72,40 @@ let benchmark actorPairs =
         let! completion = Ch.create()
 
         for x = 1 to actorPairs do
-            let! channel = Ch.create()
-            do! client (int repeatsPerClient) channel completion
-            do! destination channel
+            let! destination = destination()
+            do! client (int repeatsPerClient) destination completion
         for x = 1 to actorPairs do
             do! Ch.take completion
     } |> run
 
-    float totalMessagesReceived / sw.Elapsed.TotalSeconds |> int
+    float totalMessagesReceived / sw.Elapsed.TotalSeconds
+    |> int
+    
+let cleanup () =
+  for i = 1 to 5 do
+    Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
+    GC.Collect ()
+    Threading.Thread.Sleep 50
 
 do
     [1..17]
     |> List.fold (fun fastest actorPairs ->
+        cleanup ()
+
         let throughput = benchmark actorPairs
 
         if throughput > fastest then green()
         else red()
 
-        printfn "%i, %i messages/s" (2 * actorPairs) throughput
+        printfn "%2i,%9i messages/s" (2 * actorPairs) throughput
 
         max fastest throughput
     ) 0
     |> ignore
 
     gray()
+
     printfn "Done..."
+
+    System.Console.ReadLine()
+    |> ignore
