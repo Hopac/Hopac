@@ -317,6 +317,12 @@ module Job =
                  -> (IAsyncResult -> 'x)
                  -> Job<'x>
 
+  /////////////////////////////////////////////////////////////////////////////
+
+  /// Returns a job that returns the scheduler under which the job is being
+  /// run.
+  val inline scheduler: unit -> Job<Scheduler>
+
 ///////////////////////////////////////////////////////////////////////////////
 
 #if DOC

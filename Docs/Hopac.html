@@ -84,6 +84,7 @@
   <b>val</b> <a id="dec:Hopac.Job.fromBeginEnd" href="#def:Hopac.Job.fromBeginEnd">fromBeginEnd</a><b>:</b> (AsyncCallback * obj <b>-&gt;</b> IAsyncResult)
                  <b>-&gt;</b> (IAsyncResult <b>-&gt;</b> 'x)
                  <b>-&gt;</b> Job&lt;'x&gt;
+  <b>val</b> <a id="dec:Hopac.Job.scheduler" href="#def:Hopac.Job.scheduler">scheduler</a><b>:</b> unit <b>-&gt;</b> Job&lt;Scheduler&gt;
 </pre>
 <pre><b>type</b> <a id="dec:Hopac.Alt&lt;'x&gt;" href="#def:Hopac.Alt&lt;'x&gt;">Alt&lt;'x&gt;</a> :&gt; Job&lt;'x&gt;
 </pre>
@@ -382,7 +383,7 @@
 </blockquote>
 <pre><b>val</b> <b>(</b><a id="def:Hopac.Job.Infixes.&lt;&amp;&gt;" href="#dec:Hopac.Job.Infixes.&lt;&amp;&gt;">&lt;&amp;&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'x * 'y&gt;
 </pre>
-<blockquote><p>Creates a job that runs the given two jobs and then returns a pair of their results.  <code>xJ &lt;&amp;&gt; yJ</code> is equivalent to <code>xJ &gt;&gt;= fun x -&gt; yK &gt;&gt;= fun y -&gt; result (x, y)</code>.</p>
+<blockquote><p>Creates a job that runs the given two jobs and then returns a pair of their results.  <code>xJ &lt;&amp;&gt; yJ</code> is equivalent to <code>xJ &gt;&gt;= fun x -&gt; yJ &gt;&gt;= fun y -&gt; result (x, y)</code>.</p>
 </blockquote>
 <pre><b>val</b> <b>(</b><a id="def:Hopac.Job.Infixes.&lt;*&gt;" href="#dec:Hopac.Job.Infixes.&lt;*&gt;">&lt;*&gt;</a><b>)</b><b>:</b> Job&lt;'x&gt; <b>-&gt;</b> Job&lt;'y&gt; <b>-&gt;</b> Job&lt;'x * 'y&gt;
 </pre>
@@ -470,6 +471,10 @@
                <b>-&gt;</b> Job&lt;'x&gt;
 </pre>
 <blockquote><p>Creates a job that performs the asynchronous operation defined by the given pair of begin and end operations.</p>
+</blockquote>
+<pre><b>val</b> <a id="def:Hopac.Job.scheduler" href="#dec:Hopac.Job.scheduler">scheduler</a><b>:</b> unit <b>-&gt;</b> Job&lt;Scheduler&gt;
+</pre>
+<blockquote><p>Returns a job that returns the scheduler under which the job is being run.</p>
 </blockquote>
 </blockquote>
 <pre><b>type</b> <a id="def:Hopac.Alt&lt;'x&gt;" href="#dec:Hopac.Alt&lt;'x&gt;">Alt&lt;'x&gt;</a> :&gt; Job&lt;'x&gt;

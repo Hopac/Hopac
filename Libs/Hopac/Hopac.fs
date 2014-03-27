@@ -993,6 +993,10 @@ module Job =
        let rv = AsyncBeginEnd<'x> (wr.Scheduler, doEnd, xK)
        doBegin (doAsyncCallback, rv) |> ignore}
 
+  ///////////////////////////////////////////////////////////////////////
+
+  let inline scheduler () = StaticData.scheduler
+
 /////////////////////////////////////////////////////////////////////////
 
 module Timer =
