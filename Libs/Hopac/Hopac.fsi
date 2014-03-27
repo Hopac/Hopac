@@ -190,7 +190,7 @@ module Job =
     val (>>!): Job<'x> -> exn -> Job<_>
 
     /// Creates a job that runs the given two jobs and then returns a pair of
-    /// their results.  "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun
+    /// their results.  "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yJ >>= fun
     /// y -> result (x, y)".
     val (<&>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
