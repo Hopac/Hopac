@@ -1,40 +1,178 @@
 ﻿module PingPong
 
-// Inspired by: http://letitcrash.com/post/20397701710/50-million-messages-per-second-on-a-single-machine
-
 open Hopac
 open Hopac.Infixes
 open Hopac.Job.Infixes
+open Hopac.Extensions
 open System
 open System.Diagnostics
 
-type Msg<'a> = Msg of Ch<Msg<'a>> * 'a
+module ChGive =
+  type Msg = Msg of Ch<Msg>
 
-module Ch =
   let run numPairs numMsgsPerPair =
-    printf "Ch: "
+    printf "ChGive: "
     let timer = Stopwatch.StartNew ()
-    run <| job {
-      let chEnd = ch ()
-      do! Job.forN numPairs <| job {
-        let chPing = ch ()
-        let chPong = ch ()
-        do! Job.foreverServer
-             (chPing >>= fun (Msg (chPong, msg)) ->
-              chPong <-- Msg (chPing, msg))
-        do! Job.start <| job {
-          do! chPing <-- Msg (chPong, "msg")
-          do! Job.forN (numMsgsPerPair-1)
-               (chPong >>= fun (Msg (chPing, msg)) ->
-                chPing <-+ Msg (chPong, msg))
-          do! chEnd <-- ()
-        }
-      }
-      do! Job.forN numPairs chEnd
-    }
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = ch ()
+       let msgPing = Msg chPing
+       let chPong = ch ()
+       let msgPong = Msg chPong
+       Job.foreverServer
+        (chPing >>= fun (Msg chPong) ->
+         chPong <-- msgPing) >>= fun () ->
+       chPing <-- msgPong >>= fun () ->
+       Job.forN (numMsgsPerPair-1)
+        (chPong >>= fun (Msg chPing) ->
+         chPing <-- msgPong) >>= fun () ->
+       chPong >>% ())
+    |> run
     let d = timer.Elapsed
     let total = numPairs * numMsgsPerPair
-    printf "%10d - %f msgs/s - %fs\n"
+    printf "%10d - %9.0f ping-pongs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module ChGiSe =
+  type Msg = Msg of Ch<Msg>
+
+  let run numPairs numMsgsPerPair =
+    printf "ChGiSe: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = ch ()
+       let msgPing = Msg chPing
+       let chPong = ch ()
+       let msgPong = Msg chPong
+       Job.foreverServer
+        (chPing >>= fun (Msg chPong) ->
+         chPong <-- msgPing) >>= fun () ->
+       chPing <-+ Msg chPong >>= fun () ->
+       Job.forN (numMsgsPerPair-1)
+        (chPong >>= fun (Msg chPing) ->
+         chPing <-+ msgPong) >>= fun () ->
+       chPong >>% ())
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numMsgsPerPair
+    printf "%10d - %9.0f ping-pongs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module ChSeGi =
+  type Msg = Msg of Ch<Msg>
+
+  let run numPairs numMsgsPerPair =
+    printf "ChSeGi: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = ch ()
+       let msgPing = Msg chPing
+       let chPong = ch ()
+       let msgPong = Msg chPong
+       Job.foreverServer
+        (chPing >>= fun (Msg chPong) ->
+         chPong <-+ msgPing) >>= fun () ->
+       chPing <-- Msg chPong >>= fun () ->
+       Job.forN (numMsgsPerPair-1)
+        (chPong >>= fun (Msg chPing) ->
+         chPing <-- msgPong) >>= fun () ->
+       chPong >>% ())
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numMsgsPerPair
+    printf "%10d - %9.0f ping-pongs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module ChSend =
+  type Msg = Msg of Ch<Msg>
+
+  let run numPairs numMsgsPerPair =
+    printf "ChSend: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = ch ()
+       let msgPing = Msg chPing
+       let chPong = ch ()
+       let msgPong = Msg chPong
+       Job.foreverServer
+        (chPing >>= fun (Msg chPong) ->
+         chPong <-+ msgPing) >>= fun () ->
+       chPing <-+ msgPong >>= fun () ->
+       Job.forN (numMsgsPerPair-1)
+        (chPong >>= fun (Msg chPing) ->
+         chPing <-+ msgPong) >>= fun () ->
+       chPong >>% ())
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numMsgsPerPair
+    printf "%10d - %9.0f ping-pongs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module MbSend =
+  type Msg = Msg of Mailbox<Msg>
+
+  let run numPairs numMsgsPerPair =
+    printf "MbSend: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let mbPing = mb ()
+       let msgPing = Msg mbPing
+       let mbPong = mb ()
+       let msgPong = Msg mbPong
+       Job.foreverServer
+        (mbPing >>= fun (Msg mbPong) ->
+         mbPong <<-+ msgPing) >>= fun () ->
+       mbPing <<-+ msgPong >>= fun () ->
+       Job.forN (numMsgsPerPair-1)
+        (mbPong >>= fun (Msg mbPing) ->
+         mbPing <<-+ msgPong) >>= fun () ->
+       mbPong >>% ())
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numMsgsPerPair
+    printf "%10d - %9.0f ping-pongs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module AsPost =
+  type Msg = Msg of MailboxProcessor<Msg>
+
+  let run numPairs numMsgsPerPair =
+    printf "AsPost: "
+    let timer = Stopwatch.StartNew ()
+    use onDone = new MailboxProcessor<unit> (fun _ -> async { return () })
+    let startPair () =
+      let ping = MailboxProcessor.Start <| fun inbox -> async {
+        let msgPing = Msg inbox
+        while true do
+          let! Msg pong = inbox.Receive ()
+          do pong.Post msgPing
+      }
+      let pong = MailboxProcessor.Start <| fun inbox -> async {
+        let msgPong = Msg inbox
+        do ping.Post msgPong
+        for i=2 to numMsgsPerPair do
+          let! Msg ping = inbox.Receive ()
+          do ping.Post msgPong
+        let! Msg ping = inbox.Receive ()
+        do onDone.Post ()
+      }
+      [ping; pong]
+    let pairs =
+      [1 .. numPairs]
+      |> List.collect (fun _ -> startPair ())
+    Async.RunSynchronously <| async {
+      for i=1 to numPairs do
+        do! onDone.Receive ()
+      return ()
+    }
+    pairs |> List.iter (fun mb -> (mb :> IDisposable).Dispose ())
+    let d = timer.Elapsed
+    let total = numPairs * numMsgsPerPair
+    printf "%10d - %9.0f ping-pongs/s - %fs\n"
      total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
@@ -43,6 +181,8 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for p in seq {1 .. Environment.ProcessorCount} do
-     for n in [1000; 10000; 100000; 1000000; 10000000] do
-       Ch.run p n ; cleanup ()
+do for f in [ChGive.run; ChSend.run; ChGiSe.run; ChSeGi.run; MbSend.run; AsPost.run] do
+     printf "\n"
+     for p in [1; Environment.ProcessorCount/2; Environment.ProcessorCount] do
+       for n in [1000; 10000; 100000; 1000000; 10000000] do
+         f p n ; cleanup ()
