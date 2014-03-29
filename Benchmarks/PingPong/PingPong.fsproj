@@ -43,6 +43,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="PingPong.fs" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
