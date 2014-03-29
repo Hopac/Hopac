@@ -3,19 +3,19 @@ Hopac - Higher-Order, Parallel, Asynchronous and Concurrent
 
 Hopac is a library for F# with the aim of making it easier to write efficient
 parallel, asynchronous and concurrent programs.  The design of Hopac draws
-inspiration from languages such Concurrent ML and Cilk.  Similar to Concurrent
-ML, Hopac provides message passing primitives and supports the construction of
-first-class synchronous abstractions.  Parallel jobs (light-weight threads) in
-Hopac are created using techniques similar to the F# Async framework.  Hopac
-runs parallel jobs using a work distributing scheduler in a non-preemptive
-fashion.
+inspiration from languages such as [Concurrent ML](http://cml.cs.uchicago.edu/)
+and [Cilk](http://en.wikipedia.org/wiki/Cilk).  Similar to Concurrent ML, Hopac
+provides message passing primitives and supports the construction of first-class
+synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are
+created using techniques similar to the F# Async framework.  Hopac runs parallel
+jobs using a work distributing scheduler in a non-preemptive fashion.
 
 License
 -------
 
-Hopac is licensed under a MIT-style license.  See
-[LICENSE.md](https://github.com/VesaKarvonen/Hopac/blob/master/LICENSE.md) for
-details.
+Hopac is available under a
+[MIT-style license](http://en.wikipedia.org/wiki/MIT_License).  See
+[LICENSE.md](LICENSE.md) for details.
 
 Download
 --------
@@ -34,24 +34,22 @@ Hopac provides a programming model that is heavily inspired by
 The book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
 is the most comprehensive introduction to Concurrent ML style programming.  The
-[Further Reading](https://github.com/VesaKarvonen/Hopac#further-reading) section
-at the end of this document contains links to some articles and blog posts that
-discuss programming in Concurrent ML or languages inspired by it.
+[Further Reading](#further-reading) section at the end of this document contains
+links to some articles and blog posts that discuss programming in Concurrent ML
+or languages inspired by it.
 
-The document
-[Programming in Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Programming.md)
-contains some notes and examples on programming with Hopac.  The document
-[Actors and Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Actors.md)
-discusses the similaries and differences between actor models and the
-programming model provided by Hopac.  Feedback on these documents is welcome!
-There is also a
+The document [Programming in Hopac](Docs/Programming.md) contains some notes and
+examples on programming with Hopac.  The document
+[Actors and Hopac](Docs/Actors.md) discusses the similaries and differences
+between actor models and the programming model provided by Hopac.  Feedback on
+these documents is welcome!  There is also a
 [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
 manual generated from the Hopac library sources and the
 [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
 manual is generated from the Hopac.Extra library sources.  There are also some
-[Notes on the Internal Implementation of Hopac](https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Internals.md),
-but that document is not meant to be something that a user of the library would
-need to be intimately familiar with.
+[Notes on the Internal Implementation of Hopac](Docs/Internals.md), but that
+document is not meant to be something that a user of the library would need to
+be intimately familiar with.
 
 Performance
 -----------
@@ -172,6 +170,7 @@ resorting to low level locking primitives.
 This rationale became much longer that I hoped for.  Hopefully you got something
 out of reading it. :)
 
+<a name="further-reading"/>
 Further Reading
 ---------------
 

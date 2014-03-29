@@ -190,7 +190,7 @@ module Job =
     val (>>!): Job<'x> -> exn -> Job<_>
 
     /// Creates a job that runs the given two jobs and then returns a pair of
-    /// their results.  "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yK >>= fun
+    /// their results.  "xJ <&> yJ" is equivalent to "xJ >>= fun x -> yJ >>= fun
     /// y -> result (x, y)".
     val (<&>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
@@ -268,7 +268,7 @@ module Job =
   val forever: Job<_> -> Job<_>
 
   /// Creates a job that indefinitely iterates the given job constructor
-  /// starting with the given value.  More precisely, "iter x x2xJ" is
+  /// starting with the given value.  More precisely, "iterate x x2xJ" is
   /// equivalent to "let rec lp x = x2xJ x >>= lp in lp x".  It is a common
   /// programming pattern to use server jobs that loop indefinitely and
   /// communicate with clients via channels.  When a job is blocked waiting for
@@ -316,6 +316,12 @@ module Job =
   val fromBeginEnd: (AsyncCallback * obj -> IAsyncResult)
                  -> (IAsyncResult -> 'x)
                  -> Job<'x>
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  /// Returns a job that returns the scheduler under which the job is being
+  /// run.
+  val inline scheduler: unit -> Job<Scheduler>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -632,7 +638,7 @@ module Mailbox =
 
   /// Selective operations on buffered mailboxes.
   module Alt =
-    /// Creates and alternative that becomes available for picking when the
+    /// Creates an alternative that becomes available for picking when the
     /// mailbox contains at least one value and, if committed to, takes a value
     /// from the mailbox.
     val inline take: Mailbox<'x> -> Alt<'x>
@@ -765,11 +771,11 @@ module Extensions =
   /// Operations for interfacing tasks with jobs.
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
-    /// the result of the task.  Note that this does not start the job.
+    /// the result of the task.  Note that this does not start the task.
     static member inline awaitJob: Threading.Tasks.Task<'x> -> Job<'x>
 
     /// Creates a job that waits until the given task finishes.  Note that this
-    /// does not start the job.
+    /// does not start the task.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
 
 ///////////////////////////////////////////////////////////////////////////////

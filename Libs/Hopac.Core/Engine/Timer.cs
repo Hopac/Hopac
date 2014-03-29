@@ -34,7 +34,7 @@ namespace Hopac.Core {
       this.Lock.Enter();
       tt = this.TopTimed;
       if (null == tt)
-        goto ExitAndReturn;
+        goto ExitAndReturnWithInfinite;
 
       waitTicks = (int)(tt.Ticks >> 32) - tickCount;
       if (waitTicks > 0)
@@ -56,9 +56,11 @@ namespace Hopac.Core {
 
     GotIt:
       Worker.Push(ref wr, tt);
-      iK.DoCont(ref wr, waitTicks);
+      iK.DoCont(ref wr, 0);
       return;
 
+    ExitAndReturnWithInfinite:
+      waitTicks = Timeout.Infinite;
     ExitAndReturn:
       this.Lock.Exit();
     Return:

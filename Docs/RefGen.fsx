@@ -288,9 +288,9 @@ let generate wr title path =
               <html>\n"
   fprintf wr "<head><title>%s Library Reference</title></head>\n" title
   fprintf wr "<body><table width=\"80%%\" align=\"center\"><tr><td>\n"
-  fprintf wr "<h1>Hopac Library Reference</h1>\n\
+  fprintf wr "<h1>%s Library Reference</h1>\n\
               <p>This document provides a reference manual for the %s library \
-                 and is generated from the library source code.</p>\n" title
+                 and is generated from the library source code.</p>\n" title title
   fprintf wr "<h2>Synopsis</h2>\n"
   fprintf wr "<pre>"
   printText wr [] (Some "dec") "def" model
@@ -305,8 +305,8 @@ let generate wr title path =
   fprintf wr "</td></tr></table></body>\n"
   fprintf wr "</html>\n"
 
-do use wr = new StreamWriter ("Docs/Hopac.html")
-   generate wr "Hopac" "Libs/Hopac"
+do use wr = new StreamWriter ("Hopac.html")
+   generate wr "Hopac" "../Libs/Hopac"
 
-do use wr = new StreamWriter ("Docs/Hopac.Extra.html")
-   generate wr "Hopac.Extra" "Libs/Hopac.Extra"
+do use wr = new StreamWriter ("Hopac.Extra.html")
+   generate wr "Hopac.Extra" "../Libs/Hopac.Extra"
