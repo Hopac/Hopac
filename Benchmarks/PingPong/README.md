@@ -2,9 +2,9 @@ This benchmark is inspired by the blog post
 [50 million messages per second - on a single machine](http://letitcrash.com/post/20397701710/50-million-messages-per-second-on-a-single-machine).
 There is really nothing novel in a ping-pong benchmark.  You can find ping-pong
 benchmarks written for pretty much every message passing system.  On my laptop
-this benchmark can process up to about 28 million ping-pongs per second, so I
-don't get to brag like the Akka folks.  Of course, my laptop is only a 2-core /
-4-thread i5-3337U running at 1.8GHz.
+this benchmark peaks at about 56 million messages per second, so I guess we're
+competitive with Akka.  Of course, my laptop is only a 2-core / 4-thread
+i5-3337U running at 1.8GHz.
 
 Let's analyze the setup of the original benchmark.  At the time of writing this,
 I've never programmed in Scala or used Akka, so I'm making some assumptions here
