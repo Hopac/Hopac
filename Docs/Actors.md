@@ -178,7 +178,8 @@ programming styles in Hopac.
 ### MailboxProcessor
 
 Let's start by implementing something similar to a subset of the F#
-MailboxProcessor within Hopac.  We'll just define an actor as an asynchronous
+[MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx) within
+Hopac.  We'll just define an actor as an asynchronous
 [Mailbox](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:Hopac.Mailbox%3C%27x%3E):
 
 ```fsharp
@@ -251,11 +252,11 @@ let echo () = actor <| fun inbox -> job {
 }
 ```
 
-One difference in the MailboxProcessor like operations implemented with Hopac
-here is they return jobs that then need to be run.  This is intentional.  The
-implementation of Hopac is such that the concurrent operations within Hopac run
-fastest when they are executed by worker threads of a Hopac scheduler.  Running
-individual concurrent operations outside of workers incurs potentially
+One difference in the MailboxProcessor like operations implemented here is that
+the Hopac operations return jobs that then need to be run.  This is intentional.
+The implementation of Hopac is such that the concurrent operations within Hopac
+run fastest when they are executed by worker threads of a Hopac scheduler.
+Running individual concurrent operations outside of workers incurs potentially
 significant overheads.  Therefore the operations sketched here return jobs that
 can then potentially be composed into longer jobs to run.
 
