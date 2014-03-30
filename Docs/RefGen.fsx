@@ -13,12 +13,9 @@ let indentOf (s: String) =
 let trim s = (indentOf s, s.Trim ())
 
 let input (file: string) =
-  use r = new StreamReader (file)
-  let rec loop ls =
-    match r.ReadLine () with
-     | null -> List.rev ls
-     | l -> loop (trim l::ls)
-  loop []
+  File.ReadAllLines file
+  |> Array.map trim
+  |> List.ofArray
 
 type Item = {
   Doc: list<string>
@@ -58,7 +55,7 @@ let (|Ignored|_|) (s: string) =
   else None
 
 let (|Doc|_|) (s: string) =
-  if s.StartsWith "/// " then Some (s.Substring (4)) else None
+  if s.StartsWith "/// " then Some (s.Substring 4) else None
 
 let (|Attr|_|) (s: string) = if isAttr s then Some s else None
 
@@ -70,8 +67,7 @@ let (|Punc|_|) (s: string) =
 
 let (|Def|_|) (s: string) =
   let ss = summarize s
-  ss
-  |> function
+  match ss with
    | "module"          ::name::_
    | "namespace"       ::name::_
    | "type"            ::name::_
@@ -90,14 +86,13 @@ let (|Namespace|_|) (s: string) =
    | _                    -> None
 
 let rec itemize ls =
-  let rec outside indent items docs attrs lines =
-    match lines with
+  let rec outside indent items docs attrs = function
      | [] -> (List.rev items, [])
      | (_, Ignored ())::lines ->
        outside indent items docs attrs lines
      | (i, Punc text)::lines ->
        outside indent ({empty with Text = text; Indent = i}::items) [] [] lines
-     | (indent', _)::_ when indent' <= indent ->
+     | lines & (indent', _)::_ when indent' <= indent ->
        (List.rev items, lines)
      | (0, Namespace (name, text))::lines ->
        let (body, lines) = outside indent [] [] [] lines
@@ -132,12 +127,11 @@ let rec itemize ls =
 let asText (s: string) =
   let b = StringBuilder ()
   for i=0 to s.Length-1 do
-    ignore <|
     match s.[i] with
-      | '<' -> b.Append "&lt;"
-      | '>' -> b.Append "&gt;"
-      | '&' -> b.Append "&amp;"
-      | c   -> b.Append c
+      | '<' -> b.Append "&lt;" |> ignore
+      | '>' -> b.Append "&gt;" |> ignore
+      | '&' -> b.Append "&amp;" |> ignore
+      | c   -> b.Append c |> ignore
   b.ToString ()
 
 let formatDesc (text: string) =
@@ -173,7 +167,7 @@ let printElem wr elem =
    | "(" | ")" | "->" | "{" | "}" | ":" ->
      fprintf wr "<b>%s</b>" (asText elem)
    | _ ->
-     fprintf wr "%s" (asText elem)    
+     fprintf wr "%s" (asText elem)
 
 let printText wr path inSection toSection item =
   let linked = ref false
@@ -188,8 +182,7 @@ let printText wr path inSection toSection item =
       fprintf wr "<a%shref=\"#%s:%s\">%s</a>" id toSection link text
     else
       printElem wr elem
-  let rec loop space elems =
-    match elems with
+  let rec loop space = function
      | "("::elem::")"::":"::elems ->
        if space then fprintf wr " "
        printElem wr "("
