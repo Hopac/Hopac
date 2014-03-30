@@ -41,8 +41,14 @@ or languages inspired by it.
 The document [Programming in Hopac](Docs/Programming.md) contains some notes and
 examples on programming with Hopac.  The document
 [Actors and Hopac](Docs/Actors.md) discusses the similaries and differences
-between actor models and the programming model provided by Hopac.  Feedback on
-these documents is welcome!  There is also a
+between actor models and the programming model provided by Hopac.  The document
+[Parallel Programming Performance Considerations](Docs/Performance.md) discusses
+fundamental issues that affect the performance of parallel algorithms on shared
+memory multiprocessors and how those issues translate into practical design
+patterns.  Note that these documents are works in progress and are still being
+updated frequently.  Feedback on these documents is most welcome!
+
+There is also a
 [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
 manual generated from the Hopac library sources and the
 [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)

@@ -5,6 +5,10 @@ Here you will find documents describing Hopac.
   proper introduction to Hopac.
 * [Actors and Hopac](Actors.md) discusses the similaries and differences between
   actor models and the programming model provided by Hopac.
+* [Parallel Programming Performance Considerations](Performance.md) discusses
+  fundamental issues that affect the performance of parallel algorithms on
+  shared memory multiprocessors and how those issues translate into practical
+  design patterns.
 * [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
   manual is generated from the Hopac library source code.
 * [Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
