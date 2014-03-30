@@ -21,11 +21,11 @@ module ChGive =
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-- msgPing) >>= fun () ->
-       chPing <-- msgPong >>= fun () ->
+         chPong <-- msgPing) >>.
+       (chPing <-- msgPong) >>.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-- msgPong) >>= fun () ->
+         chPing <-- msgPong) >>.
        chPong >>% ())
     |> run
     let d = timer.Elapsed
@@ -47,12 +47,12 @@ module ChGiSe =
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-- msgPing) >>= fun () ->
-       chPing <-+ Msg chPong >>= fun () ->
+         chPong <-- msgPing) >>.
+       (chPing <-+ Msg chPong) >>.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-+ msgPong) >>= fun () ->
-       chPong >>% ())
+         chPing <-+ msgPong) >>.
+       chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -73,12 +73,12 @@ module ChSeGi =
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-+ msgPing) >>= fun () ->
-       chPing <-- Msg chPong >>= fun () ->
+         chPong <-+ msgPing) >>.
+       (chPing <-- Msg chPong) >>.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-- msgPong) >>= fun () ->
-       chPong >>% ())
+         chPing <-- msgPong) >>.
+       chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -99,12 +99,12 @@ module ChSend =
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-+ msgPing) >>= fun () ->
-       chPing <-+ msgPong >>= fun () ->
+         chPong <-+ msgPing) >>.
+       (chPing <-+ msgPong) >>.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-+ msgPong) >>= fun () ->
-       chPong >>% ())
+         chPing <-+ msgPong) >>.
+       chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -125,12 +125,12 @@ module MbSend =
        let msgPong = Msg mbPong
        Job.foreverServer
         (mbPing >>= fun (Msg mbPong) ->
-         mbPong <<-+ msgPing) >>= fun () ->
-       mbPing <<-+ msgPong >>= fun () ->
+         mbPong <<-+ msgPing) >>.
+       (mbPing <<-+ msgPong) >>.
        Job.forN (numPingPongsPerPair-1)
         (mbPong >>= fun (Msg mbPing) ->
-         mbPing <<-+ msgPong) >>= fun () ->
-       mbPong >>% ())
+         mbPing <<-+ msgPong) >>.
+       mbPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
