@@ -33,7 +33,7 @@ module Literal =
         return! reader 0
       }
     let d = timer.Elapsed
-    printf "%f hops/s\n" (float n / d.TotalSeconds)
+    printf "%9.0f hops/s\n" (float n / d.TotalSeconds)
 
 module Tweaked =
   let run n =
@@ -58,7 +58,32 @@ module Tweaked =
         return! reader 0
       }
     let d = timer.Elapsed
-    printf "%f hops/s\n" (float n / d.TotalSeconds)
+    printf "%9.0f hops/s\n" (float n / d.TotalSeconds)
+
+module AsyncPR =
+  let run n =
+    printf "AsyncPR: "
+    let timer = Stopwatch.StartNew ()
+    use readerMb = MailboxProcessor.Start <| fun _ -> async { return () }
+    let rec writer i = async {
+      do! readerMb.PostAndAsyncReply (fun arc -> (i, arc))
+      if i = 0 then
+        return ()
+      else
+        return! writer (i-1)
+    }
+    Async.StartImmediate (writer n)
+    let rec reader sum = async {
+      let! (x, r: AsyncReplyChannel<unit>) = readerMb.Receive ()
+      do r.Reply ()
+      if x = 0 then
+        return sum
+      else
+        return! reader (sum + x)
+    }
+    let i = Async.RunSynchronously (reader 0)
+    let d = timer.Elapsed
+    printf "%9.0f hops/s\n" (float n / d.TotalSeconds)
 
 let cleanup () =
   for i=1 to 5 do
@@ -66,8 +91,6 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do let ns = [2000; 20000; 200000; 2000000; 20000000]
-   for n in ns do
-     Literal.run n ; cleanup ()
-   for n in ns do
-     Tweaked.run n ; cleanup ()
+do for f in [Literal.run; Tweaked.run; AsyncPR.run] do
+     for n in [2000; 20000; 200000; 2000000; 20000000] do
+       f n ; cleanup ()
