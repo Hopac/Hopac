@@ -5,7 +5,7 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  internal struct TicketLock {
+  internal struct SpinlockTicket {
     internal volatile int Next;
     internal volatile int Turn;
 
