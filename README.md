@@ -1,5 +1,5 @@
-Hopac - Higher-Order, Parallel, Asynchronous and Concurrent
-===========================================================
+Hopac: Higher-Order, Parallel, Asynchronous and Concurrent
+==========================================================
 
 Hopac is a library for F# with the aim of making it easier to write efficient
 parallel, asynchronous and concurrent programs.  The design of Hopac draws
@@ -40,7 +40,7 @@ or languages inspired by it.
 
 The document [Programming in Hopac](Docs/Programming.md) contains some notes and
 examples on programming with Hopac.  The document
-[Actors and Hopac](Docs/Actors.md) discusses the similaries and differences
+[Actors and Hopac](Docs/Actors.md) discusses the similarities and differences
 between actor models and the programming model provided by Hopac.  The document
 [Parallel Programming Performance Considerations](Docs/Performance.md) discusses
 fundamental issues that affect the performance of parallel algorithms on shared
@@ -96,7 +96,7 @@ threads were extremely cheap, one could easily build higher-level synchronous
 abstractions on top of such threads using only the basic synchronization
 primitives.
 
-To alleviate the costs of threads, .Net provides the thread pool.  Instead of
+To alleviate the costs of threads, .Net provides the `ThreadPool`.  Instead of
 spawning new threads, program modules can queue user work items to be processed
 using a small number of worker threads managed by the thread pool.  Queuing user
 work items is several orders of magnitude cheaper than spawning new threads.
@@ -119,26 +119,26 @@ should avoid blocking within a user work item, but at the same time, the thread
 pool provides very little help to coordinate multiple work items with
 dependencies.  Once a work item is queued, there is no built in notification
 when it starts executing, it cannot be removed from the queue and there is no
-built in notication when it has run to completion.  There is no mechanism for
+built in notification when it has run to completion.  There is no mechanism for
 the thread pool to notify the module that queued a work item when the execution
 of the work item terminated with an unhandled exception.
 
-To help with parallel and asynchonous programming, the .Net framework provides
-the task parallel library and (the C# and) the F# async mechanisms.  For simple
-parallel programming tasks, that do not require complex communication patterns,
-the task parallel library does quite well.  The task parallel library supports
-continuation tasks and the async mechanisms makes working with continuations
-even easier than with just tasks.  For a particular kind of communication
-pattern (many-to-one actor), the F# library provides the mailbox processor
-abstraction.
+To help with parallel and asynchronous programming, the .Net framework provides
+the task parallel library and (the C# and) the F# `async` mechanisms.  For
+simple parallel programming tasks, that do not require complex communication
+patterns, the task parallel library does quite well.  The task parallel library
+supports continuation tasks and the async mechanisms makes working with
+continuations even easier than with just tasks.  For a particular kind of
+communication pattern (many-to-one actor), the F# library provides the
+`MailboxProcessor` abstraction.
 
 On the other hand, aside from supporting task continuations and the mailbox
 processor abstraction, those systems still provide very little in terms of
 communicating and coordinating between tasks and one must fall back to using
 locking primitives to implement those when needed.  Also, it seems that the task
 and async mechanism built on top of the thread pool include some significant
-implementation overheads and design weaknesses.  For example, the Task&lt;T&gt;
-type of the task parallel library acts both as a representation of an operation
+implementation overheads and design weaknesses.  For example, the `Task<T>` type
+of the task parallel library acts both as a representation of an operation
 (comparable to a first-class function) and as a container for the result of the
 operation (comparable to a write-once ref cell).  Frankly, those are two
 separate responsibilities and combining them into one type is questionable
