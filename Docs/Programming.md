@@ -43,10 +43,10 @@ threads.
 
 The other aspect is that Hopac provides first-class, higher-order, selective,
 synchronous, lightweight, message passing primitives in the form of *channels*,
-represented by the type `Ch<'x>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E),
-and *alternatives*, represented by the type `Alt<'x>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt%3C%27x%3E),
+represented by the type
+`Ch<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E),
+and *alternatives*, represented by the type
+`Alt<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt%3C%27x%3E),
 for coordinating and communicating between jobs.  That is a mouthful!  Let's
 open it up a bit.
 
@@ -121,8 +121,8 @@ val get: Cell<'a> -> Job<'a>
 val put: Cell<'a> -> 'a -> Job<unit>
 ```
 
-The `cell` function creates a job
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E)
+The `cell` function creates a
+job[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E)
 that creates a new storage cell.  The `get` function creates a job that returns
 the contents of the cell and the `put` function creates a job that updates the
 contents of the cell.
@@ -139,8 +139,8 @@ type Request<'a> =
 
 To communicate with the outside world, the server presents two channels: one
 channel for requests and another channel for replies required by the get
-operation.  The `Cell` type is a record of those two channels
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E):
+operation.  The `Cell` type is a record of those two
+channels[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E):
 
 ```fsharp
 type Cell<'a> = {
@@ -149,10 +149,10 @@ type Cell<'a> = {
 }
 ```
 
-The `put` operation is a job
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.job)
-that simply gives
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+The `put` operation is a
+job[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.job)
+that simply
+gives[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
 the `Put` request to the server via the request channel:
 
 ```fsharp
@@ -162,8 +162,8 @@ let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
 ```
 
 The `get` operation gives the `Get` request to the server via the request
-channel and then takes
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+channel and then
+takes[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
 the server's reply from the reply channel:
 
 ```fsharp
@@ -173,8 +173,8 @@ let get (c: Cell<'a>) : Job<'a> = job {
 }
 ```
 
-Finally, the `cell` operation actually creates the channels and starts
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start)
+Finally, the `cell` operation actually creates the channels and
+starts[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start)
 the concurrent server job:
 
 ```fsharp
@@ -280,13 +280,13 @@ synchronous channels.
 
 #### On Notation
 
-There are two ways to write jobs in Hopac.  One way is to use the `job`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.job)
+There are two ways to write jobs in Hopac.  One way is to use the
+`job`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.job)
 workflow builder like we did in the previous section.  The other way is to
-directly use the monadic combinators, `result`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result)
-and bind, `>>=`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=),
+directly use the monadic combinators,
+`result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result)
+and bind,
+`>>=`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=),
 that the workflow builder abstracts away.  I personally mostly prefer using the
 monadic combinators with an occasional excursion with the workflow notation.  I
 have a number of reasons for this:
@@ -333,8 +333,8 @@ let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
   Job.start (server x) >>% c
 ```
 
-As you can see above, I've used `delay`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
+As you can see above, I've used
+`delay`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
 only once and if you count the number of words and lines, you'll find out that
 that the code is more concise.  I personally find the monadic code roughly as
 readable as the workflow notation.
@@ -393,8 +393,8 @@ val put: Cell<'a> -> 'a -> Job<unit>
 The idea for this implementation is that the server loop of storage cells
 creates an alternative that either takes a new value on a channel for `put`
 operations or gives the current value on a channel for `get` operations.  The
-cell type just consists of these channels
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E):
+cell type just consists of these
+channels[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E):
 
 ```fsharp
 type Cell<'a> = {
@@ -403,16 +403,16 @@ type Cell<'a> = {
 }
 ```
 
-The `get` operation then simply takes
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+The `get` operation then simply
+takes[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
 a value on the `getCh` channel from the server of a cell:
 
 ```fsharp
 let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
 ```
 
-And the `put` operations gives
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+And the `put` operations
+gives[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
 a value to the server on the `putCh` channel of the cell server:
 
 ```fsharp
@@ -464,10 +464,10 @@ let cell x = Job.delay <| fun () ->
                 Ch.Alt.give c.getCh x >>%? x]) >>% c
 ```
 
-The above also makes use of the function `Job.server`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.server)
-instead of `Job.start`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start).
+The above also makes use of the function
+`Job.server`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.server)
+instead of
+`Job.start`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start).
 `Job.server` takes advantage of the fact that the job it is given is known to
 never return normally and starts it in a little bit lighter-weight form.
 
@@ -539,11 +539,12 @@ let CompareBool (comparand: ref<bool>)
   if !comparand then onTrue x else onFalse x
 ```
 
-The `CompareBool` function creates a job that first picks the `input`
-alternative and then performs either the `onTrue` or the `onFalse` action
-depending on the value of `comparand`.  As you can see, the above `CompareBool`
-job doesn't care about the type of the alternatives.  It just copies the
-received value `x` to the chosen output.
+The `CompareBool` function creates a job that first
+picks[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.pick)
+the `input` alternative and then performs either the `onTrue` or the `onFalse`
+action depending on the value of `comparand`.  As you can see, the above
+`CompareBool` job doesn't care about the type of the alternatives.  It just
+copies the received value `x` to the chosen output.
 
 Let's then consider the `Delay` box.  Making another educated guess and
 simplifying a bit, it has two input events `Start` and `Stop` (I leave `Pause`
@@ -566,10 +567,14 @@ let Delay (duration: ref<TimeSpan>)
               Timer.Global.timeOut (!duration) >>=? fun () -> finished x]
 ```
 
-The `Delay` function creates a job that first picks the `start` alternative.  It
-then selects from two alternatives.  The first one is the given `stop`
-alternative and in case that is committed to, the value obtained from `stop` is
-given to the `aborted` action.  The second alternative starts a `timeOut`
+The `Delay` function creates a job that first
+picks[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.pick)
+the `start` alternative.  It then
+selects[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select)
+from two alternatives.  The first one is the given `stop` alternative and in
+case that is committed to, the value obtained from `stop` is given to the
+`aborted` action.  The second alternative starts a
+`timeOut`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Timer.Global.timeOut)
 alternative for the current value of `duration` and in case that is committed
 to, the value received from `start` is given to the `finished` action.
 Whichever of those alternatives becomes enabled first will then be committed to
@@ -654,12 +659,12 @@ Hello, from another job!
 ```
 
 One unfortunate thing in the above example is that the program returns
-immediately and the two jobs keep running in the background.  The `Job.start`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start)
+immediately and the two jobs keep running in the background.  The
+`Job.start`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start)
 primitive doesn't implicitly provide for any way to wait for the started job to
 finish.  This is intentional, because it is quite common to start jobs that
-don't need to return.  A `Promise`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Promise)
+don't need to return.  A
+`Promise`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Promise%3C%27x%3E)
 allows a parent job to wait for a child job:
 
 ```fsharp
@@ -716,10 +721,10 @@ another job!" message after which the program is finished and F# interactive
 prints the inferred type.
 
 Working with many jobs at this level would be rather burdensome.  Hopac also
-provides functions such as `Job.conCollect`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conCollect)
-and `Job.conIgnore`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conIgnore)
+provides functions such as
+`Job.conCollect`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conCollect)
+and
+`Job.conIgnore`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conIgnore)
 for starting and waiting for a sequence of jobs.  In this case we don't care
 about the results of the jobs, so `Job.conIgnore` is what use:
 
@@ -776,14 +781,14 @@ let rec fib n = Job.delay <| fun () ->
     x + y
 ```
 
-The above implementation makes use of the combinators `<&>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C&%3E)
-and `|>>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.|%3E%3E)
-whose meanings can be specified in terms of `result`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result)
-and `>>=`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
+The above implementation makes use of the combinators
+`<&>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C&%3E)
+and
+`|>>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.|%3E%3E)
+whose meanings can be specified in terms of
+`result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result)
+and
+`>>=`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
 as follows:
 
 ```fsharp
@@ -807,8 +812,10 @@ appear.  Indeed, this is an extremely inefficient exponential time algorithm for
 computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
-combinator `<&>` to the parallel pair combinator `<*>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C*%3E):
+combinator
+`<&>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C&%3E)
+to the parallel pair combinator
+`<*>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C*%3E):
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
