@@ -272,7 +272,10 @@ for this:
 * Using the combinators directly usually leads to more concise code.
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
-* There are many very commonly used monadic combinators, e.g. `|>>` and `>>%`,
+* There are many very commonly used monadic combinators, e.g. `|>>`
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.|%3E%3E)
+  and `>>%`
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E%),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary `delay`
