@@ -78,13 +78,13 @@ module HopacModel =
   val take: Ch<'x> -> Job<'x>
 ```
 
-Using the monadic operations, **>>=** and **result**, one can define a thread of
-execution and such threads can be started with **start**.  Any number of
-channels can be created using **ch** and different channels may have different
-types.  Within a thread of execution one can then perform **give** and **take**
-operations on channels.  Both **give** and **take** operations are synchronous
-and block the executing job until the other party of the communication is
-present and the operation can be completed.
+Using the monadic operations, `>>=` and `result`, one can define a thread of
+execution and such threads can be started with `start`.  Any number of channels
+can be created using `ch` and different channels may have different types.
+Within a thread of execution one can then perform `give` and `take` operations
+on channels.  Both `give` and `take` operations are synchronous and block the
+executing job until the other party of the communication is present and the
+operation can be completed.
 
 Please note that the above signature snippet is not a precise subset of Hopac
 and that Hopac provides a much more comprehensive model as described in the
@@ -107,15 +107,14 @@ module ActorModel =
   val send: Actor<'a> -> 'a -> unit
 ```
 
-In this model, one can similarly define a thread of execution using **>>=** and
-**result**.  Within an actor thread, one can receive messages via the mailbox of
-the actor using the **receive** operation.  Only messages from the single
-mailbox implicit to the actor thread can be directly received from.  An actor
-thread is started using **start**, which also returns a handle for sending
-messages to the actor using the **send** function.  The **send** operation is
-asynchronous and does not block.  If the destination of a **send** operation is
-not immediately ready to receive the message, then that message is queued to the
-mailbox of the actor.
+In this model, one can similarly define a thread of execution using `>>=` and
+`result`.  Within an actor thread, one can receive messages via the mailbox of
+the actor using the `receive` operation.  Only messages from the single mailbox
+implicit to the actor thread can be directly received from.  An actor thread is
+started using `start`, which also returns a handle for sending messages to the
+actor using the `send` function.  The `send` operation is asynchronous and does
+not block.  If the destination of a `send` operation is not immediately ready to
+receive the message, then that message is queued to the mailbox of the actor.
 
 Please note that the above sketch of an actor model does not attempt to
 precisely capture any specific actor model such as Akka or Erlang.  Like the
@@ -150,10 +149,10 @@ module ActorModel =
 ```
 
 As can be seen above, it is fairly straightforward to encode an actor model
-using only a small subset of Hopac.  (Note that the **>>=** operation used
-within the definition of **>>=** is the Hopac bind operation.)  The reverse
-encoding, that is, an implementation of the **HopacModel** using the
-**ActorModel**, is left as an exercise for the reader.
+using only a small subset of Hopac.  (Note that the `>>=` operation used within
+the definition of `>>=` is the Hopac bind operation.)  The reverse encoding,
+that is, an implementation of the `HopacModel` using the `ActorModel`, is left
+as an exercise for the reader.
 
 Please note that the above is not meant to demonstrate a practical way to do
 actor style programming in Hopac.  The above is meant as an illustrative
@@ -202,9 +201,9 @@ mailbox.  Let's make that a bit more concrete:
 let receive (mA: Mailbox<'m>) : Job<'m> = Mailbox.take mA
 ```
 
-For sending messages to an actor started with the help of **actor**, we can
-simply use the operations provided for mailboxes.  But let's make that a bit
-more concrete:
+For sending messages to an actor started with the help of `actor`, we can simply
+use the operations provided for mailboxes.  But let's make that a bit more
+concrete:
 
 ```fsharp
 let post (mA: Actor<'m>) (m: 'm) : Job<unit> = mA <<-+ m
@@ -214,7 +213,7 @@ To allow an actor to provide a reply to a message, we can, similar to
 MailboxProcessor, send the actor a message passing object of some kind.  In
 Hopac we could use one of many different message passing objects.  Closest to
 the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
-would be in
+would be an
 [IVar](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:Hopac.IVar%3C%27x%3E):
 
 ```fsharp
@@ -223,7 +222,7 @@ let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| 
   mA <<-+ i2m i >>. i
 ```
 
-To reply to a message, the agent then needs to write to the given **IVar**:
+To reply to a message, the agent then needs to write to the given `IVar`:
 
 ```fsharp
 let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI <-= r
@@ -264,11 +263,11 @@ This is just a small sketch and omits many features of the MailboxProcessor.
 You could continue extending these snippets to quite straightforwardly add
 support for most of what the MailboxProcessor provides, including features such
 as error events.  In most cases, however, there is no practical need to work
-like that.  While the above **actor** and **postAndReply** functions could be
-handy shortcuts in some cases, most of the other operations are readily
-available within Hopac or similar functionality can be expressed more flexibly
-and possibly more concisely.  For example, here is a more concise implementation
-of the above echo example using operations directly available with Hopac:
+like that.  While the above `actor` and `postAndReply` functions could be handy
+shortcuts in some cases, most of the other operations are readily available
+within Hopac or similar functionality can be expressed more flexibly and
+possibly more concisely.  For example, here is a more concise implementation of
+the above echo example using operations directly available with Hopac:
 
 ```fsharp
 type Echo<'x> = Echo of 'x * IVar<'x>
