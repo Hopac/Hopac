@@ -282,7 +282,6 @@ have a number of reasons for this:
   [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E%),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
-
 * Using the combinators directly I can often avoid some unnecessary `delay`
   [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
   operations the workflow notation introduces for safety reasons.
@@ -1201,8 +1200,10 @@ set of events that is specified statically in the program text.
 
 ### Guards
 
-The wrap combinator `>>=?` allows post-commit actions to be added to an
-alternative.  Hopac also provides the `guard`
+The wrap combinator `>>=?`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+allows post-commit actions to be added to an alternative.  Hopac also provides
+the `guard`
 [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.guard)
 combinator that allows an alternative to be computed at instantiation time.
 
@@ -1426,9 +1427,10 @@ that otherwise couldn't be properly encapsulated as alternatives.
 
 #### Example: Lock Server
 
-An example that illustrates how `withNack` can be used to encapsulate a
-non-idempotent request as an alternative is the implementation of a *lock
-server*.  Here is a signature of a lock server:
+An example that illustrates how `withNack`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.withNack)
+can be used to encapsulate a non-idempotent request as an alternative is the
+implementation of a *lock server*.  Here is a signature of a lock server:
 
 ```fsharp
 type Server
@@ -1523,9 +1525,10 @@ let acquire s (Lock lock) = Alt.withNack <| fun abortAlt ->
 
 Using `withNack` a negative acknowledgment alternative, `abortAlt`, is created
 and then a reply channel, `replyCh`, is allocated and a request is created and
-sent to the lock server `s`.  An asynchronous `send` operation is used as there
-is no point in waiting for the server at this point.  Finally the alternative of
-taking the server's reply is returned.
+sent to the lock server `s`.  An asynchronous `send`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.send)
+operation is used as there is no point in waiting for the server at this point.
+Finally the alternative of taking the server's reply is returned.
 
 Note that a new pair of a negative acknowledgment alternative and reply channel
 is created each time an alternative constructed with `acquire` is instantiated.
@@ -1641,8 +1644,8 @@ Alt.choose
   Alt.delay <| fun () -> printfn "B" ; Alt.always 2]
 ```
 
-In Hopac, picking the above alternative prints "A" and nothing else.  In CML,
-the similar event would print both "A" and "B".  In other words, in the initial
+In Hopac, picking the above alternative prints `A` and nothing else.  In CML,
+the similar event would print both `A` and `B`.  In other words, in the initial
 phase, Hopac evaluates alternatives *lazily*, while CML evaluates events
 *eagerly*.  Hopac can therefore run more efficiently in cases where an
 alternative happens to be immediately available.
