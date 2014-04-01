@@ -27,10 +27,10 @@ some form implicitly takes messages from the mailbox associated with the actor.
 To confuse the matter further, the
 [MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx)
 abstraction, also often described as an actor model, provided with the F# async
-model gives an explicit name to the mailbox.  However, the MailboxProcessor
+model gives an explicit name to the mailbox.  However, the `MailboxProcessor`
 model requires that there is at most one concurrent reader of a particular
-MailboxProcessor active at any moment.  This means that a MailboxProcessor is
-effectively associated with a thread of execution.
+`MailboxProcessor` active at any moment.  This means that a `MailboxProcessor`
+is effectively associated with a thread of execution.
 
 What is the model provided by Hopac?
 ------------------------------------
@@ -210,7 +210,7 @@ let post (mA: Actor<'m>) (m: 'm) : Job<unit> = mA <<-+ m
 ```
 
 To allow an actor to provide a reply to a message, we can, similar to
-MailboxProcessor, send the actor a message passing object of some kind.  In
+`MailboxProcessor`, send the actor a message passing object of some kind.  In
 Hopac we could use one of many different message passing objects.  Closest to
 the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
 would be an
@@ -251,23 +251,23 @@ let echo () = actor <| fun inbox -> job {
 }
 ```
 
-One difference in the MailboxProcessor like operations implemented here is that
-the Hopac operations return jobs that then need to be run.  This is intentional.
-The implementation of Hopac is such that the concurrent operations within Hopac
-run fastest when they are executed by worker threads of a Hopac scheduler.
-Running individual concurrent operations outside of workers incurs potentially
-significant overheads.  Therefore the operations sketched here return jobs that
-can then potentially be composed into longer jobs to run.
+One difference in the `MailboxProcessor` like operations implemented here is
+that the Hopac operations return jobs that then need to be run.  This is
+intentional.  The implementation of Hopac is such that the concurrent operations
+within Hopac run fastest when they are executed by worker threads of a Hopac
+scheduler.  Running individual concurrent operations outside of workers incurs
+potentially significant overheads.  Therefore the operations sketched here
+return jobs that can then potentially be composed into longer jobs to run.
 
-This is just a small sketch and omits many features of the MailboxProcessor.
+This is just a small sketch and omits many features of the `MailboxProcessor`.
 You could continue extending these snippets to quite straightforwardly add
-support for most of what the MailboxProcessor provides, including features such
-as error events.  In most cases, however, there is no practical need to work
-like that.  While the above `actor` and `postAndReply` functions could be handy
-shortcuts in some cases, most of the other operations are readily available
-within Hopac or similar functionality can be expressed more flexibly and
-possibly more concisely.  For example, here is a more concise implementation of
-the above echo example using operations directly available with Hopac:
+support for most of what the `MailboxProcessor` provides, including features
+such as error events.  In most cases, however, there is no practical need to
+work like that.  While the above `actor` and `postAndReply` functions could be
+handy shortcuts in some cases, most of the other operations are readily
+available within Hopac or similar functionality can be expressed more flexibly
+and possibly more concisely.  For example, here is a more concise implementation
+of the above echo example using operations directly available with Hopac:
 
 ```fsharp
 type Echo<'x> = Echo of 'x * IVar<'x>
