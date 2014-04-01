@@ -432,7 +432,9 @@ let cell x = Job.delay <| fun () ->
 
 In the server loop, the above implementation uses
 selective[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select)
-communication.  It uses a choice of two primitive
+communication.  It uses a
+choice[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.choose)
+of two primitive
 alternatives[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt%3C%27x%3E):
 
 * The first alternative
@@ -689,8 +691,11 @@ Now the program explicitly waits for the children to finish and the output is
 clearer.  There is one more unfortunate thing in the above program.  The two
 promises are read in a specific order.  In this program it doesn't really
 matter, but it is a good demonstration of the flexibility of Hopac to show that
-we can indeed avoid this order dependency by using selective communication
-offered by the alternative mechanism:
+we can indeed avoid this order dependency by using
+selective[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select)
+communication offered by the
+alternative[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt%3C%27x%3E)
+mechanism:
 
 ```fsharp
 > run <| job {
@@ -715,9 +720,9 @@ Hello, from another job!
 val it : unit = ()
 ```
 
-When you run the above program, you will notice that the message "First job
-finished first." is printed about half a second before the last "Hello, from
-another job!" message after which the program is finished and F# interactive
+When you run the above program, you will notice that the message `First job
+finished first.` is printed about half a second before the last `Hello, from
+another job!` message after which the program is finished and F# interactive
 prints the inferred type.
 
 Working with many jobs at this level would be rather burdensome.  Hopac also
@@ -726,7 +731,7 @@ provides functions such as
 and
 `Job.conIgnore`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conIgnore)
 for starting and waiting for a sequence of jobs.  In this case we don't care
-about the results of the jobs, so `Job.conIgnore` is what use:
+about the results of the jobs, so `Job.conIgnore` is what we use:
 
 ```fsharp
 > [Job.sleep (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
@@ -839,14 +844,16 @@ let notSafe = Job.delay <| fun () ->
   Ch.take c <*> Ch.give c ()
 ```
 
-The problem in the above job is that both the `take`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
-and the `give`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+The problem in the above job is that both the
+`take`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+and the
+`give`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
 operations are not guaranteed to be executed in two separate jobs and a single
 job cannot communicate with itself using `take` and `give` operations on
 channels.  Whichever operation happens to be executed first will block waiting
 for the other pair of the communication that never appears.
+
+##### Speedup?
 
 Did you already try to run the parallel version of the naive Fibonacci function
 in the F# interactive?  If you did, the behavior may have not been what you'd
@@ -858,7 +865,7 @@ garbage collection is single-threaded, it becomes a sequential bottleneck and an
 application cannot possibly scale.  So, you need to make sure that you are using
 multi-threaded server garbage collection.  See
 [&lt;gcServer&gt; Element](http://msdn.microsoft.com/en-us/library/ms229357%28v=vs.110%29.aspx)
-for some details.  I have modified the config files of the F# tools on my
+for some details.  I have modified the configuration files of the F# tools on my
 machine to use the server garbage collection.  I also use the 64-bit version of
 F# interactive and run on 64-bit machines.  Once you've made the necessary
 adjustments to the tool configurations, you should see the expected speedup from
