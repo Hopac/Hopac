@@ -30,8 +30,8 @@ The Hopac Programming Model
 There are two central aspects of Hopac that shape the programming model.
 
 The first aspect is that, threads, which are called *jobs*, represented by the
-type `Job<'x>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E),
+type
+`Job<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E),
 in Hopac are extremely lightweight.  On modern machines you can start tens of
 millions of new jobs in a second.  Because a job takes only a very small amount
 of memory, starting from tens of bytes, a program may have millions of jobs on a
@@ -121,9 +121,11 @@ val get: Cell<'a> -> Job<'a>
 val put: Cell<'a> -> 'a -> Job<unit>
 ```
 
-The `cell` function creates a job that creates a new storage cell.  The `get`
-function creates a job that returns the contents of the cell and the `put`
-function creates a job that updates the contents of the cell.
+The `cell` function creates a job
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E)
+that creates a new storage cell.  The `get` function creates a job that returns
+the contents of the cell and the `put` function creates a job that updates the
+contents of the cell.
 
 The basic idea behind the implementation is that the cell is a concurrent
 *server* that responds to `Get` and `Put` request.  We represent the requests
@@ -292,14 +294,14 @@ have a number of reasons for this:
 * Using the combinators directly usually leads to more concise code.
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
-* There are many very commonly used monadic combinators, e.g. `|>>`
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.|%3E%3E)
-  and `>>%`
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E%),
+* There are many very commonly used monadic combinators,
+  e.g. `|>>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.|%3E%3E)
+  and
+  `>>%`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E%),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
-* Using the combinators directly I can often avoid some unnecessary `delay`
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
+* Using the combinators directly I can often avoid some unnecessary
+  `delay`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
   operations the workflow notation introduces for safety reasons.
 
 I'm afraid that to fully explain all of these issues would require quite a bit
@@ -428,19 +430,20 @@ let cell x = Job.delay <| fun () ->
   Job.start (server x) >>% c
 ```
 
-In the server loop, the above implementation uses selective communication
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select).
-It uses a choice of two primitive alternatives:
+In the server loop, the above implementation uses
+selective[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select)
+communication.  It uses a choice of two primitive
+alternatives[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt%3C%27x%3E):
 
-* The first alternative takes
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
-  a value on the `putCh` channel from a client and then
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+* The first alternative
+  takes[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
+  a value on the `putCh` channel from a client and
+  then[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
   loops.
-* The second alternative gives
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
-  a value on the `getCh` channel to a client and then
-  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+* The second alternative
+  gives[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
+  a value on the `getCh` channel to a client and
+  then[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
   loops.
 
 What this basically means is that the server makes an offer to perform the
@@ -448,8 +451,8 @@ alternatives.  Of the two offered alternatives, the alternative that becomes
 available first will then be committed to.  The other offer will be withdrawn.
 
 This pattern of carrying some value from one iteration of a server loop to the
-next is common enough that there is a combinator `iterate`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.iterate)
+next is common enough that there is a combinator
+`iterate`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.iterate)
 for that purpose.  Using `iterate` we would write:
 
 ```fsharp
