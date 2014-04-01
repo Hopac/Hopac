@@ -262,12 +262,16 @@ synchronous channels.
 
 #### On Notation
 
-There are two ways to write jobs in Hopac.  One way is to use the `job` workflow
-builder like we did in the previous section.  The other way is to directly use
-the monadic combinators, `result` and bind, `>>=`, that the workflow builder
-abstracts away.  I personally mostly prefer using the monadic combinators with
-an occasional excursion with the workflow notation.  I have a number of reasons
-for this:
+There are two ways to write jobs in Hopac.  One way is to use the `job`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.job)
+workflow builder like we did in the previous section.  The other way is to
+directly use the monadic combinators, `result`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result)
+and bind, `>>=`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=),
+that the workflow builder abstracts away.  I personally mostly prefer using the
+monadic combinators with an occasional excursion with the workflow notation.  I
+have a number of reasons for this:
 
 * Using the combinators directly usually leads to more concise code.
 * I often find it easier to understand the code when it is written with the
@@ -278,7 +282,9 @@ for this:
   [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E%),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
+
 * Using the combinators directly I can often avoid some unnecessary `delay`
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
   operations the workflow notation introduces for safety reasons.
 
 I'm afraid that to fully explain all of these issues would require quite a bit
