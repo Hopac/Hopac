@@ -74,7 +74,7 @@ for expressing concurrent control flow.
 
 Hopac is by no means a panacea.  As discussed above, the essence of Hopac is
 *lightweight* threads, called *jobs*, and flexible lightweight synchronous
-message passing via channels (and other messaging primitives).  Hopac is
+message passing via *channels* (and other messaging primitives).  Hopac is
 designed and optimized to scale as the number of such relatively independent
 lightweight elements is increased.  That can be seen as a form of *data
 parallelism* in which the data is the program entities implemented by the jobs
@@ -96,8 +96,10 @@ might offer better performance than Hopac.
 A Couple of Introductory Examples
 ---------------------------------
 
-Rather than meticulously building up the primitives of Hopac let's just run
-through a couple of examples.
+Rather than meticulously building up the primitives of Hopac let's just first
+run through a couple of examples.  These examples are meant to be read through
+fairly quickly.  We'll look at the primitives used in these examples in detail
+later.
 
 ### Example: Updatable Storage Cells
 
@@ -135,7 +137,8 @@ type Request<'a> =
 
 To communicate with the outside world, the server presents two channels: one
 channel for requests and another channel for replies required by the get
-operation.  The `Cell` type is a record of those two channels:
+operation.  The `Cell` type is a record of those two channels
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E):
 
 ```fsharp
 type Cell<'a> = {
@@ -144,8 +147,11 @@ type Cell<'a> = {
 }
 ```
 
-The `put` operation simply gives the `Put` request to the server via the request
-channel:
+The `put` operation is a job
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.job)
+that simply gives
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+the `Put` request to the server via the request channel:
 
 ```fsharp
 let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
@@ -154,7 +160,9 @@ let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
 ```
 
 The `get` operation gives the `Get` request to the server via the request
-channel and then takes the server's reply from the reply channel:
+channel and then takes
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+the server's reply from the reply channel:
 
 ```fsharp
 let get (c: Cell<'a>) : Job<'a> = job {
@@ -163,24 +171,24 @@ let get (c: Cell<'a>) : Job<'a> = job {
 }
 ```
 
-Finally, the `cell` operation actually creates the channels and starts the
-concurrent server job:
+Finally, the `cell` operation actually creates the channels and starts
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start)
+the concurrent server job:
 
 ```fsharp
 let cell (x: 'a) : Job<Cell<'a>> = job {
-  let reqCh = Ch.Now.create ()
-  let replyCh = Ch.Now.create ()
+  let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
   let rec server x = job {
-        let! req = Ch.take reqCh
+        let! req = Ch.take c.reqCh
         match req with
          | Get ->
-           do! Ch.give replyCh x
+           do! Ch.give c.replyCh x
            return! server x
          | Put x ->
            return! server x
       }
   do! Job.start (server x)
-  return {reqCh = reqCh; replyCh = replyCh}
+  return c
 }
 ```
 
@@ -209,15 +217,17 @@ Running through the previous example you may have wondered about what happens to
 server jobs that run inside those cells.  Shouldn't they be killed?  Indeed, one
 aspect that is important to understand is that Hopac jobs and channels are basic
 simple .Net objects and can be garbage collected.  Specifically, jobs and
-channels do not inherently hold onto disposable system resources.  (This is
+channels do not inherently hold onto disposable system resources.  This is
 unlike the
 [MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx), for
-example, which is disposable.)  What this means in practice is that most jobs do
-not necessarily need to implement any special kill protocol.  A job that is
-blocked waiting for communication on a channel that is no longer reachable can
-(and will) be garbage collected.  Only jobs that explicitly hold onto some
-resource that needs to be disposed must implement a kill protocol to explicitly
-make sure that the resource gets properly disposed.
+example, which is
+[disposable](http://msdn.microsoft.com/en-us/library/system.idisposable.aspx).
+What this means in practice is that most jobs do not necessarily need to
+implement any special kill protocol.  A job that is blocked waiting for
+communication on a channel that is no longer reachable can (and will) be garbage
+collected.  Only jobs that explicitly hold onto some resource that needs to be
+disposed must implement a kill protocol to explicitly make sure that the
+resource gets properly disposed.
 
 Consider the following interaction:
 
@@ -254,12 +264,13 @@ built upon asynchronous message passing primitives and in such systems message
 queues can collect arbitrary numbers of messages when there are differences in
 speed between producer and consumer threads.  Synchronous channels do not work
 like that.  A synchronous channel doesn't hold a buffer of messages.  When a
-producer job tries to give a message to a consumer job via synchronous channels,
-the producer is suspended until a consumer job is ready to take the message.  A
-synchronous channel provides something that is much more like a control flow
-mechanism, like a procedure call, rather than a passive buffer for passing data
-between threads.  This property can make it easier to understand the behavior of
-concurrent programs.
+producer job tries to give a message to a consumer job using a synchronous
+channel, the producer is suspended until a consumer job is ready to take the
+message.  A synchronous channel essentially provides a *simple rendezvous*
+mechanism that is less like a passive buffer for passing data and more like a
+control flow mechanism, like a kind of procedure call with no return value.
+This property can make it easier to understand the behavior of concurrent
+programs.
 
 Of course, the bound **&Theta;(m + n)** does not take into account space that
 the jobs otherwise accumulate in the form of data structures other than the
@@ -329,7 +340,7 @@ readable as the workflow notation.
 In addition to the monadic job combinators, Hopac also provides symbolic
 operators for some of the message passing operations.  Also, many of the
 operations in Hopac are simple upcasts along the inheritance chain and can
-either be eliminated completely or replaced by an actual `upcast` operation.
+either be eliminated completely or replaced by an actual F# `upcast` operation.
 Furthermore, Hopac also provides a few shortcut convenience bindings and
 combined operations for frequently used operations and programming idioms.
 Using those shortcuts, and dropping unnecessary type ascriptions, we can write
@@ -380,7 +391,8 @@ val put: Cell<'a> -> 'a -> Job<unit>
 The idea for this implementation is that the server loop of storage cells
 creates an alternative that either takes a new value on a channel for `put`
 operations or gives the current value on a channel for `get` operations.  The
-cell type just consists of these channels:
+cell type just consists of these channels
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E):
 
 ```fsharp
 type Cell<'a> = {
@@ -389,15 +401,17 @@ type Cell<'a> = {
 }
 ```
 
-The `get` operation then simply takes a value on the `getCh` channel from the
-server of a cell:
+The `get` operation then simply takes
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+a value on the `getCh` channel from the server of a cell:
 
 ```fsharp
 let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
 ```
 
-And the `put` operations gives a value to the server on the `putCh` channel of
-the cell server:
+And the `put` operations gives
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+a value to the server on the `putCh` channel of the cell server:
 
 ```fsharp
 let put (c: Cell<'a>) (x: 'a) : Job<unit> = Ch.give c.putCh x
@@ -409,18 +423,25 @@ The `cell` constructor then creates the channels and starts the server loop:
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
   let rec server x =
-    Alt.select [Ch.Alt.take c.putCh   >>=? server
+    Alt.select [Ch.Alt.take c.putCh   >>=? fun x -> server x
                 Ch.Alt.give c.getCh x >>=? fun () -> server x]
   Job.start (server x) >>% c
 ```
 
-In the server loop, the above implementation uses selective communication.  It
-uses a choice of two primitive alternatives:
+In the server loop, the above implementation uses selective communication
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select).
+It uses a choice of two primitive alternatives:
 
-* The first alternative takes a value on the `putCh` channel from a client and
-  then loops.
-* The second alternative gives a value on the `getCh` channel to a client and
-  then loops.
+* The first alternative takes
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
+  a value on the `putCh` channel from a client and then
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+  loops.
+* The second alternative gives
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
+  a value on the `getCh` channel to a client and then
+  [*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+  loops.
 
 What this basically means is that the server makes an offer to perform the
 alternatives.  Of the two offered alternatives, the alternative that becomes
