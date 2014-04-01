@@ -54,12 +54,21 @@ open it up a bit.
   They can be bound to variables, passed to and returned from functions and can
   even be sent from one job to another.
 * **Higher-order** means that primitive alternatives can be combined and
-  extended with user defined procedures to build more complex alternatives.
-* **Selective** means that a form of choice or disjunction between alternatives
-  is supported.  An alternative can be constructed that, for example, offers to
-  give a message to another job *or* take a message from another job.  The
-  choice of which operation is performed then depends on whichever alternative
-  becomes available at run time.
+  extended[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+  with user defined procedures to
+  build[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.guard)
+  more
+  complex[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.withNack)
+  alternatives that encapsulate concurrent client-server protocols.
+* **Selective** means that a form of
+  choice[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.choose)
+  or disjunction between alternatives is supported.  An alternative can be
+  constructed that, for example, offers to
+  give[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.give)
+  a message to another job *or*
+  take[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
+  a message from another job.  The choice of which operation is performed then
+  depends on whichever alternative becomes available at run time.
 * **Synchronous** means that rather than building up a queue of messages for
   another job to examine, jobs can communicate via *rendezvous*.  Two jobs can
   meet so that one job can give a message to another job that takes the message.
