@@ -15,10 +15,9 @@ The
 signature contains documentation comments on the Hopac primitives used in this
 document.  There is also a
 [Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
-manual generated from the signature file.  It is recommended that you open the
-Hopac solution in Visual Studio, or otherwise open Hopac.fsi in whatever editor
-or IDE you prefer (I'm writing this in
-[Emacs](http://www.gnu.org/software/emacs/)) and start the F# interactive shell
+manual generated from the signature file and this documents links to specific
+Hopac primitives descriptions in the reference manual.  It is recommended that
+you open the Hopac solution in Visual Studio and start the F# interactive shell
 so that you can look at the documentation comments and quickly try out examples
 from this document.  You can use the
 [Hopac.fsx](https://github.com/VesaKarvonen/Hopac/blob/master/Hopac.fsx) script
@@ -30,20 +29,26 @@ The Hopac Programming Model
 
 There are two central aspects of Hopac that shape the programming model.
 
-The first aspect is that, threads, which are called *jobs*, in Hopac are
-extremely lightweight.  On modern machines you can start tens of millions of new
-jobs in a second.  Because a job takes only a very small amount of memory,
-starting from tens of bytes, a program may have millions of jobs on a modern
-machine at any moment.  (Of course, at any moment, most of those jobs are
+The first aspect is that, threads, which are called *jobs*, represented by the
+type `Job<'x>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E),
+in Hopac are extremely lightweight.  On modern machines you can start tens of
+millions of new jobs in a second.  Because a job takes only a very small amount
+of memory, starting from tens of bytes, a program may have millions of jobs on a
+modern machine at any moment.  (Of course, at any moment, most of those jobs are
 suspended, because modern machines still only have a few, or at most a few
 dozen, processor cores.)  When programming in Hopac, one can therefore start new
 jobs in situations where it would simply be unthinkable when using heavyweight
 threads.
 
 The other aspect is that Hopac provides first-class, higher-order, selective,
-synchronous, lightweight, message passing primitives in the form of channels
-(Ch) and alternatives (Alt) for coordinating and communicating between jobs.
-That is a mouthful!  Let's open it up a bit.
+synchronous, lightweight, message passing primitives in the form of *channels*,
+represented by the type `Ch<'x>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E),
+and *alternatives*, represented by the type `Alt<'x>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt%3C%27x%3E),
+for coordinating and communicating between jobs.  That is a mouthful!  Let's
+open it up a bit.
 
 * **First-class** means that channels and alternatives are ordinary values.
   They can be bound to variables, passed to and returned from functions and can
