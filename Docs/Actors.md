@@ -78,13 +78,26 @@ module HopacModel =
   val take: Ch<'x> -> Job<'x>
 ```
 
-Using the monadic operations, `>>=` and `result`, one can define a thread of
-execution and such threads can be started with `start`.  Any number of channels
-can be created using `ch` and different channels may have different types.
-Within a thread of execution one can then perform `give` and `take` operations
-on channels.  Both `give` and `take` operations are synchronous and block the
-executing job until the other party of the communication is present and the
-operation can be completed.
+Using the monadic operations, `>>=`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
+and `result`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result),
+one can define a thread of execution, represented by the type `Job<'x>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E),
+and such threads can be started with `start`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Global.start).
+Any number of channels can be created using `ch`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.ch)
+and the channel type `Ch<'x>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E)
+is parameterized with the message type.  Within a thread of execution one can
+then perform `give`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+and `take`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+operations on channels.  Both `give` and `take` operations are synchronous and
+block the executing job until the other party of the communication is present
+and the operation can be completed.
 
 Please note that the above signature snippet is not a precise subset of Hopac
 and that Hopac provides a much more comprehensive model as described in the
@@ -119,8 +132,8 @@ receive the message, then that message is queued to the mailbox of the actor.
 Please note that the above sketch of an actor model does not attempt to
 precisely capture any specific actor model such as Akka or Erlang.  Like the
 actual model provided by the Hopac library and the model specified in the
-HopacModel signature, the above ActorModel is also drastically simpler than many
-actual actor models.
+`HopacModel` signature, the above `ActorModel` is also drastically simpler than
+many actual actor models.
 
 ### Encoding the actor model using Hopac
 
@@ -161,7 +174,7 @@ not very practical, because it is very inefficient in a number of ways and it is
 possible to implement actor models and program in actor model like styles
 directly within Hopac.  While the above uses the actual Hopac library, so that
 you can directly compile the above code, it makes no use of any primitives in
-Hopac beyond what is in the previous HopacModel signature.
+Hopac beyond what is in the previous `HopacModel` signature.
 
 More practical actor style programming in Hopac
 -----------------------------------------------
