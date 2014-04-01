@@ -316,9 +316,11 @@ let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
   Job.start (server x) >>% c
 ```
 
-As you can see above, I've used `delay` only once and if you count the number of
-words and lines, you'll find out that that the code is more concise.  I
-personally find the monadic code roughly as readable as the workflow notation.
+As you can see above, I've used `delay`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.delay)
+only once and if you count the number of words and lines, you'll find out that
+that the code is more concise.  I personally find the monadic code roughly as
+readable as the workflow notation.
 
 In addition to the monadic job combinators, Hopac also provides symbolic
 operators for some of the message passing operations.  Also, many of the
@@ -421,8 +423,9 @@ alternatives.  Of the two offered alternatives, the alternative that becomes
 available first will then be committed to.  The other offer will be withdrawn.
 
 This pattern of carrying some value from one iteration of a server loop to the
-next is common enough that there is a combinator `iterate` for that purpose.
-Using `iterate` we would write:
+next is common enough that there is a combinator `iterate`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.iterate)
+for that purpose.  Using `iterate` we would write:
 
 ```fsharp
 let cell x = Job.delay <| fun () ->
@@ -433,7 +436,10 @@ let cell x = Job.delay <| fun () ->
                 Ch.Alt.give c.getCh x >>%? x]) >>% c
 ```
 
-The above also makes use of the function `Job.server` instead of `Job.start`.
+The above also makes use of the function `Job.server`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.server)
+instead of `Job.start`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start).
 `Job.server` takes advantage of the fact that the job it is given is known to
 never return normally and starts it in a little bit lighter-weight form.
 
@@ -621,9 +627,12 @@ Hello, from another job!
 
 One unfortunate thing in the above example is that the program returns
 immediately and the two jobs keep running in the background.  The `Job.start`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.start)
 primitive doesn't implicitly provide for any way to wait for the started job to
 finish.  This is intentional, because it is quite common to start jobs that
-don't need to return.  A `Promise` allows a parent job to wait for a child job:
+don't need to return.  A `Promise`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Promise)
+allows a parent job to wait for a child job:
 
 ```fsharp
 > run <| job {
@@ -679,9 +688,12 @@ another job!" message after which the program is finished and F# interactive
 prints the inferred type.
 
 Working with many jobs at this level would be rather burdensome.  Hopac also
-provides functions such as `Job.conCollect` and `Job.conIgnore` for starting and
-waiting for a sequence of jobs.  In this case we don't care about the results of
-the jobs, so `Job.conIgnore` is what use:
+provides functions such as `Job.conCollect`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conCollect)
+and `Job.conIgnore`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.conIgnore)
+for starting and waiting for a sequence of jobs.  In this case we don't care
+about the results of the jobs, so `Job.conIgnore` is what use:
 
 ```fsharp
 > [Job.sleep (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
@@ -736,8 +748,15 @@ let rec fib n = Job.delay <| fun () ->
     x + y
 ```
 
-The above implementation makes use of the combinators `<&>` and `|>>` whose
-meanings can be specified in terms of `result` and `>>=` as follows:
+The above implementation makes use of the combinators `<&>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C&%3E)
+and `|>>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.|%3E%3E)
+whose meanings can be specified in terms of `result`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result)
+and `>>=`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
+as follows:
 
 ```fsharp
 let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
@@ -760,7 +779,8 @@ appear.  Indeed, this is an extremely inefficient exponential time algorithm for
 computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
-combinator `<&>` to the parallel pair combinator `<*>`:
+combinator `<&>` to the parallel pair combinator `<*>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3C*%3E):
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
@@ -784,11 +804,14 @@ let notSafe = Job.delay <| fun () ->
   Ch.take c <*> Ch.give c ()
 ```
 
-The problem in the above job is that both the `take` and the `give` operations
-are not guaranteed to be executed in two separate jobs and a single job cannot
-communicate with itself using `take` and `give` operations on channels.
-Whichever operation happens to be executed first will block waiting for the
-other pair of the communication that never appears.
+The problem in the above job is that both the `take`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+and the `give`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+operations are not guaranteed to be executed in two separate jobs and a single
+job cannot communicate with itself using `take` and `give` operations on
+channels.  Whichever operation happens to be executed first will block waiting
+for the other pair of the communication that never appears.
 
 Did you already try to run the parallel version of the naive Fibonacci function
 in the F# interactive?  If you did, the behavior may have not been what you'd
@@ -980,9 +1003,13 @@ module Ch =
     val take: Ch<'x> -> Alt<'x>
 ```
 
-The `Ch.Alt.give` alternative represents the possibility of giving a value on a
-channel to another concurrent job and the `Ch.Alt.take` alternative represents
-the possibility of taking a value from another concurrent job on a channel.
+The `Ch.Alt.give`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.give)
+alternative represents the possibility of giving a value on a channel to another
+concurrent job and the `Ch.Alt.take`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.Alt.take)
+alternative represents the possibility of taking a value from another concurrent
+job on a channel.
 
 It is important that primitive alternatives such as these only represent the
 *possibility* of performing the operations.  As we will see shortly, we can form
@@ -991,8 +1018,9 @@ perform exactly one of those alternatives.
 
 ### Picking an Alternative
 
-To actually perform an operation made possible by an alternative, the
-`Alt.pick` operation is used:
+To actually perform an operation made possible by an alternative, the `Alt.pick`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.pick)
+operation is used:
 
 ```fsharp
 val pick: Alt<'x> -> Job<'x>
@@ -1109,19 +1137,26 @@ val choose: seq<Alt<'x>> -> Alt<'x>
 val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
 ```
 
-The `Alt.choose` operation forms a disjunction of the sequence of alternatives
-given to it.  When such a disjunction is picked, the alternatives involved in
-the disjunction are instantiated one-by-one.  Assuming no alternative is
-immediately available, the job is blocked, waiting for any one of the
-alternatives to become available.  When one of the alternatives in the
-disjunction becomes available, the alternative is picked and committed to and
-the other alternatives are canceled.
+The `Alt.choose`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.choose)
+operation forms a disjunction of the sequence of alternatives given to it.  When
+such a disjunction is picked, the alternatives involved in the disjunction are
+instantiated one-by-one.  Assuming no alternative is immediately available, the
+job is blocked, waiting for any one of the alternatives to become available.
+When one of the alternatives in the disjunction becomes available, the
+alternative is picked and committed to and the other alternatives are canceled.
 
-The wrap `>>=?` operation is similar to the bind `>>=` operation on jobs and
-allows one to extend an alternative so that further operations are performed
-after the alternative has been committed to.  Similarly to corresponding
-operations on jobs, several shortcut operators, such as `|>>?` and `>>%?`, are
-provided in addition to `>>=?` on alternatives.
+The wrap `>>=?`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E=?)
+operation is similar to the bind `>>=`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
+operation on jobs and allows one to extend an alternative so that further
+operations are performed after the alternative has been committed to.  Similarly
+to corresponding operations on jobs, several shortcut operators, such as `|>>?`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.|%3E%3E?)
+and `>>%?`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3E%3E%?),
+are provided in addition to `>>=?` on alternatives.
 
 In this case we use the ability to simply map the button messages to a boolean
 value for further processing.  We could also just continue processing in the
@@ -1143,8 +1178,11 @@ A key point in the types of the `choose` and `>>=?` operations is that they
 create new alternatives and those alternatives are first-class values just like
 the primitive `give` and `take` alternatives on channels.  For the common cases
 of simply picking from a choice of alternatives or combining just two
-alternatives the operations `Alt.select` and `<|>` are provided.  Their
-semantics can be described as follows:
+alternatives the operations `Alt.select`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.select)
+and `<|>`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.Infixes.%3C|%3E)
+are provided.  Their semantics can be described as follows:
 
 ```fsharp
 let select alts = pick (choose alts)
@@ -1164,21 +1202,32 @@ set of events that is specified statically in the program text.
 ### Guards
 
 The wrap combinator `>>=?` allows post-commit actions to be added to an
-alternative.  Hopac also provides the `guard` combinator that allows an
-alternative to be computed at instantiation time.
+alternative.  Hopac also provides the `guard`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.guard)
+combinator that allows an alternative to be computed at instantiation time.
 
 ```fsharp
 val guard: Job<Alt<'x>> -> Alt<'x>
 ```
 
+The idea of the `guard` combinator is that it allows one to encapsulate a
+protocol for interacting with a concurrent server as an abstract selective
+operation.  The way a client and a server typically interact is that the client
+sends the server a message and then waits for a reply from the server.  What is
+necessary is that the guard combinator allows one to package the operations of
+constructing the message, sending it to the server and then waiting for the
+reply in a form that can then be invoked an arbitrary number of times.
+
 Recall in the Kismet sketch it was mentioned that simulations like games often
 have their own notion of time and that the wall-clock time provided by
-`Timer.Global.timeOut` probably doesn't provide the desired semantics.  A simple
-game might be designed to update the simulation of the game world 60 times per
-second to match with a 60Hz display devices.  Rather than complicate all the
-calculations done in the simulation with a variable time step, such a simulation
-could be advanced in fixed length time steps or *ticks*.  Simplifying things to
-a minimum, the main loop of a game could then look roughly like this:
+`Timer.Global.timeOut`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Timer.Global.timeOut)
+probably doesn't provide the desired semantics.  A simple game might be designed
+to update the simulation of the game world 60 times per second to match with a
+60Hz display devices.  Rather than complicate all the calculations done in the
+simulation with a variable time step, such a simulation could be advanced in
+fixed length time steps or *ticks*.  Simplifying things to a minimum, the main
+loop of a game could then look roughly like this:
 
 ```fsharp
 while !runGame do
@@ -1233,12 +1282,13 @@ let atTime (atTime: Ticks) : Alt<unit> =
   Ch.Alt.take replyCh
 ```
 
-A detail worth pointing out above is the use of the `Ch.send` operation to send
-requests to the server asynchronously.  We already have the client synchronously
-taking a reply from the server, so there is no need to have the client
-synchronously waiting for the time server to take the request.  Using `atTime`
-we can implement the `timeOut` alternative constructor used in the earlier
-Kismet example:
+A detail worth pointing out above is the use of the `Ch.send`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.send)
+operation to send requests to the server asynchronously.  We already have the
+client synchronously taking a reply from the server, so there is no need to have
+the client synchronously waiting for the time server to take the request.  Using
+`atTime` we can implement the `timeOut` alternative constructor used in the
+earlier Kismet example:
 
 ```fsharp
 let timeOut (afterTicks: Ticks) : Alt<unit> =
@@ -1309,13 +1359,17 @@ That concludes the implementation of the time server itself.
 
 ### Negative Acknowledgments
 
-In the previous section the `guard` combinator was used to encapsulate the
-protocol for interacting with the custom timer server.  This worked because the
-service provided by the time server is idempotent.  If a client makes a request
-to the time server and later aborts the request, that is, doesn't wait for the
-server's reply, it causes no harm.  Sometimes things are not that simple and a
-server needs to know whether client actually committed to a transaction.  Hopac,
-like CML, supports this via the `withNack` combinator:
+In the previous section the `guard`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.guard)
+combinator was used to encapsulate the protocol for interacting with the custom
+timer server.  This worked because the service provided by the time server is
+idempotent.  If a client makes a request to the time server and later aborts the
+request, that is, doesn't wait for the server's reply, it causes no harm.
+Sometimes things are not that simple and a server needs to know whether client
+actually committed to a transaction.  Hopac, like CML, supports this via the
+`withNack`
+[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Alt.withNack)
+combinator:
 
 ```fsharp
 val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
