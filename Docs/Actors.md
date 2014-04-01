@@ -78,23 +78,23 @@ module HopacModel =
   val take: Ch<'x> -> Job<'x>
 ```
 
-Using the monadic operations, `>>=`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
-and `result`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result),
-one can define a thread of execution, represented by the type `Job<'x>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E),
-and such threads can be started with `start`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Global.start).
-Any number of channels can be created using `ch`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.ch)
-and the channel type `Ch<'x>`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E)
+Using the monadic operations,
+`>>=`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Infixes.%3E%3E=)
+and
+`result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.result),
+one can define a thread of execution, represented by the type
+`Job<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job%3C%27x%3E),
+and such threads can be started with
+`start`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Job.Global.start).
+Any number of channels can be created using
+`ch`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.TopLevel.ch)
+and the channel type
+`Ch<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch%3C%27x%3E)
 is parameterized with the message type.  Within a thread of execution one can
-then perform `give`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
-and `take`
-[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
+then perform
+`give`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.give)
+and
+`take`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:Hopac.Ch.take)
 operations on channels.  Both `give` and `take` operations are synchronous and
 block the executing job until the other party of the communication is present
 and the operation can be completed.
