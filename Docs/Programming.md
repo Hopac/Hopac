@@ -114,13 +114,13 @@ val get: Cell<'a> -> Job<'a>
 val put: Cell<'a> -> 'a -> Job<unit>
 ```
 
-The **cell** function creates a job that creates a new storage cell.  The
-**get** function creates a job that returns the contents of the cell and the
-**put** function creates a job that updates the contents of the cell.
+The `cell` function creates a job that creates a new storage cell.  The `get`
+function creates a job that returns the contents of the cell and the `put`
+function creates a job that updates the contents of the cell.
 
 The basic idea behind the implementation is that the cell is a concurrent
-*server* that responds to **Get** and **Put** request.  We represent the
-requests using the **Request** discriminated union type:
+*server* that responds to `Get` and `Put` request.  We represent the requests
+using the `Request` discriminated union type:
 
 ```fsharp
 type Request<'a> =
@@ -130,7 +130,7 @@ type Request<'a> =
 
 To communicate with the outside world, the server presents two channels: one
 channel for requests and another channel for replies required by the get
-operation.  The **Cell** type is a record of those two channels:
+operation.  The `Cell` type is a record of those two channels:
 
 ```fsharp
 type Cell<'a> = {
@@ -139,8 +139,8 @@ type Cell<'a> = {
 }
 ```
 
-The **put** operation simply gives the **Put** request to the server via the
-request channel:
+The `put` operation simply gives the `Put` request to the server via the request
+channel:
 
 ```fsharp
 let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
@@ -148,7 +148,7 @@ let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
 }
 ```
 
-The **get** operation gives the **Get** request to the server via the request
+The `get` operation gives the `Get` request to the server via the request
 channel and then takes the server's reply from the reply channel:
 
 ```fsharp
@@ -158,7 +158,7 @@ let get (c: Cell<'a>) : Job<'a> = job {
 }
 ```
 
-Finally, the **cell** operation actually creates the channels and starts the
+Finally, the `cell` operation actually creates the channels and starts the
 concurrent server job:
 
 ```fsharp
@@ -180,10 +180,10 @@ let cell (x: 'a) : Job<Cell<'a>> = job {
 ```
 
 The concurrent server is a job that loops indefinitely taking requests from the
-request channel.  When the server receives a **Get** request, it gives the
-current value of the cell on the reply channel and then loops to take another
-request.  When the server receives a **Put** request, the server loops with the
-new value to take another request.
+request channel.  When the server receives a `Get` request, it gives the current
+value of the cell on the reply channel and then loops to take another request.
+When the server receives a `Put` request, the server loops with the new value to
+take another request.
 
 Here is sample output of an interactive session using a cell: 
 
@@ -253,8 +253,8 @@ producer job tries to give a message to a consumer job via synchronous channels,
 the producer is suspended until a consumer job is ready to take the message.  A
 synchronous channel provides something that is much more like a control flow
 mechanism, like a procedure call, rather than a passive buffer for passing data
-between threads.  This property can make it easier to understand the behavior
-of concurrent programs.
+between threads.  This property can make it easier to understand the behavior of
+concurrent programs.
 
 Of course, the bound **&Theta;(m + n)** does not take into account space that
 the jobs otherwise accumulate in the form of data structures other than the
@@ -262,20 +262,20 @@ synchronous channels.
 
 #### On Notation
 
-There are two ways to write jobs in Hopac.  One way is to use the **job**
-workflow builder like we did in the previous section.  The other way is to
-directly use the monadic combinators, **result** and bind, **>>=**, that the
-workflow builder abstracts away.  I personally mostly prefer using the monadic
-combinators with an occasional excursion with the workflow notation.  I have a
-number of reasons for this:
+There are two ways to write jobs in Hopac.  One way is to use the `job` workflow
+builder like we did in the previous section.  The other way is to directly use
+the monadic combinators, `result` and bind, `>>=`, that the workflow builder
+abstracts away.  I personally mostly prefer using the monadic combinators with
+an occasional excursion with the workflow notation.  I have a number of reasons
+for this:
 
 * Using the combinators directly usually leads to more concise code.
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
-* There are many very commonly used monadic combinators, e.g. **|>>** and
-  **>>%**, that do not have a corresponding workflow builder function and
-  notation and use of those combinators leads to faster code.
-* Using the combinators directly I can often avoid some unnecessary **delay**
+* There are many very commonly used monadic combinators, e.g. `|>>` and `>>%`,
+  that do not have a corresponding workflow builder function and notation and
+  use of those combinators leads to faster code.
+* Using the combinators directly I can often avoid some unnecessary `delay`
   operations the workflow notation introduces for safety reasons.
 
 I'm afraid that to fully explain all of these issues would require quite a bit
@@ -307,14 +307,14 @@ let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
   Job.start (server x) >>% c
 ```
 
-As you can see above, I've used **delay** only once and if you count the number
-of words and lines, you'll find out that that the code is more concise.  I
+As you can see above, I've used `delay` only once and if you count the number of
+words and lines, you'll find out that that the code is more concise.  I
 personally find the monadic code roughly as readable as the workflow notation.
 
 In addition to the monadic job combinators, Hopac also provides symbolic
 operators for some of the message passing operations.  Also, many of the
 operations in Hopac are simple upcasts along the inheritance chain and can
-either be eliminated completely or replaced by an actual **upcast** operation.
+either be eliminated completely or replaced by an actual `upcast` operation.
 Furthermore, Hopac also provides a few shortcut convenience bindings and
 combined operations for frequently used operations and programming idioms.
 Using those shortcuts, and dropping unnecessary type ascriptions, we can write
@@ -339,18 +339,18 @@ syntactic clarity.  So, while you can take a value from a channel just by
 binding it, and you might want to use that in production code, we will avoid
 doing that in the examples of this document.
 
-**Exercise:** As an alternative to having two preallocated channels **reqCh**
-and **replyCh** one could also make it so that the reply channel required by a
-**get** operation allocates a new channel for the reply and passes it to the
-server.  Change the implementation to use this technique.  Explain what
-performance advantages and disadvantages such an implementation might have?
+**Exercise:** As an alternative to having two preallocated channels `reqCh` and
+`replyCh` one could also make it so that the reply channel required by a `get`
+operation allocates a new channel for the reply and passes it to the server.
+Change the implementation to use this technique.  Explain what performance
+advantages and disadvantages such an implementation might have?
 
 ### Example: Storage Cells Using Alternatives
 
 The updatable storage cells in the previous section were built using only
 channels and jobs.  In order to allow for the two different kind of requests,
-**Get** and **Put**, the union type **Request** and pattern matching were used.
-In this section we look at an alternative implementation of storage cells using
+`Get` and `Put`, the union type `Request` and pattern matching were used.  In
+this section we look at an alternative implementation of storage cells using
 selective communication.
 
 As a reminder, here is the abstract signature that we'd like to implement:
@@ -363,8 +363,8 @@ val put: Cell<'a> -> 'a -> Job<unit>
 ```
 
 The idea for this implementation is that the server loop of storage cells
-creates an alternative that either takes a new value on a channel for **put**
-operations or gives the current value on a channel for **get** operations.  The
+creates an alternative that either takes a new value on a channel for `put`
+operations or gives the current value on a channel for `get` operations.  The
 cell type just consists of these channels:
 
 ```fsharp
@@ -374,21 +374,21 @@ type Cell<'a> = {
 }
 ```
 
-The **get** operation then simply takes a value on the **getCh** channel from
-the server of a cell:
+The `get` operation then simply takes a value on the `getCh` channel from the
+server of a cell:
 
 ```fsharp
 let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
 ```
 
-And the **put** operations gives a value to the server on the **putCh** channel
-of the cell server:
+And the `put` operations gives a value to the server on the `putCh` channel of
+the cell server:
 
 ```fsharp
 let put (c: Cell<'a>) (x: 'a) : Job<unit> = Ch.give c.putCh x
 ```
 
-The **cell** constructor then creates the channels and starts the server loop:
+The `cell` constructor then creates the channels and starts the server loop:
 
 ```fsharp
 let cell x = Job.delay <| fun () ->
@@ -402,18 +402,18 @@ let cell x = Job.delay <| fun () ->
 In the server loop, the above implementation uses selective communication.  It
 uses a choice of two primitive alternatives:
 
-* The first alternative takes a value on the **putCh** channel from a client and
+* The first alternative takes a value on the `putCh` channel from a client and
   then loops.
-* The second alternative gives a value on the **getCh** channel to a client and
-  the loops.
+* The second alternative gives a value on the `getCh` channel to a client and
+  then loops.
 
 What this basically means is that the server makes an offer to perform the
 alternatives.  Of the two offered alternatives, the alternative that becomes
 available first will then be committed to.  The other offer will be withdrawn.
 
 This pattern of carrying some value from one iteration of a server loop to the
-next is common enough that there is a combinator **iterate** for that purpose.
-Using **iterate** we would write:
+next is common enough that there is a combinator `iterate` for that purpose.
+Using `iterate` we would write:
 
 ```fsharp
 let cell x = Job.delay <| fun () ->
@@ -424,10 +424,9 @@ let cell x = Job.delay <| fun () ->
                 Ch.Alt.give c.getCh x >>%? x]) >>% c
 ```
 
-The above also makes use of the function **Job.server** instead of
-**Job.start**.  **Job.server** takes advantage of the fact that the job it is
-given is known to never return normally and starts it in a little bit
-lighter-weight form.
+The above also makes use of the function `Job.server` instead of `Job.start`.
+`Job.server` takes advantage of the fact that the job it is given is known to
+never return normally and starts it in a little bit lighter-weight form.
 
 At this point you might want to try out the snippets of code from this section
 in the F# interactive and verify that the alternative implementation of cells
@@ -445,8 +444,8 @@ implement the protocol.  Couldn't we use just a single channel and change the
 server loop to give and take on that single channel.  Note that this is allowed
 in Hopac and poses no problem.  A job cannot send itself a message using a
 channel in a single synchronous operation.  Explain what would go wrong if there
-was only one channel instead of separate **getCh** and **putCh** channels.
-Hint: Consider a situation with multiple clients.
+was only one channel instead of separate `getCh` and `putCh` channels.  Hint:
+Consider a situation with multiple clients.
 
 ### Example: Kismet
 
@@ -471,8 +470,8 @@ On the Wikipedia page on [UnrealEd](http://en.wikipedia.org/wiki/UnrealEd) there
 is a screenshot of a simple system built using Kismet.  Take a moment to look at
 the screenshot:
 [Roboblitz](http://upload.wikimedia.org/wikipedia/en/e/e6/Kismet_Roboblitz.PNG).
-As you can see, there are basic reusable blocks like **Bool**, **Compare Bool**,
-**Delay**, and **Matinee** that have some inputs, outputs and some behavior.
+As you can see, there are basic reusable blocks like `Bool`, `Compare Bool`,
+`Delay`, and `Matinee` that have some inputs, outputs and some behavior.
 
 Kismet, UnrealScript and the Unreal Engine, in general, have components and
 semantics that have been designed for making games.  In fact, I've never
@@ -480,13 +479,13 @@ actually programmed in UnrealScript or used Kismet, but a curious mind might
 wonder how could black boxes like that be implemented?  Could we build something
 similar using Hopac?
 
-Let's first consider the **Compare Bool** box.  Looking at the screenshot and
-making an educated guess, it seems to have an input event **In** and two output
-events **True** and **False** and it also seems to read a **Bool** variable.  It
-would seem that the idea is that when the box receives the **In** event, it
-signals either the **True** or the **False** event depending on the current
-value of the **Bool** variable.  Something like that can be quite concisely
-expressed as a Hopac job:
+Let's first consider the `Compare Bool` box.  Looking at the screenshot and
+making an educated guess, it seems to have an input event `In` and two output
+events `True` and `False` and it also seems to read a `Bool` variable.  It would
+seem that the idea is that when the box receives the `In` event, it signals
+either the `True` or the `False` event depending on the current value of the
+`Bool` variable.  Something like that can be quite concisely expressed as a
+Hopac job:
 
 ```fsharp
 let CompareBool (comparand: ref<bool>)
@@ -497,21 +496,21 @@ let CompareBool (comparand: ref<bool>)
   if !comparand then onTrue x else onFalse x
 ```
 
-The **CompareBool** function creates a job that first picks the **input**
-alternative and then performs either the **onTrue** or the **onFalse** action
-depending on the value of **comparand**.  As you can see, the above
-**CompareBool** job doesn't care about the type of the alternatives.  It just
-copies the received value **x** to the chosen output.
+The `CompareBool` function creates a job that first picks the `input`
+alternative and then performs either the `onTrue` or the `onFalse` action
+depending on the value of `comparand`.  As you can see, the above `CompareBool`
+job doesn't care about the type of the alternatives.  It just copies the
+received value `x` to the chosen output.
 
-Let's then consider the **Delay** box.  Making another educated guess and
-simplifying a bit, it has two input events **Start** and **Stop** (I leave
-**Pause** as an exercise for the reader) and two output events **Finished** and
-**Aborted** and also a time value **Duration**.  It would seem that the idea is
-that when the box receives the **Start** event, it starts a timer that counts
-down for the specified **Duration** after which the **Finished** event is
-signaled.  Also, if during the countdown, a **Stop** signal is received then the
-**Aborted** signal is signaled instead.  Here is how something like that could
-be expressed as a Hopac job:
+Let's then consider the `Delay` box.  Making another educated guess and
+simplifying a bit, it has two input events `Start` and `Stop` (I leave `Pause`
+as an exercise for the reader) and two output events `Finished` and `Aborted`
+and also a time value `Duration`.  It would seem that the idea is that when the
+box receives the `Start` event, it starts a timer that counts down for the
+specified `Duration` after which the `Finished` event is signaled.  Also, if
+during the countdown, a `Stop` signal is received then the `Aborted` signal is
+signaled instead.  Here is how something like that could be expressed as a Hopac
+job:
 
 ```fsharp
 let Delay (duration: ref<TimeSpan>)
@@ -524,12 +523,12 @@ let Delay (duration: ref<TimeSpan>)
               Timer.Global.timeOut (!duration) >>=? fun () -> finished x]
 ```
 
-The **Delay** function creates a job that first picks the **start** alternative.
-It then selects from two alternatives.  The first one is the given **stop**
-alternative and in case that is committed to, the value obtained from **stop**
-is given to the **aborted** action.  The second alternative starts a **timeOut**
-alternative for the current value of **duration** and in case that is committed
-to, the value received from **start** is given to the **finished** action.
+The `Delay` function creates a job that first picks the `start` alternative.  It
+then selects from two alternatives.  The first one is the given `stop`
+alternative and in case that is committed to, the value obtained from `stop` is
+given to the `aborted` action.  The second alternative starts a `timeOut`
+alternative for the current value of `duration` and in case that is committed
+to, the value received from `start` is given to the `finished` action.
 Whichever of those alternatives becomes enabled first will then be committed to
 during run time and the other will be discarded.
 
@@ -573,8 +572,8 @@ that loop indefinitely.
 
 Now, games often have their own specific notion of time, different from
 wall-clock time, which means that for programming games, the sketched
-implementation of **Delay** would not give the desired meaning of time.  (But
-you can certainly implement a notion of time more suitable for games on top of
+implementation of `Delay` would not give the desired meaning of time.  (But you
+can certainly implement a notion of time more suitable for games on top of
 Hopac.)  Also, the way variables are represented as mutable ref cells is a bit
 naive.  Unrealistic as it may be, this sketch has hopefully given you something
 interesting to think about!
@@ -612,11 +611,10 @@ Hello, from another job!
 ```
 
 One unfortunate thing in the above example is that the program returns
-immediately and the two jobs keep running in the background.  The **Job.start**
+immediately and the two jobs keep running in the background.  The `Job.start`
 primitive doesn't implicitly provide for any way to wait for the started job to
 finish.  This is intentional, because it is quite common to start jobs that
-don't need to return.  A **Promise** allows a parent job to wait for a child
-job:
+don't need to return.  A `Promise` allows a parent job to wait for a child job:
 
 ```fsharp
 > run <| job {
@@ -672,9 +670,9 @@ another job!" message after which the program is finished and F# interactive
 prints the inferred type.
 
 Working with many jobs at this level would be rather burdensome.  Hopac also
-provides functions such as **Job.conCollect** and **Job.conIgnore** for starting
-and waiting for a sequence of jobs.  In this case we don't care about the
-results of the jobs, so **Job.conIgnore** is what use:
+provides functions such as `Job.conCollect` and `Job.conIgnore` for starting and
+waiting for a sequence of jobs.  In this case we don't care about the results of
+the jobs, so `Job.conIgnore` is what use:
 
 ```fsharp
 > [Job.sleep (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
@@ -729,19 +727,19 @@ let rec fib n = Job.delay <| fun () ->
     x + y
 ```
 
-The above implementation makes use of the combinators **<&>** and **|>>** whose
-meanings can be specified in terms of **result** and **>>=** as follows:
+The above implementation makes use of the combinators `<&>` and `|>>` whose
+meanings can be specified in terms of `result` and `>>=` as follows:
 
 ```fsharp
 let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
 let (|>>) xJ x2y = xJ >>= fun x -> result (x2y x)
 ```
 
-Note that the semantics of **<&>** are entirely sequential and as a whole the
-above **fib** job doesn't use any parallelism.
+Note that the semantics of `<&>` are entirely sequential and as a whole the
+above `fib` job doesn't use any parallelism.
 
-After evaluating the above definition of **fib** in the F# interactive, we can
-run it as follows:
+After evaluating the above definition of `fib` in the F# interactive, we can run
+it as follows:
 
 ```fsharp
 > run (fib 38L) ;;
@@ -753,7 +751,7 @@ appear.  Indeed, this is an extremely inefficient exponential time algorithm for
 computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
-combinator **<&>** to the parallel pair combinator **<*>**:
+combinator `<&>` to the parallel pair combinator `<*>`:
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
@@ -764,12 +762,12 @@ let rec fib n = Job.delay <| fun () ->
     x + y
 ```
 
-The parallel pair combinator **<*>** makes it so that the two jobs given to it
-are either executed sequentially, just like **<&>**, or if it seems like a good
-thing to do, then the two jobs are executed in two separate jobs that may
-eventually run in parallel.  For this to be safe, the jobs must be safe to run
-*both* in parallel and in sequence.  In this case those conditions both apply,
-but, for example, the following job might deadlock:
+The parallel pair combinator `<*>` makes it so that the two jobs given to it are
+either executed sequentially, just like `<&>`, or if it seems like a good thing
+to do, then the two jobs are executed in two separate jobs that may eventually
+run in parallel.  For this to be safe, the jobs must be safe to run *both* in
+parallel and in sequence.  In this case those conditions both apply, but, for
+example, the following job might deadlock:
 
 ```fsharp
 let notSafe = Job.delay <| fun () ->
@@ -777,27 +775,27 @@ let notSafe = Job.delay <| fun () ->
   Ch.take c <*> Ch.give c ()
 ```
 
-The problem in the above job is that both the **take** and the **give**
-operations are not guaranteed to be executed in two separate jobs and a single
-job cannot communicate with itself using **take** and **give** operations on
-channels.  Whichever operation happens to be executed first will block waiting
-for the other pair of the communication that never appears.
+The problem in the above job is that both the `take` and the `give` operations
+are not guaranteed to be executed in two separate jobs and a single job cannot
+communicate with itself using `take` and `give` operations on channels.
+Whichever operation happens to be executed first will block waiting for the
+other pair of the communication that never appears.
 
 Did you already try to run the parallel version of the naive Fibonacci function
 in the F# interactive?  If you did, the behavior may have not been what you'd
-expect&mdash;that the parallel version would run about **N** times faster than
-the sequential version where **N** is the number of processor cores your machine
-has.  Now, there are a number of reasons for this and one of the possible
-reasons is that, by default, .Net uses single-threaded workstation garbage
-collection.  If garbage collection is single-threaded, it becomes a sequential
-bottleneck and an application cannot possibly scale.  So, you need to make sure
-that you are using multi-threaded server garbage collection.  See
+expect&mdash;that the parallel version would run about `N` times faster than the
+sequential version where `N` is the number of processor cores your machine has.
+Now, there are a number of reasons for this and one of the possible reasons is
+that, by default, .Net uses single-threaded workstation garbage collection.  If
+garbage collection is single-threaded, it becomes a sequential bottleneck and an
+application cannot possibly scale.  So, you need to make sure that you are using
+multi-threaded server garbage collection.  See
 [&lt;gcServer&gt; Element](http://msdn.microsoft.com/en-us/library/ms229357%28v=vs.110%29.aspx)
 for some details.  I have modified the config files of the F# tools on my
 machine to use the server garbage collection.  I also use the 64-bit version of
 F# interactive and run on 64-bit machines.  Once you've made the necessary
-adjustments to the tool configurations, you should see the expected speedup
-from the parallel version.
+adjustments to the tool configurations, you should see the expected speedup from
+the parallel version.
 
 ##### About the Fibonacci Example
 
@@ -817,7 +815,7 @@ overhead costs of starting parallel jobs.
 
 The main reason for using the Fibonacci function as an example is that it is a
 simple example for introducing the concept of optional parallel execution, which
-is employed by the **<*>** combinator.  The parallel Fibonacci function is also
+is employed by the `<*>` combinator.  The parallel Fibonacci function is also
 useful and instructive as a benchmark for measuring the overhead costs of
 starting, running and retrieving the results of parallel jobs.  Indeed, there is
 a
@@ -837,12 +835,12 @@ Let's consider a bit more realistic example of fork-join parallelism: a parallel
 bit of toy, because the idea here isn't to show how to make the fastest merge
 sort, but rather to demonstrate fork-join parallelism.
 
-The two building blocks of merge sort are the functions **split** and **merge**.
-The **split** function simply splits the given input sequence into two halves.
-The **merge** function, on the other hand, merges two sequences into a new
-sorted sequence containing the elements of both of the given sequences.
+The two building blocks of merge sort are the functions `split` and `merge`.
+The `split` function simply splits the given input sequence into two halves.
+The `merge` function, on the other hand, merges two sequences into a new sorted
+sequence containing the elements of both of the given sequences.
 
-Here is a simple implementation of **split**:
+Here is a simple implementation of `split`:
 
 ```fsharp
 let split xs =
@@ -853,7 +851,7 @@ let split xs =
   loop xs [] []
 ```
 
-And here is a simple implementation of **merge**:
+And here is a simple implementation of `merge`:
 
 ```fsharp
 let merge xs ys =
@@ -868,7 +866,7 @@ let merge xs ys =
   loop xs ys []
 ```
 
-It is left as an exercise for the reader to implement **merge** in a more
+It is left as an exercise for the reader to implement `merge` in a more
 efficient form.
 
 Merge sort then simply recursively splits, sorts and then merges the lists:
@@ -881,7 +879,7 @@ let rec mergeSort xs =
    | (xs, ys) -> merge (mergeSort xs) (mergeSort ys)
 ```
 
-We can now test that our **mergeSort** works:
+We can now test that our `mergeSort` works:
 
 ```fsharp
 > mergeSort [3; 1; 4; 1; 5; 9; 2] ;;
@@ -922,7 +920,7 @@ than some threshold.  That threshold then needs to be chosen in such a way that
 the work required to sort a list shorter than the threshold is significant
 compared to the cost of starting parallel jobs.  In practice, this often means
 that you run a few experiments to find a good threshold.  Here is a modified
-version of **mergeSortJob** that uses a given threshold:
+version of `mergeSortJob` that uses a given threshold:
 
 ```fsharp
 let mergeSortJob threshold xs = Job.delay <| fun () ->
@@ -940,7 +938,7 @@ let mergeSortJob threshold xs = Job.delay <| fun () ->
 
 For simplicity, the above computes the length of the input list just once and
 then approximates the lengths of the sub-lists resulting from the split.  It
-also assumes that **threshold** is greater than zero.  Using a function like the
+also assumes that `threshold` is greater than zero.  Using a function like the
 above you can experiment, perhaps by writing a simple driver program, to find a
 threshold that gives the best speed-ups.
 
@@ -954,8 +952,8 @@ uses of alternatives.  In this section we'll take a closer look at alternatives.
 ### Just what is an alternative?
 
 There are many ways to characterize alternatives.  Here is one.  An alternative,
-**Alt<'x>**, represents the possibility of communicating a value of type **'x**
-from one concurrent entity to another.  How that value is computed and when that
+`Alt<'x>`, represents the possibility of communicating a value of type `'x` from
+one concurrent entity to another.  How that value is computed and when that
 value is available are details encapsulated by the alternative.  Alternatives
 can be created and combined in many ways allowing alternatives to encapsulate
 complex communication protocols.
@@ -973,10 +971,9 @@ module Ch =
     val take: Ch<'x> -> Alt<'x>
 ```
 
-The **Ch.Alt.give** alternative represents the possibility of giving a value on
-a channel to another concurrent job and the **Ch.Alt.take** alternative
-represents the possibility of taking a value from another concurrent job on a
-channel.
+The `Ch.Alt.give` alternative represents the possibility of giving a value on a
+channel to another concurrent job and the `Ch.Alt.take` alternative represents
+the possibility of taking a value from another concurrent job on a channel.
 
 It is important that primitive alternatives such as these only represent the
 *possibility* of performing the operations.  As we will see shortly, we can form
@@ -986,7 +983,7 @@ perform exactly one of those alternatives.
 ### Picking an Alternative
 
 To actually perform an operation made possible by an alternative, the
-**Alt.pick** operation is used:
+`Alt.pick` operation is used:
 
 ```fsharp
 val pick: Alt<'x> -> Job<'x>
@@ -1006,12 +1003,12 @@ run:
 let! aValue = Alt.pick (Ch.Alt.take aChannel)
 ```
 
-Conceptually, the **Alt.pick** operation *instantiates* the given alternative,
+Conceptually, the `Alt.pick` operation *instantiates* the given alternative,
 *waits until* the alternative becomes *available* for picking and then *commits*
 to the alternative and returns the value communicated by the alternative.  In
 the instantiation phase the computation encapsulated by the alternative is
-started.  In the case of the **Ch.Alt.give** operation, for example, it means
-that the job basically registers an offer to give a value on a channel.  If the
+started.  In the case of the `Ch.Alt.give` operation, for example, it means that
+the job basically registers an offer to give a value on a channel.  If the
 alternative cannot be performed immediately, e.g. no other job has offered to
 take a value on the channel, the job is blocked until the alternative becomes
 available.
@@ -1080,7 +1077,7 @@ type YesNoDialog =
   // ...
 ```
 
-A job could then have a dialogue with the user using a **YesNoDialog** and code
+A job could then have a dialogue with the user using a `YesNoDialog` and code
 such as:
 
 ```fsharp
@@ -1095,15 +1092,15 @@ else
   // Perform action on No.
 ```
 
-The operations **Alt.choose** and **>>=?**, also known as *wrap*, have the
-following signatures:
+The operations `Alt.choose` and `>>=?`, also known as *wrap*, have the following
+signatures:
 
 ```fsharp
 val choose: seq<Alt<'x>> -> Alt<'x>
 val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
 ```
 
-The **Alt.choose** operation forms a disjunction of the sequence of alternatives
+The `Alt.choose` operation forms a disjunction of the sequence of alternatives
 given to it.  When such a disjunction is picked, the alternatives involved in
 the disjunction are instantiated one-by-one.  Assuming no alternative is
 immediately available, the job is blocked, waiting for any one of the
@@ -1111,15 +1108,15 @@ alternatives to become available.  When one of the alternatives in the
 disjunction becomes available, the alternative is picked and committed to and
 the other alternatives are canceled.
 
-The wrap **>>=?** operation is similar to the bind **>>=** operation on jobs and
+The wrap `>>=?` operation is similar to the bind `>>=` operation on jobs and
 allows one to extend an alternative so that further operations are performed
 after the alternative has been committed to.  Similarly to corresponding
-operations on jobs, several shortcut operators, such as **|>>?** and **>>%?**,
-are provided in addition to **>>=?** on alternatives.
+operations on jobs, several shortcut operators, such as `|>>?` and `>>%?`, are
+provided in addition to `>>=?` on alternatives.
 
-In this case we use the ability to
-simply map the button messages to a boolean value for further processing.  We
-could also just continue processing in the wrapper:
+In this case we use the ability to simply map the button messages to a boolean
+value for further processing.  We could also just continue processing in the
+wrapper:
 
 ```fsharp
 do! Alt.pick <| Alt.choose [
@@ -1133,11 +1130,11 @@ do! Alt.pick <| Alt.choose [
 Using selective communication in this way feels and works much like using
 ordinary conditional statements.
 
-A key point in the types of the **choose** and **>>=?** operations is that they
+A key point in the types of the `choose` and `>>=?` operations is that they
 create new alternatives and those alternatives are first-class values just like
-the primitive **give** and **take** alternatives on channels.  For the common
-cases of simply picking from a choice of alternatives or combining just two
-alternatives the operations **Alt.select** and **<|>** are provided.  Their
+the primitive `give` and `take` alternatives on channels.  For the common cases
+of simply picking from a choice of alternatives or combining just two
+alternatives the operations `Alt.select` and `<|>` are provided.  Their
 semantics can be described as follows:
 
 ```fsharp
@@ -1145,20 +1142,20 @@ let select alts = pick (choose alts)
 let (<|>) a1 a2 = choose [a1; a2]
 ```
 
-In fact, the above definition of **select** is essentially how the operation is
-internally implemented.  The binary choice **<|>** operation can be, and is,
+In fact, the above definition of `select` is essentially how the operation is
+internally implemented.  The binary choice `<|>` operation can be, and is,
 implemented internally as a slightly more efficient special case (avoiding the
 construction of the sequence).
 
-It is also worth pointing out that **choose** allows synchronizing on a sequence
+It is also worth pointing out that `choose` allows synchronizing on a sequence
 of alternatives that is computed dynamically.  Languages that have a special
-purpose **select** statement typically only allow the program to synchronize on
-a set of events that is specified statically in the program text.
+purpose `select` statement typically only allow the program to synchronize on a
+set of events that is specified statically in the program text.
 
 ### Guards
 
-The wrap combinator **>>=?** allows post-commit actions to be added to an
-alternative.  Hopac also provides the **guard** combinator that allows an
+The wrap combinator `>>=?` allows post-commit actions to be added to an
+alternative.  Hopac also provides the `guard` combinator that allows an
 alternative to be computed at instantiation time.
 
 ```fsharp
@@ -1167,12 +1164,12 @@ val guard: Job<Alt<'x>> -> Alt<'x>
 
 Recall in the Kismet sketch it was mentioned that simulations like games often
 have their own notion of time and that the wall-clock time provided by
-**Timer.Global.timeOut** probably doesn't provide the desired semantics.  A
-simple game might be designed to update the simulation of the game world 60
-times per second to match with a 60Hz display devices.  Rather than complicate
-all the calculations done in the simulation with a variable time step, such a
-simulation could be advanced in fixed length time steps or *ticks*.  Simplifying
-things to a minimum, the main loop of a game could then look roughly like this:
+`Timer.Global.timeOut` probably doesn't provide the desired semantics.  A simple
+game might be designed to update the simulation of the game world 60 times per
+second to match with a 60Hz display devices.  Rather than complicate all the
+calculations done in the simulation with a variable time step, such a simulation
+could be advanced in fixed length time steps or *ticks*.  Simplifying things to
+a minimum, the main loop of a game could then look roughly like this:
 
 ```fsharp
 while !runGame do
@@ -1181,10 +1178,10 @@ while !runGame do
   flip ()   // Wait for display refresh and switch front and back buffers
 ```
 
-Now, the idea is that the **tick ()** call runs all the simulation logic for one
+Now, the idea is that the `tick ()` call runs all the simulation logic for one
 step and that the simulation is implemented using Hopac jobs.  More specifically
-we don't want any simulation code to run after the **tick ()** call returns.
-This is so that the **render ()** call has one consistent view of the world.
+we don't want any simulation code to run after the `tick ()` call returns.  This
+is so that the `render ()` call has one consistent view of the world.
 
 A clean way to achieve this is to create a *local scheduler* for running the
 Hopac jobs that implement the game logic.  This way, after we've triggered all
@@ -1216,7 +1213,7 @@ let timerReqCh : Ch<Ticks * Ch<unit>> = Ch.Now.create ()
 Via the channel, a client can send a request to the server to send back a
 message on a channel allocated for the request at the specified time.  To send
 the request and allocate a new channel for the server's reply, we'll use the
-**guard** combinator.  The following **atTime** function creates an alternative
+`guard` combinator.  The following `atTime` function creates an alternative
 that *encapsulates the whole protocol* for interacting with the time server:
 
 ```fsharp
@@ -1227,12 +1224,12 @@ let atTime (atTime: Ticks) : Alt<unit> =
   Ch.Alt.take replyCh
 ```
 
-A detail worth pointing out above is the use of the **Ch.send** operation to
-send requests to the server asynchronously.  We already have the client
-synchronously taking a reply from the server, so there is no need to have the
-client synchronously waiting for the time server to take the request.  Using
-**atTime** we can implement the **timeOut** alternative constructor used in the
-earlier Kismet example:
+A detail worth pointing out above is the use of the `Ch.send` operation to send
+requests to the server asynchronously.  We already have the client synchronously
+taking a reply from the server, so there is no need to have the client
+synchronously waiting for the time server to take the request.  Using `atTime`
+we can implement the `timeOut` alternative constructor used in the earlier
+Kismet example:
 
 ```fsharp
 let timeOut (afterTicks: Ticks) : Alt<unit> =
@@ -1284,7 +1281,7 @@ do! Job.server (Job.forever timeReqServer)
 ```
 
 One final part of the implementation of time is a routine to advance time.  The
-following **tick** job increments the current time and then sends replies to all
+following `tick` job increments the current time and then sends replies to all
 the requests at that time:
 
 ```fsharp
@@ -1303,24 +1300,24 @@ That concludes the implementation of the time server itself.
 
 ### Negative Acknowledgments
 
-In the previous section the **guard** combinator was used to encapsulate the
+In the previous section the `guard` combinator was used to encapsulate the
 protocol for interacting with the custom timer server.  This worked because the
 service provided by the time server is idempotent.  If a client makes a request
 to the time server and later aborts the request, that is, doesn't wait for the
 server's reply, it causes no harm.  Sometimes things are not that simple and a
 server needs to know whether client actually committed to a transaction.  Hopac,
-like CML, supports this via the **withNack** combinator:
+like CML, supports this via the `withNack` combinator:
 
 ```fsharp
 val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 ```
 
-The **withNack** combinator is like **guard** in that it allows an alternative
-to be computed at instantiation time.  Additionally, **withNack** creates a
-*negative acknowledgment alternative* that it gives to the encapsulated
-alternative constructor.  If the constructed alternative is ultimately not
-committed to, the negative acknowledgment alternative becomes available.
-Consider the following example:
+The `withNack` combinator is like `guard` in that it allows an alternative to be
+computed at instantiation time.  Additionally, `withNack` creates a *negative
+acknowledgment alternative* that it gives to the encapsulated alternative
+constructor.  If the constructed alternative is ultimately not committed to, the
+negative acknowledgment alternative becomes available.  Consider the following
+example:
 
 ```fsharp
 let verbose alt = Alt.withNack <| fun nack ->
@@ -1330,7 +1327,7 @@ let verbose alt = Alt.withNack <| fun nack ->
 ```
 
 The above implements an alternative constructor that simply prints out what
-happens.  Let's consider three interactions using a **verbose** alternative.
+happens.  Let's consider three interactions using a `verbose` alternative.
 
 ```fsharp
 > run (Alt.select [verbose (Alt.always 1); Alt.always 2]) ;;
@@ -1366,7 +1363,7 @@ that otherwise couldn't be properly encapsulated as alternatives.
 
 #### Example: Lock Server
 
-An example that illustrates how **withNack** can be used to encapsulate a
+An example that illustrates how `withNack` can be used to encapsulate a
 non-idempotent request as an alternative is the implementation of a *lock
 server*.  Here is a signature of a lock server:
 
@@ -1400,7 +1397,7 @@ Alt.select [acquire server lock >>=? (* critical section *)
             timeOut duration >>=? (* do something else *)]
 ```
 
-What is important here is that the **acquire** alternative must work correctly
+What is important here is that the `acquire` alternative must work correctly
 even in case that the operation is ultimately abandoned by the client.
 
 Let's then describe the lock server example implementation.  We represent a lock
@@ -1410,7 +1407,7 @@ using a unique integer:
 type Lock = Lock of int64
 ```
 
-A request for the lock server is either an **Acquire** or a **Release**:
+A request for the lock server is either an `Acquire` or a `Release`:
 
 ```fsharp
 type Req =
@@ -1418,7 +1415,7 @@ type Req =
  | Release of lock: int64
 ```
 
-An **Acquire** request passes both a reply channel and an abort alternative for
+An `Acquire` request passes both a reply channel and an abort alternative for
 the server.  The server record just contains an integer for generating new locks
 and the request channel:
 
@@ -1429,13 +1426,13 @@ type Server = {
 }
 ```
 
-The **release**
+The `release`
 
 ```fsharp
 let release s (Lock lock) = Ch.give s.reqCh (Release lock)
 ```
 
-and **createLock**
+and `createLock`
 
 ```fsharp
 let createLock s =
@@ -1452,7 +1449,7 @@ code snippets of this example in an interactive session.  As this type safety
 issue is not an essential aspect of the example, we leave it as an exercise for
 the reader to consider how to plug this typing hole.
 
-The **acquire** operation is where we'll use **withNack**:
+The `acquire` operation is where we'll use `withNack`:
 
 ```fsharp
 let acquire s (Lock lock) = Alt.withNack <| fun abortAlt ->
@@ -1461,16 +1458,16 @@ let acquire s (Lock lock) = Alt.withNack <| fun abortAlt ->
   Ch.Alt.take replyCh
 ```
 
-Using **withNack** a negative acknowledgment alternative, **abortAlt**, is
-created and then a reply channel, **replyCh**, is allocated and a request is
-created and sent to the lock server **s**.  An asynchronous **send** operation
-is used as there is no point in waiting for the server at this point.  Finally
-the alternative of taking the server's reply is returned.
+Using `withNack` a negative acknowledgment alternative, `abortAlt`, is created
+and then a reply channel, `replyCh`, is allocated and a request is created and
+sent to the lock server `s`.  An asynchronous `send` operation is used as there
+is no point in waiting for the server at this point.  Finally the alternative of
+taking the server's reply is returned.
 
 Note that a new pair of a negative acknowledgment alternative and reply channel
-is created each time an alternative constructed with **acquire** is
-instantiated.  This means that one can even try to acquire the same lock
-multiple times with the same alternative and it will work correctly:
+is created each time an alternative constructed with `acquire` is instantiated.
+This means that one can even try to acquire the same lock multiple times with
+the same alternative and it will work correctly:
 
 ```fsharp
 let acq = acquire s l
@@ -1516,10 +1513,10 @@ let start = Job.delay <| fun () ->
 
 As usual, the above server is implemented as a job that loops indefinitely
 taking requests from the server's request channel.  The crucial bits in the
-above implementation are the uses of **select**.  In both cases, the server
+above implementation are the uses of `select`.  In both cases, the server
 selects between giving the lock to the client and aborting the transaction using
 the reply channel and the abort alternative, which was implemented by the client
-using a negative acknowledgment alternative created by the **withNack**
+using a negative acknowledgment alternative created by the `withNack`
 combinator.
 
 You probably noticed the comment in the above server implementation in the case
@@ -1559,8 +1556,8 @@ Alt.choose
 In Hopac, the above alternative will *deterministically* evaluate to 1, because
 it is the first available alternative.  In CML, the similar event would
 *non-deterministically* choose between the two events.  In this case, we could
-get the same behavior in Hopac given a function **shuffle** that would reorder
-the elements of a sequence randomly:
+get the same behavior in Hopac given a function `shuffle` that would reorder the
+elements of a sequence randomly:
 
 ```fsharp
 Alt.delay <| fun () ->
@@ -1601,14 +1598,14 @@ Channels, Mailboxes, IVars, MVars, ...
 
 In this document we have mostly used channels in our examples.  The Hopac
 library, like CML, also directly provides other communication primitives such as
-**Mailbox**, **IVar**, **MVar** and **Lock**.  These other primitives are
-optimized for the particular communication patterns they support, but most of
-them could be implemented using only jobs and channels as shown in the book
+`Mailbox`, `IVar`, `MVar` and `Lock`.  These other primitives are optimized for
+the particular communication patterns they support, but most of them could be
+implemented using only jobs and channels as shown in the book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml),
 for example.  When programming with Hopac, it, of course, makes sense to use the
 optimized primitives where possible.  So, for example, rather than allocating a
 channel and starting a job for a one-shot communication, it makes sense to use
-an **IVar**, which implements the desired semantics more efficiently.  On the
+an `IVar`, which implements the desired semantics more efficiently.  On the
 other hand, it is reassuring that these optimized primitives, and many others,
 can be implemented using only jobs and channels.  This means that there is no
 need for the Hopac library to be continuously extended with new communication
