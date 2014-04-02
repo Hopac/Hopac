@@ -350,21 +350,29 @@ module Alt =
   val inline zero: unit -> Alt<unit>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job.
+  /// given job.  This allows client-server protocols that do not require the
+  /// server to be notified when the client aborts the transaction to be
+  /// encapsulated as selective operations.  For example, the given job may
+  /// create and send a message to a server and then return an alternative that
+  /// waits for the server's reply.  See also: "withNack".
   val guard: Job<Alt<'x>> -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given thunk.
+  /// given thunk.  This is an optimized weaker form of "guard" that can be used
+  /// when no concurrent operations beyond the returned alternative are required
+  /// by the encapsulated request protocol.
   val delay: (unit -> Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job constructed with a negative acknowledgment alternative.  The
-  /// negative acknowledgment alternative will be available for picking in case
-  /// some other instantiated alternative involved in the picking is committed
-  /// to instead.  Note that if an alternative created with "withNack" is not
-  /// instantiated, then no negative acknowledgment is created.  For example,
-  /// given an alternative of the form "always () <|> withNack (...)"  the
-  /// "withNack" alternative is never instantiated.
+  /// given job constructed with a negative acknowledgment alternative.  This
+  /// allows client-server protocols that do require the server to be notified
+  /// when the client aborts the transaction to be encapsulated as selective
+  /// operations.  The negative acknowledgment alternative will be available for
+  /// picking in case some other instantiated alternative involved in the
+  /// picking is committed to instead.  Note that if an alternative created with
+  /// "withNack" is not instantiated, then no negative acknowledgment is
+  /// created.  For example, given an alternative of the form "always () <|>
+  /// withNack (...)"  the "withNack" alternative is never instantiated.
   val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the

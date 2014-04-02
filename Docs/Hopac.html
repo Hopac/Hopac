@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html>
-<head><title>Hopac Library Reference</title></head>
+<head>
+<title>Hopac Library Reference</title>
+<style>
+pre {
+border: 1px solid #e0e0e0;
+border-radius: 3px;
+padding: 5px;
+line-height: 160%;
+background: #f7f7f7;
+font-family: "Lucida Console", Monaco, monospace;
+font-size: 72%;
+}
+code {
+border: 1px solid #e0e0e0;
+border-radius: 3px;
+padding: 2px;
+background: #f7f7f7;
+font-family: "Lucida Console", Monaco, monospace;
+font-size: 72%;
+}
+a {
+text-decoration: none;
+font-weight: bold;
+}
+</style>
+</head>
 <body><table width="80%" align="center"><tr><td>
 <h1>Hopac Library Reference</h1>
 <p>This document provides a reference manual for the Hopac library and is generated from the library source code.</p>
@@ -502,15 +527,15 @@
 </blockquote>
 <pre><b>val</b> <a id="def:Hopac.Alt.guard" href="#dec:Hopac.Alt.guard">guard</a><b>:</b> Job&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<blockquote><p>Creates an alternative that is computed at instantiation time with the given job.</p>
+<blockquote><p>Creates an alternative that is computed at instantiation time with the given job.  This allows client-server protocols that do not require the server to be notified when the client aborts the transaction to be encapsulated as selective operations.  For example, the given job may create and send a message to a server and then return an alternative that waits for the server's reply.  See also: <code>withNack</code>.</p>
 </blockquote>
 <pre><b>val</b> <a id="def:Hopac.Alt.delay" href="#dec:Hopac.Alt.delay">delay</a><b>:</b> (unit <b>-&gt;</b> Alt&lt;'x&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<blockquote><p>Creates an alternative that is computed at instantiation time with the given thunk.</p>
+<blockquote><p>Creates an alternative that is computed at instantiation time with the given thunk.  This is an optimized weaker form of <code>guard</code> that can be used when no concurrent operations beyond the returned alternative are required by the encapsulated request protocol.</p>
 </blockquote>
 <pre><b>val</b> <a id="def:Hopac.Alt.withNack" href="#dec:Hopac.Alt.withNack">withNack</a><b>:</b> (Alt&lt;unit&gt; <b>-&gt;</b> Job&lt;Alt&lt;'x&gt;&gt;) <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>
-<blockquote><p>Creates an alternative that is computed at instantiation time with the given job constructed with a negative acknowledgment alternative.  The negative acknowledgment alternative will be available for picking in case some other instantiated alternative involved in the picking is committed to instead.  Note that if an alternative created with <code>withNack</code> is not instantiated, then no negative acknowledgment is created.  For example, given an alternative of the form <code>always () &lt;|&gt; withNack (...)</code>  the <code>withNack</code> alternative is never instantiated.</p>
+<blockquote><p>Creates an alternative that is computed at instantiation time with the given job constructed with a negative acknowledgment alternative.  This allows client-server protocols that do require the server to be notified when the client aborts the transaction to be encapsulated as selective operations.  The negative acknowledgment alternative will be available for picking in case some other instantiated alternative involved in the picking is committed to instead.  Note that if an alternative created with <code>withNack</code> is not instantiated, then no negative acknowledgment is created.  For example, given an alternative of the form <code>always () &lt;|&gt; withNack (...)</code>  the <code>withNack</code> alternative is never instantiated.</p>
 </blockquote>
 <pre><b>val</b> <a id="def:Hopac.Alt.choose" href="#dec:Hopac.Alt.choose">choose</a><b>:</b> seq&lt;Alt&lt;'x&gt;&gt; <b>-&gt;</b> Alt&lt;'x&gt;
 </pre>

@@ -279,7 +279,32 @@ let generate wr title path =
      | _ -> failwith "Expected some!"
   fprintf wr "<!DOCTYPE html>\n\
               <html>\n"
-  fprintf wr "<head><title>%s Library Reference</title></head>\n" title
+  fprintf wr "<head>\n"
+  fprintf wr "<title>%s Library Reference</title>\n" title
+  fprintf wr "<style>\n\
+pre {\n\
+  border: 1px solid #e0e0e0;\n\
+  border-radius: 3px;\n\
+  padding: 5px;\n\
+  line-height: 160%%;\n\
+  background: #f7f7f7;\n\
+  font-family: \"Lucida Console\", Monaco, monospace;\n\
+  font-size: 72%%;\n\
+}\n\
+code {\n\
+  border: 1px solid #e0e0e0;\n\
+  border-radius: 3px;\n\
+  padding: 2px;\n\
+  background: #f7f7f7;\n\
+  font-family: \"Lucida Console\", Monaco, monospace;\n\
+  font-size: 72%%;\n\
+}\n\
+a {\n\
+  text-decoration: none;\n\
+  font-weight: bold;\n\
+}\n\
+</style>\n"
+  fprintf wr "</head>\n"
   fprintf wr "<body><table width=\"80%%\" align=\"center\"><tr><td>\n"
   fprintf wr "<h1>%s Library Reference</h1>\n\
               <p>This document provides a reference manual for the %s library \
