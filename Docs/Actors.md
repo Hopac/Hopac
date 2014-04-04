@@ -159,7 +159,8 @@ module ActorModel =
     let aCh = Ch.Now.create ()
     Job.Global.start (unAT uA aCh)
     A aCh
-  let self = AT (fun aCh -> Job.result (A aCh))
+  let self : ActorThread<'a, Actor<'a>> =
+    AT (fun aCh -> Job.result (A aCh))
   let send (aA: Actor<'a>) (a: 'a) : unit =
     Job.Global.start (Ch.give (unA aA) a)
 ```
