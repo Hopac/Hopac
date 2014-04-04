@@ -117,6 +117,7 @@ module ActorModel =
   val receive: ActorThread<'a, 'a>
   type Actor<'a>
   val start: ActorThread<'a, unit> -> Actor<'a>
+  val self: ActorThread<'a, Actor<'a>>
   val send: Actor<'a> -> 'a -> unit
 ```
 
@@ -125,8 +126,9 @@ In this model, one can similarly define a thread of execution using `>>=` and
 the actor using the `receive` operation.  Only messages from the single mailbox
 implicit to the actor thread can be directly received from.  An actor thread is
 started using `start`, which also returns a handle for sending messages to the
-actor using the `send` function.  The `send` operation is asynchronous and does
-not block.  If the destination of a `send` operation is not immediately ready to
+actor using the `send` function.  The actor can also use the `self` operation to
+get a handle to itself.  The `send` operation is asynchronous and does not
+block.  If the destination of a `send` operation is not immediately ready to
 receive the message, then that message is queued to the mailbox of the actor.
 
 Please note that the above sketch of an actor model does not attempt to
@@ -135,7 +137,7 @@ actual model provided by the Hopac library and the model specified in the
 `HopacModel` signature, the above `ActorModel` is also drastically simpler than
 many actual actor models.
 
-### Encoding the actor model using Hopac
+### Encoding the ActorModel using Hopac
 
 It is often instructive to see how one model of computation can be encoded in
 another model of computation.  Here is an encoding of the above actor model
@@ -157,15 +159,14 @@ module ActorModel =
     let aCh = Ch.Now.create ()
     Job.Global.start (unAT uA aCh)
     A aCh
+  let self = AT (fun aCh -> Job.result (A aCh))
   let send (aA: Actor<'a>) (a: 'a) : unit =
     Job.Global.start (Ch.give (unA aA) a)
 ```
 
 As can be seen above, it is fairly straightforward to encode an actor model
 using only a small subset of Hopac.  (Note that the `>>=` operation used within
-the definition of `>>=` is the Hopac bind operation.)  The reverse encoding,
-that is, an implementation of the `HopacModel` using the `ActorModel`, is left
-as an exercise for the reader.
+the definition of `>>=` is the Hopac bind operation.)
 
 Please note that the above is not meant to demonstrate a practical way to do
 actor style programming in Hopac.  The above is meant as an illustrative
@@ -175,6 +176,75 @@ possible to implement actor models and program in actor model like styles
 directly within Hopac.  While the above uses the actual Hopac library, so that
 you can directly compile the above code, it makes no use of any primitives in
 Hopac beyond what is in the previous `HopacModel` signature.
+
+### Encoding the HopacModel using the ActorModel
+
+For completeness, here is the reverse encoding, an implementation of the
+`HopacModel` using the `ActorModel`:
+
+```fsharp
+module HopacModel =
+  open System.Collections.Generic
+  open ActorModel
+
+  type Job<'x> = J of ActorThread<unit, 'x>
+  let unJ (J x) = x
+  type Msg<'x> =
+    | Take of Actor<unit> * ref<option<'x>>
+    | Give of Actor<unit> * 'x
+  type Ch<'x> = C of Actor<Msg<'x>>
+  let unC (C x) = x
+  let ch () : Ch<'x> =
+    let givers = Queue<Actor<unit> * 'x>()
+    let takers = Queue<Actor<unit> * ref<option<'x>>>()
+    let rec loop () =
+      receive >>= function
+       | Give (giver, x) ->
+         if takers.Count > 0 then
+           let (taker, r) = takers.Dequeue ()
+           r := Some x
+           send giver ()
+           send taker ()
+           loop ()
+         else
+           givers.Enqueue (giver, x)
+           loop ()
+       | Take (taker, r) ->
+         if givers.Count > 0 then
+           let (giver, x) = givers.Dequeue ()
+           r := Some x
+           send giver ()
+           send taker ()
+           loop ()
+         else
+           takers.Enqueue (taker, r)
+           loop ()
+    C (start (loop ()))
+  let give (xCh: Ch<'x>) (x: 'x) : Job<unit> =
+    J (self >>= fun giver ->
+       send (unC xCh) (Give (giver, x))
+       receive)
+  let take (xCh: Ch<'x>) : Job<'x> =
+    J (self >>= fun taker ->
+       let r = ref None
+       send (unC xCh) (Take (taker, r))
+       receive >>= fun () ->
+       match !r with
+        | None -> failwith "Impossible"
+        | Some x -> result x)
+  let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) : Job<'y> =
+    J (unJ xJ >>= fun x -> unJ (x2yJ x))
+  let result (x: 'x) : Job<'x> =
+    J (result x)
+  let start (uJ: Job<unit>) : unit =
+    start (unJ uJ) |> ignore
+```
+
+The above encoding is obviously much more complex than the previous encoding of
+the `ActorModel` using Hopac.  Of course, as discussed previously, the
+`HopacModel` is only a small subset of Hopac and does not include the
+alternative mechanism.  Similarly the `ActorModel` is only a small look-alike
+subset of what many actual actor models provide.
 
 More practical actor style programming in Hopac
 -----------------------------------------------
