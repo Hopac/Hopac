@@ -39,13 +39,11 @@ module Async =
                    (selfMb: MailboxProcessor<_>) = async {
         if n = 0 then
           do toMb.Post ()
-          let! () = selfMb.Receive ()
-          do (selfMb :> IDisposable).Dispose ()
         else
           let childMb = MailboxProcessor<unit>.Start (proc (n-1) toMb)
           do childMb.Post ()
-          let! () = selfMb.Receive ()
-          do (selfMb :> IDisposable).Dispose ()
+        let! () = selfMb.Receive ()
+        do (selfMb :> IDisposable).Dispose ()
       }
       do! proc n selfMb selfMb
     }
