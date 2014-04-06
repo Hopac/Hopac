@@ -8,6 +8,53 @@
 /// in Hopac are created using techniques similar to the F# Async framework.
 /// Hopac runs parallel jobs using a work distributing scheduler in a
 /// non-preemptive fashion.
+///
+/// The documentation of many of the primitives contains a reference
+/// implementation.  In most cases, actual implementations are optimized by
+/// taking advantage of internal implementation details and may be significantly
+/// faster than the reference implementation.  The reference implementations are
+/// given for a number of reasons.  First of all, they hopefully help to better
+/// understand the semantics of the primitives.  In some cases, the reference
+/// implementations also demonstrate how you can interface Hopac with other
+/// systems without the need to extend the primitives of Hopac.  The reference
+/// implementations can also be seen as examples of how various primitives can
+/// be used to implement more complex operations.
+///
+/// As can quickly be observed, the various primitives and modules of Hopac are
+/// named and structured using a number of patterns.
+///
+/// Many modules contain a module named `Global`, which contains operations
+/// bound to the global scheduler that is implicitly managed by the Hopac
+/// library.
+///
+/// Modules for various communication primitives contain a module named `Now`,
+/// which contains operations that can be efficiently performed as
+/// non-concurrent operations.  For example, there is a concurrent `Ch.create`
+/// operation, which needs to be run to create a new channel and also a
+/// `Ch.Now.create` function that directly creates a new channel.  In cases
+/// where such efficient non-concurrent functions are provided, you should
+/// prefer to use them, because they avoid the overhead of running concurrent
+/// operations.  However, in cases where operations really need to perform
+/// concurrent operations, such as starting a concurrent server, you should
+/// prefer not to encapsulate those operations as ordinary functions, because
+/// running individual concurrent operations via some scheduler incurs overheads
+/// and it is preferable to construct longer sequences of concurrent operations
+/// to run.
+///
+/// Many modules also contain a module named `Alt`, which contains primitive
+/// selective operations to be used with other selective communication
+/// operations.
+///
+/// For some infix operators there are both `Job` and `Alt` level versions.  The
+/// `Alt` level versions end with a question mark `?` that indicates the
+/// selective nature of the operation.
+///
+/// Some higher-order operations make sense to use with both non-concurrent user
+/// defined functions and with user defined concurrent jobs and in such cases
+/// there are often two versions of the higher-order functions, with one having
+/// the suffix `Fun` and the other having the suffix `Job`.  You should prefer
+/// the `Job` version when you need to perform concurrent operations and
+/// otherwise the `Fun` version.
 namespace Hopac
 
 open System
@@ -879,25 +926,60 @@ module Extensions =
   /// Operations for processing arrays with jobs.
   module Array =
     /// Sequentially maps the given job constructor to the elements of the array
-    /// and returns an array of the results.
+    /// and returns an array of the results.  `Array.mapJob x2yJ xs` is an
+    /// optimized version of `Seq.mapJob x2yJ xs |>> fun ys -> ys.ToArray ()`.
     val mapJob: ('x -> Job<'y>) -> array<'x> -> Job<array<'y>>
 
     /// Sequentially iterates the given job constructor over the given array.
-    /// The results, if any, of the jobs are ignored.
+    /// The results, if any, of the jobs are ignored.  `Array.iterJob x2yJ xs`
+    /// is an optimized version of `Seq.iterJob x2yJ xs`.
     val iterJob: ('x -> Job<_>) -> array<'x> -> Job<unit>
 
   /// Operations for processing sequences with jobs.
   module Seq =
     /// Sequentially iterates the given job constructor over the given sequence.
     /// The results, if any, of the jobs are ignored.
+#if DOC
+    ///
+    /// Reference implementation:
+    ///
+    ///> let iterJob x2yJ (xs: seq<'x>) = Job.delay <| fun () ->
+    ///>   let xs = xs.GetEnumerator ()
+    ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
+    ///>     x2yJ xs.Current)
+#endif
     val iterJob: ('x -> Job<_>) -> seq<'x> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
     /// sequence and returns a list of the results.
+#if DOC
+    ///
+    /// Reference implementation:
+    ///
+    ///> let mapJob x2yJ (xs: seq<'x>) = Job.delay <| fun () ->
+    ///>   let ys = ResizeArray<_>()
+    ///>   let xs = xs.GetEnumerator ()
+    ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
+    ///>     x2yJ xs.Current |>> ys.Add) >>%
+    ///>   ys
+#endif
     val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
     /// Sequentially folds the job constructor over the given sequence and
     /// returns the result of the fold.
+#if DOC
+    ///
+    /// Reference implementation:
+    ///
+    ///> let foldJob xy2xJ x (ys: seq<'y>) = Job.delay <| fun () ->
+    ///>   let ys = ys.GetEnumerator ()
+    ///>   let rec loop x =
+    ///>     if ys.MoveNext () then
+    ///>       xy2xJ x ys.Current >>= loop
+    ///>     else
+    ///>       Job.result x
+    ///>   loop x
+#endif
     val foldJob: ('x -> 'y -> Job<'x>) -> 'x -> seq<'y> -> Job<'x>
 
     /// Operations for processing sequences using concurrent Hopac jobs.
