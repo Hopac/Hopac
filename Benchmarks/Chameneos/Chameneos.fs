@@ -173,47 +173,30 @@ module HopacAlt =
        csch.Done)
 
   module Creature =
-    let run (swap: Color -> Alt<Option<Color>>)
-            (report: int -> Job<unit>)
-            (myColor: Color) =
+    let run (swap: Color -> Alt<Option<Color>>) (myColor: Color) : Job<int> =
       let rec loop myColor myMeets =
         swap myColor >>= function
           | None ->
-            report myMeets
+            Job.result myMeets
           | Some otherColor ->
             loop (complement myColor otherColor) (myMeets + 1)
-      Job.start (loop myColor 0)
+      loop myColor 0
 
-  let bench (colors: array<Color>) numMeets finishCh = job {
+  let bench (colors: array<Color>) numMeets = job {
     let! place = CountedSwapCh.create numMeets
-    let results = ch ()
-    for color in colors do
-      do! Creature.run
-           (CountedSwapCh.swap place)
-           (Ch.give results)
-           color
-    let! n =
-      Seq.foldJob
-       (fun sum _ ->
-          results |>> fun n ->
-          sum+n)
-       0
-       colors
-    do! finishCh <-- n
+    return! colors
+            |> Seq.Con.mapJob (Creature.run (CountedSwapCh.swap place))
+            |>> Seq.sum
   }
 
   let run numMeets =
     printf "Alt:  "
     let timer = Stopwatch.StartNew ()
-    let (n, m) =
-      run <| job {
-        let finishCh = ch ()
-        do! Job.start (bench colors10 numMeets finishCh)
-        do! Job.start (bench colorsAll numMeets finishCh)
-        let! n = finishCh
-        let! m = finishCh
-        return (n, m)
-      }
+    let (n, m) = run <| job {
+      let! pn = Promise.start (bench colors10 numMeets)
+      let! pm = Promise.start (bench colorsAll numMeets)
+      return! pn <&> pm
+    }
     let d = timer.Elapsed
     printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
 

@@ -30,16 +30,14 @@ module ChGive =
   let run n m p =
     printf " ChGive: "
     let timer = Stopwatch.StartNew ()
-    let i =
-      run
-       (Job.delay <| fun () ->
-        let ps = Array.create p n
-        let finishCh = ch ()
-        ps
-        |> Seq.Con.iterJob (fun n ->
-           mkChain n finishCh >>= fun ch ->
-           ch <-- m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p}))
+    let i = run << Job.delay <| fun () ->
+      let ps = Array.create p n
+      let finishCh = ch ()
+      ps
+      |> Seq.Con.iterJob (fun n ->
+         mkChain n finishCh >>= fun ch ->
+         ch <-+ m) >>= fun () ->
+      Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -65,16 +63,14 @@ module ChSend =
   let run n m p =
     printf " ChSend: "
     let timer = Stopwatch.StartNew ()
-    let i =
-      run
-       (Job.delay <| fun () ->
-        let ps = Array.create p n
-        let finishCh = ch ()
-        ps
-        |> Seq.Con.iterJob (fun n ->
-           mkChain n finishCh >>= fun ch ->
-           ch <-- m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p}))
+    let i = run << Job.delay <| fun () ->
+      let ps = Array.create p n
+      let finishCh = ch ()
+      ps
+      |> Seq.Con.iterJob (fun n ->
+         mkChain n finishCh >>= fun ch ->
+         ch <-+ m) >>= fun () ->
+      Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -103,16 +99,14 @@ module MbSend =
   let run n m p =
     printf " MbSend: "
     let timer = Stopwatch.StartNew ()
-    let i =
-      run
-       (Job.delay <| fun () ->
-        let ps = Array.create p n
-        let finishCh = ch ()
-        ps
-        |> Seq.Con.iterJob (fun n ->
-           mkChain n finishCh >>= fun ms ->
-           ms <<-+ m) >>= fun () ->
-        Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p}))
+    let i = run << Job.delay <| fun () ->
+      let ps = Array.create p n
+      let finishCh = ch ()
+      ps
+      |> Seq.Con.iterJob (fun n ->
+         mkChain n finishCh >>= fun ms ->
+         ms <<-+ m) >>= fun () ->
+      Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
