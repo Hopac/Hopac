@@ -138,6 +138,7 @@ module IVar =
     let inline create () = IVar<'x> ()
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
+  let inline fillFailure (xI: IVar<'x>) (e: exn) = IVarFillFailure<'x> (xI, e) :> Job<unit>
   let inline read (xI: IVar<'x>) = xI :> Job<'x>
   module Alt =
     let inline read (xI: IVar<'x>) = xI :> Alt<'x>
@@ -1299,5 +1300,6 @@ module Infixes =
   let inline (<--) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline (<-+) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   let inline (<-=) (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
+  let inline (<-=!) (xI: IVar<'x>) (e: exn) = IVarFillFailure<'x> (xI, e) :> Job<unit>
   let inline (<<-=) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline (<<-+) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>

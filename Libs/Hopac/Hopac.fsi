@@ -463,14 +463,11 @@ module Job =
   ///
   ///> let fromBeginEnd doBegin doEnd =
   ///>   Job.scheduler () >>= fun sr ->
-  ///>   let rV = ivar ()
+  ///>   let xI = ivar ()
   ///>   doBegin <| AsyncCallback (fun ar ->
-  ///>     Scheduler.start sr
-  ///>      (rV <-= try Choice1Of2 (doEnd ar) with e -> Choice2Of2 e))
+  ///>     Scheduler.start sr (try xI <-= doEnd ar with e -> xI <-=! e))
   ///>   |> ignore
-  ///>   rV |>> function
-  ///>    | Choice1Of2 x -> x
-  ///>    | Choice2Of2 e -> raise e
+  ///>   upcast xI
 #endif
   val fromBeginEnd: (AsyncCallback * obj -> IAsyncResult)
                  -> (IAsyncResult -> 'x)
@@ -718,14 +715,21 @@ module IVar =
   /// Creates a job that creates a new write once variable.
   val create: unit -> Job<IVar<'x>>
 
-  /// Creates a job that writes to the given write once variable.  It is an
-  /// error to write to a single `IVar` more than once.  This assumption may be
-  /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.
+  /// Creates a job that writes the given value to the given write once
+  /// variable.  It is an error to write to a single `IVar` more than once.
+  /// This assumption may be used to optimize the implementation and incorrect
+  /// usage leads to undefined behavior.
   val inline fill: IVar<'x> -> 'x -> Job<unit>
 
+  /// Creates a job that writes the given exception to the given write once
+  /// variable.  It is an error to write to a single `IVar` more than once.
+  /// This assumption may be used to optimize the implementation and incorrect
+  /// usage leads to undefined behavior.
+  val inline fillFailure: IVar<'x> -> exn -> Job<unit>
+
   /// Creates a job that, if necessary, waits until the given write once
-  /// variable is written and then returns the written value.
+  /// variable is written to and then returns the written value or fails with
+  /// the exception written to the variable.
   val inline read: IVar<'x> -> Job<'x>
 
   /// Selective operations on write once variables.
@@ -1004,14 +1008,11 @@ module Extensions =
     ///
     ///> let awaitJob (xT: Threading.Tasks.Task<'x>) =
     ///>   Job.scheduler () >>= fun sr ->
-    ///>   let rV = ivar ()
+    ///>   let xI = ivar ()
     ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
-    ///>     Scheduler.start sr
-    ///>      (rV <-= try Choice1Of2 xT.Result with e -> Choice2Of2 e)))
+    ///>     Scheduler.start sr (try xI <-= xT.Result with e -> xI <-=! e)))
     ///>   |> ignore
-    ///>   rV |>> function
-    ///>    | Choice1Of2 x -> x
-    ///>    | Choice2Of2 e -> raise e
+    ///>   upcast xI
 #endif
     static member inline awaitJob: Threading.Tasks.Task<'x> -> Job<'x>
 
@@ -1152,6 +1153,13 @@ module Infixes =
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.  `xI <-= x` is equivalent to `IVar.fill xI x`.
   val inline (<-=): IVar<'x> -> 'x -> Job<unit>
+
+  /// Creates a job that writes the given exception to the given write once
+  /// variable.  It is an error to write to a single `IVar` more than once.
+  /// This assumption may be used to optimize the implementation and incorrect
+  /// usage leads to undefined behavior.  `xI <-=! e` is equivalent to
+  /// `IVar.fillFailure xI e`.
+  val inline (<-=!): IVar<'x> -> exn -> Job<unit>
 
   /// Creates a job that writes the given value to the synchronous variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be

@@ -43,7 +43,7 @@ namespace Hopac {
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(Exception e) {
       this.State = Failed;
-      this.Readers = new Fail(e); // We assume failures are infrequent.
+      this.Readers = new Fail<T>(e); // We assume failures are infrequent.
     }
 
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
@@ -76,7 +76,7 @@ namespace Hopac {
       if (state == Completed)
         Hopac.Core.Cont.Do(aK, ref wr, this.Value);
       else
-        Handler.DoHandle(aK, ref wr, (this.Readers as Fail).exn);
+        Handler.DoHandle(aK, ref wr, (this.Readers as Fail<T>).exn);
     }
 
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
@@ -119,29 +119,9 @@ namespace Hopac {
       if (state == Completed)
         Hopac.Core.Cont.Do(aK, ref wr, this.Value);
       else
-        Handler.DoHandle(aK, ref wr, (this.Readers as Fail).exn);
+        Handler.DoHandle(aK, ref wr, (this.Readers as Fail<T>).exn);
     AlreadyPicked:
       return;
-    }
-
-    private sealed class Fail : Cont<T> {
-      internal Exception exn;
-
-      internal Fail(Exception exn) {
-        this.exn = exn;
-      }
-
-      internal override void DoHandle(ref Worker wr, Exception e) {
-        throw new NotImplementedException();
-      }
-
-      internal override void DoCont(ref Worker wr, T value) {
-        throw new NotImplementedException();
-      }
-
-      internal override void DoWork(ref Worker wr) {
-        throw new NotImplementedException();
-      }
     }
 
     private sealed class Cont : Cont<T> {
@@ -172,7 +152,7 @@ namespace Hopac {
         if (Running != Interlocked.CompareExchange(ref pr.State, Locked, Running)) goto Spin;
 
         var readers = pr.Readers;
-        pr.Readers = new Fail(e);
+        pr.Readers = new Fail<T>(e);
         pr.State = Failed;
 
         if (null == readers)

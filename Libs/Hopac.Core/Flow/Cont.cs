@@ -17,7 +17,27 @@ namespace Hopac.Core {
     /// Use DoCont when NOT invoking continuation from a Job or Alt.
     internal abstract void DoCont(ref Worker wr, T value);
   }
-  
+
+  internal sealed class Fail<T> : Cont<T> {
+    internal Exception exn;
+
+    internal Fail(Exception exn) {
+      this.exn = exn;
+    }
+
+    internal override void DoHandle(ref Worker wr, Exception e) {
+      throw new NotImplementedException();
+    }
+
+    internal override void DoCont(ref Worker wr, T value) {
+      throw new NotImplementedException();
+    }
+
+    internal override void DoWork(ref Worker wr) {
+      throw new NotImplementedException();
+    }
+  }
+
   internal static class Cont {
     /// Use Cont.Do when invoking continuation from a Job or Alt.
     [MethodImpl(AggressiveInlining.Flag)]
