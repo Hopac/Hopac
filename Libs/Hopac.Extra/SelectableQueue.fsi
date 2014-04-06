@@ -8,7 +8,7 @@ open Hopac
 type SelectableQueue<'a>
 
 /// Implements a selectable buffered queue similar to what is described in the
-/// paper ``Kill-Safe Synchronization Abstractions'' by Matthew Flatt and Robert
+/// paper ''Kill-Safe Synchronization Abstractions'' by Matthew Flatt and Robert
 /// Bruce Findler.  Note that Hopac doesn't, at least not yet, provide all the
 /// operations on threads necessary to make the abstraction kill-safe as
 /// described in the paper.  Even without the full kill-safety properties this
