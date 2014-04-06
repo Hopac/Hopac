@@ -83,7 +83,7 @@ Using the monadic operations,
 and
 `result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.result),
 one can define a thread of execution, represented by the type
-`Job<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job%3C%27x%3E),
+`Job<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:type%20Hopac.Job),
 and such threads can be started with
 `start`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.Global.start).
 Any number of channels can be created using
@@ -298,7 +298,7 @@ To allow an actor to provide a reply to a message, we can, similar to
 Hopac we could use one of many different message passing objects.  Closest to
 the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
 would be an
-[IVar](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:type%20Hopac.IVar):
+`IVar`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:type%20Hopac.IVar):
 
 ```fsharp
 let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->
