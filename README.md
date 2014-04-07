@@ -72,6 +72,43 @@ readily available in this project and they should be very easy to compile and
 run on your machine.  So, why don't you try and run those benchmark programs, or
 write your own benchmark, on your multicore machine and see for yourself?
 
+Here are some ballpark figures:
+
+* Sequential monad operations
+  `>>=`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+  and
+  `result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.result)
+  or `let!` and `return` seem to run about **2x** as fast as the corresponding
+  `Async` operations of F# 3.1.  This can be clearly seen in the
+  [Fibonacci](Benchmarks/Fibonacci) benchmarks that also runs sequential
+  versions using both Hopac and Async.
+* Synchronization with `Task` operations seems to be about **2x** as fast as
+  with `Async` of F# 3.1.  This can be seen in the
+  [AsyncOverhead](Benchmarks/AsyncOverhead) benchmark.
+* Basic message passing (send, receive) and lightweight thread (spawn, suspend,
+  resume) operations seem to provide **5x** to **25x** better performance than
+  `Async` and `MailboxProcessor` of F# 3.1.  Most of the benchmarks measure
+  these operations.  The only benchmark where `Async` and `MailboxProcessor` of
+  F# 3.1 seem competitive (on par) with Hopac is the performance in a trivial
+  test of posting (queuing) messages to a `MailboxProcessor` in the
+  [PostMailbox](Benchmarks/PostMailbox) benchmark.  However, when those messages
+  are also actually received (measuring throughput and not just queuing) by the
+  processing agent, Hopac based primitives can be more than **5x** faster.  With
+  more involved messaging patterns, as seen in the
+  [PingPong](Benchmarks/PingPong), [PrimesStream](Benchmarks/PrimesStream),
+  [ReaderWriter](Benchmarks/ReaderWriter), [StartRing](Benchmarks/StartRing),
+  and [ThreadRing](Benchmarks/ThreadRing) benchmarks, Hopac based primitives run
+  much faster.
+* Hopac primitives seem to use significantly less memory than `Async` and
+  `MailboxProcessor`.  This can be seen in the [Cell](Benchmarks/Cell)
+  benchmark, where Hopac based versions take about **5x** less memory compared
+  to `Async` and `MailboxProcessor` based versions of F# 3.1.  Performance is
+  also **5x** better.  In the [Fibonacci](Benchmarks/Fibonacci), Hopac based
+  parallel solutions seem to take asymptotically less memory due to the LIFO
+  scheduling of Hopac vs FIFO scheduling of `Async`.  In fact, the `Async` based
+  parallel version quickly runs out of memory using **O(fib(n))** space, while
+  the Hopac based versions runs in **O(n)** space.
+
 Rationale: Why Hopac?
 ---------------------
 
