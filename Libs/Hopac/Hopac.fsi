@@ -201,6 +201,14 @@ module Job =
 
   /// Creates a job that calls the given function to build a job that will then
   /// be run.  `delay u2xJ` is equivalent to `result () >>= u2xJ`.
+  ///
+  /// Use of `delay` is often essential for making sure that a job constructed
+  /// with user-defined code properly captures side-effects performed in the
+  /// user-defined code or that a job is not constructed too eagerly
+  /// (e.g. traversing an entire data structure to build a very large job
+  /// object).  However, it is also the case that there is no need to wrap every
+  /// constructed job with `delay` and avoiding unnecessary `delay` operations
+  /// can improve performance significantly.
   val delay: (unit -> Job<'x>) -> Job<'x>
 
   /// Creates a job that calls the given function with the given value to build
@@ -338,6 +346,10 @@ module Job =
   ///>     i2xJ lo >>= fun _ -> forUpTo (lo + 1) hi i2xJ
   ///>   else
   ///>     Job.unit ()
+  ///
+  /// Rationale: The reason for iterating over an inclusive range is to make
+  /// this construct work like a `for ... to ... do ...` loop of the base F#
+  /// language.
 #endif
   val forUpTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
@@ -353,6 +365,10 @@ module Job =
   ///>     i2xJ hi >>= fun _ -> forDownTo (hi - 1) lo i2xJ
   ///>   else
   ///>     Job.unit ()
+  ///
+  /// Rationale: The reason for iterating over an inclusive range is to make
+  /// this construct work like a `for ... downto ... do ...` loop of the base F#
+  /// language.
 #endif
   val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
 
@@ -482,7 +498,11 @@ module Job =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a first class synchronous operation.
+/// Represents a first-class synchronous operation called an alternative.
+/// Alternatives support the encapsulation of concurrent protocols as selective
+/// synchronous operations.  Note that `Alt` is a subtype of `Job`.  You can use
+/// an alternative in any context that requires a job and `xA >>= fun x -> ...`
+/// is equivalent to `pick xA >>= fun x -> ...`.
 type Alt<'x> :> Job<'x>
 #endif
 
@@ -495,7 +515,7 @@ module Alt =
   val inline always: 'x -> Alt<'x>
 
   /// Returns an alternative that is always available for picking and results in
-  /// the unit value.  `unit ()` is equivalent to `always ()`.
+  /// the unit value.  `unit ()` is an optimized version of `always ()`.
   val inline unit: unit -> Alt<unit>
 
   /// Creates an alternative that is never available for picking.  Note that
@@ -503,7 +523,7 @@ module Alt =
   val never: unit -> Alt<'x>
 
   /// Return an alternative that is never available for picking.  `zero ()` is
-  /// equivalent to `never ()`.
+  /// an optimized version of `never ()`.
   val inline zero: unit -> Alt<unit>
 
   /// Creates an alternative that is computed at instantiation time with the
@@ -636,18 +656,50 @@ module Timer =
     /// Creates an alternative that, after instantiation, becomes pickable after
     /// the specified time span.  Note that this is simply not intended for high
     /// precision timing and the resolution of the underlying timing mechanism
-    /// is very coarse (Windows system ticks).
+    /// is very coarse (Windows system ticks).  Note that you need not create a
+    /// new timeout alternative every time you need a timeout with a specific
+    /// time span.
+#if DOC
+    ///
+    /// For example, you can create a timeout for 1 second
+    ///
+    ///> let after1s = timeOut (TimeSpan.FromSeconds 1.0)
+    ///
+    /// and then use that timeout many times
+    ///
+    ///> select [
+    ///>   makeRequest >>=? ...
+    ///>   after1s     >>=? ...
+    ///> ]
+    ///
+    /// Timeouts, like other alternatives, can also directly be used a job level
+    /// operations.  For example, using the above definition of `after1s`
+    ///
+    ///> after1s >>= fun x -> ...
+    ///
+    /// has the same effect as invoking `sleep` with a time span of 1 second.
+#endif
     val timeOut: TimeSpan -> Alt<unit>
 
     /// Creates a job that sleeps for (about) the specified time.  Note that
     /// this is simply not intended for high precision timing and the resolution
     /// of the underlying timing mechanism is coarse (Windows system ticks).
+    /// See also: `timeOut`.
     val sleep: TimeSpan -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a synchronous channel.
+/// Represents a synchronous channel.  Channels support simple rendezvous
+/// between concurrent jobs.
+///
+/// Channels are optimized for synchronous message passing, which can often be
+/// done without buffering.  Channels also provide an asynchronous `Ch.send`
+/// operation, but for situations where buffering is needed some other message
+/// passing mechanism is likely to perform better.
+///
+/// Note that `Ch` is a subtype of `Alt` and `xCh :> Alt<'x>` is equivalent to
+/// `Ch.Alt.take xCh`.
 type Ch<'x> :> Alt<'x>
 #endif
 
@@ -701,7 +753,13 @@ module Ch =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a synchronized write once variable.
+/// Represents a synchronized write once variable.  Write once variables are
+/// most commonly used for getting replies from concurrent servers, but can also
+/// be useful for other purposes such as for one-shot events and for
+/// implementing incremental, but immutable, concurrent data structures.
+///
+/// Note that `IVar` is a subtype of `Alt` and `xI :> Alt<'x>` is equivalent to
+/// `IVar.Alt.read xI`.
 type IVar<'x> :> Alt<'x>
 #endif
 
@@ -742,6 +800,9 @@ module IVar =
 
 #if DOC
 /// Represents a synchronized variable.
+///
+/// Note that `MVar` is a subtype of `Alt` and `xM :> Alt<'x>` is equivalent to
+/// `MVar.Alt.take xM`.
 type MVar<'x> :> Alt<'x>
 #endif
 
@@ -781,6 +842,13 @@ module MVar =
   /// make it so that only the job that has emptied an `MVar` by taking a value
   /// from it is allowed to fill the `MVar`.  Such an access pattern makes
   /// operations on the `MVar` appear as atomic.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
+  ///>   xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
+#endif
   val inline modifyFun: ('x -> 'x * 'y) -> MVar<'x> -> Job<'y>
 
   /// Creates a job that takes the value of the variable and then fills the
@@ -789,6 +857,13 @@ module MVar =
   /// make it so that only the job that has emptied an `MVar` by taking a value
   /// from it is allowed to fill the `MVar`.  Such an access pattern makes
   /// operations on the `MVar` appear as atomic.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
+  ///>   xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
+#endif
   val inline modifyJob: ('x -> Job<'x * 'y>) -> MVar<'x> -> Job<'y>
 
   /// Selective operations on write many variables.
@@ -841,7 +916,8 @@ module Mailbox =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a lazy promise or eager future (depending on construction).
+/// Represents a lazy promise or eager future depending on construction.  Use a
+/// promise when you want to start a concurrent job to compute some result.
 type Promise<'x> :> Alt<'x>
 #endif
 

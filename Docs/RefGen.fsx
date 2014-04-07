@@ -17,7 +17,7 @@ let chars (s: string) = s.ToCharArray () |> Array.map string |> strings
 let keywords =
   [|":>"; "->"; "="; 
     "[<"; ">]"; "[|"; "|]"; "?<-"; "??"; "?"; ":?>"; ":?"; ":>"; "::"; ":="; ":"; 
-    "do!"; "do";
+    "do!"; "downto"; "do";
     "else";
     "false"; "finally"; "for"; "fun";
     "if"; "inline"; "in";

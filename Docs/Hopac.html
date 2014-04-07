@@ -350,7 +350,7 @@ font-weight: bold;
 <div class="nested"><p> Like <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.start">start</a></code>, but the given job is known never to return normally, so the job can be spawned in a sligthly lighter-weight manner.</div>
 <pre><b>val</b> <a id="def:val Hopac.Job.delay" href="#dec:val Hopac.Job.delay">delay</a><b>:</b> (unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that calls the given function to build a job that will then be run.  <code><a href="#def:val Hopac.Job.delay">delay</a>&nbsp;u2xJ</code> is equivalent to <code><a href="#def:val Hopac.Job.result">result</a>&nbsp;()&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;u2xJ</code>.</div>
+<div class="nested"><p> Creates a job that calls the given function to build a job that will then be run.  <code><a href="#def:val Hopac.Job.delay">delay</a>&nbsp;u2xJ</code> is equivalent to <code><a href="#def:val Hopac.Job.result">result</a>&nbsp;()&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;u2xJ</code>.</p><p> Use of <code><a href="#def:val Hopac.Job.delay">delay</a></code> is often essential for making sure that a job constructed with user-defined code properly captures side-effects performed in the user-defined code or that a job is not constructed too eagerly (e.g. traversing an entire data structure to build a very large job object).  However, it is also the case that there is no need to wrap every constructed job with <code><a href="#def:val Hopac.Job.delay">delay</a></code> and avoiding unnecessary <code><a href="#def:val Hopac.Job.delay">delay</a></code> operations can improve performance significantly.</div>
 <pre><b>val</b> <a id="def:val Hopac.Job.delayWith" href="#dec:val Hopac.Job.delayWith">delayWith</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that calls the given function with the given value to build a job that will then be run.  <code><a href="#def:val Hopac.Job.delayWith">delayWith</a>&nbsp;x&nbsp;x2yJ</code> is equivalent to <code><a href="#def:val Hopac.Job.result">result</a>&nbsp;x&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;x2yJ</code>.</div>
@@ -432,7 +432,7 @@ font-weight: bold;
     i2xJ lo <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> _ <b>-&gt;</b> <a href="#def:val Hopac.Job.forUpTo">forUpTo</a> (lo <b>+</b> 1) hi i2xJ
   <b>else</b>
     <a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.unit">unit</a> ()
-</pre></div>
+</pre><p> Rationale: The reason for iterating over an inclusive range is to make this construct work like a <code><b>for</b>&nbsp;<b>...</b>&nbsp;<b>to</b>&nbsp;<b>...</b>&nbsp;<b>do</b>&nbsp;<b>...</b></code> loop of the base F# language.</div>
 <pre><b>val</b> <a id="def:val Hopac.Job.forDownTo" href="#dec:val Hopac.Job.forDownTo">forDownTo</a><b>:</b> int <b>-&gt;</b> int <b>-&gt;</b> (int <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> <code><a href="#def:val Hopac.Job.forDownTo">forDownTo</a>&nbsp;hi&nbsp;lo&nbsp;i2xJ</code> creates a job that sequentially iterates from <code>hi</code> to <code>lo</code> (inclusive) and calls the given function to construct jobs that will be executed.  The results from the jobs are ignored.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Job.forDownTo">forDownTo</a> hi lo i2xJ <b>=</b>
@@ -440,7 +440,7 @@ font-weight: bold;
     i2xJ hi <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> _ <b>-&gt;</b> <a href="#def:val Hopac.Job.forDownTo">forDownTo</a> (hi <b>-</b> 1) lo i2xJ
   <b>else</b>
     <a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.unit">unit</a> ()
-</pre></div>
+</pre><p> Rationale: The reason for iterating over an inclusive range is to make this construct work like a <code><b>for</b>&nbsp;<b>...</b>&nbsp;<b>downto</b>&nbsp;<b>...</b>&nbsp;<b>do</b>&nbsp;<b>...</b></code> loop of the base F# language.</div>
 <pre><b>val</b> <a id="def:val Hopac.Job.whileDo" href="#dec:val Hopac.Job.whileDo">whileDo</a><b>:</b> (unit <b>-&gt;</b> bool) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> <code><a href="#def:val Hopac.Job.whileDo">whileDo</a>&nbsp;u2b&nbsp;xJ</code> creates a job that sequentially executes the <code>xJ</code> job as long as <code>u2b&nbsp;()</code> returns <code><b>true</b></code>.  The results from the jobs are ignored.</p><p> Reference implementation:</p><pre><b>let</b> <a href="#def:val Hopac.Job.whileDo">whileDo</a> u2b xJ <b>=</b> <a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.delay">delay</a> <b>&lt;|</b> <b>fun</b> () <b>-&gt;</b>
@@ -508,7 +508,7 @@ font-weight: bold;
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Alt" href="#dec:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Represents a first class synchronous operation.</div>
+<div class="nested"><p> Represents a first-class synchronous operation called an alternative. Alternatives support the encapsulation of concurrent protocols as selective synchronous operations.  Note that <code><a href="#def:type Hopac.Alt">Alt</a></code> is a subtype of <code><a href="#def:type Hopac.Job">Job</a></code>.  You can use an alternative in any context that requires a job and <code>xA&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;<b>fun</b>&nbsp;x&nbsp;<b>-&gt;</b>&nbsp;<b>...</b></code> is equivalent to <code><a href="#def:val Hopac.Alt.pick">pick</a>&nbsp;xA&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;<b>fun</b>&nbsp;x&nbsp;<b>-&gt;</b>&nbsp;<b>...</b></code>.</div>
 <pre><b>module</b> <a id="def:module Hopac.Alt" href="#dec:module Hopac.Alt">Alt</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on first-class synchronous operations or alternatives.<pre><b>val</b> <a id="def:val Hopac.Alt.always" href="#dec:val Hopac.Alt.always">always</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -516,13 +516,13 @@ font-weight: bold;
 <div class="nested"><p> Creates an alternative that is always available for picking and results in the given value.  Note that when there are alternatives immediately available for picking in a disjunction, the first such alternative will be committed to.</div>
 <pre><b>val</b> <a id="def:val Hopac.Alt.unit" href="#dec:val Hopac.Alt.unit">unit</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Returns an alternative that is always available for picking and results in the unit value.  <code><a href="#def:val Hopac.Alt.unit">unit</a>&nbsp;()</code> is equivalent to <code><a href="#def:val Hopac.Alt.always">always</a>&nbsp;()</code>.</div>
+<div class="nested"><p> Returns an alternative that is always available for picking and results in the unit value.  <code><a href="#def:val Hopac.Alt.unit">unit</a>&nbsp;()</code> is an optimized version of <code><a href="#def:val Hopac.Alt.always">always</a>&nbsp;()</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Alt.never" href="#dec:val Hopac.Alt.never">never</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates an alternative that is never available for picking.  Note that <code><a href="#def:val Hopac.Alt.pick">pick</a>&nbsp;(<a href="#def:val Hopac.Alt.never">never</a>&nbsp;())</code> is equivalent to <code><a href="#def:val Hopac.Job.abort">abort</a>&nbsp;()</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Alt.zero" href="#dec:val Hopac.Alt.zero">zero</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Return an alternative that is never available for picking.  <code><a href="#def:val Hopac.Alt.zero">zero</a>&nbsp;()</code> is equivalent to <code><a href="#def:val Hopac.Alt.never">never</a>&nbsp;()</code>.</div>
+<div class="nested"><p> Return an alternative that is never available for picking.  <code><a href="#def:val Hopac.Alt.zero">zero</a>&nbsp;()</code> is an optimized version of <code><a href="#def:val Hopac.Alt.never">never</a>&nbsp;()</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Alt.guard" href="#dec:val Hopac.Alt.guard">guard</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates an alternative that is computed at instantiation time with the given job.  This allows client-server protocols that do not require the server to be notified when the client aborts the transaction to be encapsulated as selective operations.  For example, the given job may create and send a message to a server and then return an alternative that waits for the server's reply.  See also: <code><a href="#def:val Hopac.Alt.withNack">withNack</a></code>.</p><p> Reference implementation:</p><pre><b>let</b> <a href="#def:val Hopac.Alt.guard">guard</a> xAJ <b>=</b> <a href="#def:val Hopac.Alt.withNack">withNack</a> <b>&lt;|</b> <b>fun</b> _ <b>-&gt;</b> xAJ
@@ -579,15 +579,21 @@ font-weight: bold;
 </pre>
 <div class="nested"><p> Operations on the global wall-clock timer.  The global timer is implicitly associated with the global scheduler.<pre><b>val</b> <a id="def:val Hopac.Timer.Global.timeOut" href="#dec:val Hopac.Timer.Global.timeOut">timeOut</a><b>:</b> TimeSpan <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates an alternative that, after instantiation, becomes pickable after the specified time span.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is very coarse (Windows system ticks).</div>
+<div class="nested"><p> Creates an alternative that, after instantiation, becomes pickable after the specified time span.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is very coarse (Windows system ticks).  Note that you need not create a new timeout alternative every time you need a timeout with a specific time span.</p><p> For example, you can create a timeout for 1 second</p><pre><b>let</b> after1s <b>=</b> <a href="#def:val Hopac.Timer.Global.timeOut">timeOut</a> (TimeSpan<b>.</b>FromSeconds 1.0)
+</pre><p> and then use that timeout many times</p><pre><a href="#def:val Hopac.Alt.select">select</a> [
+  makeRequest <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>...</b>
+  after1s     <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>...</b>
+]
+</pre><p> Timeouts, like other alternatives, can also directly be used a job level operations.  For example, using the above definition of <code>after1s</code></p><pre>after1s <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> x <b>-&gt;</b> <b>...</b>
+</pre><p> has the same effect as invoking <code><a href="#def:val Hopac.Timer.Global.sleep">sleep</a></code> with a time span of 1 second.</div>
 <pre><b>val</b> <a id="def:val Hopac.Timer.Global.sleep" href="#dec:val Hopac.Timer.Global.sleep">sleep</a><b>:</b> TimeSpan <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that sleeps for (about) the specified time.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is coarse (Windows system ticks).</div>
+<div class="nested"><p> Creates a job that sleeps for (about) the specified time.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is coarse (Windows system ticks). See also: <code><a href="#def:val Hopac.Timer.Global.timeOut">timeOut</a></code>.</div>
 </div>
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Ch" href="#dec:type Hopac.Ch">Ch</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Represents a synchronous channel.</div>
+<div class="nested"><p> Represents a synchronous channel.  Channels support simple rendezvous between concurrent jobs.</p><p> Channels are optimized for synchronous message passing, which can often be done without buffering.  Channels also provide an asynchronous <code><a href="#def:module Hopac.Ch">Ch</a><b>.</b><a href="#def:val Hopac.Ch.send">send</a></code> operation, but for situations where buffering is needed some other message passing mechanism is likely to perform better.</p><p> Note that <code><a href="#def:type Hopac.Ch">Ch</a></code> is a subtype of <code><a href="#def:type Hopac.Alt">Alt</a></code> and <code>xCh&nbsp;<b>:&gt;</b>&nbsp;<a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b></code> is equivalent to <code><a href="#def:module Hopac.Ch">Ch</a><b>.</b><a href="#def:module Hopac.Ch.Alt">Alt</a><b>.</b><a href="#def:val Hopac.Ch.Alt.take">take</a>&nbsp;xCh</code>.</div>
 <pre><b>module</b> <a id="def:module Hopac.Ch" href="#dec:module Hopac.Ch">Ch</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on synchronous channels.<pre><b>module</b> <a id="def:module Hopac.Ch.Now" href="#dec:module Hopac.Ch.Now">Now</a> <b>=</b>
@@ -626,7 +632,7 @@ font-weight: bold;
 </div>
 <pre><b>type</b> <a id="def:type Hopac.IVar" href="#dec:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Represents a synchronized write once variable.</div>
+<div class="nested"><p> Represents a synchronized write once variable.  Write once variables are most commonly used for getting replies from concurrent servers, but can also be useful for other purposes such as for one-shot events and for implementing incremental, but immutable, concurrent data structures.</p><p> Note that <code><a href="#def:type Hopac.IVar">IVar</a></code> is a subtype of <code><a href="#def:type Hopac.Alt">Alt</a></code> and <code>xI&nbsp;<b>:&gt;</b>&nbsp;<a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b></code> is equivalent to <code><a href="#def:module Hopac.IVar">IVar</a><b>.</b><a href="#def:module Hopac.IVar.Alt">Alt</a><b>.</b><a href="#def:val Hopac.IVar.Alt.read">read</a>&nbsp;xI</code>.</div>
 <pre><b>module</b> <a id="def:module Hopac.IVar" href="#dec:module Hopac.IVar">IVar</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on write once variables.<pre><b>module</b> <a id="def:module Hopac.IVar.Now" href="#dec:module Hopac.IVar.Now">Now</a> <b>=</b>
@@ -656,7 +662,7 @@ font-weight: bold;
 </div>
 <pre><b>type</b> <a id="def:type Hopac.MVar" href="#dec:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Represents a synchronized variable.</div>
+<div class="nested"><p> Represents a synchronized variable.</p><p> Note that <code><a href="#def:type Hopac.MVar">MVar</a></code> is a subtype of <code><a href="#def:type Hopac.Alt">Alt</a></code> and <code>xM&nbsp;<b>:&gt;</b>&nbsp;<a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b></code> is equivalent to <code><a href="#def:module Hopac.MVar">MVar</a><b>.</b><a href="#def:module Hopac.MVar.Alt">Alt</a><b>.</b><a href="#def:val Hopac.MVar.Alt.take">take</a>&nbsp;xM</code>.</div>
 <pre><b>module</b> <a id="def:module Hopac.MVar" href="#dec:module Hopac.MVar">MVar</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on write many variables.<pre><b>module</b> <a id="def:module Hopac.MVar.Now" href="#dec:module Hopac.MVar.Now">Now</a> <b>=</b>
@@ -682,10 +688,14 @@ font-weight: bold;
 <div class="nested"><p> Creates a job that waits until the synchronous variable contains a value and then takes the value contained by the synchronous variable leaving the variable empty.</div>
 <pre><b>val</b> <a id="def:val Hopac.MVar.modifyFun" href="#dec:val Hopac.MVar.modifyFun">modifyFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i> <b>*</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that takes the value of the variable and then fills the variable with the result of performing the given function.  Note that this operation is not atomic.  However, it is a common programming pattern to make it so that only the job that has emptied an <code><a href="#def:type Hopac.MVar">MVar</a></code> by taking a value from it is allowed to fill the <code><a href="#def:type Hopac.MVar">MVar</a></code>.  Such an access pattern makes operations on the <code><a href="#def:type Hopac.MVar">MVar</a></code> appear as atomic.</div>
+<div class="nested"><p> Creates a job that takes the value of the variable and then fills the variable with the result of performing the given function.  Note that this operation is not atomic.  However, it is a common programming pattern to make it so that only the job that has emptied an <code><a href="#def:type Hopac.MVar">MVar</a></code> by taking a value from it is allowed to fill the <code><a href="#def:type Hopac.MVar">MVar</a></code>.  Such an access pattern makes operations on the <code><a href="#def:type Hopac.MVar">MVar</a></code> appear as atomic.</p><p> Reference implementation:</p><pre><b>let</b> <a href="#def:val Hopac.MVar.modifyFun">modifyFun</a> (x2xy<b>:</b> <i>'x</i> <b>-&gt;</b> <i>'x</i> <b>*</b> <i>'y</i>) (xM<b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>=</b>
+  xM <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> (x2xy <b>&gt;&gt;</b> <b>fun</b> (x, y) <b>-&gt;</b> <a href="#def:val Hopac.MVar.fill">fill</a> xM x <a href="#def:val Hopac.Job.Infixes.&gt;&gt;%">>>%</a> y)
+</pre></div>
 <pre><b>val</b> <a id="def:val Hopac.MVar.modifyJob" href="#dec:val Hopac.MVar.modifyJob">modifyJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that takes the value of the variable and then fills the variable with the result of performing the given job.  Note that this operation is not atomic.  However, it is a common programming pattern to make it so that only the job that has emptied an <code><a href="#def:type Hopac.MVar">MVar</a></code> by taking a value from it is allowed to fill the <code><a href="#def:type Hopac.MVar">MVar</a></code>.  Such an access pattern makes operations on the <code><a href="#def:type Hopac.MVar">MVar</a></code> appear as atomic.</div>
+<div class="nested"><p> Creates a job that takes the value of the variable and then fills the variable with the result of performing the given job.  Note that this operation is not atomic.  However, it is a common programming pattern to make it so that only the job that has emptied an <code><a href="#def:type Hopac.MVar">MVar</a></code> by taking a value from it is allowed to fill the <code><a href="#def:type Hopac.MVar">MVar</a></code>.  Such an access pattern makes operations on the <code><a href="#def:type Hopac.MVar">MVar</a></code> appear as atomic.</p><p> Reference implementation:</p><pre><b>let</b> <a href="#def:val Hopac.MVar.modifyJob">modifyJob</a> (x2xyJ<b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>) (xM<b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>=</b>
+  xM <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> x2xyJ <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> (x, y) <b>-&gt;</b> <a href="#def:val Hopac.MVar.fill">fill</a> xM x <a href="#def:val Hopac.Job.Infixes.&gt;&gt;%">>>%</a> y
+</pre></div>
 <pre><b>module</b> <a id="def:module Hopac.MVar.Alt" href="#dec:module Hopac.MVar.Alt">Alt</a> <b>=</b>
 </pre>
 <div class="nested"><p> Selective operations on write many variables.<pre><b>val</b> <a id="def:val Hopac.MVar.Alt.take" href="#dec:val Hopac.MVar.Alt.take">take</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -728,7 +738,7 @@ font-weight: bold;
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Promise" href="#dec:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Represents a lazy promise or eager future (depending on construction).</div>
+<div class="nested"><p> Represents a lazy promise or eager future depending on construction.  Use a promise when you want to start a concurrent job to compute some result.</div>
 <pre><b>module</b> <a id="def:module Hopac.Promise" href="#dec:module Hopac.Promise">Promise</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on promises.<pre><b>module</b> <a id="def:module Hopac.Promise.Now" href="#dec:module Hopac.Promise.Now">Now</a> <b>=</b>
