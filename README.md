@@ -80,8 +80,8 @@ Here are some ballpark figures:
   `result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.result)
   or `let!` and `return` seem to run about **2x** as fast as the corresponding
   `Async` operations of F# 3.1.  This can be clearly seen in the
-  [Fibonacci](Benchmarks/Fibonacci) benchmarks that also runs sequential
-  versions using both Hopac and Async.
+  [Fibonacci](Benchmarks/Fibonacci) benchmark that also runs sequential versions
+  using both Hopac and Async.
 * Synchronization with `Task` operations seems to be about **2x** as fast as
   with `Async` of F# 3.1.  This can be seen in the
   [AsyncOverhead](Benchmarks/AsyncOverhead) benchmark.
@@ -103,11 +103,11 @@ Here are some ballpark figures:
   `MailboxProcessor`.  This can be seen in the [Cell](Benchmarks/Cell)
   benchmark, where Hopac based versions take about **5x** less memory compared
   to `Async` and `MailboxProcessor` based versions of F# 3.1.  Performance is
-  also **5x** better.  In the [Fibonacci](Benchmarks/Fibonacci), Hopac based
-  parallel solutions seem to take asymptotically less memory due to the LIFO
-  scheduling of Hopac vs FIFO scheduling of `Async`.  In fact, the `Async` based
-  parallel version quickly runs out of memory using **O(fib(n))** space, while
-  the Hopac based versions runs in **O(n)** space.
+  also **5x** better.  In the [Fibonacci](Benchmarks/Fibonacci) benchmark, Hopac
+  based parallel solutions seem to take asymptotically less memory due to the
+  LIFO scheduling of Hopac vs FIFO scheduling of `Async`.  In fact, the `Async`
+  based parallel version quickly runs out of memory using **O(fib(n))** space,
+  while the Hopac based versions runs in **O(n)** space.
 
 Rationale: Why Hopac?
 ---------------------
