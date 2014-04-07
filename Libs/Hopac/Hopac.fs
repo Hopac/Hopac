@@ -138,7 +138,8 @@ module IVar =
     let inline create () = IVar<'x> ()
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
-  let inline fillFailure (xI: IVar<'x>) (e: exn) = IVarFillFailure<'x> (xI, e) :> Job<unit>
+  let inline fillFailure (xI: IVar<'x>) (e: exn) =
+    IVarFillFailure<'x> (xI, e) :> Job<unit>
   let inline read (xI: IVar<'x>) = xI :> Job<'x>
   module Alt =
     let inline read (xI: IVar<'x>) = xI :> Alt<'x>
@@ -1056,9 +1057,9 @@ module MVar =
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline take (xM: MVar<'x>) = xM :> Job<'x>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-    take xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
+    xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
   let inline modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
-    take xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
+    xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
   module Alt =
     let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
