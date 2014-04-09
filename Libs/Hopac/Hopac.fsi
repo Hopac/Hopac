@@ -4,7 +4,7 @@
 /// efficient parallel, asynchronous and concurrent programs.  The design of
 /// Hopac draws inspiration from Concurrent ML.  Similar to Concurrent ML, Hopac
 /// provides message passing primitives and supports the construction of
-/// first-class synchronous abstractions.  Parallel jobs (light-weight threads)
+/// first-class synchronous abstractions.  Parallel jobs (lightweight threads)
 /// in Hopac are created using techniques similar to the F# Async framework.
 /// Hopac runs parallel jobs using a work distributing scheduler in a
 /// non-preemptive fashion.
@@ -25,7 +25,11 @@
 ///
 /// Many modules contain a module named `Global`, which contains operations
 /// bound to the global scheduler that is implicitly managed by the Hopac
-/// library.
+/// library.  The global scheduler is created when an operation, such as
+/// `Job.Global.run`, requires it.  If a program never uses an operation that
+/// requires the global scheduler, then no global scheduler will be created.
+/// This allows programs to be written that explicitly manage their own local
+/// schedulers.
 ///
 /// Modules for various communication primitives contain a module named `Now`,
 /// which contains operations that can be efficiently performed as
@@ -91,6 +95,11 @@ type Void
 ///> while ... do ...
 ///
 /// Note that the `Job` module provides more combinators for constructing jobs.
+/// For example, the F# workflow notation does not support `Job.tryFinallyJob`
+/// and `Job.tryIn` is easier to use correctly than `try ... with ...`
+/// expressions.  Operators such as `|>>` and `>>%` and operations such as
+/// `Job.iterate` and `Job.forever` are frequently useful and may improve
+/// performance.
 #endif
 type JobBuilder =
   new: unit -> JobBuilder
@@ -116,16 +125,18 @@ module TopLevel =
   val job: JobBuilder
 
   /// Starts running the given job on the global scheduler and then waits for
-  /// the job to either return successfully or fail.  Note that using this
-  /// function in a job workflow is not optimal and should never be needed.
-  /// This is the same function as `Job.Global.run`.
+  /// the job to either return successfully or fail.  See also: `abort`.
+  ///
+  /// Note that using this function in a job workflow is not optimal and should
+  /// never be needed, because within a workflow the result of a job can be
+  /// obtained by binding.  This is the same function as `Job.Global.run`.
   val inline run: Job<'x> -> 'x
 
   /// Use object as alternative.  This function is a NOP and is provided as a
-  /// kind syntactic alternative to using a type cast.
+  /// kind of syntactic alternative to using a type cast.
   val inline asAlt: Alt<'x> -> Alt<'x>
 
-  /// Use object as job.  This function is a NOP and is provided as a kind
+  /// Use object as job.  This function is a NOP and is provided as a kind of
   /// syntactic alternative to using a type cast.
   val inline asJob: Job<'x> -> Job<'x>
 
@@ -140,49 +151,58 @@ module TopLevel =
   /// `IVar.Now.create`.
   val inline ivar: unit -> IVar<'x>
 
-  /// Creates a new synchronous variable that is initially empty.  This is the
-  /// same function as `MVar.Now.create`.
+  /// Creates a serialized variable that is initially empty.  This is the same
+  /// function as `MVar.Now.create`.
   val inline mvar: unit -> MVar<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a lightweight thread of execution.  Jobs are defined using
-/// expression builders like the `JobBuilder`, accessible via the `TopLevel.job`
-/// binding, or using monadic combinators and can then be executed on some
-/// `Scheduler` such as the global scheduler accessible via the `Job.Global`
-/// module.
+/// Represents a lightweight thread of execution.
+///
+/// Jobs are defined using expression builders like the `JobBuilder`, accessible
+/// via the `TopLevel.job` binding, or using monadic combinators and can then be
+/// executed on some `Scheduler` such as the global scheduler accessible via the
+/// `Job.Global` module.
 type Job<'x>
 #endif
 
 /// Operations on jobs.
 module Job =
-  /// Operations on the global scheduler.  Note that in a typical program there
-  /// should only be a few points (maybe just one) where jobs are started or run
-  /// outside of job workflows.
+  /// Operations on the global scheduler.
+  ///
+  /// Note that in a typical program there should only be a few points (maybe
+  /// just one) where jobs are started or run outside of job workflows.
   module Global =
     /// Starts running the given job on the global scheduler, but does not wait
     /// for the job to finish.  Upon the failure or success of the job, one of
-    /// the given actions is called once.  Note that using this function in a
-    /// job workflow is not optimal and you should instead use `Job.start` with
-    /// desired Job exception handling construct (e.g. `Job.tryIn` or
-    /// `Job.catch`).
+    /// the given actions is called once.  See also: `abort`.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should instead use `Job.start` with desired Job exception handling
+    /// construct (e.g. `Job.tryIn` or `Job.catch`).
     val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
     /// Starts running the given job on the global scheduler, but does not wait
-    /// for the job to finish.  The result, if any, of the job is ignored.  Note
-    /// that using this function in a job workflow is not optimal and you should
-    /// use `Job.start` instead.
+    /// for the job to finish.  The result, if any, of the job is ignored.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Job.start` instead.
     val start: Job<_> -> unit
 
     /// Like `Job.Global.start`, but the given job is known never to return
-    /// normally, so the job can be spawned in a sligthly lighter-weight
-    /// manner.
+    /// normally, so the job can be spawned in an even more lightweight manner.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Job.server` instead.
     val server: Job<Void> -> unit
 
     /// Starts running the given job on the global scheduler and then waits for
-    /// the job to either return successfully or fail.  Note that using this
-    /// function in a job workflow is not optimal and should never be needed.
+    /// the job to either return successfully or fail.  See also: `abort`.
+    ///
+    /// Note that using this function in a job workflow is not optimal and
+    /// should never be needed, because within a workflow the result of a job
+    /// can be obtained by binding.
     val run: Job<'x> -> 'x
 
   /////////////////////////////////////////////////////////////////////////////
@@ -194,7 +214,7 @@ module Job =
   val start: Job<_> -> Job<unit>
 
   /// Like `Job.start`, but the given job is known never to return normally, so
-  /// the job can be spawned in a sligthly lighter-weight manner.
+  /// the job can be spawned in an even more lightweight manner.
   val server: Job<Void> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -208,11 +228,11 @@ module Job =
   /// (e.g. traversing an entire data structure to build a very large job
   /// object).  However, it is also the case that there is no need to wrap every
   /// constructed job with `delay` and avoiding unnecessary `delay` operations
-  /// can improve performance significantly.
+  /// can improve performance.
   val delay: (unit -> Job<'x>) -> Job<'x>
 
   /// Creates a job that calls the given function with the given value to build
-  /// a job that will then be run.  `delayWith x x2yJ` is equivalent to `result
+  /// a job that will then be run.  `delayWith x2yJ x` is equivalent to `result
   /// x >>= x2yJ`.
   val delayWith: ('x -> Job<'y>) -> 'x -> Job<'y>
 
@@ -234,14 +254,19 @@ module Job =
   /// Creates a job with the given result.
   val result: 'x -> Job<'x>
 
-  /// Creates a job that immediately terminates the current job.  Note that in
-  /// order to execute clean-up operations implemented with `using` or
-  /// `tryFinallyFun` or `tryFinallyJob` the job must either return normally or
-  /// raise an exception.
+  /// Creates a job that immediately terminates the current job.
+  ///
+  /// Note that when a job aborts, it considered to be equivalent to having the
+  /// job block indefinitely.  This means that the job neither returns
+  /// succesfully nor fails with an exception.
+  ///
+  /// Note that in order to execute clean-up operations implemented with `using`
+  /// or `tryFinallyFun` or `tryFinallyJob` the job must either return normally
+  /// or raise an exception.
   val abort: unit -> Job<_>
 
   /// Creates a job that has the effect of raising the specified exception.
-  /// `raises e` is equivalent to `Job.delay <| fun () -> raise e`.
+  /// `raises e` is equivalent to `Job.delayWith raise e`.
   val raises: exn -> Job<_>
 
   /// Infix operators on jobs.  You can open this module to bring all of the
@@ -280,12 +305,21 @@ module Job =
 
     /// Creates a job that either runs the given jobs sequentially, like `<&>`,
     /// or as two separate parallel jobs and returns a pair of their results.
+    ///
     /// Note that when the jobs are run in parallel and both of them raise an
-    /// exception then the created job raises an `AggregateException`.  Note
-    /// that it is not guaranteed that the jobs would be run as separate jobs.
-    /// This means that a job such as `let c = ch () in Ch.give c () <*> Ch.take
-    /// c` may deadlock.  If the two jobs need to communicate with each other
-    /// they need to be started as two separate jobs.
+    /// exception then the created job raises an `AggregateException`.
+#if DOC
+    ///
+    /// Note that, because it is not guaranteed that the jobs would always be
+    /// run as separate parallel jobs, a job such as
+    ///
+    ///> let mayDeadlock = delay <| fun () ->
+    ///>   let c = ch ()
+    ///>   Ch.give c () <*> Ch.take c
+    ///
+    /// may deadlock.  If two jobs need to communicate with each other they need
+    /// to be started as two separate jobs.
+#endif
     val (<*>): Job<'x> -> Job<'y> -> Job<'x * 'y>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -296,26 +330,61 @@ module Job =
   val tryIn: Job<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let tryWith xJ e2xJ = tryIn xJ result e2xJ
+#endif
   val tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
 
   /// Implements a variation of the try-finally exception handling construct for
   /// jobs.  The given action, specified as a function, is executed after the
   /// job has been run, whether it fails or completes successfully.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let tryFinallyFun xJ u2u = tryFinallyJob xJ (thunk u2u)
+#endif
   val tryFinallyFun: Job<'x> -> (unit -> unit) -> Job<'x>
 
   /// Implements a variation of the try-finally exception handling construct for
   /// jobs.  The given action, specified as a job, is executed after the the job
   /// has been run, whether it fails or completes successfully.
+  ///
+  /// Note that workflow notation of F# does not support this operation.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let tryFinallyJob xJ uJ =
+  ///>   tryIn xJ
+  ///>    <| fun x -> uJ >>% x
+  ///>    <| fun e -> uJ >>! e
+#endif
   val tryFinallyJob: Job<'x> -> Job<unit> -> Job<'x>
 
   /// Implements the use construct for jobs.  The Dispose method of the given
   /// disposable object is called after running the job constructed with the
   /// disposable object.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let using (x: 'x when 'x :> IDisposable) x2yJ =
+  ///>   tryFinallyFun (delayWith x2yJ x) (x :> IDisposable).Dispose
+#endif
   val using: 'x -> ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
 
   /// Creates a job that runs the given job and results in either the ordinary
-  /// result of the job or the exception raised by the job.  `catch j` is
-  /// equivalent to `tryIn j (lift Choice1Of2) (lift Choice2Of2)`.
+  /// result of the job or the exception raised by the job.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let catch xJ = tryIn xJ (lift Choice1Of2) (lift Choice2Of2)
+#endif
   val catch: Job<'x> -> Job<Choice<'x, exn>>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -393,21 +462,31 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Creates a job that repeats the given job indefinitely.  Note that the
-  /// results, if any, from the given job are ignored.  It is a common
-  /// programming pattern to use server jobs that loop indefinitely and
-  /// communicate with clients via channels.  When a job is blocked waiting for
-  /// communication on one or more channels and the channels become garbage (no
-  /// longer reachable by any other job) the job can be garbage collected as
-  /// well.
+  /// Creates a job that repeats the given job indefinitely.  The results, if
+  /// any, from the given job are ignored.  See also: `foreverServer`,
+  /// `iterate`.
+  ///
+  /// It is a common programming pattern to use server jobs that loop
+  /// indefinitely and communicate with clients via channels.  When a job is
+  /// blocked waiting for communication on one or more channels and the channels
+  /// become garbage (no longer reachable by any other job) the job can be
+  /// garbage collected as well.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec forever xJ = xJ >>= fun _ -> forever xJ
+#endif
   val forever: Job<_> -> Job<_>
 
   /// Creates a job that indefinitely iterates the given job constructor
-  /// starting with the given value.  It is a common programming pattern to use
-  /// server jobs that loop indefinitely and communicate with clients via
-  /// channels.  When a job is blocked waiting for communication on one or more
-  /// channels and the channels become garbage (no longer reachable by any other
-  /// job) the job can be garbage collected as well.
+  /// starting with the given value.  See also: `iterateServer`, `forever`.
+  ///
+  /// It is a common programming pattern to use server jobs that loop
+  /// indefinitely and communicate with clients via channels.  When a job is
+  /// blocked waiting for communication on one or more channels and the channels
+  /// become garbage (no longer reachable by any other job) the job can be
+  /// garbage collected as well.
 #if DOC
   ///
   /// Reference implementation:
@@ -459,14 +538,18 @@ module Job =
   val seqIgnore: seq<Job<_>> -> Job<unit>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
-  /// returns a list of the results.  Note that when multiple jobs raise
-  /// exceptions, then the created job raises an `AggregateException`.
+  /// returns a list of the results.
+  ///
+  /// Note that when multiple jobs raise exceptions, then the created job raises
+  /// an `AggregateException`.
   val conCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// then waits for all of the jobs to finish.  The results of the jobs are
-  /// ignored.  Note that when multiple jobs raise exceptions, then the created
-  /// job raises an `AggregateException`.
+  /// ignored.
+  ///
+  /// Note that when multiple jobs raise exceptions, then the created job raises
+  /// an `AggregateException`.
   val conIgnore: seq<Job<_>> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -491,35 +574,54 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Returns a job that returns the scheduler under which the job is being
-  /// run.
+  /// Returns a job that returns the scheduler under which the job is being run.
+  /// This allows interfacing Hopac with existing asynchronous operations that
+  /// do not fall into a pattern that is already supported explicitly.  See, for
+  /// example, the reference implementation of `fromBeginEnd`.  The key is that
+  /// the job that is suspended for the duration of the asynchronous operation
+  /// can then be resumed on the same scheduler.
   val inline scheduler: unit -> Job<Scheduler>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a first-class synchronous operation called an alternative.
-/// Alternatives support the encapsulation of concurrent protocols as selective
-/// synchronous operations.  Note that `Alt` is a subtype of `Job`.  You can use
-/// an alternative in any context that requires a job and `xA >>= fun x -> ...`
-/// is equivalent to `pick xA >>= fun x -> ...`.
+/// Represents a first-class synchronous operation.
+///
+/// The inspiration for alternatives comes from the events of Concurrent ML.
+/// The term ''alternative'' was chosen, because the term ''event'' is already
+/// widely used in .Net.
+///
+/// Simpler forms of selective synchronization exists in various languages.  For
+/// example, the occam language has an `alt` statement and the Go language has a
+/// `select` statement.  In Hopac and Concurrent ML, selective synchronous
+/// operations are not limited to primitive message passing operations (see
+/// `Ch.Alt.give` and `Ch.Alt.take`), but are instead first-class values (see
+/// `choose`) and can be extended with user-defined code (see `>>=?` and
+/// `withNack`) allowing the encapsulation of concurrent protocols as selective
+/// synchronous operations.
+///
+/// Note that `Alt` is a subtype of `Job`.  You can use an alternative in any
+/// context that requires a job and `xA >>= fun x -> ...` is equivalent to `pick
+/// xA >>= fun x -> ...`.
 type Alt<'x> :> Job<'x>
 #endif
 
 /// Operations on first-class synchronous operations or alternatives.
 module Alt =
   /// Creates an alternative that is always available for picking and results in
-  /// the given value.  Note that when there are alternatives immediately
-  /// available for picking in a disjunction, the first such alternative will be
-  /// committed to.
+  /// the given value.
+  ///
+  /// Note that when there are alternatives immediately available for picking in
+  /// a choice, the first such alternative will be committed to.
   val inline always: 'x -> Alt<'x>
 
   /// Returns an alternative that is always available for picking and results in
   /// the unit value.  `unit ()` is an optimized version of `always ()`.
   val inline unit: unit -> Alt<unit>
 
-  /// Creates an alternative that is never available for picking.  Note that
-  /// `pick (never ())` is equivalent to `abort ()`.
+  /// Creates an alternative that is never available for picking.
+  ///
+  /// Note that `pick (never ())` is equivalent to `abort ()`.
   val never: unit -> Alt<'x>
 
   /// Return an alternative that is never available for picking.  `zero ()` is
@@ -527,11 +629,13 @@ module Alt =
   val inline zero: unit -> Alt<unit>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job.  This allows client-server protocols that do not require the
-  /// server to be notified when the client aborts the transaction to be
-  /// encapsulated as selective operations.  For example, the given job may
-  /// create and send a message to a server and then return an alternative that
-  /// waits for the server's reply.  See also: `withNack`.
+  /// given job.  See also: `withNack`.
+  ///
+  /// `guard` allows client-server protocols that do not require the server to
+  /// be notified when the client aborts the transaction to be encapsulated as
+  /// selective operations.  For example, the given job may create and send a
+  /// message to a server and then return an alternative that waits for the
+  /// server's reply.
 #if DOC
   ///
   /// Reference implementation:
@@ -541,9 +645,11 @@ module Alt =
   val guard: Job<Alt<'x>> -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given thunk.  This is an optimized weaker form of `guard` that can be used
-  /// when no concurrent operations beyond the returned alternative are required
-  /// by the encapsulated request protocol.
+  /// given thunk.
+  ///
+  /// `delay` is an optimized weaker form of `guard` that can be used when no
+  /// concurrent operations beyond the returned alternative are required by the
+  /// encapsulated request protocol.
 #if DOC
   ///
   /// Reference implementation:
@@ -553,20 +659,26 @@ module Alt =
   val delay: (unit -> Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job constructed with a negative acknowledgment alternative.  This
-  /// allows client-server protocols that do require the server to be notified
-  /// when the client aborts the transaction to be encapsulated as selective
-  /// operations.  The negative acknowledgment alternative will be available for
-  /// picking in case some other instantiated alternative involved in the
-  /// picking is committed to instead.  Note that if an alternative created with
-  /// `withNack` is not instantiated, then no negative acknowledgment is
-  /// created.  For example, given an alternative of the form `always () <|>
-  /// withNack (...)`  the `withNack` alternative is never instantiated.
+  /// given job constructed with a negative acknowledgment alternative.  See
+  /// also: `guard`.
+  ///
+  /// `withNack` allows client-server protocols that do require the server to be
+  /// notified when the client aborts the transaction to be encapsulated as
+  /// selective operations.  The negative acknowledgment alternative will be
+  /// available for picking in case some other instantiated alternative involved
+  /// in the choice is committed to instead.
+  ///
+  /// Note that if an alternative created with `withNack` is not instantiated,
+  /// then no negative acknowledgment is created.  For example, given an
+  /// alternative of the form `always () <|> withNack (...)` the `withNack`
+  /// alternative is never instantiated.
   val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the
-  /// given alternatives is.  `choose []` is equivalent to `never ()` and `pick
-  /// (choose [])` is equivalent to `abort ()`.
+  /// given alternatives is.  See also: `<|>`.
+  ///
+  /// Note that `choose []` is equivalent to `never ()` and `pick (choose [])`
+  /// is equivalent to `abort ()`.
 #if DOC
   ///
   /// Reference implementation:
@@ -574,7 +686,7 @@ module Alt =
   ///> let choose xAs = Alt.delay <| fun () ->
   ///>   Seq.foldBack (<|>) xAs (never ())
   ///
-  /// Given `Seq.foldBack` with the obvious meaning.  Alternatively we could
+  /// Above, `Seq.foldBack` has the obvious meaning.  Alternatively we could
   /// define `xA1 <|> xA2` to be equivalent to `choose [xA1; xA2]` and consider
   /// `choose` as primitive.
 #endif
@@ -586,20 +698,24 @@ module Alt =
   /// of the infix operators into scope.
   module Infixes =
     /// Creates an alternative that is available for picking when either of the
-    /// given alternatives is available.  The given alternatives are processed
-    /// in a left-to-right order with short-cut evaluation.  In other words,
-    /// given an alternative of the form `first <|> second`, the `first`
-    /// alternative is first instantiated and, if it is pickable, is committed
-    /// to and the `second` alternative will not be instantiated at all.
+    /// given alternatives is available.  `xA1 <|> xA2` is an optimized version
+    /// of `choose [xA1; xA2]`.
+    ///
+    /// The given alternatives are processed in a left-to-right order with
+    /// short-cut evaluation.  In other words, given an alternative of the form
+    /// `first <|> second`, the `first` alternative is first instantiated and,
+    /// if it is pickable, is committed to and the `second` alternative will not
+    /// be instantiated at all.
     val (<|>): Alt<'x> -> Alt<'x> -> Alt<'x>
 
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given
-    /// alternative has been committed to.  Although this operator has a type
-    /// similar to a monadic bind operation, alternatives do not form a monad
-    /// (with the `always` alternative constructor).  So called Transactional
-    /// Events do form a monad, but require a more complex synchronization
-    /// protocol.
+    /// alternative has been committed to.
+    ///
+    /// Note that although this operator has a type similar to a monadic bind
+    /// operation, alternatives do not form a monad (with the `always`
+    /// alternative constructor).  So called Transactional Events do form a
+    /// monad, but require a more complex synchronization protocol.
     val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
 
     /// `xA >>.? yJ` is equivalent to `xA >>=? fun _ -> yJ`.
@@ -622,12 +738,14 @@ module Alt =
   /// Implements the try-in-unless exception handling construct for
   /// alternatives.  Both of the continuation jobs `'x -> Job<'y>`, for success,
   /// and `exn -> Job<'y>`, for failure, are invoked from a tail position.
+  ///
   /// Exceptions from both before and after the commit point can be handled.  An
   /// exception that occurs before a commit point, from the user code in a
   /// `guard`, `delay`, or `withNack`, results in treating that exception as the
-  /// commit point.  Note you can also use function or job level exception
-  /// handling before the commit point within the user code in a `guard`,
-  /// `delay`, or `withNack`.
+  /// commit point.
+  ///
+  /// Note you can also use function or job level exception handling before the
+  /// commit point within the user code in a `guard`, `delay`, or `withNack`.
   val tryIn: Alt<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Alt<'y>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -641,8 +759,9 @@ module Alt =
   /// Creates a job that instantiates the given sequence of alternatives
   /// one-by-one, waits until at least one of them becomes available for picking
   /// and then commits to the alternative resulting in its value.  `select xAs`
-  /// is equivalent to `pick (choose xAs)`.  Note that `select []` is equivalent
-  /// to `abort ()`.
+  /// is equivalent to `pick (choose xAs)`.
+  ///
+  /// Note that `select []` is equivalent to `abort ()`.
   val inline select: seq<Alt<'x>> -> Job<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -654,11 +773,14 @@ module Timer =
   /// associated with the global scheduler.
   module Global =
     /// Creates an alternative that, after instantiation, becomes pickable after
-    /// the specified time span.  Note that this is simply not intended for high
-    /// precision timing and the resolution of the underlying timing mechanism
-    /// is very coarse (Windows system ticks).  Note that you need not create a
-    /// new timeout alternative every time you need a timeout with a specific
-    /// time span.
+    /// the specified time span.
+    ///
+    /// Note that this is simply not intended for high precision timing and the
+    /// resolution of the underlying timing mechanism is very coarse (Windows
+    /// system ticks).
+    ///
+    /// Note that you do not need to create a new timeout alternative every time
+    /// you need a timeout with a specific time span.
 #if DOC
     ///
     /// For example, you can create a timeout for 1 second
@@ -672,10 +794,10 @@ module Timer =
     ///>   after1s     >>=? ...
     ///> ]
     ///
-    /// Timeouts, like other alternatives, can also directly be used a job level
-    /// operations.  For example, using the above definition of `after1s`
+    /// Timeouts, like other alternatives, can also directly be used as job
+    /// level operations.  For example, using the above definition of `after1s`
     ///
-    ///> after1s >>= fun x -> ...
+    ///> after1s >>= fun () -> ...
     ///
     /// has the same effect as invoking `sleep` with a time span of 1 second.
 #endif
@@ -690,8 +812,16 @@ module Timer =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a synchronous channel.  Channels support simple rendezvous
-/// between concurrent jobs.
+/// Represents a synchronous channel.
+///
+/// Channels provide a simple rendezvous mechanism for concurrent jobs and are
+/// designed to be used as the building blocks of selective synchronous
+/// abstractions.
+///
+/// Channels are lightweight objects and it is common to allocate fresh channels
+/// for short-term, possibly even one-shot, communications.  When simple
+/// rendezvous is not needed in a one-shot communication, a write once variable,
+/// `IVar`, may offer slightly better performance.
 ///
 /// Channels are optimized for synchronous message passing, which can often be
 /// done without buffering.  Channels also provide an asynchronous `Ch.send`
@@ -712,9 +842,10 @@ module Ch =
 
   /// Operations bound to the global scheduler.
   module Global =
-    /// Sends the given value to the specified channel.  Note that using this
-    /// function in a job workflow is not generally optimal and you should use
-    /// `Ch.send` instead.
+    /// Sends the given value to the specified channel.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Ch.send` instead.
     val send: Ch<'x> -> 'x -> unit
 
   /// Creates a job that creates a new channel.
@@ -727,10 +858,12 @@ module Ch =
 
   /// Creates a job that sends a value to another job on the given channel.  A
   /// send operation is asynchronous.  In other words, a send operation does not
-  /// wait for another job to give the value to.  Note that channels have been
-  /// optimized for synchronous operations; an occasional send can be efficient,
-  /// but when sends are queued, performance maybe be significantly worse than
-  /// with a `Mailbox` optimized for buffering.
+  /// wait for another job to give the value to.
+  ///
+  /// Note that channels have been optimized for synchronous operations; an
+  /// occasional send can be efficient, but when sends are queued, performance
+  /// maybe be significantly worse than with a `Mailbox` optimized for
+  /// buffering.
   val inline send: Ch<'x> -> 'x -> Job<unit>
 
   /// Creates a job that offers to take a value from another job on the given
@@ -753,10 +886,25 @@ module Ch =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a synchronized write once variable.  Write once variables are
-/// most commonly used for getting replies from concurrent servers, but can also
-/// be useful for other purposes such as for one-shot events and for
-/// implementing incremental, but immutable, concurrent data structures.
+/// Represents a write once variable.
+///
+/// Write once variables are designed for and most commonly used for getting
+/// replies from concurrent servers and asynchronous operations, but can also be
+/// useful for other purposes such as for one-shot events and for implementing
+/// incremental, but immutable, concurrent data structures.
+///
+/// Because it is common to need to be able to communicate either an expected
+/// successful result or an exceptional failure in typical use cases of write
+/// once variables, direct mechanisms are provided for both.  The implementation
+/// is optimized in such a way that the ability to report an exceptional failure
+/// does not add overhead to the expected successful usage scenarios.
+///
+/// Write once variables are lightweight objects and it is typical to always
+/// just create a new write once variable when one is needed.  In most cases, a
+/// write once variable will be slightly more lightweight than a channel.  This
+/// is possible because write once variables do not support simple rendezvous
+/// like channels do.  When simple rendezvous is necessary, a channel should be
+/// used instead.
 ///
 /// Note that `IVar` is a subtype of `Alt` and `xI :> Alt<'x>` is equivalent to
 /// `IVar.Alt.read xI`.
@@ -799,49 +947,66 @@ module IVar =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a synchronized variable.
+/// Represents a serialized variable.
+///
+/// Serialized variables, or variables for short, can be used in situations
+/// where multiple concurrent jobs need serialized access to shared state.
+///
+/// A serialized variable can be either empty or full.  When an attempt is made
+/// to take the value of an empty variable, the job is suspended until some
+/// other job fills the variable with a value.  Serialized variables are
+/// designed to be used in such a way that the variable acts as a mechanism for
+/// passing a permission token, the value contained by the variable, from one
+/// concurrent job to another.  Only the concurrent job that holds the token is
+/// allowed to fill the variable.  When used in this way, operations on the
+/// variable appear as atomic and access to the state will be serialized.
 ///
 /// Note that `MVar` is a subtype of `Alt` and `xM :> Alt<'x>` is equivalent to
 /// `MVar.Alt.take xM`.
+///
+/// Note that if you are familiar with the MVar abstraction provided by
+/// Concurrent Haskell, then it is important to realize that the semantics and
+/// intended usage of Hopac's and Concurrent ML's `MVar` are quite different.
 type MVar<'x> :> Alt<'x>
 #endif
 
-/// Operations on write many variables.
+/// Operations on serialized variables.
 module MVar =
-  /// Immediate or non-workflow operations on write many variables.
+  /// Immediate or non-workflow operations on serialized variables.
   module Now =
-    /// Creates a new synchronous variable that is initially empty.
+    /// Creates a new serialized variable that is initially empty.
     val inline create: unit -> MVar<'x>
 
-    /// Creates a new synchronous variable that initially contains the given
+    /// Creates a new serialized variable that initially contains the given
     /// value.
     val inline createFull: 'x -> MVar<'x>
 
-  /// Creates a job that creates a new synchronous variable that is initially
+  /// Creates a job that creates a new serialized variable that is initially
   /// empty.
   val create: unit -> Job<MVar<'x>>
 
-  /// Creates a job that creates a new synchronous variable that initially
+  /// Creates a job that creates a new serialized variable that initially
   /// contains the given value.
   val createFull: 'x -> Job<MVar<'x>>
 
-  /// Creates a job that writes the given value to the synchronous variable.  It
+  /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that waits until the synchronous variable contains a value
-  /// and then takes the value contained by the synchronous variable leaving the
-  /// variable empty.
+  /// Creates a job that waits until the serialized variable contains a value
+  /// and then takes the value contained by the variable leaving the variable
+  /// empty.
   val inline take: MVar<'x> -> Job<'x>
 
-  /// Creates a job that takes the value of the variable and then fills the
-  /// variable with the result of performing the given function.  Note that this
-  /// operation is not atomic.  However, it is a common programming pattern to
-  /// make it so that only the job that has emptied an `MVar` by taking a value
-  /// from it is allowed to fill the `MVar`.  Such an access pattern makes
-  /// operations on the `MVar` appear as atomic.
+  /// Creates a job that takes the value of the serialized variable and then
+  /// fills the variable with the result of performing the given function.
+  ///
+  /// Note that this operation is not atomic as such.  However, it is a common
+  /// programming pattern to make it so that only the job that has emptied an
+  /// `MVar` by taking a value from it is allowed to fill the `MVar`.  Such an
+  /// access pattern makes operations on the `MVar` appear as atomic.
 #if DOC
   ///
   /// Reference implementation:
@@ -851,12 +1016,13 @@ module MVar =
 #endif
   val inline modifyFun: ('x -> 'x * 'y) -> MVar<'x> -> Job<'y>
 
-  /// Creates a job that takes the value of the variable and then fills the
-  /// variable with the result of performing the given job.  Note that this
-  /// operation is not atomic.  However, it is a common programming pattern to
-  /// make it so that only the job that has emptied an `MVar` by taking a value
-  /// from it is allowed to fill the `MVar`.  Such an access pattern makes
-  /// operations on the `MVar` appear as atomic.
+  /// Creates a job that takes the value of the serialized variable and then
+  /// fills the variable with the result of performing the given job.
+  ///
+  /// Note that this operation is not atomic as such.  However, it is a common
+  /// programming pattern to make it so that only the job that has emptied an
+  /// `MVar` by taking a value from it is allowed to fill the `MVar`.  Such an
+  /// access pattern makes operations on the `MVar` appear as atomic.
 #if DOC
   ///
   /// Reference implementation:
@@ -866,7 +1032,7 @@ module MVar =
 #endif
   val inline modifyJob: ('x -> Job<'x * 'y>) -> MVar<'x> -> Job<'y>
 
-  /// Selective operations on write many variables.
+  /// Selective operations on serialized variables.
   module Alt =
     /// Creates an alternative that becomes available for picking when the
     /// variable contains a value and, if committed to, takes the value from the
@@ -889,9 +1055,10 @@ module Mailbox =
 
   /// Operations bound to the global scheduler.
   module Global =
-    /// Sends the given value to the specified mailbox.  Note that using this
-    /// function in a job workflow is not generally optimal and you should use
-    /// `Mailbox.send` instead.
+    /// Sends the given value to the specified mailbox.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Mailbox.send` instead.
     val send: Mailbox<'x> -> 'x -> unit
 
   /// Creates a job that creates a new mailbox.
@@ -916,8 +1083,13 @@ module Mailbox =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a lazy promise or eager future depending on construction.  Use a
-/// promise when you want to start a concurrent job to compute some result.
+/// Represents a lazy promise or eager future depending on construction.
+///
+/// Promises are used when a parallel job is started for the purpose of
+/// computing a result.  When multiple parallel jobs need to be started to
+/// compute results in parallel in regular patterns, combinators such as `<*>`,
+/// `Job.conCollect` and `Seq.Con.mapJob` may be easier to use and provide
+/// improved performance.
 type Promise<'x> :> Alt<'x>
 #endif
 
@@ -950,52 +1122,51 @@ module Promise =
   val delay: Job<'x> -> Job<Promise<'x>>
 
   /// Creates a job that waits for the promise to be computed and then returns
-  /// its value (or fails with exception).  If the job of promise was delayed,
-  /// it is first started as a separate job.
+  /// its value (or fails with exception).  If the promise was delayed, it is
+  /// started as a separate job.
   val inline read: Promise<'x> -> Job<'x>
 
   /// Selective operations on promises.
   module Alt =
-    /// Creates an alternative for reading the promise.  If the job of the
-    /// promise was delayed, it is started as a separate job.
+    /// Creates an alternative for reading the promise.  If the promise was
+    /// delayed, it is started as a separate job.
     val inline read: Promise<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// A non-recursive mutual exclusion lock for jobs.  Note that this lock is for
-/// synchronizing at the level of jobs that might even block while holding the
-/// lock.  In most cases you should rather use higher-level message passing
-/// primitives such as `Ch`, `Mailbox`, `MVar` or `IVar`, but in some cases a
-/// simple lock might be more natural to use.  For short non-blocking critical
+/// A non-recursive mutual exclusion lock for jobs.
+///
+/// In most cases you should use higher-level message passing primitives such as
+/// `Ch`, `Mailbox`, `MVar` or `IVar`, but in some cases a simple lock might be
+/// more natural to use.
+///
+/// Note that this lock is for synchronizing at the level of jobs.  A job may
+/// even block while holding the lock.  For short non-blocking critical
 /// sections, native locks (e.g. `Monitor` and `SpinLock`), concurrent data
-/// structures or interlocked operations should be faster.
+/// structures or interlocked operations should be faster.  On the other hand,
+/// suspending and resuming a job is serveral orders of magnitude faster than
+/// suspending and resuming a native thread.
 type Lock
 #endif
 
 /// Operations on mutual exclusion locks.
 module Lock =
-  /// Creates a job that creates a new mutual exclusion lock.
-  val create: unit -> Job<Lock>
-
-  /// Creates a job that calls the given function so that the lock is held
-  /// during the execution of the function.  This locking method is optimized
-  /// for short duration locking so that other jobs contending for the lock will
-  /// keep spinning during the execution of the function.
-  val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
-
-  /// Creates a job that runs the given job so that the lock is held during the
-  /// execution of the given job.  This locking method is optimized for longer
-  /// duration locking so that other jobs contending for the lock will be
-  /// blocked to a queue during the execution of the function.  Note that
-  /// blocking and resuming a job is much faster than blocking and resuming a
-  /// native thread.
-  val inline duringJob: Lock -> Job<'x> -> Job<'x>
-
   /// Immediate or non-workflow operations on locks.
   module Now =
     /// Creates a new lock.
     val inline create: unit -> Lock
+
+  /// Creates a job that creates a new mutual exclusion lock.
+  val create: unit -> Job<Lock>
+
+  /// Creates a job that calls the given function so that the lock is held
+  /// during the execution of the function.
+  val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
+
+  /// Creates a job that runs the given job so that the lock is held during the
+  /// execution of the given job.
+  val inline duringJob: Lock -> Job<'x> -> Job<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1062,7 +1233,7 @@ module Extensions =
 #endif
     val foldJob: ('x -> 'y -> Job<'x>) -> 'x -> seq<'y> -> Job<'x>
 
-    /// Operations for processing sequences using concurrent Hopac jobs.
+    /// Operations for processing sequences using concurrent jobs.
     module Con =
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
@@ -1173,10 +1344,11 @@ module Scheduler =
 
   /// Starts running the given job, but does not wait for the job to finish.
   /// Upon the failure or success of the job, one of the given actions is called
-  /// once.  Note that if the job aborts or blocks indefinitely, neither action
-  /// will be called.  Note that using this function in a job workflow is not
-  /// optimal and you should instead use `Job.start` with desired Job exception
-  /// handling construct (e.g. `Job.tryIn` or `Job.catch`).
+  /// once.  See also: `abort`.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should instead use `Job.start` with desired Job exception handling
+  /// construct (e.g. `Job.tryIn` or `Job.catch`).
   val startWithActions: Scheduler
                      -> (exn -> unit)
                      -> ('x -> unit)
@@ -1188,10 +1360,13 @@ module Scheduler =
   val start: Scheduler -> Job<_> -> unit
 
   /// Like `Scheduler.start`, but the given job is known never to return
-  /// normally, so the job can be spawned in a sligthly lighter-weight manner.
+  /// normally, so the job can be spawned in an even more lightweight manner.
   val server: Scheduler -> Job<Void> -> unit
 
   /// Waits until the scheduler becomes completely idle.
+  ///
+  /// Note that for this to make sense, the scheduler should be a local
+  /// scheduler that your program manages explicitly.
   val wait: Scheduler -> unit
 
   /// Kills the worker threads of the scheduler one-by-one.  This should only be
@@ -1217,11 +1392,13 @@ module Infixes =
 
   /// Creates a job that sends a value to another job on the given channel.  A
   /// send operation is asynchronous.  In other words, a send operation does not
-  /// wait for another job to give the value to.  Note that channels have been
-  /// optimized for synchronous operations; an occasional send can be efficient,
-  /// but when sends are queued, performance maybe be significantly worse than
-  /// with a `Mailbox` optimized for buffering.  `xCh <-+ x` is equivalent to
+  /// wait for another job to give the value to.  `xCh <-+ x` is equivalent to
   /// `Ch.send xCh x`.
+  ///
+  /// Note that channels have been optimized for synchronous operations; an
+  /// occasional send can be efficient, but when sends are queued, performance
+  /// maybe be significantly worse than with a `Mailbox` optimized for
+  /// buffering.
   val inline (<-+): Ch<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes to the given write once variable.  It is an
@@ -1237,7 +1414,7 @@ module Infixes =
   /// `IVar.fillFailure xI e`.
   val inline (<-=!): IVar<'x> -> exn -> Job<unit>
 
-  /// Creates a job that writes the given value to the synchronous variable.  It
+  /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.  `xM <<-= x` is equivalent to `MVar.fill xM x`.

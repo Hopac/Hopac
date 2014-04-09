@@ -21,7 +21,7 @@ therefore expected that these parallel benchmarks actually run an order of
 magnitude slower than similar sequential benchmarks would.
 
 You should also understand that many of these specific toy benchmarks could
-fairly easily be programmed using native .NET threads, locks, and interlocked
+fairly easily be programmed using native .Net threads, locks, and interlocked
 primitives.  Simple logic tells that it is impossible to write a pure .Net
 framework under which a benchmark implementation would run faster than a
 specialized benchmark implemention written in pure .Net would.  For example, if
@@ -36,7 +36,7 @@ Benchmarking Pitfalls
 ---------------------
 
 If you are interested in writing benchmarks of your own to test the performance
-of Hopac it is important to be aware a number of pitfalls.
+of Hopac it is important to be aware of a number of pitfalls.
 
 The first pitfall when trying to benchmark parallel code with .Net is that, by
 default, .Net uses single-threaded workstation garbage collection.  Parallel
