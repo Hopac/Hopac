@@ -217,6 +217,22 @@ module Job =
   /// the job can be spawned in an even more lightweight manner.
   val server: Job<Void> -> Job<unit>
 
+  /// `Job.startWithFinalizer finalizerJ xJ` is like `Job.start xJ`, but
+  /// attaches a finalizer to the started job.  The finalizer job is started as
+  /// a separate job in case the started job does not return succesfully or
+  /// raise an exception and is garbage collected.  The result, if any, of the
+  /// concurrent job is ignored, but if the job either returns normally or
+  /// raises an exception, the finalizer job is not started.
+  ///
+  /// When a job in Hopac is aborted (see `abort`) or is, for example, blocked
+  /// waiting for communication on a channel that is no longer reachable, the
+  /// job can be garbage collected.  Most concurrent jobs should not need a
+  /// finalizer and can be garbage collected safely in case they are blocked
+  /// indefinitely or aborted.  However, in some cases it may be useful to be
+  /// able to detect, for debugging reasons, or handle, for fault tolerance, a
+  /// case where a job is garbage collected.
+  val startWithFinalizer: Job<unit> -> Job<_> -> Job<unit>
+
   /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that calls the given function to build a job that will then
@@ -254,7 +270,8 @@ module Job =
   /// Creates a job with the given result.
   val result: 'x -> Job<'x>
 
-  /// Creates a job that immediately terminates the current job.
+  /// Creates a job that immediately terminates the current job.  See also:
+  /// `startWithFinalizer`.
   ///
   /// Note that when a job aborts, it considered to be equivalent to having the
   /// job block indefinitely.  This means that the job neither returns

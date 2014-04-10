@@ -93,6 +93,10 @@ module Util =
      xK.Value <- x
      yJ.DoJob (&wr, DropCont xK)
 
+  type [<AbstractClass>] WorkHandler () =
+    inherit Work ()
+    override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+
   type Handler<'x> () =
     inherit Cont<'x> ()
     override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
@@ -539,8 +543,7 @@ module Job =
     Internal.mkFor (fun i i1 -> i1 <= i) (fun i -> i - 1) i0 i1 i2xJ
 
   type ForeverCont<'x> (xJ: Job<'x>) =
-    inherit Cont<'x> ()
-    override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+    inherit Handler<'x> ()
     override xK'.DoWork (wr) = xJ.DoJob (&wr, xK')
     override xK'.DoCont (wr, _) = xJ.DoJob (&wr, xK')
 
@@ -551,8 +554,7 @@ module Job =
         Handler.DoHandle (yK, &wr, e)}.DoWork (&wr)}
 
   type IterateCont<'x> (x2xJ: 'x -> Job<'x>) =
-    inherit Cont<'x> ()
-    override xK'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+    inherit Handler<'x> ()
     override xK'.DoWork (wr) = (x2xJ xK'.Value).DoJob (&wr, xK')
     override xK'.DoCont (wr, x) = (x2xJ x).DoJob (&wr, xK')
 
@@ -772,17 +774,34 @@ module Job =
   let start (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
-       Worker.PushNew (&wr, {new Work () with
-        override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+       Worker.PushNew (&wr, {new WorkHandler () with
         override w'.DoWork (wr) = xJ.DoJob (&wr, Handler<'x> ())})
        Work.Do (uK, &wr)}
 
   let server (vJ: Job<Void>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
-       Worker.PushNew (&wr, {new Work () with
-        override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+       Worker.PushNew (&wr, {new WorkHandler () with
         override w'.DoWork (wr) = vJ.DoJob (&wr, null)})
+       Work.Do (uK, &wr)}
+
+  type Finalizer<'x> (sr: Scheduler, uJ: Job<unit>) =
+    inherit Cont<'x> ()
+    override xK'.Finalize () = Scheduler.start sr uJ
+    override xK'.DoHandle (wr, e) =
+     GC.SuppressFinalize xK'
+     Handler.DoHandle (null, &wr, e)
+    override xK'.DoWork (_) = GC.SuppressFinalize xK'
+    override xK'.DoCont (_, _) = GC.SuppressFinalize xK'
+
+  let startWithFinalizer (uJ: Job<unit>) (xJ: Job<'x>) =
+    {new Job<unit> () with
+      override uJ'.DoJob (wr, uK) =
+       Worker.PushNew (&wr, {new WorkHandler () with
+        override w'.DoWork (wr) =
+         let fr = Finalizer<'x> (wr.Scheduler, uJ)
+         wr.Handler <- fr
+         xJ.DoJob (&wr, fr)})
        Work.Do (uK, &wr)}
 
   ///////////////////////////////////////////////////////////////////////
