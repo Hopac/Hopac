@@ -2,12 +2,12 @@
 
 /// Hopac is a library for F# with the aim of making it easier to write
 /// efficient parallel, asynchronous and concurrent programs.  The design of
-/// Hopac draws inspiration from Concurrent ML.  Similar to Concurrent ML, Hopac
-/// provides message passing primitives and supports the construction of
-/// first-class synchronous abstractions.  Parallel jobs (lightweight threads)
-/// in Hopac are created using techniques similar to the F# Async framework.
-/// Hopac runs parallel jobs using a work distributing scheduler in a
-/// non-preemptive fashion.
+/// Hopac draws inspiration from languages such as Concurrent ML and Cilk.
+/// Similar to Concurrent ML, Hopac provides message passing primitives and
+/// supports the construction of first-class synchronous abstractions.  Parallel
+/// jobs (lightweight threads) in Hopac are created using techniques similar to
+/// the F# Async framework.  Hopac runs parallel jobs using a work distributing
+/// scheduler in a non-preemptive fashion.
 ///
 /// Before you begin using Hopac, make sure that you have configured your F#
 /// interactive and your application to use server garbage collection.  By
@@ -134,7 +134,9 @@ module TopLevel =
   ///
   /// Note that using this function in a job workflow is not optimal and should
   /// never be needed, because within a workflow the result of a job can be
-  /// obtained by binding.  This is the same function as `Job.Global.run`.
+  /// obtained by binding.
+  ///
+  /// This is the same function as `Job.Global.run`.
   val inline run: Job<'x> -> 'x
 
   /// Use object as alternative.  This function is a NOP and is provided as a
@@ -170,7 +172,8 @@ module TopLevel =
 /// executed on some `Scheduler` such as the global scheduler accessible via the
 /// `Job.Global` module.
 ///
-/// For example, here is a definition of a job that computes Fibonacci numbers:
+/// For example, here is a function that creates of a job that computes
+/// Fibonacci numbers:
 ///
 ///> let rec fib n = job {
 ///>   if n < 2L then
@@ -180,10 +183,13 @@ module TopLevel =
 ///>     return x+y
 ///> }
 ///
-/// And it can be run using the global scheduler:
+/// It can be run, for example, by using the global scheduler:
 ///
 ///> > run (fib 30L) ;;
 ///> val it : int = 832040L
+///
+/// If you ran the above above examples, you just did the equivalent of running
+/// roughly your first million parallel jobs using Hopac.
 type Job<'x>
 #endif
 
@@ -199,7 +205,7 @@ module Job =
     /// the given actions is called once.  See also: `abort`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
-    /// should instead use `Job.start` with desired Job exception handling
+    /// should instead use `Job.start` with the desired exception handling
     /// construct (e.g. `Job.tryIn` or `Job.catch`).
     val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
@@ -293,9 +299,14 @@ module Job =
   /// Creates a job that immediately terminates the current job.  See also:
   /// `startWithFinalizer`.
   ///
-  /// Note that when a job aborts, it considered to be equivalent to having the
-  /// job block indefinitely.  This means that the job neither returns
-  /// succesfully nor fails with an exception.
+  /// Note that when a job aborts, it is considered to be equivalent to having
+  /// the job block indefinitely.  This means that the job neither returns
+  /// succesfully nor fails with an exception.  While this may sound like
+  /// something that you should worry about, it is, in fact, frequently just
+  /// what you want.  That is, rather than worry about carefully terminating
+  /// each and every concurrent job, it is preferable to just let them be
+  /// garbage collected.  Only jobs that explicitly hold onto some important
+  /// resource need to be carefully managed.
   ///
   /// Note that in order to execute clean-up operations implemented with `using`
   /// or `tryFinallyFun` or `tryFinallyJob` the job must either return normally
@@ -364,6 +375,10 @@ module Job =
   /// Implements the try-in-unless exception handling construct for jobs.  Both
   /// of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
   /// Job<'y>`, for failure, are invoked from a tail position.
+  ///
+  /// Note that the workflow notation of F# does not support this operation.  It
+  /// only supports the `Job.tryWith` operation.  `Job.tryIn` makes it easier to
+  /// write exception handling code that has the desired tail-call properties.
   val tryIn: Job<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
@@ -390,7 +405,8 @@ module Job =
   /// jobs.  The given action, specified as a job, is executed after the the job
   /// has been run, whether it fails or completes successfully.
   ///
-  /// Note that workflow notation of F# does not support this operation.
+  /// Note that the workflow notation of F# does not support this operation.  It
+  /// only supports the weaker `tryFinallyFun` operation.
 #if DOC
   ///
   /// Reference implementation:
@@ -671,7 +687,7 @@ module Alt =
   /// `guard` allows client-server protocols that do not require the server to
   /// be notified when the client aborts the transaction to be encapsulated as
   /// selective operations.  For example, the given job may create and send a
-  /// message to a server and then return an alternative that waits for the
+  /// request to a server and then return an alternative that waits for the
   /// server's reply.
 #if DOC
   ///
@@ -704,6 +720,14 @@ module Alt =
   /// selective operations.  The negative acknowledgment alternative will be
   /// available for picking in case some other instantiated alternative involved
   /// in the choice is committed to instead.
+  ///
+  /// Like `guard`, `withNack` is typically used to encapsulate the client side
+  /// operation of a concurrent protocol.  The client side operation typically
+  /// constructs a request, containing the negative acknowledgment alternative,
+  /// sends it to a server and then returns an alternative that waits for a
+  /// rendezvous with the server.  In case the client later commits to some
+  /// other alternative, the negative acknowledgment token becomes pickable and
+  /// the server can also abort the operation.
   ///
   /// Note that if an alternative created with `withNack` is not instantiated,
   /// then no negative acknowledgment is created.  For example, given an
