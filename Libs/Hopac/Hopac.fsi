@@ -844,15 +844,15 @@ module Timer =
     /// you need a timeout with a specific time span.
 #if DOC
     ///
-    /// For example, you can create a timeout for 1 second
+    /// For example, you can create a timeout for one second
     ///
     ///> let after1s = timeOut (TimeSpan.FromSeconds 1.0)
     ///
     /// and then use that timeout many times
     ///
     ///> select [
-    ///>   makeRequest >>=? ...
-    ///>   after1s     >>=? ...
+    ///>   makeRequest >>=? fun rp -> ...
+    ///>   after1s     >>=? fun () -> ...
     ///> ]
     ///
     /// Timeouts, like other alternatives, can also directly be used as job
@@ -860,7 +860,7 @@ module Timer =
     ///
     ///> after1s >>= fun () -> ...
     ///
-    /// has the same effect as invoking `sleep` with a time span of 1 second.
+    /// has the same effect as invoking `sleep` with a time span of one second.
 #endif
     val timeOut: TimeSpan -> Alt<unit>
 
@@ -1206,7 +1206,7 @@ module Promise =
 /// even block while holding the lock.  For short non-blocking critical
 /// sections, native locks (e.g. `Monitor` and `SpinLock`), concurrent data
 /// structures or interlocked operations should be faster.  On the other hand,
-/// suspending and resuming a job is serveral orders of magnitude faster than
+/// suspending and resuming a job is several orders of magnitude faster than
 /// suspending and resuming a native thread.
 type Lock
 #endif
@@ -1399,8 +1399,10 @@ module Scheduler =
     /// Default options.
     static member Def: Create
 
-  /// Creates a new local scheduler.  Note that a local scheduler does not
-  /// automatically implement services such as the global wall-clock timer.
+  /// Creates a new local scheduler.
+  ///
+  /// Note that a local scheduler does not automatically implement services such
+  /// as the global wall-clock timer.
   val create: Create -> Scheduler
 
   /// Starts running the given job, but does not wait for the job to finish.
@@ -1416,8 +1418,10 @@ module Scheduler =
                      -> Job<'x> -> unit
 
   /// Starts running the given job, but does not wait for the job to finish.
-  /// The result, if any, of the job is ignored.  Note that using this function
-  /// in a job workflow is not optimal and you should use `Job.start` instead.
+  /// The result, if any, of the job is ignored.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.start` instead.
   val start: Scheduler -> Job<_> -> unit
 
   /// Like `Scheduler.start`, but the given job is known never to return

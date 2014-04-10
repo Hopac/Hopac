@@ -605,13 +605,13 @@ font-weight: bold;
 </pre>
 <div class="nested"><p> Operations on the global wall-clock timer.  The global timer is implicitly associated with the global scheduler.<pre><b>val</b> <a id="def:val Hopac.Timer.Global.timeOut" href="#dec:val Hopac.Timer.Global.timeOut">timeOut</a><b>:</b> TimeSpan <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates an alternative that, after instantiation, becomes pickable after the specified time span.</p><p> Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is very coarse (Windows system ticks).</p><p> Note that you do not need to create a new timeout alternative every time you need a timeout with a specific time span.</p><p> For example, you can create a timeout for 1 second</p><pre><b>let</b> after1s <b>=</b> <a href="#def:val Hopac.Timer.Global.timeOut">timeOut</a> (TimeSpan<b>.</b>FromSeconds 1.0)
+<div class="nested"><p> Creates an alternative that, after instantiation, becomes pickable after the specified time span.</p><p> Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is very coarse (Windows system ticks).</p><p> Note that you do not need to create a new timeout alternative every time you need a timeout with a specific time span.</p><p> For example, you can create a timeout for one second</p><pre><b>let</b> after1s <b>=</b> <a href="#def:val Hopac.Timer.Global.timeOut">timeOut</a> (TimeSpan<b>.</b>FromSeconds 1.0)
 </pre><p> and then use that timeout many times</p><pre><a href="#def:val Hopac.Alt.select">select</a> [
-  makeRequest <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>...</b>
-  after1s     <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>...</b>
+  makeRequest <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>fun</b> rp <b>-&gt;</b> <b>...</b>
+  after1s     <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>fun</b> () <b>-&gt;</b> <b>...</b>
 ]
 </pre><p> Timeouts, like other alternatives, can also directly be used as job level operations.  For example, using the above definition of <code>after1s</code></p><pre>after1s <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> () <b>-&gt;</b> <b>...</b>
-</pre><p> has the same effect as invoking <code><a href="#def:val Hopac.Timer.Global.sleep">sleep</a></code> with a time span of 1 second.</div>
+</pre><p> has the same effect as invoking <code><a href="#def:val Hopac.Timer.Global.sleep">sleep</a></code> with a time span of one second.</div>
 <pre><b>val</b> <a id="def:val Hopac.Timer.Global.sleep" href="#dec:val Hopac.Timer.Global.sleep">sleep</a><b>:</b> TimeSpan <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that sleeps for (about) the specified time.  Note that this is simply not intended for high precision timing and the resolution of the underlying timing mechanism is coarse (Windows system ticks). See also: <code><a href="#def:val Hopac.Timer.Global.timeOut">timeOut</a></code>.</div>
@@ -797,7 +797,7 @@ font-weight: bold;
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Lock" href="#dec:type Hopac.Lock">Lock</a>
 </pre>
-<div class="nested"><p> A non-recursive mutual exclusion lock for jobs.</p><p> In most cases you should use higher-level message passing primitives such as <code><a href="#def:type Hopac.Ch">Ch</a></code>, <code><a href="#def:type Hopac.Mailbox">Mailbox</a></code>, <code><a href="#def:type Hopac.MVar">MVar</a></code> or <code><a href="#def:type Hopac.IVar">IVar</a></code>, but in some cases a simple lock might be more natural to use.</p><p> Note that this lock is for synchronizing at the level of jobs.  A job may even block while holding the lock.  For short non-blocking critical sections, native locks (e.g. <code>Monitor</code> and <code>SpinLock</code>), concurrent data structures or interlocked operations should be faster.  On the other hand, suspending and resuming a job is serveral orders of magnitude faster than suspending and resuming a native thread.</div>
+<div class="nested"><p> A non-recursive mutual exclusion lock for jobs.</p><p> In most cases you should use higher-level message passing primitives such as <code><a href="#def:type Hopac.Ch">Ch</a></code>, <code><a href="#def:type Hopac.Mailbox">Mailbox</a></code>, <code><a href="#def:type Hopac.MVar">MVar</a></code> or <code><a href="#def:type Hopac.IVar">IVar</a></code>, but in some cases a simple lock might be more natural to use.</p><p> Note that this lock is for synchronizing at the level of jobs.  A job may even block while holding the lock.  For short non-blocking critical sections, native locks (e.g. <code>Monitor</code> and <code>SpinLock</code>), concurrent data structures or interlocked operations should be faster.  On the other hand, suspending and resuming a job is several orders of magnitude faster than suspending and resuming a native thread.</div>
 <pre><b>module</b> <a id="def:module Hopac.Lock" href="#dec:module Hopac.Lock">Lock</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on mutual exclusion locks.<pre><b>module</b> <a id="def:module Hopac.Lock.Now" href="#dec:module Hopac.Lock.Now">Now</a> <b>=</b>
@@ -921,7 +921,7 @@ font-weight: bold;
 </div>
 <pre><b>val</b> <a id="def:val Hopac.Scheduler.create" href="#dec:val Hopac.Scheduler.create">create</a><b>:</b> <a href="#def:type Hopac.Scheduler.Create">Create</a> <b>-&gt;</b> <a href="#def:type Hopac.Scheduler">Scheduler</a>
 </pre>
-<div class="nested"><p> Creates a new local scheduler.  Note that a local scheduler does not automatically implement services such as the global wall-clock timer.</div>
+<div class="nested"><p> Creates a new local scheduler.</p><p> Note that a local scheduler does not automatically implement services such as the global wall-clock timer.</div>
 <pre><b>val</b> <a id="def:val Hopac.Scheduler.startWithActions" href="#dec:val Hopac.Scheduler.startWithActions">startWithActions</a><b>:</b> <a href="#def:type Hopac.Scheduler">Scheduler</a>
                    <b>-&gt;</b> (exn <b>-&gt;</b> unit)
                    <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> unit)
@@ -930,7 +930,7 @@ font-weight: bold;
 <div class="nested"><p> Starts running the given job, but does not wait for the job to finish. Upon the failure or success of the job, one of the given actions is called once.  See also: <code><a href="#def:val Hopac.Job.abort">abort</a></code>.</p><p> Note that using this function in a job workflow is not optimal and you should instead use <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.start">start</a></code> with desired Job exception handling construct (e.g. <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.tryIn">tryIn</a></code> or <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.catch">catch</a></code>).</div>
 <pre><b>val</b> <a id="def:val Hopac.Scheduler.start" href="#dec:val Hopac.Scheduler.start">start</a><b>:</b> <a href="#def:type Hopac.Scheduler">Scheduler</a> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> unit
 </pre>
-<div class="nested"><p> Starts running the given job, but does not wait for the job to finish. The result, if any, of the job is ignored.  Note that using this function in a job workflow is not optimal and you should use <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.start">start</a></code> instead.</div>
+<div class="nested"><p> Starts running the given job, but does not wait for the job to finish. The result, if any, of the job is ignored.</p><p> Note that using this function in a job workflow is not optimal and you should use <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.start">start</a></code> instead.</div>
 <pre><b>val</b> <a id="def:val Hopac.Scheduler.server" href="#dec:val Hopac.Scheduler.server">server</a><b>:</b> <a href="#def:type Hopac.Scheduler">Scheduler</a> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Void">Void</a><b>&gt;</b> <b>-&gt;</b> unit
 </pre>
 <div class="nested"><p> Like <code><a href="#def:module Hopac.Scheduler">Scheduler</a><b>.</b><a href="#def:val Hopac.Scheduler.start">start</a></code>, but the given job is known never to return normally, so the job can be spawned in an even more lightweight manner.</div>
