@@ -9,6 +9,11 @@
 /// Hopac runs parallel jobs using a work distributing scheduler in a
 /// non-preemptive fashion.
 ///
+/// Before you begin using Hopac, make sure that you have configured your F#
+/// interactive and your application to use server garbage collection.  By
+/// default, .Net uses single-threaded workstation garbage collection, which
+/// makes it impossible for parallel programs to scale.
+///
 /// The documentation of many of the primitives contains a reference
 /// implementation.  In most cases, actual implementations are optimized by
 /// taking advantage of internal implementation details and may be significantly
@@ -164,6 +169,21 @@ module TopLevel =
 /// via the `TopLevel.job` binding, or using monadic combinators and can then be
 /// executed on some `Scheduler` such as the global scheduler accessible via the
 /// `Job.Global` module.
+///
+/// For example, here is a definition of a job that computes Fibonacci numbers:
+///
+///> let rec fib n = job {
+///>   if n < 2L then
+///>     return n
+///>   else
+///>     let! (x, y) = fib (n-2L) <*> fib (n-1L)
+///>     return x+y
+///> }
+///
+/// And it can be run using the global scheduler:
+///
+///> > run (fib 30L) ;;
+///> val it : int = 832040L
 type Job<'x>
 #endif
 
