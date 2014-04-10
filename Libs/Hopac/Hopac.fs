@@ -107,6 +107,12 @@ module Util =
 
   let reallyGlobalScheduler () =
     lock typeof<Scheduler> <| fun () ->
+    if not System.Runtime.GCSettings.IsServerGC then
+      printf "WARNING: You are using single-threaded workstation garbage \
+       collection, which means that parallel programs cannot scale.  Please \
+       configure your program to use server garbage collection.  See \
+       http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
+       for details.\n"
     let sr = Scheduler (false,
                         null,
                         0,
