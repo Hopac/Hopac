@@ -6,7 +6,7 @@ parallel, asynchronous and concurrent programs.  The design of Hopac draws
 inspiration from languages such as [Concurrent ML](http://cml.cs.uchicago.edu/)
 and [Cilk](http://en.wikipedia.org/wiki/Cilk).  Similar to Concurrent ML, Hopac
 provides message passing primitives and supports the construction of first-class
-synchronous abstractions.  Parallel jobs (light-weight threads) in Hopac are
+synchronous abstractions.  Parallel jobs (lightweight threads) in Hopac are
 created using techniques similar to the F# Async framework.  Hopac runs parallel
 jobs using a work distributing scheduler in a non-preemptive fashion.
 
@@ -119,12 +119,16 @@ those existing layers.
 
 One of the most basic ways .Net enables PAC is via threads, synchronization
 primitives and concurrent data structures.  Perhaps the biggest problem with
-.Net threads is that .Net threads are heavy weight.  Every thread has its own
+.Net threads is that .Net threads are heavyweight.  Every thread has its own
 dedicated stack and other runtime structures taking up memory.  Spawning a new
-thread is expensive and thread switches are expensive.  Threads are such a
-scarce resource that arbitrary modules in a large program simply cannot spawn
-new threads whenever an opportunity for PAC exists.  This severely limits the
-modularity of programs written using just threads.
+thread is extremely expensive (show clearly by the
+[StartRing](Benchmarks/StartRing) benchmark) and thread switches are expensive
+(shown clearly by the [ThreadRing](Benchmarks/ThreadRing) benchmark).  Threads
+are such a scarce resource that arbitrary modules in a large program simply
+cannot spawn new threads whenever an opportunity for PAC exists (the
+[ThreadRing](Benchmarks/ThreadRing) benchmark doesn't run the .Net native thread
+version with highest ring-lengths, because doing so would crash the benchmark).
+This severely limits the modularity of programs written using just threads.
 
 Another problem is that writing correct, let alone modular and high performance,
 PAC programs using just basic locking primitives can be rather challenging as
@@ -137,6 +141,11 @@ To alleviate the costs of threads, .Net provides the `ThreadPool`.  Instead of
 spawning new threads, program modules can queue user work items to be processed
 using a small number of worker threads managed by the thread pool.  Queuing user
 work items is several orders of magnitude cheaper than spawning new threads.
+Nevertheless, starting new concurrent jobs in Hopac is still an order of
+magnitude faster than queuing user work items with the thread pool.  The
+consequence of this is that applications do not need to use work queues to take
+advantage of parallelism.  It is better to just start new parallel jobs than
+manage parallelism with application level work queues.
 
 One aspect of the thread pool that is not discussed often is that the thread
 pool tends to process work items in [FIFO](http://en.wikipedia.org/wiki/FIFO)
@@ -181,14 +190,17 @@ operation (comparable to a write-once ref cell).  Frankly, those are two
 separate responsibilities and combining them into one type is questionable
 design.  The F# async design recognizes this issue at the type level, while the
 C# async design does not, and as a result the C# async design suffers from
-"gotchas" as has been recognized.
+"gotchas" as has been recognized.  As an implementation detail, Hopac stores the
+result of an operation in the *continuation of the operation*, because this
+allows the continuation to be queued for processing without additional
+allocations.
 
 The thread pool, the task parallel library and the async frameworks were not
 initially designed as a coherent whole.  As a result, there seem to be some
 significant overheads when those systems are taken as a whole.  The Task class,
 for example, has significantly more fields than a Hopac job (or continuation)
-and, while tasks are very light-weight when compared to native threads, as a
-result, Hopac jobs are even more light-weight than async tasks.  In Hopac, jobs
+and, while tasks are very lightweight when compared to native threads, as a
+result, Hopac jobs are even more lightweight than async tasks.  In Hopac, jobs
 are rather intimately tied to the work distributing scheduler.  This allows
 operations such as suspending and resuming jobs to be done with an order of
 magnitude lower overhead than what tasks and async can do at the moment.
