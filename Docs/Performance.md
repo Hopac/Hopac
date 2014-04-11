@@ -47,9 +47,9 @@ Threads and Queues
 ------------------
 
 In many traditional runtime systems, including .Net, threads are very expensive.
-To take advantage of multiprocessors in such systems, a traditional approach in
-such systems is to explicitly manage a small number of worker threads that
-process items from queues.  This way the costs of threads are amortized.
+To take advantage of multiprocessors in such systems, a traditional approach is
+to explicitly manage a small number of worker threads that process items from
+queues.  This way the costs of threads are amortized.
 
 Many modern runtime system, including .Net, provide a
 [concurrent queue](http://msdn.microsoft.com/en-us/library/dd267265%28v=vs.110%29.aspx)
@@ -62,7 +62,7 @@ Interestingly, however, it has been proven that
 What this means is that the cost of operations on a queue, regardless of how it
 is implemented, goes up as the number of processors accessing the queue is
 increased.  Even a lock-free, wait-free concurrent queue must have some amount
-of memory that is both read and written by multiple processors and as discussed
+of memory that is both read and written by multiple processors and, as discussed
 above, accesses to such shared memory become expensive.  Of course, more
 relaxed, less sequential, concurrent data structures may scale better than
 queues.
@@ -99,5 +99,5 @@ queuing a user work item using ordinary user code.
 
 What this means is that programs using Hopac can just rather freely start new
 lightweight threads whenever reasonable opportunities for concurrency or
-parallelism arise like one would do with Cilk, for example.  Trying to manage
-your own work queues with Hopac will probably only hurt performance.
+parallelism arise like one would do with Cilk, for example.  **Trying to manage
+your own work queues with Hopac will probably only hurt performance.**
