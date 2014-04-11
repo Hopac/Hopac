@@ -172,8 +172,8 @@ module TopLevel =
 /// executed on some `Scheduler` such as the global scheduler accessible via the
 /// `Job.Global` module.
 ///
-/// For example, here is a function that creates of a job that computes
-/// Fibonacci numbers:
+/// For example, here is a function that creates a job that computes Fibonacci
+/// numbers:
 ///
 ///> let rec fib n = job {
 ///>   if n < 2L then
