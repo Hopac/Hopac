@@ -22,7 +22,8 @@ module Native =
       else
         let childCh = new AutoResetEvent (false)
         let child = Thread (ThreadStart (fun () ->
-                              proc (n-1) childCh toCh))
+                              proc (n-1) childCh toCh),
+                            512)
         child.Start ()
         childCh.Set () |> ignore
       selfCh.WaitOne () |> ignore
