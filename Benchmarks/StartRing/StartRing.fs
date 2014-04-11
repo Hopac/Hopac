@@ -32,11 +32,11 @@ module Native =
     printf "%9.0f ops/s - %fs\n"
      (float n / d.TotalSeconds) d.TotalSeconds
 
-module ThrPoo =
+module ThPool =
   open System.Threading
 
   let run n =
-    printf "ThrPoo: "
+    printf "ThPool: "
     let timer = Stopwatch.StartNew ()
     let selfCh = new AutoResetEvent (false)
     let rec proc n (selfCh: AutoResetEvent) (toCh: AutoResetEvent) =
@@ -46,6 +46,29 @@ module ThrPoo =
         let childCh = new AutoResetEvent (false)
         ThreadPool.QueueUserWorkItem (WaitCallback (fun _ ->
           proc (n-1) childCh toCh)) |> ignore
+        childCh.Set () |> ignore
+      selfCh.WaitOne () |> ignore
+      selfCh.Dispose ()
+    proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
+module Tasks =
+  open System.Threading
+  open System.Threading.Tasks
+
+  let run n =
+    printf "Tasks:  "
+    let timer = Stopwatch.StartNew ()
+    let selfCh = new AutoResetEvent (false)
+    let rec proc n (selfCh: AutoResetEvent) (toCh: AutoResetEvent) =
+      if n = 0 then
+        toCh.Set () |> ignore
+      else
+        let childCh = new AutoResetEvent (false)
+        Task.Factory.StartNew (fun _ ->
+          proc (n-1) childCh toCh) |> ignore
         childCh.Set () |> ignore
       selfCh.WaitOne () |> ignore
       selfCh.Dispose ()
@@ -107,7 +130,11 @@ do for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
      cleanup ()
 
 do for n in [10; 100; 1000; 10000; 100000; 1000000] do
-     ThrPoo.run n
+     ThPool.run n
+     cleanup ()
+
+do for n in [10; 100; 1000; 10000; 100000; 1000000] do
+     Tasks.run n
      cleanup ()
 
 do for n in [10; 100; 1000; 10000; 100000; 1000000] do
