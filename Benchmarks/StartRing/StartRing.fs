@@ -9,6 +9,51 @@ open Hopac.Job.Infixes
 open System
 open System.Diagnostics
 
+module Native =
+  open System.Threading
+
+  let run n =
+    printf "Native: "
+    let timer = Stopwatch.StartNew ()
+    let selfCh = new AutoResetEvent (false)
+    let rec proc n (selfCh: AutoResetEvent) (toCh: AutoResetEvent) =
+      if n = 0 then
+        toCh.Set () |> ignore
+      else
+        let childCh = new AutoResetEvent (false)
+        let child = Thread (ThreadStart (fun () ->
+                              proc (n-1) childCh toCh))
+        child.Start ()
+        childCh.Set () |> ignore
+      selfCh.WaitOne () |> ignore
+      selfCh.Dispose ()
+    proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
+module ThrPoo =
+  open System.Threading
+
+  let run n =
+    printf "ThrPoo: "
+    let timer = Stopwatch.StartNew ()
+    let selfCh = new AutoResetEvent (false)
+    let rec proc n (selfCh: AutoResetEvent) (toCh: AutoResetEvent) =
+      if n = 0 then
+        toCh.Set () |> ignore
+      else
+        let childCh = new AutoResetEvent (false)
+        ThreadPool.QueueUserWorkItem (WaitCallback (fun _ ->
+          proc (n-1) childCh toCh)) |> ignore
+        childCh.Set () |> ignore
+      selfCh.WaitOne () |> ignore
+      selfCh.Dispose ()
+    proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
 module ChSend =
   let run n =
     printf "ChSend: "
@@ -57,7 +102,18 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for f in [ChSend.run; Async.run] do
-     for n in [1000; 10000; 100000; 1000000; 10000000] do
-       f n
-       cleanup ()
+do for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
+     ChSend.run n
+     cleanup ()
+
+do for n in [10; 100; 1000; 10000; 100000; 1000000] do
+     ThrPoo.run n
+     cleanup ()
+
+do for n in [10; 100; 1000; 10000; 100000; 1000000] do
+     Async.run n
+     cleanup ()
+
+do for n in [10; 100; 1000; 10000] do
+     Native.run n
+     cleanup ()
