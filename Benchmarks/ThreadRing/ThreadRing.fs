@@ -9,6 +9,52 @@ open Hopac.Job.Infixes
 open System
 open System.Diagnostics
 
+module Native =
+  open System.Threading
+
+  let run n m p =
+    printf " Native: "
+    let timer = Stopwatch.StartNew ()
+    let counters = Array.zeroCreate p
+    let events =
+      Array.init p <| fun i ->
+      counters.[i] <- ref m
+      Array.init n <| fun _ -> new AutoResetEvent (false)
+    let finishEvents = Array.init p <| fun _ -> new AutoResetEvent (false)
+    for i=0 to p-1 do
+      let counter = counters.[i]
+      let events = events.[i]
+      let finish = finishEvents.[i]
+      for j=0 to n-1 do
+        let myEvent = events.[j]
+        let nextEvent = events.[(j+1)%n]
+        let thread =
+          Thread (ThreadStart (fun () ->
+                    myEvent.WaitOne () |> ignore
+                    while !counter > 0 do
+                      let c = !counter - 1
+                      counter := c
+                      if c = 0 then
+                        finish.Set () |> ignore
+                      else
+                        nextEvent.Set () |> ignore
+                        myEvent.WaitOne () |> ignore
+                    nextEvent.Set () |> ignore
+                    myEvent.Set () |> ignore),
+                  512)
+        thread.Start ()
+    for i=0 to p-1 do
+      events.[i].[0].Set () |> ignore
+    for i=0 to p-1 do
+      finishEvents.[i].WaitOne () |> ignore
+      finishEvents.[i].Dispose ()
+      for j=0 to n-1 do
+        events.[i].[j].WaitOne () |> ignore
+        events.[i].[j].Dispose ()
+    let d = timer.Elapsed
+    printf "%9.0f m/s - %fs\n"
+     (float (p*m) / d.TotalSeconds) d.TotalSeconds
+
 module ChGive =
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
     Job.foreverServer
@@ -166,6 +212,8 @@ do for p in [1; Environment.ProcessorCount] do
        for n in [500; 500000; 50000000] do
          printf "\nWith %d rings of length %d passing %d msgs:\n\n" p l n
          if n <= 500000 then
+           if l <= 503 then
+             Native.run l n p ; cleanup ()
            MPPost.run l n p ; cleanup ()
          ChGive.run l n p ; cleanup ()   
          MbSend.run l n p ; cleanup ()
