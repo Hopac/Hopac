@@ -377,10 +377,10 @@ binding it, and you might want to use that in production code, we will avoid
 doing that in the examples of this document.
 
 **Exercise:** As an alternative to having two preallocated channels `reqCh` and
-`replyCh` one could also make it so that the reply channel required by a `get`
-operation allocates a new channel for the reply and passes it to the server.
-Change the implementation to use this technique.  Explain what performance
-advantages and disadvantages such an implementation might have?
+`replyCh` one could also make it so that a fresh reply channel is allocated and
+passed to the server by the `get` operation each time.  Change the
+implementation to use this technique.  Explain what performance advantages and
+disadvantages such an implementation might have?
 
 ### Example: Storage Cells Using Alternatives
 
