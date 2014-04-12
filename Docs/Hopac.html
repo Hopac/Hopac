@@ -55,6 +55,7 @@ font-weight: bold;
 <b>module</b> <a id="dec:module Hopac.TopLevel" href="#def:module Hopac.TopLevel">TopLevel</a> <b>=</b>
   <b>val</b> <a id="dec:val Hopac.TopLevel.job" href="#def:val Hopac.TopLevel.job">job</a><b>:</b> <a href="#def:type Hopac.JobBuilder">JobBuilder</a>
   <b>val</b> <a id="dec:val Hopac.TopLevel.run" href="#def:val Hopac.TopLevel.run">run</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
+  <b>val</b> <a id="dec:val Hopac.TopLevel.start" href="#def:val Hopac.TopLevel.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> unit
   <b>val</b> <a id="dec:val Hopac.TopLevel.asAlt" href="#def:val Hopac.TopLevel.asAlt">asAlt</a><b>:</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.TopLevel.asJob" href="#def:val Hopac.TopLevel.asJob">asJob</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.TopLevel.ch" href="#def:val Hopac.TopLevel.ch">ch</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Ch">Ch</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -71,6 +72,7 @@ font-weight: bold;
     <b>val</b> <a id="dec:val Hopac.Job.Global.server" href="#def:val Hopac.Job.Global.server">server</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Void">Void</a><b>&gt;</b> <b>-&gt;</b> unit
     <b>val</b> <a id="dec:val Hopac.Job.Global.run" href="#def:val Hopac.Job.Global.run">run</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
   <b>val</b> <a id="dec:val Hopac.Job.start" href="#def:val Hopac.Job.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Job.queue" href="#def:val Hopac.Job.queue">queue</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Job.server" href="#def:val Hopac.Job.server">server</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Void">Void</a><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Job.startWithFinalizer" href="#def:val Hopac.Job.startWithFinalizer">startWithFinalizer</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Job.delay" href="#def:val Hopac.Job.delay">delay</a><b>:</b> (unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -201,11 +203,10 @@ font-weight: bold;
 </pre>
 <pre><b>module</b> <a id="dec:module Hopac.Promise" href="#def:module Hopac.Promise">Promise</a> <b>=</b>
   <b>module</b> <a id="dec:module Hopac.Promise.Now" href="#def:module Hopac.Promise.Now">Now</a> <b>=</b>
-    <b>val</b> <a id="dec:val Hopac.Promise.Now.delay" href="#def:val Hopac.Promise.Now.delay">delay</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>val</b> <a id="dec:val Hopac.Promise.Now.withValue" href="#def:val Hopac.Promise.Now.withValue">withValue</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>val</b> <a id="dec:val Hopac.Promise.Now.withFailure" href="#def:val Hopac.Promise.Now.withFailure">withFailure</a><b>:</b> exn <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Promise.start" href="#def:val Hopac.Promise.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val Hopac.Promise.delay" href="#def:val Hopac.Promise.delay">delay</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Promise.queue" href="#def:val Hopac.Promise.queue">queue</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Promise.read" href="#def:val Hopac.Promise.read">read</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>module</b> <a id="dec:module Hopac.Promise.Alt" href="#def:module Hopac.Promise.Alt">Alt</a> <b>=</b>
     <b>val</b> <a id="dec:val Hopac.Promise.Alt.read" href="#def:val Hopac.Promise.Alt.read">read</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -234,6 +235,7 @@ font-weight: bold;
   <b>type</b> <a id="dec:type Hopac.Extensions.Task" href="#def:type Hopac.Extensions.Task">Task</a> <b>=</b>
     <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.awaitJob" href="#def:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.awaitJob" href="#def:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+    <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.startJob" href="#def:static member Hopac.Extensions.Task.startJob">startJob</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.Scheduler" href="#def:type Hopac.Scheduler">Scheduler</a>
 </pre>
@@ -304,6 +306,9 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.TopLevel.run" href="#dec:val Hopac.TopLevel.run">run</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
 </pre>
 <div class="nested"><p> Starts running the given job on the global scheduler and then waits for the job to either return successfully or fail.  See also: <code><a href="#def:val Hopac.Job.abort">abort</a></code>.</p><p> Note that using this function in a job workflow is not optimal and should never be needed, because within a workflow the result of a job can be obtained by binding.</p><p> This is the same function as <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:module Hopac.Job.Global">Global</a><b>.</b><a href="#def:val Hopac.Job.Global.run">run</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.TopLevel.start" href="#dec:val Hopac.TopLevel.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> unit
+</pre>
+<div class="nested"><p> Starts running the given job on the global scheduler, but does not wait for the job to finish.  The result, if any, of the job is ignored.</p><p> Note that using this function in a job workflow is not optimal and you should use <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.start">start</a></code> instead.</p><p> This is the same function as <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:module Hopac.Job.Global">Global</a><b>.</b><a href="#def:val Hopac.Job.Global.start">start</a></code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.TopLevel.asAlt" href="#dec:val Hopac.TopLevel.asAlt">asAlt</a><b>:</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Use object as alternative.  This function is a NOP and is provided as a kind of syntactic alternative to using a type cast.</div>
@@ -354,7 +359,10 @@ font-weight: bold;
 </div>
 <pre><b>val</b> <a id="def:val Hopac.Job.start" href="#dec:val Hopac.Job.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that schedules the given job to be executed as a separate concurrent job.  The result, if any, of the concurrent job is ignored. Use <code><a href="#def:module Hopac.Promise">Promise</a><b>.</b><a href="#def:val Hopac.Promise.start">start</a></code> if you need to be able to get the result.  Use <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.server">server</a></code> if the job never returns normally.</div>
+<div class="nested"><p> Creates a job that immediately starts running the given job as a separate concurrent job.  The result, if any, of the concurrent job is ignored. Use <code><a href="#def:module Hopac.Promise">Promise</a><b>.</b><a href="#def:val Hopac.Promise.start">start</a></code> if you need to be able to get the result.  Use <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.server">server</a></code> if the job never returns normally.  See also: <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.queue">queue</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Job.queue" href="#dec:val Hopac.Job.queue">queue</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a job that schedules the given job to be run as a separate concurrent job.  The result, if any, of the concurrent job is ignored. Use <code><a href="#def:module Hopac.Promise">Promise</a><b>.</b><a href="#def:val Hopac.Promise.queue">queue</a></code> if you need to be able to get the result.</p><p> The difference between <code><a href="#def:val Hopac.Job.start">start</a></code> and <code><a href="#def:val Hopac.Job.queue">queue</a></code> is which job, the current job, or the new job, is immediately given control.  <code><a href="#def:val Hopac.Job.start">start</a></code> queues the current job, while <code><a href="#def:val Hopac.Job.queue">queue</a></code> queues the new job.  <code><a href="#def:val Hopac.Job.start">start</a></code> has slightly lower overhead than <code><a href="#def:val Hopac.Job.queue">queue</a></code> and is likely to be faster in cases where the new job blocks immediately.</p><p> For best performance the choice of which operation to use, <code><a href="#def:val Hopac.Job.start">start</a></code> or <code><a href="#def:val Hopac.Job.queue">queue</a></code>, depends on the critical path of your system.  It is generally preferable to keep control in the job that is on the critical path.</div>
 <pre><b>val</b> <a id="def:val Hopac.Job.server" href="#dec:val Hopac.Job.server">server</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Void">Void</a><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Like <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.start">start</a></code>, but the given job is known never to return normally, so the job can be spawned in an even more lightweight manner.</div>
@@ -764,15 +772,12 @@ font-weight: bold;
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Promise" href="#dec:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Represents a lazy promise or eager future depending on construction.</p><p> Promises are used when a parallel job is started for the purpose of computing a result.  When multiple parallel jobs need to be started to compute results in parallel in regular patterns, combinators such as <code><a href="#def:val Hopac.Job.Infixes.&lt;*&gt;"><*></a></code>, <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.conCollect">conCollect</a></code> and <code><a href="#def:module Hopac.Extensions.Seq">Seq</a><b>.</b><a href="#def:module Hopac.Extensions.Seq.Con">Con</a><b>.</b><a href="#def:val Hopac.Extensions.Seq.Con.mapJob">mapJob</a></code> may be easier to use and provide improved performance.</div>
+<div class="nested"><p> Represents a promise to produce a result at some point in the future.</p><p> Promises are used when a parallel job is started for the purpose of computing a result.  When multiple parallel jobs need to be started to compute results in parallel in regular patterns, combinators such as <code><a href="#def:val Hopac.Job.Infixes.&lt;*&gt;"><*></a></code>, <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.conCollect">conCollect</a></code> and <code><a href="#def:module Hopac.Extensions.Seq">Seq</a><b>.</b><a href="#def:module Hopac.Extensions.Seq.Con">Con</a><b>.</b><a href="#def:val Hopac.Extensions.Seq.Con.mapJob">mapJob</a></code> may be easier to use and provide improved performance.</div>
 <pre><b>module</b> <a id="def:module Hopac.Promise" href="#dec:module Hopac.Promise">Promise</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on promises.<pre><b>module</b> <a id="def:module Hopac.Promise.Now" href="#dec:module Hopac.Promise.Now">Now</a> <b>=</b>
 </pre>
-<div class="nested"><p> Immediate or non-workflow operations on promises.<pre><b>val</b> <a id="def:val Hopac.Promise.Now.delay" href="#dec:val Hopac.Promise.Now.delay">delay</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
-<div class="nested"><p> Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.</div>
-<pre><b>val</b> <a id="def:val Hopac.Promise.Now.withValue" href="#dec:val Hopac.Promise.Now.withValue">withValue</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+<div class="nested"><p> Immediate or non-workflow operations on promises.<pre><b>val</b> <a id="def:val Hopac.Promise.Now.withValue" href="#dec:val Hopac.Promise.Now.withValue">withValue</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a promise with the given value.</div>
 <pre><b>val</b> <a id="def:val Hopac.Promise.Now.withFailure" href="#dec:val Hopac.Promise.Now.withFailure">withFailure</a><b>:</b> exn <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -781,18 +786,18 @@ font-weight: bold;
 </div>
 <pre><b>val</b> <a id="def:val Hopac.Promise.start" href="#dec:val Hopac.Promise.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that creates a promise, whose value is computed eagerly with the given job, which is started to run as a separate concurrent job.</div>
-<pre><b>val</b> <a id="def:val Hopac.Promise.delay" href="#dec:val Hopac.Promise.delay">delay</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+<div class="nested"><p> Creates a job that creates a promise, whose value is computed with the given job, which is immediately started to run as a separate concurrent job.  See also: <code><a href="#def:val Hopac.Promise.queue">queue</a></code>, <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.queue">queue</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Promise.queue" href="#dec:val Hopac.Promise.queue">queue</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that creates a promise, whose value is computed with the given job, when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.</div>
+<div class="nested"><p> Creates a job that creates a promise, whose value is computed with the given job, which is scheduled to be run as a separate concurrent job.  See also: <code><a href="#def:val Hopac.Promise.start">start</a></code>, <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.queue">queue</a></code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Promise.read" href="#dec:val Hopac.Promise.read">read</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates a job that waits for the promise to be computed and then returns its value (or fails with exception).  If the promise was delayed, it is started as a separate job.</div>
+<div class="nested"><p> Creates a job that waits for the promise to be computed and then returns its value (or fails with exception).</div>
 <pre><b>module</b> <a id="def:module Hopac.Promise.Alt" href="#dec:module Hopac.Promise.Alt">Alt</a> <b>=</b>
 </pre>
 <div class="nested"><p> Selective operations on promises.<pre><b>val</b> <a id="def:val Hopac.Promise.Alt.read" href="#dec:val Hopac.Promise.Alt.read">read</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Creates an alternative for reading the promise.  If the promise was delayed, it is started as a separate job.</div>
+<div class="nested"><p> Creates an alternative for reading the promise.</div>
 </div>
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Lock" href="#dec:type Hopac.Lock">Lock</a>
@@ -869,7 +874,7 @@ font-weight: bold;
 <pre><b>[&lt;</b>Sealed<b>&gt;]</b> 
 <b>type</b> <a id="def:type Hopac.Extensions.Task" href="#dec:type Hopac.Extensions.Task">Task</a> <b>=</b>
 </pre>
-<div class="nested"><p> Operations for interfacing tasks with jobs.<pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.awaitJob" href="#dec:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+<div class="nested"><p> Operations for interfacing tasks with jobs.</p><p> Note that these operations are provided for interfacing with existing APIs that work with tasks.  Starting a job as a task and then awaiting for its result has much higher overhead than simply starting the job as a <code><a href="#def:type Hopac.Promise">Promise</a></code>, for example.<pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.awaitJob" href="#dec:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that waits for the given task to finish and then returns the result of the task.  Note that this does not start the task.</p><p> Reference implementation:</p><pre><b>let</b> awaitJob (xT<b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b>) <b>=</b>
   <a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.scheduler">scheduler</a> () <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> sr <b>-&gt;</b>
@@ -882,6 +887,9 @@ font-weight: bold;
 <pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.awaitJob" href="#dec:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that waits until the given task finishes.  Note that this does not start the task.</div>
+<pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.startJob" href="#dec:static member Hopac.Extensions.Task.startJob">startJob</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+</pre>
+<div class="nested"><p> Creates a job that starts the given job as a separate concurrent job, whose result can be obtained from the returned task.</div>
 </div>
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Scheduler" href="#dec:type Hopac.Scheduler">Scheduler</a>

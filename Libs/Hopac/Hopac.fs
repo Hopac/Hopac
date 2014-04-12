@@ -105,36 +105,50 @@ module Util =
 
   let mutable globalScheduler : Scheduler = null
 
-  let reallyGlobalScheduler () =
-    lock typeof<Scheduler> <| fun () ->
-    if not System.Runtime.GCSettings.IsServerGC then
-      printf "WARNING: You are using single-threaded workstation garbage \
-       collection, which means that parallel programs cannot scale.  Please \
-       configure your program to use server garbage collection.  See \
-       http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
-       for details.\n"
-    let sr = Scheduler (false,
-                        null,
-                        0,
-                        Environment.ProcessorCount,
-                        ThreadPriority.Normal,
-                        Unchecked.defaultof<_>)
-    globalScheduler <- sr
-    sr
+  let reallyInitGlobalScheduler () =
+    let t = typeof<Scheduler>
+    Monitor.Enter t
+    match globalScheduler with
+     | null ->
+       if not System.Runtime.GCSettings.IsServerGC then
+         printf "WARNING: You are using single-threaded workstation garbage \
+          collection, which means that parallel programs cannot scale.  Please \
+          configure your program to use server garbage collection.  See \
+          http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
+          for details.\n"
+       let sr = Scheduler (false,
+                           null,
+                           0,
+                           Environment.ProcessorCount,
+                           ThreadPriority.Normal,
+                           Unchecked.defaultof<_>)
+       globalScheduler <- sr
+       Monitor.Exit t
+       sr
+     | sr ->
+       Monitor.Exit t
+       sr
 
   let inline initGlobalScheduler () =
     match globalScheduler with
-     | null -> reallyGlobalScheduler ()
+     | null -> reallyInitGlobalScheduler ()
      | sr -> sr
 
   let mutable globalTimer : Timer = null
 
   let reallyInitGlobalTimer () =
     let sr = initGlobalScheduler ()
-    lock typeof<Timer> <| fun () ->
-    let tr = Timer sr
-    globalTimer <- tr
-    tr
+    let t = typeof<Timer>
+    Monitor.Enter t
+    match globalTimer with
+     | null ->
+       let tr = Timer sr
+       globalTimer <- tr
+       Monitor.Exit t
+       tr
+     | tr ->
+       Monitor.Exit t
+       tr
 
   let inline initGlobalTimer () =
     match globalTimer with
@@ -192,12 +206,23 @@ module Promise =
   let start (xJ: Job<'x>) =
     {new Job<Promise<'x>> () with
       override self.DoJob (wr, xPrK) =
-       Cont.Do (xPrK, &wr, Promise<'x> (&wr, xJ))}
+       let pr = Promise<'x> ()
+       xPrK.Value <- pr
+       Worker.Push (&wr, xPrK)
+       Job.Do (xJ, &wr, Promise<'x>.PrCont (pr))}
+  let queue (xJ: Job<'x>) =
+    {new Job<Promise<'x>> () with
+      override self.DoJob (wr, xPrK) =
+       let pr = Promise<'x> ()
+       Worker.PushNew (&wr, {new WorkHandler () with
+        override w'.DoWork (wr) =
+         let prc = Promise<'x>.PrCont (pr)
+         wr.Handler <- prc
+         xJ.DoJob (&wr, prc)})
+       Cont.Do (xPrK, &wr, pr)}
   module Now =
-    let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
-  let delay (xJ: Job<'x>) = ctor Now.delay xJ
   let inline read (xPr: Promise<'x>) = xPr :> Job<'x>
   module Alt =
     let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
@@ -780,16 +805,22 @@ module Job =
   let start (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
+       Worker.Push (&wr, uK)
+       Job.Do (xJ, &wr, Handler<'x> ())}
+
+  let queue (xJ: Job<'x>) =
+    {new Job<unit> () with
+      override uJ'.DoJob (wr, uK) =
        Worker.PushNew (&wr, {new WorkHandler () with
-        override w'.DoWork (wr) = xJ.DoJob (&wr, Handler<'x> ())})
+        override w'.DoWork (wr) =
+         xJ.DoJob (&wr, Handler<'x>())})
        Work.Do (uK, &wr)}
 
   let server (vJ: Job<Void>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
-       Worker.PushNew (&wr, {new WorkHandler () with
-        override w'.DoWork (wr) = vJ.DoJob (&wr, null)})
-       Work.Do (uK, &wr)}
+       Worker.Push (&wr, uK)
+       Job.Do (vJ, &wr, null)}
 
   type Finalizer<'x> (sr: Scheduler, uJ: Job<unit>) =
     inherit Cont<'x> ()
@@ -803,12 +834,8 @@ module Job =
   let startWithFinalizer (uJ: Job<unit>) (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
-       Worker.PushNew (&wr, {new WorkHandler () with
-        override w'.DoWork (wr) =
-         let fr = Finalizer<'x> (wr.Scheduler, uJ)
-         wr.Handler <- fr
-         xJ.DoJob (&wr, fr)})
-       Work.Do (uK, &wr)}
+       Worker.Push (&wr, uK)
+       Job.Do (xJ, &wr, Finalizer<'x> (wr.Scheduler, uJ))}
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -917,7 +944,8 @@ module Job =
             let xJ = xJs.Current
             cc'.Lock.ExitAndEnter (&wr, cc')
             cc'.ysK.Value.Add Unchecked.defaultof<_>
-            Worker.PushNew (&wr, {new Cont_State<_, _, _> (xJ, Util.dec &nth) with
+            let i = Util.dec &nth
+            Worker.PushNew (&wr, {new Cont_State<_, _, _> (xJ, i) with
              override xK'.DoHandle (wr, e) = ConCollect<'x>.OutsideDoHandle (cc', &wr, e)
              override xK'.DoCont (wr, x) =
               xK'.Value <- x
@@ -962,7 +990,7 @@ module Job =
      self.Started <- 1 - self.Started
      ConIgnore.Dec (self, &wr)
     static member AddExn (self: ConIgnore, e: exn) =
-     lock self <| fun () ->
+     Monitor.Enter self
      let exns =
        match self.Exns with
         | null ->
@@ -971,6 +999,7 @@ module Job =
           exns
         | exns -> exns
      exns.Add e
+     Monitor.Exit self
     static member OutsideDoHandle (self: ConIgnore, wr: byref<Worker>, e: exn) =
      ConIgnore.AddExn (self, e)
      ConIgnore.Dec (self, &wr)
@@ -1243,7 +1272,8 @@ module Extensions =
                 let x = xs.Current
                 cc'.Lock.ExitAndEnter (&wr, cc')
                 cc'.ysK.Value.Add Unchecked.defaultof<_>
-                Worker.PushNew (&wr, {new Cont_State<_, _, _, _> (x, Util.dec &nth, x2yJ) with
+                let i = Util.dec &nth
+                Worker.PushNew (&wr, {new Cont_State<_, _, _, _> (x, i, x2yJ) with
                  override yK'.DoHandle (wr, e) = ConCollect<'y>.OutsideDoHandle (cc', &wr, e)
                  override yK'.DoCont (wr, y) =
                   yK'.Value <- y
@@ -1272,11 +1302,22 @@ module Extensions =
   ///////////////////////////////////////////////////////////////////////
   
   type [<Sealed>] Task =
-    static member inline awaitJob (xTask: System.Threading.Tasks.Task<'x>) =
+    static member inline awaitJob (xTask: Tasks.Task<'x>) =
       AwaitTaskWithResult<'x> (xTask) :> Job<'x>
 
-    static member inline awaitJob (task: System.Threading.Tasks.Task) =
+    static member inline awaitJob (task: Tasks.Task) =
       AwaitTask (task) :> Job<unit>
+
+    static member startJob (xJ: Job<'x>) =
+      {new Job<Tasks.Task<'x>> () with
+        override xTJ'.DoJob (wr, xTK) =
+         let xTCS = Tasks.TaskCompletionSource<'x> ()
+         xTK.Value <- xTCS.Task
+         Worker.Push (&wr, xTK)
+         Job.Do (xJ, &wr, {new Cont<'x> () with
+          override xK'.DoHandle (wr, e) = xTCS.TrySetException e |> ignore
+          override xK'.DoWork (wr) = xTCS.TrySetResult xK'.Value |> ignore
+          override xK'.DoCont (wr, x) = xTCS.TrySetResult x |> ignore})}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -1310,6 +1351,8 @@ module TopLevel =
   let job = JobBuilder ()
 
   let inline run x = Job.Global.run x
+
+  let inline start x = Job.Global.start x
 
   let inline asAlt (xA: Alt<'x>) = xA
   let inline asJob (xJ: Job<'x>) = xJ

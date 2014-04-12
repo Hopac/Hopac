@@ -139,6 +139,15 @@ module TopLevel =
   /// This is the same function as `Job.Global.run`.
   val inline run: Job<'x> -> 'x
 
+  /// Starts running the given job on the global scheduler, but does not wait
+  /// for the job to finish.  The result, if any, of the job is ignored.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.start` instead.
+  ///
+  /// This is the same function as `Job.Global.start`.
+  val inline start: Job<_> -> unit
+
   /// Use object as alternative.  This function is a NOP and is provided as a
   /// kind of syntactic alternative to using a type cast.
   val inline asAlt: Alt<'x> -> Alt<'x>
@@ -233,11 +242,26 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Creates a job that schedules the given job to be executed as a separate
+  /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job.  The result, if any, of the concurrent job is ignored.
   /// Use `Promise.start` if you need to be able to get the result.  Use
-  /// `Job.server` if the job never returns normally.
+  /// `Job.server` if the job never returns normally.  See also: `Job.queue`.
   val start: Job<_> -> Job<unit>
+
+  /// Creates a job that schedules the given job to be run as a separate
+  /// concurrent job.  The result, if any, of the concurrent job is ignored.
+  /// Use `Promise.queue` if you need to be able to get the result.
+  ///
+  /// The difference between `start` and `queue` is which job, the current job,
+  /// or the new job, is immediately given control.  `start` queues the current
+  /// job, while `queue` queues the new job.  `start` has slightly lower
+  /// overhead than `queue` and is likely to be faster in cases where the new
+  /// job blocks immediately.
+  ///
+  /// For best performance the choice of which operation to use, `start` or
+  /// `queue`, depends on the critical path of your system.  It is generally
+  /// preferable to keep control in the job that is on the critical path.
+  val queue: Job<_> -> Job<unit>
 
   /// Like `Job.start`, but the given job is known never to return normally, so
   /// the job can be spawned in an even more lightweight manner.
@@ -1144,7 +1168,7 @@ module Mailbox =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a lazy promise or eager future depending on construction.
+/// Represents a promise to produce a result at some point in the future.
 ///
 /// Promises are used when a parallel job is started for the purpose of
 /// computing a result.  When multiple parallel jobs need to be started to
@@ -1158,39 +1182,29 @@ type Promise<'x> :> Alt<'x>
 module Promise =
   /// Immediate or non-workflow operations on promises.
   module Now =
-    /// Creates a promise whose value is computed lazily with the given job when
-    /// an attempt is made to read the promise.  Although the job is not started
-    /// immediately, the effect is that the delayed job will be run as a
-    /// separate job, which means it is possible to communicate with it as long
-    /// the delayed job is started before trying to communicate with it.
-    val inline delay: Job<'x> -> Promise<'x>
-
     /// Creates a promise with the given value.
     val inline withValue: 'x -> Promise<'x>
 
     /// Creates a promise with the given failure exception.
     val inline withFailure: exn -> Promise<'x>
 
-  /// Creates a job that creates a promise, whose value is computed eagerly with
-  /// the given job, which is started to run as a separate concurrent job.
+  /// Creates a job that creates a promise, whose value is computed with the
+  /// given job, which is immediately started to run as a separate concurrent
+  /// job.  See also: `queue`, `Job.queue`.
   val start: Job<'x> -> Job<Promise<'x>>
 
   /// Creates a job that creates a promise, whose value is computed with the
-  /// given job, when an attempt is made to read the promise.  Although the job
-  /// is not started immediately, the effect is that the delayed job will be run
-  /// as a separate job, which means it is possible to communicate with it as
-  /// long the delayed job is started before trying to communicate with it.
-  val delay: Job<'x> -> Job<Promise<'x>>
+  /// given job, which is scheduled to be run as a separate concurrent job.  See
+  /// also: `start`, `Job.queue`.
+  val queue: Job<'x> -> Job<Promise<'x>>
 
   /// Creates a job that waits for the promise to be computed and then returns
-  /// its value (or fails with exception).  If the promise was delayed, it is
-  /// started as a separate job.
+  /// its value (or fails with exception).
   val inline read: Promise<'x> -> Job<'x>
 
   /// Selective operations on promises.
   module Alt =
-    /// Creates an alternative for reading the promise.  If the promise was
-    /// delayed, it is started as a separate job.
+    /// Creates an alternative for reading the promise.
     val inline read: Promise<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1307,6 +1321,11 @@ module Extensions =
       val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
   /// Operations for interfacing tasks with jobs.
+  ///
+  /// Note that these operations are provided for interfacing with existing
+  /// APIs that work with tasks.  Starting a job as a task and then awaiting
+  /// for its result has much higher overhead than simply starting the job as a
+  /// `Promise`, for example.
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
     /// the result of the task.  Note that this does not start the task.
@@ -1327,6 +1346,10 @@ module Extensions =
     /// Creates a job that waits until the given task finishes.  Note that this
     /// does not start the task.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
+
+    /// Creates a job that starts the given job as a separate concurrent job,
+    /// whose result can be obtained from the returned task.
+    static member startJob: Job<'x> -> Job<Threading.Tasks.Task<'x>>
 
 ////////////////////////////////////////////////////////////////////////////////
 

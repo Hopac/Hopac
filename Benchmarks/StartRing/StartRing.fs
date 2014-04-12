@@ -78,9 +78,28 @@ module Tasks =
     printf "%9.0f ops/s - %fs\n"
      (float n / d.TotalSeconds) d.TotalSeconds
 
-module ChSend =
+module JQueue =
   let run n =
-    printf "ChSend: "
+    printf "JQueue: "
+    let timer = Stopwatch.StartNew ()
+    run << Job.delay <| fun () ->
+      let selfCh = ch ()
+      let rec proc n selfCh toCh = Job.delay <| fun () ->
+        if n = 0 then
+          toCh <-+ ()
+        else
+          let childCh = ch ()
+          Job.queue (proc (n-1) childCh toCh) >>.
+          (childCh <-+ ()) >>.
+          selfCh
+      proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
+module JStart =
+  let run n =
+    printf "JStart: "
     let timer = Stopwatch.StartNew ()
     run << Job.delay <| fun () ->
       let selfCh = ch ()
@@ -127,7 +146,11 @@ let cleanup () =
     Threading.Thread.Sleep 50
 
 do for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
-     ChSend.run n
+     JQueue.run n
+     cleanup ()
+
+do for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
+     JStart.run n
      cleanup ()
 
 do for n in [10; 100; 1000; 10000; 100000; 1000000] do

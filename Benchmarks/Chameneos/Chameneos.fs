@@ -54,7 +54,7 @@ module HopacLock =
        let me = Chameneos (myColor)
        let myMeets = ref 0
        let cont = ref true
-       Job.start
+       Job.queue
         (Job.whileDo (fun () -> !cont)
           (Lock.duringFun mp (fun () ->
              if 0 = mp.NumMeets then
@@ -89,7 +89,11 @@ module HopacLock =
   let run numMeets =
     printf "Lock: "
     let timer = Stopwatch.StartNew ()
-    let (n, m) = run (bench colorsAll numMeets <*> bench colors10 numMeets)
+    let (n, m) = run <| job {
+      let! pn = Promise.queue (bench colors10 numMeets)
+      let! pm = Promise.start (bench colorsAll numMeets)
+      return! pn <&> pm
+    }
     let d = timer.Elapsed
     printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
 
@@ -113,7 +117,7 @@ module HopacMV =
        let myMeets = ref 0
        let myColor = ref myColor
        let cont = ref true
-       Job.start
+       Job.queue
         (Job.whileDo (fun () -> !cont)
           (meetingPlace >>= function
             | (Empty 0) as state ->
@@ -138,7 +142,11 @@ module HopacMV =
   let run numMeets =
     printf "MVar: "
     let timer = Stopwatch.StartNew ()
-    let (n, m) = run (bench colorsAll numMeets <*> bench colors10 numMeets)
+    let (n, m) = run <| job {
+      let! pn = Promise.queue (bench colors10 numMeets)
+      let! pm = Promise.start (bench colorsAll numMeets)
+      return! pn <&> pm
+    }
     let d = timer.Elapsed
     printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
     
@@ -193,7 +201,7 @@ module HopacAlt =
     printf "Alt:  "
     let timer = Stopwatch.StartNew ()
     let (n, m) = run <| job {
-      let! pn = Promise.start (bench colors10 numMeets)
+      let! pn = Promise.queue (bench colors10 numMeets)
       let! pm = Promise.start (bench colorsAll numMeets)
       return! pn <&> pm
     }

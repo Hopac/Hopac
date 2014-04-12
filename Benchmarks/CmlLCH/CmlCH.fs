@@ -19,17 +19,16 @@ module EgPaper =
       show "T" kind var
       Job.start (nack |>> fun () -> show "A" kind var) |>> fun () ->
       (op |>>? fun _ -> show "D" kind var)
-    let inline spawn x = Job.start (Alt.pick x)
     Job.delay <| fun () ->
     let x = ch ()
     let y = ch ()
     let z = ch ()
-    spawn (make "+" "x" (x <-? ()) <|>
-           make "+" "y" (y <-? ())) >>= fun () ->
-    spawn (make "-" "y" y <|>
-           make "-" "z" z) >>= fun () ->
-    spawn (make "-" "x" x) >>= fun () ->
-    spawn (make "+" "z" (z <-? ()))
+    Job.queue (make "+" "x" (x <-? ()) <|>
+               make "+" "y" (y <-? ())) >>= fun () ->
+    Job.queue (make "-" "y" y <|>
+               make "-" "z" z) >>= fun () ->
+    Job.queue (make "-" "x" x) >>= fun () ->
+    Job.queue (make "+" "z" (z <-? ()))
 
   let run n =
     printf "EgPaper %8d: " n
@@ -52,8 +51,8 @@ module SwapCh =
 
   let bench = Job.delay <| fun () ->
     let sCh = swapch ()
-    Job.start (swap sCh ()) >>= fun () ->
-    Alt.pick (swap sCh ())
+    Job.queue (swap sCh ()) >>= fun () ->
+    upcast swap sCh ()
 
   let run n =
     printf "SwapCh %8d: " n
@@ -84,9 +83,9 @@ module BufferedCh =
 
   let bench =
     buff () >>= fun buf ->
-    Job.start (send buf 1) >>= fun () ->
-    Job.start (send buf 2) >>= fun () ->
-    Job.start (recv buf) >>= fun () ->
+    Job.queue (send buf 1) >>= fun () ->
+    Job.queue (send buf 2) >>= fun () ->
+    Job.queue (recv buf) >>= fun () ->
     recv buf
 
   let run n =

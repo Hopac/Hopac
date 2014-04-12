@@ -7,7 +7,7 @@ namespace Hopac {
   using System.Threading;
   using System.Runtime.CompilerServices;
 
-  /// <summary>Represents a synchronized variable.</summary>
+  /// <summary>Represents a serialized variable.</summary>
   public class MVar<T> : Alt<T> {
     internal T Value;
     internal volatile int State;
