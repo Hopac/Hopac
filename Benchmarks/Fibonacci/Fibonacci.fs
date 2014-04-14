@@ -89,13 +89,32 @@ module ParallelJob =
 
 /////////////////////////////////////////////////////////////////////////
 
+module ParallelPro =
+  let rec fib n =
+    if n < 2L then
+      Job.result n
+    else
+      fib (n-2L) |> Promise.start >>= fun xP ->
+      fib (n-1L) >>= fun y ->
+      xP |>> fun x ->
+      x + y
+
+  let run n =
+    printf "ParPro: "
+    let timer = Stopwatch.StartNew ()
+    let r = run (fib n)
+    let d = timer.Elapsed
+    printf "%d - %fs (%f jobs/s)\n"
+     r d.TotalSeconds (float numSpawns / d.TotalSeconds)
+
+/////////////////////////////////////////////////////////////////////////
+
 module ParallelOpt =
   let rec fib n =
     if n < 2L then
       Job.result n
     else
-      Job.delay <| fun () ->
-      fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
+      fib (n-2L) <*> Job.delayWith fib (n-1L) |>> fun (x, y) ->
       x + y
 
   let run n =
@@ -176,6 +195,7 @@ do for n in [10L; 20L; 30L; 40L] do
      SerialFun.run n ; cleanup ()
      ParallelOpt.run n ; cleanup ()
      ParallelJob.run n ; cleanup ()
+     ParallelPro.run n ; cleanup ()
      SerialOpt.run n ; cleanup ()
      SerialJob.run n ; cleanup ()
      SerAsc.run n ; cleanup ()
