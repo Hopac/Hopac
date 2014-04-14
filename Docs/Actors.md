@@ -79,29 +79,29 @@ module HopacModel =
 ```
 
 Using the monadic operations,
-`>>=`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+`>>=`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 and
-`result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.result),
+`result`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result),
 one can define a thread of execution, represented by the type
-`Job<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:type%20Hopac.Job),
+`Job<'x>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Job),
 and such threads can be started with
-`start`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.Global.start).
+`start`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Global.start).
 Any number of channels can be created using
-`ch`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.TopLevel.ch)
+`ch`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.ch)
 and the channel type
-`Ch<'x>`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:type%20Hopac.Ch)
+`Ch<'x>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch)
 is parameterized with the message type.  Within a thread of execution one can
 then perform
-`give`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Ch.give)
+`give`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
 and
-`take`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Ch.take)
+`take`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
 operations on channels.  Both `give` and `take` operations are synchronous and
 block the executing job until the other party of the communication is present
 and the operation can be completed.
 
 Please note that the above signature snippet is not a precise subset of Hopac
 and that Hopac provides a much more comprehensive model as described in the
-[Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
+[Hopac Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.html)
 manual.
 
 ### The essence of an actor model
@@ -263,7 +263,7 @@ programming styles in Hopac.
 Let's start by implementing something similar to a subset of the F#
 [MailboxProcessor](http://msdn.microsoft.com/en-us/library/ee370357.aspx) within
 Hopac.  We'll just define an actor as an asynchronous
-[Mailbox](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:type%20Hopac.Mailbox):
+[Mailbox](http://vesakarvonen.github.io/Hopac/Hopac.html#dec:type%20Hopac.Mailbox):
 
 ```fsharp
 type Actor<'m> = Mailbox<'m>
@@ -298,7 +298,7 @@ To allow an actor to provide a reply to a message, we can, similar to
 Hopac we could use one of many different message passing objects.  Closest to
 the [AsyncReplyChannel](http://msdn.microsoft.com/en-us/library/ee370529.aspx)
 would be an
-`IVar`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#dec:type%20Hopac.IVar):
+`IVar`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#dec:type%20Hopac.IVar):
 
 ```fsharp
 let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->

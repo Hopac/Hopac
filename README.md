@@ -49,9 +49,9 @@ patterns.  Note that these documents are works in progress and are still being
 updated frequently.  Feedback on these documents is most welcome!
 
 There is also a
-[Hopac Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html)
+[Hopac Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.html)
 manual generated from the Hopac library sources and the
-[Hopac.Extra Library Reference](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.Extra.html)
+[Hopac.Extra Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.Extra.html)
 manual is generated from the Hopac.Extra library sources.  There are also some
 [Notes on the Internal Implementation of Hopac](Docs/Internals.md), but that
 document is not meant to be something that a user of the library would need to
@@ -75,9 +75,9 @@ write your own benchmark, on your multicore machine and see for yourself?
 Here are some ballpark figures:
 
 * Sequential monad operations
-  `>>=`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+  `>>=`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
   and
-  `result`[*](http://htmlpreview.github.io/?https://github.com/VesaKarvonen/Hopac/blob/master/Docs/Hopac.html#def:val%20Hopac.Job.result)
+  `result`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
   or `let!` and `return` seem to run about **2x** as fast as the corresponding
   `Async` operations of F# 3.1.  This can be clearly seen in the
   [Fibonacci](Benchmarks/Fibonacci) benchmark that also runs sequential versions
