@@ -1,4 +1,6 @@
 encoding: utf-8
 
-kramdown:
-  input: GFM
+markdown: redcarpet
+
+redcarpet:
+  extensions: [fenced_code_blocks]
