@@ -116,6 +116,44 @@ module JStart =
     printf "%9.0f ops/s - %fs\n"
      (float n / d.TotalSeconds) d.TotalSeconds
 
+module PStart =
+  let run n =
+    printf "PStart: "
+    let timer = Stopwatch.StartNew ()
+    run << Job.delay <| fun () ->
+      let selfCh = ch ()
+      let rec proc n selfCh toCh = Job.delay <| fun () ->
+        if n = 0 then
+          toCh <-+ ()
+        else
+          let childCh = ch ()
+          Proc.start (proc (n-1) childCh toCh) >>.
+          (childCh <-+ ()) >>.
+          selfCh
+      proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
+module PQueue =
+  let run n =
+    printf "PQueue: "
+    let timer = Stopwatch.StartNew ()
+    run << Job.delay <| fun () ->
+      let selfCh = ch ()
+      let rec proc n selfCh toCh = Job.delay <| fun () ->
+        if n = 0 then
+          toCh <-+ ()
+        else
+          let childCh = ch ()
+          Proc.queue (proc (n-1) childCh toCh) >>.
+          (childCh <-+ ()) >>.
+          selfCh
+      proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
 module Async =
   let run n =
     printf "Async:  "
@@ -145,25 +183,15 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
-     JQueue.run n
-     cleanup ()
+do for f in [JQueue.run; PQueue.run; JStart.run; PStart.run] do
+     for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
+       f n
+       cleanup ()
 
-do for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
-     JStart.run n
-     cleanup ()
-
-do for n in [10; 100; 1000; 10000; 100000; 1000000] do
-     ThPool.run n
-     cleanup ()
-
-do for n in [10; 100; 1000; 10000; 100000; 1000000] do
-     Tasks.run n
-     cleanup ()
-
-do for n in [10; 100; 1000; 10000; 100000; 1000000] do
-     Async.run n
-     cleanup ()
+do for f in [ThPool.run; Tasks.run; Async.run] do
+     for n in [10; 100; 1000; 10000; 100000; 1000000] do
+       f n
+       cleanup ()
 
 do for n in [10; 100; 1000; 10000] do
      Native.run n

@@ -28,6 +28,10 @@ namespace Hopac.Core {
         this.sr = sr;
       }
 
+      internal override Proc GetProc() {
+        return Handler.GetProc(aK);
+      }
+
       internal override void DoHandle(ref Worker wr, Exception e) {
         Handler.DoHandle(aK, ref wr, e);
       }
@@ -69,6 +73,10 @@ namespace Hopac.Core {
         this.task = task;
         this.uK = uK;
         this.sr = sr;
+      }
+
+      internal override Proc GetProc() {
+        return Handler.GetProc(uK);
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {

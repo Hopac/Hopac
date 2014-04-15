@@ -204,6 +204,10 @@ namespace Hopac.Core {
     }
 
     internal sealed class IdleCont : Cont<int> {
+      internal override Proc GetProc() {
+        return null;
+      }
+
       internal override void DoHandle(ref Worker wr, Exception e) {
         Handler.DoHandle(null, ref wr, e);
       }

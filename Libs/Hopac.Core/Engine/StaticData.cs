@@ -12,8 +12,11 @@ namespace Hopac.Core {
     /// <summary>Stores the single shared zero alternative.</summary>
     public static Alt<Unit> zero;
 
-    /// <summary>Stores the single shared sceduler job.</summary>
+    /// <summary>Stores the single shared scheduler job.</summary>
     public static Job<Scheduler> scheduler;
+
+    /// <summary>Stores the single shared proc job.</summary>
+    public static Job<Proc> proc;
 
     /// <summary>This is normally called automatically by Hopac library
     /// code.</summary>
@@ -22,12 +25,19 @@ namespace Hopac.Core {
         unit = new AlwaysUnit();
         zero = new Zero();
         scheduler = new GetScheduler();
+        proc = new GetProc();
       }
     }
 
-    private class GetScheduler : Job<Scheduler> {
+    private sealed class GetScheduler : Job<Scheduler> {
       internal override void DoJob(ref Worker wr, Cont<Scheduler> sK) {
         Cont.Do(sK, ref wr, wr.Scheduler);
+      }
+    }
+
+    private sealed class GetProc : Job<Proc> {
+      internal override void DoJob(ref Worker wr, Cont<Proc> pK) {
+        Cont.Do(pK, ref wr, pK.GetProc());
       }
     }
   }

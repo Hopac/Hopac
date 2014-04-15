@@ -25,6 +25,10 @@ namespace Hopac.Core {
       this.exn = exn;
     }
 
+    internal override Proc GetProc() {
+      throw new NotImplementedException();
+    }
+
     internal override void DoHandle(ref Worker wr, Exception e) {
       throw new NotImplementedException();
     }
@@ -68,6 +72,10 @@ namespace Hopac.Core {
     internal FailCont(Handler hr, Exception e) {
       this.hr = hr;
       this.e = e;
+    }
+
+    internal override Proc GetProc() {
+      return Handler.GetProc(hr);
     }
 
     internal override void DoHandle(ref Worker wr, Exception e) {

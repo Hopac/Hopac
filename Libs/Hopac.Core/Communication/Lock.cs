@@ -103,6 +103,10 @@ namespace Hopac {
           this.tK = tK;
         }
 
+        internal override Proc GetProc() {
+          return Handler.GetProc(tK);
+        }
+
         internal override void DoHandle(ref Worker wr, Exception e) {
           var tK = this.tK;
           wr.Handler = tK;
@@ -170,6 +174,10 @@ namespace Hopac {
           this.tJ = tJ;
         }
 
+        internal override Proc GetProc() {
+          return Handler.GetProc(tKPrime);
+        }
+
         internal override void DoHandle(ref Worker wr, Exception e) {
           Handler.DoHandle(this.tKPrime, ref wr, e);
         }
@@ -187,6 +195,10 @@ namespace Hopac {
         internal Cont(Lock l, Cont<T> tK) {
           this.l = l;
           this.tK = tK;
+        }
+
+        internal override Proc GetProc() {
+          return Handler.GetProc(tK);
         }
 
         internal override void DoHandle(ref Worker wr, Exception e) {

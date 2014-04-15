@@ -174,6 +174,44 @@ module TopLevel =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
+/// Represents a joinable lightweight thread of execution.
+///
+/// For performance reasons Hopac distinguishes between processes and jobs.  A
+/// process is a job that is additionally represented by a `Proc` or process
+/// object.  The process object makes it possible to determine when the process
+/// is known to have been terminated and this allows more robust systems to be
+/// built.
+///
+/// An example use for process objects would be a system where critical
+/// resources are allocated that need to be released even in case a process
+/// suffers from a fault and is terminated before properly releasing the
+/// resource.
+type Proc :> Alt<unit>
+#endif
+
+/// Operations on processes.
+module Proc =
+  /// Creates a job that starts a new process.  See also: `queue`, `Job.start`.
+  val start: Job<_> -> Job<Proc>
+
+  /// Creates a job that queues a new process.  See also: `start`, `Job.queue`.
+  val queue: Job<_> -> Job<Proc>
+
+  /// Returns a job that returns the current process.  The result is a valid
+  /// process object only when the current job has been created as a process
+  /// using `Proc.start` or `Proc.queue`.  A simple job created with
+  /// `Job.start`, for example, will result in a `null`.
+  val inline self: unit -> Job<Proc>
+
+  /// Selective operations on processes.
+  module Alt =
+    /// Returns an alternative that becomes available for picking once the
+    /// process is known to have been terminated for any reason.
+    val inline join: Proc -> Alt<unit>
+
+////////////////////////////////////////////////////////////////////////////////
+
+#if DOC
 /// Represents a lightweight thread of execution.
 ///
 /// Jobs are defined using expression builders like the `JobBuilder`, accessible

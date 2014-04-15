@@ -27,6 +27,10 @@ namespace Hopac.Core {
       return Pick;
     }
 
+    internal override Proc GetProc() {
+      return Handler.GetProc(Cont);
+    }
+
     internal override void DoHandle(ref Worker wr, Exception e) {
       Handler.DoHandle(this.Cont, ref wr, e);
     }

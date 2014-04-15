@@ -44,6 +44,10 @@ namespace Hopac {
         this.tK = tK;
       }
 
+      internal override Proc GetProc() {
+        return Handler.GetProc(tK);
+      }
+
       internal override void DoHandle(ref Worker wr, Exception e) {
         Handler.DoHandle(tK, ref wr, e);
       }

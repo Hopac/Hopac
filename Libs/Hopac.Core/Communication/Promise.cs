@@ -88,6 +88,10 @@ namespace Hopac {
         this.pr = pr;
       }
 
+      internal override Proc GetProc() {
+        return null;  // XXX Should we support spawning a promise?
+      }
+
       [MethodImpl(AggressiveInlining.Flag)]
       internal void Do(ref Worker wr, T v) {
         var pr = this.pr;

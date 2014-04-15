@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac</id>
-    <version>0.0.0.10</version>
+    <version>0.0.0.11</version>
     <title>Hopac</title>
     <summary>A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>

@@ -147,7 +147,7 @@ namespace Hopac.Core {
     }
   }
 
-  internal class WorkTimed : Work {
+  internal abstract class WorkTimed : Work {
     internal WorkTimed Up;
     internal long Ticks;
     internal Pick Pick;
@@ -163,14 +163,6 @@ namespace Hopac.Core {
       this.Ticks = ((long)ticks) << 32;
       this.Me = me;
       this.Pick = pk;
-    }
-
-    internal override void DoHandle(ref Worker wr, Exception e) {
-      throw new NotImplementedException();
-    }
-
-    internal override void DoWork(ref Worker wr) {
-      throw new NotImplementedException();
     }
   }
 }

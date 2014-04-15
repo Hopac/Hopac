@@ -16,6 +16,10 @@ namespace Hopac.Core {
       this.abK = abK;
     }
 
+    internal override Proc GetProc() {
+      return Handler.GetProc(abK);
+    }
+
     internal override void DoHandle(ref Worker wr, Exception e) {
       if (null != Interlocked.CompareExchange(ref this.e, e, null))
         goto DoHandle;
