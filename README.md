@@ -1,21 +1,23 @@
 Hopac: Higher-Order, Parallel, Asynchronous and Concurrent
 ==========================================================
 
-Hopac is a library for F# with the aim of making it easier to write efficient
-parallel, asynchronous and concurrent programs.  The design of Hopac draws
-inspiration from languages such as [Concurrent ML](http://cml.cs.uchicago.edu/)
-and [Cilk](http://en.wikipedia.org/wiki/Cilk).  Similar to Concurrent ML, Hopac
+Hopac is a library for F# with the aim of making it easier to write correct,
+modular and efficient parallel, asynchronous and concurrent programs.  The
+design of Hopac draws inspiration from languages such as
+[Concurrent ML](http://cml.cs.uchicago.edu/) and
+[Cilk](http://en.wikipedia.org/wiki/Cilk).  Similar to Concurrent ML, Hopac
 provides message passing primitives and supports the construction of first-class
 synchronous abstractions.  Parallel jobs (lightweight threads) in Hopac are
-created using techniques similar to the F# Async framework.  Hopac runs parallel
-jobs using a work distributing scheduler in a non-preemptive fashion.
+created using techniques similar to the F# Async framework.  Similar to Cilk,
+Hopac runs parallel jobs using a work distributing scheduler in a non-preemptive
+fashion.
 
 License
 -------
 
 Hopac is available under a
 [MIT-style license](http://en.wikipedia.org/wiki/MIT_License).  See
-[LICENSE.md](LICENSE.md) for details.
+[LICENSE](LICENSE.md) for details.
 
 Download
 --------
@@ -28,15 +30,6 @@ before first release.  Please report any problems you might encounter.
 
 Documentation
 -------------
-
-Hopac provides a programming model that is heavily inspired by
-[John Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.
-The book
-[Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
-is the most comprehensive introduction to Concurrent ML style programming.  The
-[Further Reading](#further-reading) section at the end of this document contains
-links to some articles and blog posts that discuss programming in Concurrent ML
-or languages inspired by it.
 
 The document [Programming in Hopac](Docs/Programming.md) contains some notes and
 examples on programming with Hopac.  The document
@@ -56,6 +49,15 @@ manual is generated from the Hopac.Extra library sources.  There are also some
 [Notes on the Internal Implementation of Hopac](Docs/Internals.md), but that
 document is not meant to be something that a user of the library would need to
 be intimately familiar with.
+
+Hopac provides a programming model that is heavily inspired by
+[John Reppy](http://people.cs.uchicago.edu/~jhr/)'s *Concurrent ML* language.
+The book
+[Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
+is the most comprehensive introduction to Concurrent ML style programming.  The
+[Further Reading](#further-reading) section at the end of this document contains
+links to some articles and blog posts that discuss programming in Concurrent ML
+or languages inspired by it.
 
 Performance
 -----------
