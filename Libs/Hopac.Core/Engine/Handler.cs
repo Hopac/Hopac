@@ -8,39 +8,37 @@ namespace Hopac.Core {
 
   /// <summary>Exception handling continuation.</summary>
   internal abstract class Handler {
-    /// <summary>Never call this method directly, because handlers can be
-    /// null in server jobs!  Use the static DoHandle method instead.</summary>
+    /// <summary>Do not call this directly unless you know that the handler is not null.</summary>
     internal abstract void DoHandle(ref Worker wr, Exception e);
 
+    /// <summary>Do not call this directly unless you know that the handler is not null.</summary>
     internal abstract Proc GetProc();
 
-    internal static Proc GetProc(Handler h) {
-      if (null == h)
+    internal static Proc GetProc(Handler hr) {
+      if (null == hr)
         return null;
       else
-        return h.GetProc();
+        return hr.GetProc();
     }
 
-    internal static void DoHandle(Handler h, ref Worker wr, Exception e) {
-      if (null == h) {
+    internal static void DoHandle(Handler hr, ref Worker wr, Exception e) {
+      if (null == hr) {
         var tlh = wr.Scheduler.TopLevelHandler;
         if (null == tlh) {
           Console.WriteLine("Unhandled exception: {0}", e);
         } else {
-          var uK = new Cont(h);
+          var uK = new Cont();
           wr.Handler = uK;
           tlh.Invoke(e).DoJob(ref wr, uK);
         }
       } else {
-        h.DoHandle(ref wr, e);
+        hr.DoHandle(ref wr, e);
       }
     }
 
     private sealed class Cont : Cont<Unit> {
-      internal Handler hr;
-      internal Cont(Handler hr) { this.hr = hr; }
       internal override Proc GetProc() {
-        return Handler.GetProc(hr);
+        return null;
       }
       internal override void DoHandle(ref Worker wr, Exception e) {
         Console.WriteLine("Top level handler raised: {0}", e);

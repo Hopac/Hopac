@@ -50,7 +50,7 @@ namespace Hopac {
       if (state == Completed)
         Cont.Do(aK, ref wr, this.Value);
       else
-        Handler.DoHandle(aK, ref wr, (this.Readers as Fail<T>).exn);
+        aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
     }
 
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
@@ -75,7 +75,7 @@ namespace Hopac {
       if (state == Completed)
         Cont.Do(aK, ref wr, this.Value);
       else
-        Handler.DoHandle(aK, ref wr, (this.Readers as Fail<T>).exn);
+        aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
     AlreadyPicked:
       return;
     }

@@ -179,8 +179,10 @@ module TopLevel =
 /// For performance reasons Hopac distinguishes between processes and jobs.  A
 /// process is a job that is additionally represented by a `Proc` or process
 /// object.  The process object makes it possible to determine when the process
-/// is known to have been terminated and this allows more robust systems to be
-/// built.
+/// is known to have been terminated and this allows more robust, or fault
+/// tolerant, systems to be built.  However, for many uses of lightweight
+/// threads such a capability is simply not necessary and therefore Hopac allows
+/// you to avoid the overhead completely.
 ///
 /// An example use for process objects would be a system where critical
 /// resources are allocated that need to be released even in case a process
@@ -201,6 +203,12 @@ module Proc =
   /// process object only when the current job has been created as a process
   /// using `Proc.start` or `Proc.queue`.  A simple job created with
   /// `Job.start`, for example, will result in a `null`.
+  ///
+  /// Note that this is an `O(n)` operation where `n` is the number of
+  /// continuation or stack frames of the current job.  In most cases this
+  /// should not be an issue, but if you need to repeatedly access the process
+  /// object of the current job it may be advantageous to cache it in a local
+  /// variable.
   val inline self: unit -> Job<Proc>
 
   /// Selective operations on processes.
@@ -283,12 +291,14 @@ module Job =
   /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job.  The result, if any, of the concurrent job is ignored.
   /// Use `Promise.start` if you need to be able to get the result.  Use
-  /// `Job.server` if the job never returns normally.  See also: `Job.queue`.
+  /// `Job.server` if the job never returns normally.  See also: `Job.queue`,
+  /// `Proc.start`.
   val start: Job<_> -> Job<unit>
 
   /// Creates a job that schedules the given job to be run as a separate
   /// concurrent job.  The result, if any, of the concurrent job is ignored.
-  /// Use `Promise.queue` if you need to be able to get the result.
+  /// Use `Promise.queue` if you need to be able to get the result.  See also:
+  /// `Proc.queue`.
   ///
   /// The difference between `start` and `queue` is which job, the current job,
   /// or the new job, is immediately given control.  `start` queues the current
@@ -310,7 +320,7 @@ module Job =
   /// a separate job in case the started job does not return succesfully or
   /// raise an exception and is garbage collected.  The result, if any, of the
   /// concurrent job is ignored, but if the job either returns normally or
-  /// raises an exception, the finalizer job is not started.
+  /// raises an exception, the finalizer job is not started.  See also: `Proc`.
   ///
   /// When a job in Hopac is aborted (see `abort`) or is, for example, blocked
   /// waiting for communication on a channel that is no longer reachable, the
@@ -318,7 +328,8 @@ module Job =
   /// finalizer and can be garbage collected safely in case they are blocked
   /// indefinitely or aborted.  However, in some cases it may be useful to be
   /// able to detect, for debugging reasons, or handle, for fault tolerance, a
-  /// case where a job is garbage collected.
+  /// case where a job is garbage collected.  For fault tolerance the `Proc`
+  /// abstraction may be preferable.
   val startWithFinalizer: Job<unit> -> Job<_> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////

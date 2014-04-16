@@ -33,7 +33,7 @@ namespace Hopac {
       if (state == HasValue)
         Cont.Do(aK, ref wr, this.Value);
       else
-        Handler.DoHandle(aK, ref wr, (this.Readers as Fail<T>).exn);
+        aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
     }
 
     internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
@@ -58,7 +58,7 @@ namespace Hopac {
       if (state == HasValue)
         Cont.Do(aK, ref wr, this.Value);
       else
-        Handler.DoHandle(aK, ref wr, (this.Readers as Fail<T>).exn);
+        aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
     AlreadyPicked:
       return;
     }
@@ -118,7 +118,7 @@ namespace Hopac {
         return;
 
       IVarFull:
-        Handler.DoHandle(uK, ref wr, new Exception("IVar full"));
+        uK.DoHandle(ref wr, new Exception("IVar full"));
       }
     }
 
@@ -173,7 +173,7 @@ namespace Hopac {
         return;
 
       IVarFull:
-        Handler.DoHandle(uK, ref wr, new Exception("IVar full"));
+        uK.DoHandle(ref wr, new Exception("IVar full"));
       }
     }
   }

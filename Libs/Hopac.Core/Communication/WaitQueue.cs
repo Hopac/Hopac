@@ -28,11 +28,11 @@ namespace Hopac.Core {
     }
 
     internal override Proc GetProc() {
-      return Handler.GetProc(Cont);
+      return this.Cont.GetProc();
     }
 
     internal override void DoHandle(ref Worker wr, Exception e) {
-      Handler.DoHandle(this.Cont, ref wr, e);
+      this.Cont.DoHandle(ref wr, e);
     }
 
     internal override void DoWork(ref Worker wr) {

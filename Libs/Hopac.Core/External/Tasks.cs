@@ -29,11 +29,11 @@ namespace Hopac.Core {
       }
 
       internal override Proc GetProc() {
-        return Handler.GetProc(aK);
+        return this.aK.GetProc();
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        Handler.DoHandle(aK, ref wr, e);
+        this.aK.DoHandle(ref wr, e);
       }
 
       internal override void DoWork(ref Worker wr) {
@@ -76,18 +76,18 @@ namespace Hopac.Core {
       }
 
       internal override Proc GetProc() {
-        return Handler.GetProc(uK);
+        return this.uK.GetProc();
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        Handler.DoHandle(uK, ref wr, e);
+        this.uK.DoHandle(ref wr, e);
       }
 
       internal override void DoWork(ref Worker wr) {
         if (this.task.Status == TaskStatus.RanToCompletion)
           this.uK.DoWork(ref wr);
         else
-          Handler.DoHandle(this.uK, ref wr, this.task.Exception);
+          this.uK.DoHandle(ref wr, this.task.Exception);
       }
 
       public void Ready() {

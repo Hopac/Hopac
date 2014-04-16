@@ -150,7 +150,7 @@ namespace Hopac {
         return;
 
       MVarFull:
-        Handler.DoHandle(uK, ref wr, new Exception("MVar full"));
+        uK.DoHandle(ref wr, new Exception("MVar full"));
       }
     }
   }
