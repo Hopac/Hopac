@@ -48,6 +48,8 @@
     <Compile Include="Misc.fs" />
     <Compile Include="ActorAndHopacModels.fsi" />
     <Compile Include="ActorAndHopacModels.fs" />
+    <Compile Include="FrequencyServer.fsi" />
+    <Compile Include="FrequencyServer.fs" />
     <Compile Include="LockServer.fsi" />
     <Compile Include="LockServer.fs" />
     <Compile Include="Kismet.fs" />
