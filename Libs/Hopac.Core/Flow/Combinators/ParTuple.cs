@@ -16,8 +16,8 @@ namespace Hopac.Core {
       this.abK = abK;
     }
 
-    internal override Proc GetProc() {
-      return this.abK.GetProc();
+    internal override Proc GetProc(ref Worker wr) {
+      return this.abK.GetProc(ref wr);
     }
 
     internal override void DoHandle(ref Worker wr, Exception e) {

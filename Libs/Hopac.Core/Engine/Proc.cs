@@ -86,4 +86,34 @@ namespace Hopac {
       return;
     }
   }
+
+  namespace Core {
+    internal class ProcFinalizer<X> : Cont<X> {
+      private Proc pr;
+      private Scheduler sr;
+      internal ProcFinalizer(Scheduler sr, Proc pr) {
+        this.sr = sr;
+        this.pr = pr;
+      }
+      ~ProcFinalizer() {
+        Worker.RunOnThisThread(this.sr, this);
+      }
+      internal override Proc GetProc(ref Worker wr) {
+        return this.pr;
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        GC.SuppressFinalize(this);
+        this.pr.Terminate(ref wr);
+        Handler.DoHandle(null, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        GC.SuppressFinalize(this);
+        this.pr.Terminate(ref wr);
+      }
+      internal override void DoCont(ref Worker wr, X value) {
+        GC.SuppressFinalize(this);
+        this.pr.Terminate(ref wr);
+      }
+    }
+  }
 }

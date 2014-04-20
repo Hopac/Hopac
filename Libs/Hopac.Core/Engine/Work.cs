@@ -39,7 +39,7 @@ namespace Hopac.Core {
 
   internal sealed class FailWork : Work {
     internal readonly Exception e;
-    internal readonly Handler hr;
+    internal Handler hr;
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal FailWork(Work next, Exception e, Handler hr) {
@@ -54,8 +54,8 @@ namespace Hopac.Core {
       this.hr = hr;
     }
 
-    internal override Proc GetProc() {
-      return Handler.GetProc(hr);
+    internal override Proc GetProc(ref Worker wr) {
+      throw new NotImplementedException();
     }
 
     internal override void DoHandle(ref Worker wr, Exception e) {

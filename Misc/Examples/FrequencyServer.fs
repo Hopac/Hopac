@@ -18,19 +18,15 @@ type Request =
   | Deallocate of Proc * Frequency
 type FrequencyServer = { reqCh: Ch<Request> }
 
-let bindSelf f =
-  Proc.self () >>= function
-   | null -> failwith "FrequencyServer only works with Procs"
-   | self -> f self
-
 let allocate s =
-  bindSelf <| fun self ->
+  Proc.self () >>= fun self ->
   let replyI = ivar ()
   s.reqCh <-+ Allocate (self, replyI) >>.
   replyI
 
 let deallocate s freq =
-  bindSelf <| fun self -> s.reqCh <-- Deallocate (self, freq)
+  Proc.self () >>= fun self ->
+  s.reqCh <-- Deallocate (self, freq)
 
 let create () = Job.delay <| fun () ->
   let s = {reqCh = ch ()}

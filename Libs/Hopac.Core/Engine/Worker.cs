@@ -204,8 +204,8 @@ namespace Hopac.Core {
     }
 
     internal sealed class IdleCont : Cont<int> {
-      internal override Proc GetProc() {
-        return null;
+      internal override Proc GetProc(ref Worker wr) {
+        throw new NotImplementedException();  // XXX: Idle job is not a process?
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {

@@ -176,18 +176,17 @@ module TopLevel =
 #if DOC
 /// Represents a joinable lightweight thread of execution.
 ///
-/// For performance reasons Hopac distinguishes between processes and jobs.  A
-/// process is a job that is additionally represented by a `Proc` or process
-/// object.  The process object makes it possible to determine when the process
-/// is known to have been terminated and this allows more robust, or fault
-/// tolerant, systems to be built.  However, for many uses of lightweight
-/// threads such a capability is simply not necessary and therefore Hopac allows
-/// you to avoid the overhead completely.
+/// A process object makes it possible to determine when a process is known to
+/// have been terminated.  An example use for process objects would be a system
+/// where critical resources are managed by a server process and those critical
+/// resources need to be released even in case a client process suffers from a
+/// fault and is terminated before properly releasing resources.
 ///
-/// An example use for process objects would be a system where critical
-/// resources are allocated that need to be released even in case a process
-/// suffers from a fault and is terminated before properly releasing the
-/// resource.
+/// For performance reasons, Hopac creates process objects lazily for simple
+/// jobs, because for many uses of lightweight threads such a capability is
+/// simply not necessary.  However, when process objects are known to be needed,
+/// it is better to allocate them eagerly by directly starting processes using
+/// `Proc.start` or `Proc.queue`.
 type Proc :> Alt<unit>
 #endif
 
@@ -199,10 +198,7 @@ module Proc =
   /// Creates a job that queues a new process.  See also: `start`, `Job.queue`.
   val queue: Job<_> -> Job<Proc>
 
-  /// Returns a job that returns the current process.  The result is a valid
-  /// process object only when the current job has been created as a process
-  /// using `Proc.start` or `Proc.queue`.  A simple job created with
-  /// `Job.start`, for example, will result in a `null`.
+  /// Returns a job that returns the current process.
   ///
   /// Note that this is an `O(n)` operation where `n` is the number of
   /// continuation or stack frames of the current job.  In most cases this

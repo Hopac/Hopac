@@ -183,7 +183,7 @@ namespace Hopac {
   internal class KillException : Exception { }
 
   internal class AbortWork : Work {
-    internal override Proc GetProc() {
+    internal override Proc GetProc(ref Worker wr) {
       throw new KillException();
     }
 

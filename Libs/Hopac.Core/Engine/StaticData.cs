@@ -41,7 +41,7 @@ namespace Hopac.Core {
 
     private sealed class GetProc : Job<Proc> {
       internal override void DoJob(ref Worker wr, Cont<Proc> pK) {
-        Cont.Do(pK, ref wr, pK.GetProc());
+        Cont.Do(pK, ref wr, pK.GetProc(ref wr));
       }
     }
   }

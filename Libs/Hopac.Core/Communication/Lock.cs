@@ -94,7 +94,7 @@ namespace Hopac {
       private sealed class GotIt : Work {
         private readonly Lock l;
         private readonly FSharpFunc<Unit, T> tF;
-        private readonly Cont<T> tK;
+        private Cont<T> tK;
 
         [MethodImpl(AggressiveInlining.Flag)]
         internal GotIt(Lock l, FSharpFunc<Unit, T> tF, Cont<T> tK) {
@@ -103,8 +103,8 @@ namespace Hopac {
           this.tK = tK;
         }
 
-        internal override Proc GetProc() {
-          return Handler.GetProc(tK);
+        internal override Proc GetProc(ref Worker wr) {
+          return Handler.GetProc(ref wr, ref tK);
         }
 
         internal override void DoHandle(ref Worker wr, Exception e) {
@@ -165,7 +165,7 @@ namespace Hopac {
       }
 
       private sealed class GotIt : Work {
-        private readonly Cont tKPrime;
+        private Cont<T> tKPrime;
         private readonly Job<T> tJ;
 
         [MethodImpl(AggressiveInlining.Flag)]
@@ -174,8 +174,8 @@ namespace Hopac {
           this.tJ = tJ;
         }
 
-        internal override Proc GetProc() {
-          return Handler.GetProc(tKPrime);
+        internal override Proc GetProc(ref Worker wr) {
+          return Handler.GetProc(ref wr, ref tKPrime);
         }
 
         internal override void DoHandle(ref Worker wr, Exception e) {
@@ -189,7 +189,7 @@ namespace Hopac {
 
       private sealed class Cont : Cont<T> {
         private readonly Lock l;
-        private readonly Cont<T> tK;
+        private Cont<T> tK;
 
         [MethodImpl(AggressiveInlining.Flag)]
         internal Cont(Lock l, Cont<T> tK) {
@@ -197,8 +197,8 @@ namespace Hopac {
           this.tK = tK;
         }
 
-        internal override Proc GetProc() {
-          return Handler.GetProc(tK);
+        internal override Proc GetProc(ref Worker wr) {
+          return Handler.GetProc(ref wr, ref tK);
         }
 
         internal override void DoHandle(ref Worker wr, Exception e) {

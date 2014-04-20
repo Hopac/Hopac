@@ -1,10 +1,11 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
 namespace Hopac {
-  using Hopac.Core;
+  using Microsoft.FSharp.Core;
   using System;
   using System.Runtime.CompilerServices;
   using System.Threading;
+  using Hopac.Core;
 
   /// <summary>Represents a promise to produce a result at some point in the
   /// future.</summary>
@@ -82,14 +83,15 @@ namespace Hopac {
 
     internal sealed class PrCont : Cont<T> {
       private readonly Promise<T> pr;
+      private Cont<Unit> procFin;
 
       [MethodImpl(AggressiveInlining.Flag)]
       internal PrCont(Promise<T> pr) {
         this.pr = pr;
       }
 
-      internal override Proc GetProc() {
-        return null;  // XXX Should we support spawning a promise?
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref this.procFin);
       }
 
       [MethodImpl(AggressiveInlining.Flag)]

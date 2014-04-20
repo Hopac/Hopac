@@ -25,7 +25,7 @@ namespace Hopac.Core {
       this.exn = exn;
     }
 
-    internal override Proc GetProc() {
+    internal override Proc GetProc(ref Worker wr) {
       throw new NotImplementedException();
     }
 
@@ -65,7 +65,7 @@ namespace Hopac.Core {
   }
 
   internal sealed class FailCont<T> : Cont<T> {
-    private readonly Handler hr;
+    private Handler hr;
     private readonly Exception e;
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -74,8 +74,8 @@ namespace Hopac.Core {
       this.e = e;
     }
 
-    internal override Proc GetProc() {
-      return Handler.GetProc(hr);
+    internal override Proc GetProc(ref Worker wr) {
+      throw new NotImplementedException();
     }
 
     internal override void DoHandle(ref Worker wr, Exception e) {
