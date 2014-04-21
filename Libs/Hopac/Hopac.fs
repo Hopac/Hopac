@@ -254,6 +254,23 @@ module Promise =
          wr.Handler <- prc
          xJ.DoJob (&wr, prc)})
        Cont.Do (xPrK, &wr, pr)}
+  let startAsAlt (xJ: Job<'x>) =
+    {new Job<Alt<'x>> () with
+      override self.DoJob (wr, xPrK) =
+       let pr = Promise<'x> ()
+       xPrK.Value <- pr
+       Worker.Push (&wr, xPrK)
+       Job.Do (xJ, &wr, Promise<'x>.PrCont (pr))}
+  let queueAsAlt (xJ: Job<'x>) =
+    {new Job<Alt<'x>> () with
+      override self.DoJob (wr, xPrK) =
+       let pr = Promise<'x> ()
+       Worker.PushNew (&wr, {new WorkHandler () with
+        override w'.DoWork (wr) =
+         let prc = Promise<'x>.PrCont (pr)
+         wr.Handler <- prc
+         xJ.DoJob (&wr, prc)})
+       Cont.Do (xPrK, &wr, upcast pr)}
   module Now =
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)

@@ -1243,6 +1243,12 @@ module Promise =
   /// also: `start`, `Job.queue`.
   val queue: Job<'x> -> Job<Promise<'x>>
 
+  /// Same as `Promise.start`, but returns the promise as an `Alt<'x>`.
+  val startAsAlt: Job<'x> -> Job<Alt<'x>>
+
+  /// Same as `Promise.queue`, but returns the promise as an `Alt<'x>`.
+  val queueAsAlt: Job<'x> -> Job<Alt<'x>>
+
   /// Creates a job that waits for the promise to be computed and then returns
   /// its value (or fails with exception).
   val inline read: Promise<'x> -> Job<'x>
