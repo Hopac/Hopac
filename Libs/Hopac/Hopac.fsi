@@ -340,12 +340,12 @@ module Job =
   /// object).  However, it is also the case that there is no need to wrap every
   /// constructed job with `delay` and avoiding unnecessary `delay` operations
   /// can improve performance.
-  val delay: (unit -> Job<'x>) -> Job<'x>
+  val inline delay: (unit -> Job<'x>) -> Job<'x>
 
   /// Creates a job that calls the given function with the given value to build
   /// a job that will then be run.  `delayWith x2yJ x` is equivalent to `result
   /// x >>= x2yJ`.
-  val delayWith: ('x -> Job<'y>) -> 'x -> Job<'y>
+  val inline delayWith: ('x -> Job<'y>) -> 'x -> Job<'y>
 
   /// Creates a job that calls the given function with the given value to
   /// compute the result of the job.  `lift x2y x` is equivalent to `result x
@@ -392,7 +392,7 @@ module Job =
     /// Creates a job that first runs the given job and then passes the result
     /// of that job to the given function to build another job which will then
     /// be run.
-    val (>>=): Job<'x> -> ('x -> Job<'y>) -> Job<'y>
+    val inline (>>=): Job<'x> -> ('x -> Job<'y>) -> Job<'y>
 
     /// Creates a job that runs the given two jobs and returns the result of the
     /// second job.  `xJ >>. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
@@ -405,7 +405,7 @@ module Job =
     /// Creates a job that runs the given job and maps the result of the job
     /// with the given function.  `xJ |>> x2y` is an optimized version of `xJ
     /// >>= (x2y >> result)`.
-    val (|>>): Job<'x> -> ('x -> 'y) -> Job<'y>
+    val inline (|>>): Job<'x> -> ('x -> 'y) -> Job<'y>
 
     /// Creates a job that runs the given job and then returns the given value.
     /// `xJ >>% y` is an optimized version of `xJ >>= fun _ -> result y`.

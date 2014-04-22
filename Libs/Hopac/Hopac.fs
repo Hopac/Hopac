@@ -591,15 +591,15 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  let delay (u2xJ: unit -> Job<'x>) =
-    {new Job<'x> () with
-      override xJ'.DoJob (wr, xK) =
-       (u2xJ ()).DoJob (&wr, xK)}
+  let inline delay (u2xJ: unit -> Job<'x>) =
+    {new JobDelay<'x> () with
+      override xJ'.Do () =
+       u2xJ ()} :> Job<_>
 
-  let delayWith (x2yJ: 'x -> Job<'y>) (x: 'x) =
-    {new Job<'y> () with
-      override yJ'.DoJob (wr, yK) =
-       (x2yJ x).DoJob (&wr, yK)}
+  let inline delayWith (x2yJ: 'x -> Job<'y>) (x: 'x) =
+    {new JobDelay<'y> () with
+      override yJ'.Do () =
+       x2yJ x} :> Job<_>
 
   let lift (x2y: 'x -> 'y) (x: 'x) =
     {new Job<'y> () with
@@ -718,10 +718,9 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   module Infixes =
-    let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) =
-      {new Job<'y> () with
-        override yJ'.DoJob (wr, yK) =
-         xJ.DoJob (&wr, BindCont (x2yJ, yK))}
+    let inline (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) =
+      {new JobBind<'x, 'y> (xJ) with
+        override yJ'.Do (x) = x2yJ x} :> Job<_>
 
     let (>>.) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'y> () with
@@ -733,10 +732,9 @@ module Job =
         override xJ'.DoJob (wr, xK) =
          xJ.DoJob (&wr, SkipCont (xK, yJ))}
 
-    let (|>>) (xJ: Job<'x>) (x2y: 'x -> 'y) =
-      {new Job<'y> () with
-        override yJ'.DoJob (wr, yK) =
-         xJ.DoJob (&wr, MapCont (x2y, yK))}
+    let inline (|>>) (xJ: Job<'x>) (x2y: 'x -> 'y) =
+      {new JobMap<'x, 'y> (xJ) with
+        override yJ'.Do (x) = x2y x} :> Job<_>
 
     let (>>%) (xJ: Job<'x>) (y: 'y) =
       {new Job<'y> () with
