@@ -73,11 +73,11 @@ module HopacDyn =
     replyIv
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
-    let c = {reqCh = ch ()}
+    let reqCh = ch ()
     Job.iterateServer x (fun x ->
-      c.reqCh >>= function
+      reqCh >>= function
        | Get replyIv-> replyIv <-= x >>% x
-       | Put x -> Job.result x) >>% c
+       | Put x -> Job.result x) >>% {reqCh = reqCh}
 
   let run nCells nJobs nUpdates =
     printf "HopacDyn: "
@@ -198,6 +198,7 @@ let tick () =
   for i=1 to 5 do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
+    GC.WaitForPendingFinalizers ()
     Threading.Thread.Sleep 50
 
 let test doAs m n p =

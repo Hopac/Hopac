@@ -185,6 +185,32 @@ module Task =
 
 /////////////////////////////////////////////////////////////////////////
 
+module FibNck =
+  open Hopac.Alt.Infixes
+
+  let rec fibWithNack (n: int64) (cancel: Alt<int64>) : Job<int64> =
+    if n < 2L then
+      Job.result n
+    else
+      Promise.queue (fibWithNack (n-2L) cancel) >>= fun xP ->
+      Promise.start (fibWithNack (n-1L) cancel) >>= fun yP ->
+      (xP >>=? fun x -> (yP |>>? fun y -> x+y) <|> cancel :> Job<_>) <|>
+      (yP >>=? fun y -> (xP |>>? fun x -> x+y) <|> cancel :> Job<_>) <|>
+      cancel :> Job<_>
+
+  let fib n =
+    Alt.withNack <| fun nack ->
+    Promise.startAsAlt (fibWithNack n (nack >>%? 0L))
+
+  let run n =
+    printf "FibNck: "
+    let timer = Stopwatch.StartNew ()
+    let r = run (fib n)
+    let d = timer.Elapsed
+    printf "%d - %fs\n" r d.TotalSeconds
+
+/////////////////////////////////////////////////////////////////////////
+
 let cleanup () =
   for i=1 to 5 do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
@@ -198,6 +224,7 @@ do for n in [10L; 20L; 30L; 40L] do
      ParallelPro.run n ; cleanup ()
      SerialOpt.run n ; cleanup ()
      SerialJob.run n ; cleanup ()
+     FibNck.run n ; cleanup ()
      SerAsc.run n ; cleanup ()
      Task.run n ; cleanup ()
      if n <= 30L then
