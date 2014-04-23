@@ -328,25 +328,9 @@ module Alt =
       override xA'.TryAlt (wr, i, xK, xE) =
        Pick.ClaimAndDoJob (xE.pk, &wr, xAJ, GuardCont (i, xK, xE))}
 
-  let delay (u2xA: unit -> Alt<'x>) =
-    {new Alt<'x> () with
-      override xA'.DoJob (wr, xK) = (u2xA ()).DoJob (&wr, xK)
-      override xA'.TryAlt (wr, i, xK, xE) =
-       let pk = xE.pk
-       if 0 = Pick.Claim pk then
-         let mutable e = null
-         let mutable xA = null
-         try
-           xA <- u2xA ()
-         with exn ->
-           e <- exn
-         match xA with
-          | null ->
-            Pick.PickClaimed pk
-            Handler.DoHandle (xK, &wr, e)
-          | xA ->
-            Pick.Unclaim pk
-            xA.TryAlt (&wr, i, xK, xE)}
+  let inline delay (u2xA: unit -> Alt<'x>) =
+    {new AltDelay<'x> () with
+      override xA'.Do () = u2xA ()} :> Alt<_>
 
   let inline pick (xA: Alt<'x>) = xA :> Job<'x>
      
@@ -405,19 +389,13 @@ module Alt =
           override xE'.TryElse (wr, i) =
            xA2.TryAlt (&wr, i, xK, xE)})}
  
-    let (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
-      {new Alt<'y> () with
-        override yA'.DoJob (wr, yK) =
-         xA.DoJob (&wr, MapCont (x2y, yK))
-        override yA'.TryAlt (wr, i, yK, yE) =
-         xA.TryAlt (&wr, i, MapCont (x2y, yK), yE)}
+    let inline (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
+      {new AltMap<'x, 'y> (xA) with
+        override yA'.Do (x) = x2y x} :> Alt<_>
 
-    let (>>=?) (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) =
-      {new Alt<'y> () with
-        override yA'.DoJob (wr, yK) =
-         xA.DoJob (&wr, BindCont (x2yJ, yK))
-        override yA'.TryAlt (wr, i, yK, yE) =
-         xA.TryAlt (&wr, i, BindCont (x2yJ, yK), yE)}
+    let inline (>>=?) (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) =
+      {new AltBind<'x, 'y> (xA) with
+        override yA'.Do (x) = x2yJ x} :> Alt<_>
 
     let (>>%?) (xA: Alt<'x>) (y: 'y) =
       {new Alt<'y> () with

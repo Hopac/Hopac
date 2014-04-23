@@ -778,7 +778,7 @@ module Alt =
   ///
   ///> let delay u2xA = guard (Job.thunk u2xA)
 #endif
-  val delay: (unit -> Alt<'x>) -> Alt<'x>
+  val inline delay: (unit -> Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job constructed with a negative acknowledgment alternative.  See
@@ -846,7 +846,7 @@ module Alt =
     /// operation, alternatives do not form a monad (with the `always`
     /// alternative constructor).  So called Transactional Events do form a
     /// monad, but require a more complex synchronization protocol.
-    val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+    val inline (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
 
     /// `xA >>.? yJ` is equivalent to `xA >>=? fun _ -> yJ`.
     val (>>.?): Alt<_> -> Job<'y> -> Alt<'y>
@@ -855,7 +855,7 @@ module Alt =
     val (.>>?): Alt<'x> -> Job<_> -> Alt<'x>
 
     /// `xA |>>? x2y` is equivalent to `xA >>=? (x2y >> result)`.
-    val (|>>?): Alt<'x> -> ('x -> 'y) -> Alt<'y>
+    val inline (|>>?): Alt<'x> -> ('x -> 'y) -> Alt<'y>
 
     /// `xA >>%? y` is equivalent to `xA >>=? fun _ -> result y`.
     val (>>%?): Alt<'x> -> 'y -> Alt<'y>
