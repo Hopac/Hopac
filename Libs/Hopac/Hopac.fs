@@ -288,7 +288,7 @@ module Alt =
   let never () =
     {new Alt<'x> () with
       override xA'.DoJob (wr, _) = ()
-      override xA'.TryAlt (wr, i, pk, xK, xE) = xE.TryElse (&wr, i, pk, xK)}
+      override xA'.TryAlt (wr, i, xK, xE) = xE.TryElse (&wr, i)}
 
   let inline zero () = StaticData.zero
 
@@ -304,33 +304,35 @@ module Alt =
   type GuardCont<'x> =
    inherit Cont<Alt<'x>>
    val i: int
-   val pk: Pick
    val mutable xK: Cont<'x>
-   val xE: Else<'x>
-   new (i, pk, xK, xE) = {inherit Cont<Alt<'x>> (); i=i; pk=pk; xK=xK; xE=xE}
+   val xE: Else
+   new (i, xK, xE) = {inherit Cont<Alt<'x>> (); i=i; xK=xK; xE=xE}
    override xAK'.GetProc (wr) =
     Handler.GetProc (&wr, &xAK'.xK)
    override xAK'.DoHandle (wr, e) =
-    Pick.PickClaimed xAK'.pk
+    Pick.PickClaimed xAK'.xE.pk
     Handler.DoHandle (xAK'.xK, &wr, e)
    override xAK'.DoWork (wr) =
-    Pick.Unclaim xAK'.pk
-    xAK'.Value.TryAlt (&wr, xAK'.i, xAK'.pk, xAK'.xK, xAK'.xE)
+    let xE = xAK'.xE
+    Pick.Unclaim xE.pk
+    xAK'.Value.TryAlt (&wr, xAK'.i, xAK'.xK, xE)
    override xAK'.DoCont (wr, xA) =
-    Pick.Unclaim xAK'.pk
-    xA.TryAlt (&wr, xAK'.i, xAK'.pk, xAK'.xK, xAK'.xE)
+    let xE = xAK'.xE
+    Pick.Unclaim xE.pk
+    xA.TryAlt (&wr, xAK'.i, xAK'.xK, xE)
 
   let guard (xAJ: Job<Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        xAJ.DoJob (&wr, GuardJobCont xK)
-      override xA'.TryAlt (wr, i, pk, xK, xE) =
-       Pick.ClaimAndDoJob (pk, &wr, xAJ, GuardCont (i, pk, xK, xE))}
+      override xA'.TryAlt (wr, i, xK, xE) =
+       Pick.ClaimAndDoJob (xE.pk, &wr, xAJ, GuardCont (i, xK, xE))}
 
   let delay (u2xA: unit -> Alt<'x>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) = (u2xA ()).DoJob (&wr, xK)
-      override xA'.TryAlt (wr, i, pk, xK, xE) =
+      override xA'.TryAlt (wr, i, xK, xE) =
+       let pk = xE.pk
        if 0 = Pick.Claim pk then
          let mutable e = null
          let mutable xA = null
@@ -344,130 +346,129 @@ module Alt =
             Handler.DoHandle (xK, &wr, e)
           | xA ->
             Pick.Unclaim pk
-            xA.TryAlt (&wr, i, pk, xK, xE)}
+            xA.TryAlt (&wr, i, xK, xE)}
 
   let inline pick (xA: Alt<'x>) = xA :> Job<'x>
      
-  type WithNackElse<'x> (nk: Nack, xE: Else<'x>) =
-    inherit Else<'x> ()
-    override xE'.TryElse (wr, i, pk, xK) =
+  type WithNackElse (nk: Nack, xE: Else) =
+    inherit Else (xE.pk)
+    override xE'.TryElse (wr, i) =
       nk.I1 <- i
-      xE.TryElse (&wr, i, pk, xK)
+      xE.TryElse (&wr, i)
 
   type WithNackCont<'x> =
     inherit Cont<Alt<'x>>
-    val pk: Pick
     val mutable xK: Cont<'x>
-    val xE: Else<'x>
-    new (pk, xK, xE) = {inherit Cont<Alt<'x>> (); pk=pk; xK=xK; xE=xE}
+    val xE: Else
+    new (xK, xE) = {inherit Cont<Alt<'x>> (); xK=xK; xE=xE}
     override xAK'.GetProc (wr) =
      Handler.GetProc (&wr, &xAK'.xK)
     override xAK'.DoHandle (wr, e) =
-     Pick.PickClaimed xAK'.pk
+     Pick.PickClaimed xAK'.xE.pk
      Handler.DoHandle (xAK'.xK, &wr, e)
     override xAK'.DoWork (wr) =
-     let pk = xAK'.pk
+     let xE = xAK'.xE
+     let pk = xE.pk
      let nk = pk.Nacks
      Pick.Unclaim pk
-     xAK'.Value.TryAlt (&wr, nk.I0, pk, xAK'.xK, WithNackElse (nk, xAK'.xE))
+     xAK'.Value.TryAlt (&wr, nk.I0, xAK'.xK, WithNackElse (nk, xE))
     override xAK'.DoCont (wr, xA) =
-     let pk = xAK'.pk
+     let xE = xAK'.xE
+     let pk = xE.pk
      let nk = pk.Nacks
      Pick.Unclaim pk
-     xA.TryAlt (&wr, nk.I0, pk, xAK'.xK, WithNackElse (nk, xAK'.xE))
+     xA.TryAlt (&wr, nk.I0, xAK'.xK, WithNackElse (nk, xE))
 
   let withNack (nack2xAJ: Alt<unit> -> Job<Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        (nack2xAJ StaticData.zero).DoJob (&wr, GuardJobCont xK)
-      override xA'.TryAlt (wr, i, pk, xK, xE) =
-       match Pick.AddNack (pk, i) with
+      override xA'.TryAlt (wr, i, xK, xE) =
+       match Pick.AddNack (xE.pk, i) with
         | null -> ()
-        | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (pk, xK, xE))}
+        | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (xK, xE))}
 
   module Infixes =
     let (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
-         xA1.TryAlt (&wr, 0, Pick (), xK, {new Else_State<'x, _> (xA2) with
-          override xE'.TryElse (wr, i, pk, xK) =
+         let pk = Pick ()
+         xA1.TryAlt (&wr, 0, xK, {new Else_State<_> (pk, xA2) with
+          override xE'.TryElse (wr, i) =
            match xE'.State with
             | null -> ()
             | xA2 ->
               xE'.State <- null
-              xA2.TryAlt (&wr, i, pk, xK, xE')})
-        override xA'.TryAlt (wr, i, pk, xK, xE) =
-         xA1.TryAlt (&wr, i, pk, xK, {new Else<'x> () with
-          override xE'.TryElse (wr, i, pk, xK) =
-           xA2.TryAlt (&wr, i, pk, xK, xE)})}
-
-    type MapElse<'x, 'y> (yK: Cont<'y>, yE: Else<'y>) =
-      inherit Else<'x> ()
-      override xE'.TryElse (wr, i, pk, _) = yE.TryElse (&wr, i, pk, yK)
+              xA2.TryAlt (&wr, i, xK, xE')})
+        override xA'.TryAlt (wr, i, xK, xE) =
+         xA1.TryAlt (&wr, i, xK, {new Else (xE.pk) with
+          override xE'.TryElse (wr, i) =
+           xA2.TryAlt (&wr, i, xK, xE)})}
  
     let (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, MapCont (x2y, yK))
-        override yA'.TryAlt (wr, i, pk, yK, yE) =
-         xA.TryAlt (&wr, i, pk, MapCont (x2y, yK), MapElse (yK, yE))}
+        override yA'.TryAlt (wr, i, yK, yE) =
+         xA.TryAlt (&wr, i, MapCont (x2y, yK), yE)}
 
     let (>>=?) (xA: Alt<'x>) (x2yJ: 'x -> Job<'y>) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, BindCont (x2yJ, yK))
-        override yA'.TryAlt (wr, i, pk, yK, yE) =
-         xA.TryAlt (&wr, i, pk, BindCont (x2yJ, yK), MapElse (yK, yE))}
+        override yA'.TryAlt (wr, i, yK, yE) =
+         xA.TryAlt (&wr, i, BindCont (x2yJ, yK), yE)}
 
     let (>>%?) (xA: Alt<'x>) (y: 'y) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          yK.Value <- y
          xA.DoJob (&wr, DropCont yK)
-        override yA'.TryAlt (wr, i, pk, yK, yE) =
-         xA.TryAlt (&wr, i, pk, ValueCont (y, yK), MapElse<'x, 'y> (yK, yE))}
+        override yA'.TryAlt (wr, i, yK, yE) =
+         xA.TryAlt (&wr, i, ValueCont (y, yK), yE)}
 
     let (>>!?) (xA: Alt<'x>) (e: exn) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, FailCont (yK, e))
-        override yA'.TryAlt (wr, i, pk, yK, yE) =
-         xA.TryAlt (&wr, i, pk, FailCont (yK, e), MapElse<'x, 'y> (yK, yE))}
+        override yA'.TryAlt (wr, i, yK, yE) =
+         xA.TryAlt (&wr, i, FailCont (yK, e), yE)}
 
     let (>>.?) (xA: Alt<'x>) (yJ: Job<'y>) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, SeqCont (yJ, yK))
-        override yA'.TryAlt (wr, i, pk, yK, yE) =
-         xA.TryAlt (&wr, i, pk, SeqCont (yJ, yK), MapElse<'x, 'y> (yK, yE))}
+        override yA'.TryAlt (wr, i, yK, yE) =
+         xA.TryAlt (&wr, i, SeqCont (yJ, yK), yE)}
 
     let (.>>?) (xA: Alt<'x>) (yJ: Job<'y>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
          xA.DoJob (&wr, SkipCont (xK, yJ))
-        override xA'.TryAlt (wr, i, pk, xK, xE) =
-         xA.TryAlt (&wr, i, pk, SkipCont (xK, yJ), xE)}
+        override xA'.TryAlt (wr, i, xK, xE) =
+         xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
 
   let choose (xAs: seq<Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        let xAs = xAs.GetEnumerator ()
        if xAs.MoveNext () then
-         xAs.Current.TryAlt (&wr, 0, Pick (), xK, {new Else<'x> () with
-          override xE'.TryElse (wr, i, pk, xK) =
+         let pk = Pick ()
+         xAs.Current.TryAlt (&wr, 0, xK, {new Else (pk) with
+          override xE'.TryElse (wr, i) =
            if xAs.MoveNext () then
-             xAs.Current.TryAlt (&wr, i, pk, xK, xE')})
-      override xA'.TryAlt (wr, i, pk, xK, xE) =
+             xAs.Current.TryAlt (&wr, i, xK, xE')})
+      override xA'.TryAlt (wr, i, xK, xE) =
        let xAs = xAs.GetEnumerator ()
        if xAs.MoveNext () then
-         xAs.Current.TryAlt (&wr, i, pk, xK, {new Else<'x> () with
-          override xE'.TryElse (wr, i, pk, xK) =
+         xAs.Current.TryAlt (&wr, i, xK, {new Else (xE.pk) with
+          override xE'.TryElse (wr, i) =
            if xAs.MoveNext () then
-             xAs.Current.TryAlt (&wr, i, pk, xK, xE')
+             xAs.Current.TryAlt (&wr, i, xK, xE')
            else
-             xE.TryElse (&wr, i, pk, xK)})
+             xE.TryElse (&wr, i)})
        else
-         xE.TryElse (&wr, i, pk, xK)}
+         xE.TryElse (&wr, i)}
 
   let inline select xAs = choose xAs :> Job<'x>
 
@@ -477,13 +478,13 @@ module Alt =
        let xK = TryInCont (x2yJ, e2yJ, yK)
        wr.Handler <- xK
        xA.DoJob (&wr, xK)
-      override yJ'.TryAlt (wr, i, pk, yK, yE) =
+      override yJ'.TryAlt (wr, i, yK, yE) =
        let xK = TryInCont (x2yJ, e2yJ, yK)
        wr.Handler <- xK
-       xA.TryAlt (&wr, i, pk, xK, {new Else<'x> () with
-        override xE'.TryElse (wr, i, pk, _) =
+       xA.TryAlt (&wr, i, xK, {new Else (yE.pk) with
+        override xE'.TryElse (wr, i) =
          wr.Handler <- yK
-         yE.TryElse (&wr, i, pk, yK)})}
+         yE.TryElse (&wr, i)})}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -1248,10 +1249,10 @@ module Timer =
         override uA'.DoJob (wr, uK) =
          (initGlobalTimer ()).SynchronizedPushTimed
           (WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
-        override uA'.TryAlt (wr, i, pk, uK, uE) =
+        override uA'.TryAlt (wr, i, uK, uE) =
          (initGlobalTimer ()).SynchronizedPushTimed
-          (WorkTimedUnitCont (Environment.TickCount + ms, i, pk, uK))
-         uE.TryElse (&wr, i+1, pk, uK)}
+          (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
+         uE.TryElse (&wr, i+1)}
 
     let sleep (span: TimeSpan) = timeOut span :> Job<unit>
 

@@ -53,8 +53,8 @@ namespace Hopac {
       return;
     }
 
-    internal override void
-      TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<T> xK, Else xE) {
+      var pkSelf = xE.pk;
       this.Lock.Enter();
       var tail = this.Givers;
       if (null == tail) goto TryTaker;
@@ -132,7 +132,7 @@ namespace Hopac {
     TryTaker:
       WaitQueue.AddTaker(ref this.Takers, i, pkSelf, xK);
       this.Lock.Exit();
-      xE.TryElse(ref wr, i + 1, pkSelf, xK);
+      xE.TryElse(ref wr, i + 1);
       return;
 
     SelfAlreadyPicked:
@@ -248,8 +248,8 @@ namespace Hopac {
         return;
       }
 
-      internal override void
-        TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
+      internal override void TryAlt(ref Worker wr, int i, Cont<Unit> uK, Else uE) {
+        var pkSelf = uE.pk;
         var ch = this.Ch;
         ch.Lock.Enter();
         var tail = ch.Takers;
@@ -307,7 +307,7 @@ namespace Hopac {
       TryGiver:
         WaitQueue.AddGiver(ref ch.Givers, this.X, i, pkSelf, uK);
         ch.Lock.Exit();
-        uE.TryElse(ref wr, i + 1, pkSelf, uK);
+        uE.TryElse(ref wr, i + 1);
         return;
 
       SelfAlreadyPicked:

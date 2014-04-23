@@ -62,7 +62,8 @@ namespace Hopac {
       Work.Do(uK, ref wr);
     }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pk, Cont<Unit> uK, Else<Unit> uE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<Unit> uK, Else uE) {
+      var pk = uE.pk;
     Spin:
       var state = this.State;
       if (state > Running) goto TryPick;
@@ -71,7 +72,7 @@ namespace Hopac {
 
       WaitQueue.AddTaker(ref this.Joiners, i, pk, uK);
       this.State = Running;
-      uE.TryElse(ref wr, i + 1, pk, uK);
+      uE.TryElse(ref wr, i + 1);
       return;
 
     TryPick:

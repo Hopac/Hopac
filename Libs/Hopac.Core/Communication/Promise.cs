@@ -54,7 +54,8 @@ namespace Hopac {
         aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
     }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<T> aK, Else aE) {
+      var pkSelf = aE.pk;
     Spin:
       var state = this.State;
       if (state < Running) goto Completed;
@@ -63,7 +64,7 @@ namespace Hopac {
 
       WaitQueue.AddTaker(ref this.Readers, i, pkSelf, aK);
       this.State = Running;
-      aE.TryElse(ref wr, i + 1, pkSelf, aK);
+      aE.TryElse(ref wr, i + 1);
       return;
 
     Completed:

@@ -51,7 +51,8 @@ namespace Hopac {
       this.State = Demand;
     }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<T> aK, Else aE) {
+      var pkSelf = aE.pk;
     Spin:
       var state = this.State;
       if (state == Locked) goto Spin;
@@ -79,7 +80,7 @@ namespace Hopac {
     EmptyOrDemand:
       WaitQueue.AddTaker(ref this.Takers, i, pkSelf, aK);
       this.State = Demand;
-      aE.TryElse(ref wr, i + 1, pkSelf, aK);
+      aE.TryElse(ref wr, i + 1);
       return;
     }
   }

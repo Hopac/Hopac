@@ -34,14 +34,15 @@ namespace Hopac {
       return;
     }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> aK, Else<T> aE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<T> aK, Else aE) {
+      var pkSelf = aE.pk;
       this.Lock.Enter();
 
       if (this.Values.Count > 0) goto GotValue;
 
       WaitQueue.AddTaker(ref this.Takers, i, pkSelf, aK);
       this.Lock.Exit();
-      aE.TryElse(ref wr, i + 1, pkSelf, aK);
+      aE.TryElse(ref wr, i + 1);
       return;
 
     GotValue:

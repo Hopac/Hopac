@@ -18,7 +18,8 @@ namespace Hopac.Core {
       Cont.Do(xK, ref wr, this.value);
     }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<T> xK, Else<T> xE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<T> xK, Else xE) {
+      var pkSelf = xE.pk;
     TryPick:
       var stSelf = Pick.TryPick(pkSelf);
       if (stSelf > 0) goto AlreadyPicked;
@@ -38,7 +39,8 @@ namespace Hopac.Core {
       uK.DoWork(ref wr);
     }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pkSelf, Cont<Unit> uK, Else<Unit> uE) {
+    internal override void TryAlt(ref Worker wr, int i, Cont<Unit> uK, Else uE) {
+      var pkSelf = uE.pk;
     TryPick:
       var stSelf = Pick.TryPick(pkSelf);
       if (stSelf > 0) goto AlreadyPicked;

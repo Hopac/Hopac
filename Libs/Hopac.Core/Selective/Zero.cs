@@ -6,8 +6,8 @@ namespace Hopac.Core {
   internal sealed class Zero : Alt<Unit> {
     internal override void DoJob(ref Worker wr, Cont<Unit> aK) { }
 
-    internal override void TryAlt(ref Worker wr, int i, Pick pk, Cont<Unit> uK, Else<Unit> uE) {
-      uE.TryElse(ref wr, i, pk, uK);
+    internal override void TryAlt(ref Worker wr, int i, Cont<Unit> uK, Else uE) {
+      uE.TryElse(ref wr, i);
     }
   }
 }
