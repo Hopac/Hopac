@@ -7,7 +7,7 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
 
   /// <summary>Represents a continuation of a parallel job.</summary>
-  internal abstract class Cont<T> : Work {
+  public abstract class Cont<T> : Work {
     internal T Value;
 
     internal virtual Pick GetPick(ref int me) {
@@ -16,6 +16,27 @@ namespace Hopac.Core {
 
     /// Use DoCont when NOT invoking continuation from a Job or Alt.
     internal abstract void DoCont(ref Worker wr, T value);
+  }
+
+  ///
+  public abstract class ContIterate<X, Y> : Cont<X> {
+    internal Cont<Y> yK;
+    ///
+    public ContIterate(X x, Cont<Y> yK) { this.Value = x; this.yK = yK; }
+    ///
+    public abstract Job<X> Do(X x);
+    internal override Proc GetProc(ref Worker wr) {
+      return Handler.GetProc(ref wr, ref yK);
+    }
+    internal override void DoHandle(ref Worker wr, Exception e) {
+      Handler.DoHandle(yK, ref wr, e);
+    }
+    internal override void DoWork(ref Worker wr) {
+      Do(this.Value).DoJob(ref wr, this);
+    }
+    internal override void DoCont(ref Worker wr, X x) {
+      Do(x).DoJob(ref wr, this);
+    }
   }
 
   internal sealed class Fail<T> : Cont<T> {

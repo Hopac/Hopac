@@ -7,7 +7,7 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
 
   /// <summary>Exception handling continuation.</summary>
-  internal abstract class Handler {
+  public abstract class Handler {
     /// <summary>Do not call this directly unless you know that the handler is not null.</summary>
     internal abstract void DoHandle(ref Worker wr, Exception e);
 

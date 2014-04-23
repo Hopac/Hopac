@@ -5,7 +5,7 @@ namespace Hopac.Core {
   using System;
 
   /// <summary>Work item.</summary>
-  internal abstract class Work : Handler {
+  public abstract class Work : Handler {
     internal Work Next;
 
     [MethodImpl(AggressiveInlining.Flag)]

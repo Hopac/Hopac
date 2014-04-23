@@ -616,7 +616,7 @@ module Job =
   ///> let rec iterate x x2xJ =
   ///>   x2xJ x >>= fun x -> iterate x x2xJ
 #endif
-  val iterate: 'x -> ('x -> Job<'x>) -> Job<_>
+  val inline iterate: 'x -> ('x -> Job<'x>) -> Job<_>
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -627,7 +627,7 @@ module Job =
   /// Creates a job that starts a separate server job that indefinitely iterates
   /// the given job constructor starting with the given value.  `iterateServer x
   /// x2xJ` is equivalent to `iterate x x2xJ |> server`.
-  val iterateServer: 'x -> ('x -> Job<'x>) -> Job<unit>
+  val inline iterateServer: 'x -> ('x -> Job<'x>) -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
 

@@ -650,18 +650,11 @@ module Job =
        override xK'.DoHandle (wr, e) =
         Handler.DoHandle (xK'.yK, &wr, e)}.DoWork (&wr)}
 
-  type IterateCont<'x, 'y> =
-    inherit Handler<'x, 'y>
-    val x2xJ: 'x -> Job<'x>
-    new (x2xJ, yK) = {inherit Handler<'x, 'y> (yK); x2xJ=x2xJ}
-    override xK'.DoWork (wr) = (xK'.x2xJ xK'.Value).DoJob (&wr, xK')
-    override xK'.DoCont (wr, x) = (xK'.x2xJ x).DoJob (&wr, xK')
-
-  let iterate (x: 'x) (x2xJ: 'x -> Job<'x>) =
-    {new Job<'y> () with
-      override yJ'.DoJob (wr, yK_) = {new IterateCont<'x, 'y> (x2xJ, yK_) with
-       override xK'.DoHandle (wr, e) =
-        Handler.DoHandle (xK'.yK, &wr, e)}.DoCont (&wr, x)}
+  let inline iterate (x: 'x) (x2xJ: 'x -> Job<'x>) =
+    {new JobRun<'y> () with
+      override yJ'.Do (yK) =
+        {new ContIterate<'x, 'y> (x, yK) with
+          override xK'.Do (x) = x2xJ x} :> Work} :> Job<_>
 
   let whileDo (cond: unit -> bool) (xJ: Job<'x>) =
     {new Job<unit> () with
@@ -945,13 +938,11 @@ module Job =
        Worker.PushNew (&wr, ForeverCont<'x, unit> (xJ, null))
        Work.Do (uK, &wr)}
 
-  let iterateServer (x: 'x) (x2xJ: 'x -> Job<'x>) =
-    {new Job<unit> () with
-      override uJ'.DoJob (wr, uK) =
-       let xK' = IterateCont<'x, unit> (x2xJ, null)
-       xK'.Value <- x
-       Worker.PushNew (&wr, xK')
-       Work.Do (uK, &wr)}
+  let inline iterateServer (x: 'x) (x2xJ: 'x -> Job<'x>) =
+    {new JobStart () with
+      override uJ'.Do () =
+       {new ContIterate<'x, unit> (x, null) with
+         override xK'.Do (x) = x2xJ x} :> Work} :> Job<_>
 
   ///////////////////////////////////////////////////////////////////////
 

@@ -95,6 +95,27 @@ namespace Hopac {
     }
 
     ///
+    public abstract class JobRun<X> : Job<X> {
+      ///
+      public abstract Work Do(Cont<X> xK);
+
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Work.Do(Do(xK), ref wr);
+      }
+    }
+
+    ///
+    public abstract class JobStart : Job<Unit> {
+      ///
+      public abstract Work Do();
+
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        Worker.PushNew(ref wr, Do());
+        Work.Do(uK, ref wr);
+      }
+    }
+
+    ///
     public abstract class JobDelay<X> : Job<X> {
       ///
       public abstract Job<X> Do();
