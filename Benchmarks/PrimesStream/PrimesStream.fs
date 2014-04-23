@@ -42,11 +42,15 @@ module Sequential =
     sieve (iterate 2 (fun x -> x+1))
 
   let primes n =
+    let before = GC.GetTotalMemory true
     let result = Array.zeroCreate n
     let mutable stream = sieve
-    for i=0 to n-1 do
+    let last = n-1
+    for i=0 to last do
       result.[i] <- stream.Value
       stream <- force stream.Next
+      if i = last then
+        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
     result
 
   let run n =
@@ -55,6 +59,7 @@ module Sequential =
     let ps = primes n
     let d = timer.Elapsed
     printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
+    d
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -69,12 +74,16 @@ module HopacCh =
          natsIn) >>= sieve
     Job.server (Stream.imp (Stream.iterateFun 2 (fun x -> x+1)) >>= sieve)
 
-  let primes n =
+  let primes n = Job.delay <| fun () ->
+    let before = GC.GetTotalMemory true
     Stream.imp sieve >>= fun primes ->
     let result = Array.zeroCreate n
-    Job.forUpTo 0 (n-1) (fun i ->
+    let last = n-1
+    Job.forUpTo 0 last (fun i ->
       primes |>> fun p ->
-      result.[i] <- p) >>%
+      result.[i] <- p
+      if i = last then
+        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)) >>%
     result
 
   let run n =
@@ -83,6 +92,7 @@ module HopacCh =
     let ps = run (primes n)
     let d = timer.Elapsed
     printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
+    d
     
 /////////////////////////////////////////////////////////////////////////
 
@@ -108,23 +118,27 @@ module Async =
           do out.Reply x
     }
 
-  let sieve () : Stream<int> =
+  let sieve () : Stream<int * Stream<int>> =
     MailboxProcessor.Start <| fun self -> async {
       let rec sieve natsIn = async {
         let! prime = take natsIn
         let! out = self.Receive ()
-        do out.Reply prime
+        do out.Reply (prime, natsIn)
         return! sieve (filter (fun n -> n % prime <> 0) natsIn)
       }
       return! sieve (iterate 2 (fun i -> i+1))
     }
 
   let primes n = async {
-    let sieve = sieve ()
+    let before = GC.GetTotalMemory true
+    use sieve = sieve ()
     let result = Array.zeroCreate n
-    for i=0 to (n-1) do
+    let last = n-1
+    for i=0 to last do
       let! p = take sieve
       result.[i] <- p
+      if i = last then
+        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
     return result
   }
 
@@ -133,22 +147,28 @@ module Async =
     use cancelSource = new System.Threading.CancellationTokenSource ()
     let timer = Stopwatch.StartNew ()
     let ps = Async.RunSynchronously (primes n, -1, cancelSource.Token)
-    let d = timer.Elapsed
     cancelSource.Cancel ()
-    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
+    for (_, s) in ps do
+      (s :> IDisposable).Dispose ()
+    let d = timer.Elapsed
+    printf "%7d - %fs\n" (fst ps.[ps.Length-1]) d.TotalSeconds
+    d
 
 /////////////////////////////////////////////////////////////////////////
 
-let inline cleanup () =
-  for i=1 to 5 do
+let inline cleanup (d: TimeSpan) =
+  let stop = DateTime.UtcNow + d + d + TimeSpan.FromSeconds 2.0
+  while DateTime.UtcNow <= stop do
     Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
+    Threading.Thread.Sleep 250
 
-do let ns = [10; 100; 1000; 10000]
+do let ns = [10; 100; 1000; 2500; 5000; 7500; 10000]
+   cleanup (TimeSpan.FromSeconds 1.0)
    for n in ns do
-     Sequential.run n ; cleanup ()
+     Sequential.run n |> cleanup
    for n in ns do
-     HopacCh.run n ; cleanup ()
+     HopacCh.run n |> cleanup
    for n in ns do
-     Async.run n ; cleanup ()
+     Async.run n |> cleanup

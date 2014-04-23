@@ -15,6 +15,7 @@ module Native =
   let run n m p =
     printf " Native: "
     let timer = Stopwatch.StartNew ()
+    let before = GC.GetTotalMemory true
     let counters = Array.zeroCreate p
     let events =
       Array.init p <| fun i ->
@@ -43,6 +44,7 @@ module Native =
                     myEvent.Set () |> ignore),
                   512)
         thread.Start ()
+    printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
     for i=0 to p-1 do
       events.[i].[0].Set () |> ignore
     for i=0 to p-1 do
@@ -76,12 +78,16 @@ module ChGive =
   let run n m p =
     printf " ChGive: "
     let timer = Stopwatch.StartNew ()
+    let before = GC.GetTotalMemory true
     let i = run << Job.delay <| fun () ->
       let ps = Array.create p n
       let finishCh = ch ()
       ps
-      |> Seq.Con.iterJob (fun n ->
-         mkChain n finishCh >>= fun ch ->
+      |> Seq.Con.mapJob (fun n ->
+         mkChain n finishCh) >>= fun chs ->
+      printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
+      chs
+      |> Seq.Con.iterJob (fun ch ->
          ch <-+ m) >>= fun () ->
       Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p})
     let d = timer.Elapsed
@@ -89,6 +95,7 @@ module ChGive =
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 module ChSend =
+  type State = {name: int; outCh: Ch<int>; finishCh: Ch<int>}
   let proc (name: int) (inCh: Ch<int>) (outCh: Ch<int>) (finishCh: Ch<int>) =
     Job.foreverServer
      (inCh >>= fun n ->
@@ -109,12 +116,16 @@ module ChSend =
   let run n m p =
     printf " ChSend: "
     let timer = Stopwatch.StartNew ()
+    let before = GC.GetTotalMemory true
     let i = run << Job.delay <| fun () ->
       let ps = Array.create p n
       let finishCh = ch ()
       ps
-      |> Seq.Con.iterJob (fun n ->
-         mkChain n finishCh >>= fun ch ->
+      |> Seq.Con.mapJob (fun n ->
+         mkChain n finishCh) >>= fun chs ->
+      printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
+      chs
+      |> Seq.Con.iterJob (fun ch ->
          ch <-+ m) >>= fun () ->
       Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p})
     let d = timer.Elapsed
@@ -145,12 +156,16 @@ module MbSend =
   let run n m p =
     printf " MbSend: "
     let timer = Stopwatch.StartNew ()
+    let before = GC.GetTotalMemory true
     let i = run << Job.delay <| fun () ->
       let ps = Array.create p n
       let finishCh = ch ()
       ps
-      |> Seq.Con.iterJob (fun n ->
-         mkChain n finishCh >>= fun ms ->
+      |> Seq.Con.mapJob (fun n ->
+         mkChain n finishCh) >>= fun chs ->
+      printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
+      chs
+      |> Seq.Con.iterJob (fun ms ->
          ms <<-+ m) >>= fun () ->
       Seq.Con.mapJob (fun _ -> upcast finishCh) (seq {1 .. p})
     let d = timer.Elapsed
@@ -180,6 +195,7 @@ module MPPost =
   let run n m p =
     printf " MPPost: "
     let timer = Stopwatch.StartNew ()
+    let before = GC.GetTotalMemory true
     use allDone = new System.Threading.ManualResetEventSlim ()
     let results = ResizeArray<_>()
     use finishPr = new MbPr<_>(fun inbox ->
@@ -191,6 +207,7 @@ module MPPost =
       })
     finishPr.Start ()
     let chains = Array.init p (fun _ -> mkChain n finishPr)
+    printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
     for i=0 to p-1 do
       chains.[i].[0].Post m
     allDone.Wait ()
