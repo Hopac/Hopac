@@ -9,41 +9,74 @@ open System
 open System.Diagnostics
 open System.Threading.Tasks
 
-let runHopac numOps n =
-  printf "Hopac: "
+let runHopacTCS numOps n =
+  printf "HopacTCS: "
   let timer = Stopwatch.StartNew ()
   let rec loop n = job {
     if 0 < n then
-      let task = Task.Factory.StartNew (fun _ -> n-1)
-      let! n = Task.awaitJob task
+      let tcs = TaskCompletionSource<int> ()
+      let t = tcs.Task
+      do tcs.TrySetResult (n-1) |> ignore
+      let! n = t
       return! loop n
   }
-  do run (Array.create n (loop numOps) |> Job.conIgnore)
+  run (Array.create n (loop numOps) |> Job.conIgnore)
   let d = timer.Elapsed
-  printf "%d*%d %fs - %f ops/s\n"
+  printf "%8d*%-2d %fs - %8.0f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
-let runAsync numOps n =
-  printf "Async: "
+let runHopac numOps n =
+  printf "Hopac:    "
+  let timer = Stopwatch.StartNew ()
+  let rec loop n = job {
+    if 0 < n then
+      let! n = Task.Factory.StartNew (fun _ -> n-1)
+      return! loop n
+  }
+  run (Array.create n (loop numOps) |> Job.conIgnore)
+  let d = timer.Elapsed
+  printf "%8d*%-2d %fs - %8.0f ops/s\n"
+   numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
+
+let runAsyncTCS numOps n =
+  printf "AsyncTCS: "
   let timer = Stopwatch.StartNew ()
   let rec loop n = async {
     if 0 < n then
-      let task = Task.Factory.StartNew (fun _ -> n-1)
-      let! n = Async.AwaitTask task
+      let tcs = TaskCompletionSource<int> ()
+      let t = tcs.Task
+      do tcs.TrySetResult (n-1) |> ignore
+      let! n = Async.AwaitTask t
       return! loop n
   }
-  Async.RunSynchronously (Array.create n (loop numOps) |> Async.Parallel) |> ignore
+  Array.create n (loop numOps)
+  |> Async.Parallel
+  |> Async.RunSynchronously |> ignore
   let d = timer.Elapsed
-  printf "%d*%d %fs - %f ops/s\n"
+  printf "%8d*%-2d %fs - %8.0f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
-do [(100, 1)
-    (1500000, 1)
-    (1000000, 2)
-    (1500000, 4)
-    (1000000, 8)]
-   |> List.iter (fun (numOps, n) ->
+let runAsync numOps n =
+  printf "Async:    "
+  let timer = Stopwatch.StartNew ()
+  let rec loop n = async {
+    if 0 < n then
+      let! n = Task.Factory.StartNew (fun _ -> n-1) |> Async.AwaitTask
+      return! loop n
+  }
+  Array.create n (loop numOps)
+  |> Async.Parallel
+  |> Async.RunSynchronously |> ignore
+  let d = timer.Elapsed
+  printf "%8d*%-2d %fs - %8.0f ops/s\n"
+   numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
+
+do for f in [runHopacTCS; runHopac; runAsyncTCS; runAsync] do
+     for (numOps, n) in [(100, 1)
+                         (1500000, 1)
+                         (1000000, 2)
+                         (1500000, 4)
+                         (1000000, 8)] do
+      f numOps n
       GC.Collect ()
-      runHopac numOps n
-      GC.Collect ()
-      runAsync numOps n)
+      System.Threading.Thread.Sleep 100

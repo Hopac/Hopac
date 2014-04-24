@@ -1468,6 +1468,8 @@ module Extensions =
            cc'.Lock.Enter (&wr, cc')}
 
   ///////////////////////////////////////////////////////////////////////
+
+  open Job.Infixes
   
   type [<Sealed>] Task =
     static member inline awaitJob (xTask: Tasks.Task<'x>) =
@@ -1475,6 +1477,14 @@ module Extensions =
 
     static member inline awaitJob (task: Tasks.Task) =
       AwaitTask (task) :> Job<unit>
+
+    static member inline bindJob (xT: Tasks.Task<'x>, x2yJ: 'x -> Job<'y>) =
+      {new BindTaskWithResult<'x, 'y> (xT) with
+        override yJ'.Do (x) = x2yJ x} :> Job<_>
+
+    static member inline bindJob (uT: Tasks.Task, u2xJ: unit -> Job<'x>) =
+      {new BindTask<'x> (uT) with
+        override xJ'.Do () = u2xJ ()} :> Job<_>
 
     static member startJob (xJ: Job<'x>) =
       {new Job<Tasks.Task<'x>> () with
@@ -1500,8 +1510,14 @@ open Extensions
 open Job.Infixes
 
 type JobBuilder () =
+  member inline job.Bind (xT: Tasks.Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+    Task.bindJob (xT, x2yJ)
+  member inline job.Bind (uT: Tasks.Task, u2xJ: unit -> Job<'x>) : Job<'x> =
+    Task.bindJob (uT, u2xJ)
   member inline job.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xJ >>= x2yJ
+  member inline job.Combine (uT: Tasks.Task, xJ: Job<'x>) : Job<'x> =
+    Task.awaitJob uT >>. xJ
   member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>. xJ
   member inline job.Delay (u2xJ: unit -> Job<'x>) : Job<'x> = Job.delay u2xJ
   member inline job.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =

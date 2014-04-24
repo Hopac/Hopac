@@ -108,7 +108,10 @@ type Void
 #endif
 type JobBuilder =
   new: unit -> JobBuilder
+  member inline Bind: Threading.Tasks.Task<'x> * ('x -> Job<'y>) -> Job<'y>
+  member inline Bind: Threading.Tasks.Task * (unit -> Job<'x>) -> Job<'x>
   member inline Bind: Job<'x> * ('x -> Job<'y>) -> Job<'y>
+  member inline Combine: Threading.Tasks.Task * Job<'x> -> Job<'x>
   member inline Combine: Job<unit> * Job<'x> -> Job<'x>
   member inline Delay: (unit -> Job<'x>) -> Job<'x>
   member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
@@ -1397,6 +1400,12 @@ module Extensions =
     /// Creates a job that waits until the given task finishes.  Note that this
     /// does not start the task.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
+
+    /// `bindJob (xT, x2yJ)` is equivalent to `awaitJob xT >>= x2yJ`.
+    static member inline bindJob: Threading.Tasks.Task<'x> * ('x -> Job<'y>) -> Job<'y>
+
+    /// `bindJob (uT, u2xJ)` is equivalent to `awaitJob uT >>= u2xJ`.
+    static member inline bindJob: Threading.Tasks.Task * (unit -> Job<'x>) -> Job<'x>
 
     /// Creates a job that starts the given job as a separate concurrent job,
     /// whose result can be obtained from the returned task.
