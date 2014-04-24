@@ -1,6 +1,7 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
 namespace Hopac.Core {
+  using System;
   using Microsoft.FSharp.Core;
 
   /// <summary>This class contains some special static data used by the Hopac
@@ -22,6 +23,9 @@ namespace Hopac.Core {
     /// <summary>Stores the single shared proc job.</summary>
     public static Job<Proc> proc;
 
+    /// <summary>Stores the single AsyncCallback delegate.</summary>
+    public static AsyncCallback workAsyncCallback;
+
     /// <summary>This is normally called automatically by Hopac library code.
     /// This is safe to be called from multiple threads.</summary>
     public static void Init() {
@@ -30,6 +34,7 @@ namespace Hopac.Core {
         zero = new Zero();
         scheduler = new GetScheduler();
         proc = new GetProc();
+        workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
       }
     }
 

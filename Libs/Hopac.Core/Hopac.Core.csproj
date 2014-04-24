@@ -61,8 +61,8 @@
     <Compile Include="Engine\Work.cs" />
     <Compile Include="Engine\Worker.cs" />
     <Compile Include="Engine\Timer.cs" />
+    <Compile Include="External\BeginEnd.cs" />
     <Compile Include="External\Tasks.cs" />
-    <Compile Include="External\WorkWithReady.cs" />
     <Compile Include="Flow\Cont.cs" />
     <Compile Include="Engine\Handler.cs" />
     <Compile Include="Flow\Job.cs" />

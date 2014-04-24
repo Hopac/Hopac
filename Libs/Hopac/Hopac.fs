@@ -1144,25 +1144,17 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  let doAsyncCallback = AsyncCallback (fun ar ->
-    match ar.AsyncState with
-      | :? WorkWithReady<IAsyncResult> as ta ->
-        ta.Ready(ar);
-      | _ ->
-        failwith "Bug")
+  let inline fromBeginEnd (doBegin: AsyncCallback * obj -> IAsyncResult)
+                          (doEnd: IAsyncResult -> 'x) =
+    {new JobFromBeginEnd<'x> () with
+      override xJ'.DoBegin (acb, s) = doBegin (acb, s)
+      override xJ'.DoEnd (iar) = doEnd iar} :> Job<_>
 
-  type AsyncBeginEnd<'x> (sr, doEnd, xK: Cont<'x>) =
-    inherit WorkWithReady<IAsyncResult> (sr)
-    override self.GetProc (wr) = xK.GetProc (&wr)
-    override self.DoHandle (wr, e) = xK.DoHandle (&wr, e)
-    override self.DoWork (wr) = xK.DoCont (&wr, doEnd self.Value)
-
-  let fromBeginEnd (doBegin: AsyncCallback * obj -> IAsyncResult)
-                   (doEnd: IAsyncResult -> 'x) =
-    {new Job<'x> () with
-      override self.DoJob (wr, xK) =
-       let rv = AsyncBeginEnd<'x> (wr.Scheduler, doEnd, xK)
-       doBegin (doAsyncCallback, rv) |> ignore}
+  let inline fromEndBegin (doEnd: IAsyncResult -> 'x)
+                          (doBegin: AsyncCallback * obj -> IAsyncResult) =
+    {new JobFromBeginEnd<'x> () with
+      override xJ'.DoBegin (acb, s) = doBegin (acb, s)
+      override xJ'.DoEnd (iar) = doEnd iar} :> Job<_>
 
   ///////////////////////////////////////////////////////////////////////
 

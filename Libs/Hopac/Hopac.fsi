@@ -693,8 +693,13 @@ module Job =
   ///>   |> ignore
   ///>   upcast xI
 #endif
-  val fromBeginEnd: (AsyncCallback * obj -> IAsyncResult)
+  val inline fromBeginEnd: (AsyncCallback * obj -> IAsyncResult)
                  -> (IAsyncResult -> 'x)
+                 -> Job<'x>
+
+  /// `fromEndBegin doEnd doBegin` is equivalent to `fromBeginEnd doBegin doEnd`.
+  val inline fromEndBegin: (IAsyncResult -> 'x)
+                 -> (AsyncCallback * obj -> IAsyncResult)
                  -> Job<'x>
 
   /////////////////////////////////////////////////////////////////////////////
