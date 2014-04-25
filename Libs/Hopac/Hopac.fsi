@@ -451,7 +451,7 @@ module Job =
   /// Note that the workflow notation of F# does not support this operation.  It
   /// only supports the `Job.tryWith` operation.  `Job.tryIn` makes it easier to
   /// write exception handling code that has the desired tail-call properties.
-  val tryIn: Job<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Job<'y>
+  val inline tryIn: Job<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
 #if DOC
@@ -460,7 +460,7 @@ module Job =
   ///
   ///> let tryWith xJ e2xJ = tryIn xJ result e2xJ
 #endif
-  val tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
+  val inline tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
 
   /// Implements a variation of the try-finally exception handling construct for
   /// jobs.  The given action, specified as a function, is executed after the

@@ -764,32 +764,14 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  let tryIn (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) (e2yJ: exn -> Job<'y>) =
-    {new Job<'y> () with
-      override yJ'.DoJob (wr, yK) =
-       let xK' = TryInCont (x2yJ, e2yJ, yK)
-       wr.Handler <- xK'
-       xJ.DoJob (&wr, xK')}
+  let inline tryIn (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) (e2yJ: exn -> Job<'y>) =
+    {new JobTryIn<'x, 'y> (xJ) with
+      override yJ'.DoIn (x) = x2yJ x
+      override yJ'.DoExn (e) = e2yJ e} :> Job<_>
 
-  let tryWith (xJ: Job<'x>) (e2xJ: exn -> Job<'x>) =
-    {new Job<'x> () with
-      override xJ'.DoJob (wr, xK_) =
-       let xK' = {new Cont_State<'x, _> (xK_) with
-        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-        override xK'.DoHandle (wr, e) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         (e2xJ e).DoJob (&wr, xK)
-        override xK'.DoWork (wr) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         xK.DoCont (&wr, xK'.Value)
-        override xK'.DoCont (wr, x) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         xK.DoCont (&wr, x)}
-       wr.Handler <- xK'
-       xJ.DoJob (&wr, xK')}
+  let inline tryWith (xJ: Job<'x>) (e2xJ: exn -> Job<'x>) =
+    {new JobTryWith<'x> (xJ) with
+      override xJ'.DoExn (e) = e2xJ e} :> Job<_>
 
   let tryFinallyFun (xJ: Job<'x>) (u2u: unit -> unit) =
     {new Job<'x> () with
