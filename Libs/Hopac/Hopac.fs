@@ -194,6 +194,8 @@ module Util =
 module IVar =
   module Now =
     let inline create () = IVar<'x> ()
+    let inline createFull (x: 'x) = IVar<'x> (x)
+    let inline createFailure (e: exn) = IVar<'x> (e)
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
@@ -1222,18 +1224,21 @@ module Cond =
 
 module MVar =
   open Job.Infixes
+  open Alt.Infixes
   module Now =
     let inline create () = MVar<'x> ()
     let inline createFull (x: 'x) = MVar<'x> (x)
   let create () = ctor Now.create ()
   let createFull x = ctor Now.createFull x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
+  let inline read (xM: MVar<'x>) = xM >>= fun x -> fill xM x >>% x
   let inline take (xM: MVar<'x>) = xM :> Job<'x>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
     xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
   let inline modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
     xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
   module Alt =
+    let inline read (xM: MVar<'x>) = xM >>=? fun x -> fill xM x >>% x
     let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////

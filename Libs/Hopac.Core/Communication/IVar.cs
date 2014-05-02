@@ -18,6 +18,19 @@ namespace Hopac {
     internal const int HasValue = 1;
     internal const int HasExn = 2;
 
+    ///
+    public IVar() { }
+    ///
+    public IVar(T t) {
+      this.Value = t;
+      this.State = HasValue;
+    }
+    ///
+    public IVar(Exception e) {
+      this.Readers = new Fail<T>(e);
+      this.State = HasExn;
+    }
+
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;

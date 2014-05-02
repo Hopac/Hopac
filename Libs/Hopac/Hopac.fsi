@@ -1056,6 +1056,12 @@ module IVar =
     /// Creates a new write once variable.
     val inline create: unit -> IVar<'x>
 
+    /// Creates a new write once variable with the given value.
+    val inline createFull: 'x -> IVar<'x>
+
+    /// Creates a new write once variable with the given failure exception.
+    val inline createFailure: exn -> IVar<'x>
+
   /// Creates a job that creates a new write once variable.
   val create: unit -> Job<IVar<'x>>
 
@@ -1134,6 +1140,16 @@ module MVar =
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that waits until the serialized variable contains a value
+  /// and then read the value contained by the variable.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let read xM = take xM >>= fun x -> fill xM x >>% x
+#endif
+  val inline read: MVar<'x> -> Job<'x>
+
+  /// Creates a job that waits until the serialized variable contains a value
   /// and then takes the value contained by the variable leaving the variable
   /// empty.
   val inline take: MVar<'x> -> Job<'x>
@@ -1172,6 +1188,17 @@ module MVar =
 
   /// Selective operations on serialized variables.
   module Alt =
+    /// Creates an alternative that becomes available for picking when the
+    /// variable contains a value and, if committed to, read the value from the
+    /// variable.
+#if DOC
+    ///
+    /// Reference implementation:
+    ///
+    ///> let read xM = take xM >>=? fun x -> fill xM x >>% x
+#endif
+    val inline read: MVar<'x> -> Alt<'x>
+
     /// Creates an alternative that becomes available for picking when the
     /// variable contains a value and, if committed to, takes the value from the
     /// variable.
