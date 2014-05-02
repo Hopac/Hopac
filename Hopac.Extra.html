@@ -53,6 +53,14 @@ font-weight: bold;
     <b>val</b> <a id="dec:val Hopac.Extra.DirCh.Alt.take" href="#def:val Hopac.Extra.DirCh.Alt.take">take</a><b>:</b> <a href="#def:type Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
     <b>val</b> <a id="dec:val Hopac.Extra.DirCh.Alt.give" href="#def:val Hopac.Extra.DirCh.Alt.give">give</a><b>:</b> <a href="#def:type Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
 </pre>
+<pre><b>type</b> <a id="dec:type Hopac.Extra.IMap" href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
+</pre>
+<pre><b>module</b> <a id="dec:module Hopac.Extra.IMap" href="#def:module Hopac.Extra.IMap">IMap</a> <b>=</b>
+  <b>val</b> <a id="dec:val Hopac.Extra.IMap.create" href="#def:val Hopac.Extra.IMap.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Extra.IMap.fill" href="#def:val Hopac.Extra.IMap.fill">fill</a><b>:</b> <a href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> <i>'k</i> <b>-&gt;</b> <i>'v</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
+  <b>module</b> <a id="dec:module Hopac.Extra.IMap.Alt" href="#def:module Hopac.Extra.IMap.Alt">Alt</a> <b>=</b>
+    <b>val</b> <a id="dec:val Hopac.Extra.IMap.Alt.read" href="#def:val Hopac.Extra.IMap.Alt.read">read</a><b>:</b> <a href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> <i>'k</i> <b>-&gt;</b> Alt<b>&lt;</b><i>'v</i><b>&gt;</b>
+</pre>
 <pre><b>type</b> <a id="dec:type Hopac.Extra.MChan" href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b>
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.Extra.MPort" href="#def:type Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;</b>
@@ -144,6 +152,24 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.Extra.DirCh.Alt.give" href="#dec:val Hopac.Extra.DirCh.Alt.give">give</a><b>:</b> <a href="#def:type Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> An alternative to give a value to be taken on the associated input channel.</div>
+</div>
+</div>
+<pre><b>type</b> <a id="def:type Hopac.Extra.IMap" href="#dec:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
+</pre>
+<div class="nested"><p> Write once map.</div>
+<pre><b>module</b> <a id="def:module Hopac.Extra.IMap" href="#dec:module Hopac.Extra.IMap">IMap</a> <b>=</b>
+</pre>
+<div class="nested"><p> Operations on write once maps.<pre><b>val</b> <a id="def:val Hopac.Extra.IMap.create" href="#dec:val Hopac.Extra.IMap.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;&gt;</b>
+</pre>
+<div class="nested"><p> Creates a new write once map.</div>
+<pre><b>val</b> <a id="def:val Hopac.Extra.IMap.fill" href="#dec:val Hopac.Extra.IMap.fill">fill</a><b>:</b> <a href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> <i>'k</i> <b>-&gt;</b> <i>'v</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
+</pre>
+<div class="nested"><p> Returns a job that adds the given key value pair to the write once map. It is considered an error if the map already holds a value associated with the key.  If the map already has <code><a href="#def:val Hopac.Extra.IMap.Alt.read">read</a></code> operations waiting for the value associated with the key, those operation are enabled.</div>
+<pre><b>module</b> <a id="def:module Hopac.Extra.IMap.Alt" href="#dec:module Hopac.Extra.IMap.Alt">Alt</a> <b>=</b>
+</pre>
+<div class="nested"><p> Selective operations on write once maps.<pre><b>val</b> <a id="def:val Hopac.Extra.IMap.Alt.read" href="#dec:val Hopac.Extra.IMap.Alt.read">read</a><b>:</b> <a href="#def:type Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> <i>'k</i> <b>-&gt;</b> Alt<b>&lt;</b><i>'v</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Returns an alternative that reads the value associated with the given key.  The alternative becomes enabled once there is a value associated with the key in the map.</div>
 </div>
 </div>
 <pre><b>type</b> <a id="def:type Hopac.Extra.MChan" href="#dec:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b>
