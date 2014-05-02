@@ -38,7 +38,10 @@ font-weight: bold;
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.JobBuilder" href="#def:type Hopac.JobBuilder">JobBuilder</a> <b>=</b>
   <b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.JobBuilder">JobBuilder</a>
+  <b>member</b> Bind<b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+  <b>member</b> Bind<b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>*</b> (unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>member</b> Bind<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+  <b>member</b> Combine<b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>*</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>member</b> Combine<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b> <b>*</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>member</b> Delay<b>:</b> (unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>member</b> For<b>:</b> seq<b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
@@ -123,6 +126,9 @@ font-weight: bold;
   <b>val</b> <a id="dec:val Hopac.Job.fromBeginEnd" href="#def:val Hopac.Job.fromBeginEnd">fromBeginEnd</a><b>:</b> (AsyncCallback <b>*</b> obj <b>-&gt;</b> IAsyncResult)
                  <b>-&gt;</b> (IAsyncResult <b>-&gt;</b> <i>'x</i>)
                  <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Job.fromEndBegin" href="#def:val Hopac.Job.fromEndBegin">fromEndBegin</a><b>:</b> (IAsyncResult <b>-&gt;</b> <i>'x</i>)
+                 <b>-&gt;</b> (AsyncCallback <b>*</b> obj <b>-&gt;</b> IAsyncResult)
+                 <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Job.scheduler" href="#def:val Hopac.Job.scheduler">scheduler</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Scheduler">Scheduler</a><b>&gt;</b>
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.Alt" href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -173,6 +179,8 @@ font-weight: bold;
 <pre><b>module</b> <a id="dec:module Hopac.IVar" href="#def:module Hopac.IVar">IVar</a> <b>=</b>
   <b>module</b> <a id="dec:module Hopac.IVar.Now" href="#def:module Hopac.IVar.Now">Now</a> <b>=</b>
     <b>val</b> <a id="dec:val Hopac.IVar.Now.create" href="#def:val Hopac.IVar.Now.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.IVar.Now.createFull" href="#def:val Hopac.IVar.Now.createFull">createFull</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.IVar.Now.createFailure" href="#def:val Hopac.IVar.Now.createFailure">createFailure</a><b>:</b> exn <b>-&gt;</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.IVar.create" href="#def:val Hopac.IVar.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.IVar.fill" href="#def:val Hopac.IVar.fill">fill</a><b>:</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.IVar.fillFailure" href="#def:val Hopac.IVar.fillFailure">fillFailure</a><b>:</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> exn <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
@@ -189,10 +197,12 @@ font-weight: bold;
   <b>val</b> <a id="dec:val Hopac.MVar.create" href="#def:val Hopac.MVar.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.MVar.createFull" href="#def:val Hopac.MVar.createFull">createFull</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.MVar.fill" href="#def:val Hopac.MVar.fill">fill</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.MVar.read" href="#def:val Hopac.MVar.read">read</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.MVar.take" href="#def:val Hopac.MVar.take">take</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.MVar.modifyFun" href="#def:val Hopac.MVar.modifyFun">modifyFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i> <b>*</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.MVar.modifyJob" href="#def:val Hopac.MVar.modifyJob">modifyJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
   <b>module</b> <a id="dec:module Hopac.MVar.Alt" href="#def:module Hopac.MVar.Alt">Alt</a> <b>=</b>
+    <b>val</b> <a id="dec:val Hopac.MVar.Alt.read" href="#def:val Hopac.MVar.Alt.read">read</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>val</b> <a id="dec:val Hopac.MVar.Alt.take" href="#def:val Hopac.MVar.Alt.take">take</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.Mailbox" href="#def:type Hopac.Mailbox">Mailbox</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -246,6 +256,8 @@ font-weight: bold;
   <b>type</b> <a id="dec:type Hopac.Extensions.Task" href="#def:type Hopac.Extensions.Task">Task</a> <b>=</b>
     <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.awaitJob" href="#def:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.awaitJob" href="#def:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+    <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.bindJob" href="#def:static member Hopac.Extensions.Task.bindJob">bindJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+    <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.bindJob" href="#def:static member Hopac.Extensions.Task.bindJob">bindJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>*</b> (unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>static</b> <b>member</b> <a id="dec:static member Hopac.Extensions.Task.startJob" href="#def:static member Hopac.Extensions.Task.startJob">startJob</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.Scheduler" href="#def:type Hopac.Scheduler">Scheduler</a>
@@ -568,6 +580,11 @@ font-weight: bold;
   <b>|&gt;</b> ignore
   <b>upcast</b> xI
 </pre></div>
+<pre><b>val</b> <a id="def:val Hopac.Job.fromEndBegin" href="#dec:val Hopac.Job.fromEndBegin">fromEndBegin</a><b>:</b> (IAsyncResult <b>-&gt;</b> <i>'x</i>)
+               <b>-&gt;</b> (AsyncCallback <b>*</b> obj <b>-&gt;</b> IAsyncResult)
+               <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> <code><a href="#def:val Hopac.Job.fromEndBegin">fromEndBegin</a>&nbsp;doEnd&nbsp;doBegin</code> is equivalent to <code><a href="#def:val Hopac.Job.fromBeginEnd">fromBeginEnd</a>&nbsp;doBegin&nbsp;doEnd</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Job.scheduler" href="#dec:val Hopac.Job.scheduler">scheduler</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Scheduler">Scheduler</a><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a job that returns the scheduler under which the job is being run. This allows interfacing Hopac with existing asynchronous operations that do not fall into a pattern that is already supported explicitly.  See, for example, the reference implementation of <code><a href="#def:val Hopac.Job.fromBeginEnd">fromBeginEnd</a></code>.  The key is that the job that is suspended for the duration of the asynchronous operation can then be resumed on the same scheduler.</div>
@@ -706,6 +723,12 @@ font-weight: bold;
 <div class="nested"><p> Immediate or non-workflow operations on write once variables.<pre><b>val</b> <a id="def:val Hopac.IVar.Now.create" href="#dec:val Hopac.IVar.Now.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a new write once variable.</div>
+<pre><b>val</b> <a id="def:val Hopac.IVar.Now.createFull" href="#dec:val Hopac.IVar.Now.createFull">createFull</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a new write once variable with the given value.</div>
+<pre><b>val</b> <a id="def:val Hopac.IVar.Now.createFailure" href="#dec:val Hopac.IVar.Now.createFailure">createFailure</a><b>:</b> exn <b>-&gt;</b> <a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a new write once variable with the given failure exception.</div>
 </div>
 <pre><b>val</b> <a id="def:val Hopac.IVar.create" href="#dec:val Hopac.IVar.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.IVar">IVar</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
@@ -749,6 +772,10 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.MVar.fill" href="#dec:val Hopac.MVar.fill">fill</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that writes the given value to the serialized variable.  It is an error to write to a <code><a href="#def:type Hopac.MVar">MVar</a></code> that is full.  This assumption may be used to optimize the implementation and incorrect usage leads to undefined behavior.</div>
+<pre><b>val</b> <a id="def:val Hopac.MVar.read" href="#dec:val Hopac.MVar.read">read</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a job that waits until the serialized variable contains a value and then read the value contained by the variable.</p><p> Reference implementation:</p><pre><b>let</b> <a href="#def:val Hopac.MVar.read">read</a> xM <b>=</b> <a href="#def:val Hopac.MVar.take">take</a> xM <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a> <b>fun</b> x <b>-&gt;</b> <a href="#def:val Hopac.MVar.fill">fill</a> xM x <a href="#def:val Hopac.Job.Infixes.&gt;&gt;%">>>%</a> x
+</pre></div>
 <pre><b>val</b> <a id="def:val Hopac.MVar.take" href="#dec:val Hopac.MVar.take">take</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that waits until the serialized variable contains a value and then takes the value contained by the variable leaving the variable empty.</div>
@@ -764,7 +791,11 @@ font-weight: bold;
 </pre></div>
 <pre><b>module</b> <a id="def:module Hopac.MVar.Alt" href="#dec:module Hopac.MVar.Alt">Alt</a> <b>=</b>
 </pre>
-<div class="nested"><p> Selective operations on serialized variables.<pre><b>val</b> <a id="def:val Hopac.MVar.Alt.take" href="#dec:val Hopac.MVar.Alt.take">take</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+<div class="nested"><p> Selective operations on serialized variables.<pre><b>val</b> <a id="def:val Hopac.MVar.Alt.read" href="#dec:val Hopac.MVar.Alt.read">read</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates an alternative that becomes available for picking when the variable contains a value and, if committed to, read the value from the variable.</p><p> Reference implementation:</p><pre><b>let</b> read xM <b>=</b> take xM <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">>>=?</a> <b>fun</b> x <b>-&gt;</b> <a href="#def:val Hopac.MVar.fill">fill</a> xM x <a href="#def:val Hopac.Job.Infixes.&gt;&gt;%">>>%</a> x
+</pre></div>
+<pre><b>val</b> <a id="def:val Hopac.MVar.Alt.take" href="#dec:val Hopac.MVar.Alt.take">take</a><b>:</b> <a href="#def:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates an alternative that becomes available for picking when the variable contains a value and, if committed to, takes the value from the variable.</div>
 </div>
@@ -925,6 +956,12 @@ font-weight: bold;
 <pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.awaitJob" href="#dec:static member Hopac.Extensions.Task.awaitJob">awaitJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that waits until the given task finishes.  Note that this does not start the task.</div>
+<pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.bindJob" href="#dec:static member Hopac.Extensions.Task.bindJob">bindJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> <code>bindJob&nbsp;(xT,&nbsp;x2yJ)</code> is equivalent to <code>awaitJob&nbsp;xT&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;x2yJ</code>.</div>
+<pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.bindJob" href="#dec:static member Hopac.Extensions.Task.bindJob">bindJob</a><b>:</b> Threading<b>.</b>Tasks<b>.</b>Task <b>*</b> (unit <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> <code>bindJob&nbsp;(uT,&nbsp;u2xJ)</code> is equivalent to <code>awaitJob&nbsp;uT&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">>>=</a>&nbsp;u2xJ</code>.</div>
 <pre><b>static</b> <b>member</b> <a id="def:static member Hopac.Extensions.Task.startJob" href="#dec:static member Hopac.Extensions.Task.startJob">startJob</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>Threading<b>.</b>Tasks<b>.</b>Task<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that starts the given job as a separate concurrent job, whose result can be obtained from the returned task.</div>
