@@ -71,6 +71,8 @@
     <Compile Include="Stream.fs" />
     <Compile Include="SelectableQueue.fsi" />
     <Compile Include="SelectableQueue.fs" />
+    <Compile Include="IMap.fsi" />
+    <Compile Include="IMap.fs" />
   </ItemGroup>
   <PropertyGroup>
     <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
