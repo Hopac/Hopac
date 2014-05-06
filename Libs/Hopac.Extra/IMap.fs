@@ -5,24 +5,64 @@ namespace Hopac.Extra
 open System.Collections.Generic
 open Hopac
 open Hopac.Infixes
+open Hopac.Extensions
 
-type IMap<'k, 'v> = {Map: Dictionary<'k, IVar<'v>>}
+type IMap<'k, 'v> = {
+    mutable Closed: Alt<option<'v>>
+    Map: Dictionary<'k, IVar<option<'v>>>
+  }
 
 module IMap =
-  let create () = Job.thunk <| fun () ->
-    {Map = Dictionary<_, _>()}
+  module Now = 
+    let create () = {Closed = null; Map = Dictionary<_, _>()}
+
+  let create () = Job.thunk Now.create
+
+  let close kvM = Job.delay <| fun () ->
+    let k2vI = kvM.Map
+    let flushed = ResizeArray<_> ()
+    lock k2vI <| fun () ->
+      match kvM.Closed with
+       | null ->
+         for kvI in k2vI do
+           let vI = kvI.Value
+           if not (IVar.Now.isFull vI) then
+             flushed.Add kvI
+         for kvI in flushed do
+           k2vI.Remove kvI.Key |> ignore
+       | _ ->
+         kvM.Closed <- Alt.always None
+    flushed
+    |> Seq.iterJob (fun kvI ->
+       kvI.Value <-= None)
 
   let fill kvM k v = Job.delay <| fun () ->
     let k2vI = kvM.Map
     lock k2vI <| fun () ->
+    match kvM.Closed with
+     | null -> ()
+     | _ -> failwith "Map is closed."
     match k2vI.TryGetValue k with
-     | (false, _) -> k2vI.Add (k, IVar.Now.createFull v) ; Job.unit ()
-     | (true, vI) -> vI <-= v
+     | (false, _) ->
+       k2vI.Add (k, IVar.Now.createFull (Some v))
+       Job.unit ()
+     | (true, vI) ->
+       if IVar.Now.isFull vI then
+         failwithf "Tried to fill item %A twice." k
+       vI <-= Some v
 
   module Alt =
     let read kvM k = Alt.delay <| fun () ->
       let k2vI = kvM.Map
       lock k2vI <| fun () ->
       match k2vI.TryGetValue k with
-       | (false, _) -> let vI = ivar () in k2vI.Add (k, vI) ; upcast vI
-       | (true, vI) -> upcast vI
+       | (false, _) ->
+         match kvM.Closed with
+          | null ->
+            let vI = ivar ()
+            k2vI.Add (k, vI)
+            upcast vI
+          | vA ->
+            vA
+       | (true, vI) ->
+         upcast vI
