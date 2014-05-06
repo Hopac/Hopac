@@ -73,6 +73,8 @@
     <Compile Include="SelectableQueue.fs" />
     <Compile Include="IMap.fsi" />
     <Compile Include="IMap.fs" />
+    <Compile Include="EagerSeq.fsi" />
+    <Compile Include="EagerSeq.fs" />
   </ItemGroup>
   <PropertyGroup>
     <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
