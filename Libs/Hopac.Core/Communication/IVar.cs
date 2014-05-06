@@ -31,6 +31,12 @@ namespace Hopac {
       this.State = HasExn;
     }
 
+    ///
+    public bool Full {
+      [MethodImpl(AggressiveInlining.Flag)]
+      get { return Empty < State; }
+    }
+
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;

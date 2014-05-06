@@ -196,6 +196,7 @@ module IVar =
     let inline create () = IVar<'x> ()
     let inline createFull (x: 'x) = IVar<'x> (x)
     let inline createFailure (e: exn) = IVar<'x> (e)
+    let inline isFull (xI: IVar<'x>) = xI.Full
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
