@@ -52,7 +52,7 @@ module IMap =
        vI <-= Some v
 
   module Alt =
-    let read kvM k = Alt.delay <| fun () ->
+    let query kvM k = Alt.delay <| fun () ->
       let k2vI = kvM.Map
       lock k2vI <| fun () ->
       match k2vI.TryGetValue k with
