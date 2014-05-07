@@ -3,6 +3,7 @@
 namespace Hopac.Extra
 
 open System.Collections.Generic
+open System.Threading
 open Hopac
 open Hopac.Infixes
 open Hopac.Extensions
@@ -30,8 +31,10 @@ module IMap =
              flushed.Add kvI
          for kvI in flushed do
            k2vI.Remove kvI.Key |> ignore
-       | _ ->
+         // Must be last as queries may interfere.
          kvM.Closed <- Alt.always None
+       | _ ->
+         ()
     flushed
     |> Seq.iterJob (fun kvI ->
        kvI.Value <-= None)
@@ -52,17 +55,23 @@ module IMap =
        vI <-= Some v
 
   module Alt =
-    let query kvM k = Alt.delay <| fun () ->
-      let k2vI = kvM.Map
-      lock k2vI <| fun () ->
-      match k2vI.TryGetValue k with
-       | (false, _) ->
-         match kvM.Closed with
-          | null ->
-            let vI = ivar ()
-            k2vI.Add (k, vI)
+    let query kvM k =
+      match kvM.Closed with
+       | null -> Alt.delay <| fun () ->
+         let k2vI = kvM.Map
+         lock k2vI <| fun () ->
+         match k2vI.TryGetValue k with
+          | (false, _) ->
+            match kvM.Closed with
+             | null ->
+               let vI = ivar ()
+               k2vI.Add (k, vI)
+               upcast vI
+             | vA ->
+               vA
+          | (true, vI) ->
             upcast vI
-          | vA ->
-            vA
-       | (true, vI) ->
-         upcast vI
+       | vI ->
+         match kvM.Map.TryGetValue k with
+          | (false, _) -> vI
+          | (true, vI) -> upcast vI
