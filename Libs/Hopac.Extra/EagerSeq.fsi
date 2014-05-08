@@ -10,17 +10,22 @@ type EagerSeq<'x>
 
 /// Operations on eager sequences.
 module EagerSeq =
+  val chooseFun: ('x -> option<'y>) -> EagerSeq<'x> -> Job<EagerSeq<'y>>
+  val chooseJob: ('x -> Job<option<'y>>) -> EagerSeq<'x> -> Job<EagerSeq<'y>>
 
-  val choose: ('x -> Job<option<'y>>) -> EagerSeq<'x> -> Job<EagerSeq<'y>>
+  val filterFun: ('x -> bool) -> EagerSeq<'x> -> Job<EagerSeq<'x>>
 
-  val collect: Job<option<'x>> -> Job<EagerSeq<'x>>
+  val generateJob: Job<option<'x>> -> Job<EagerSeq<'x>>
 
-  val filter: ('x -> bool) -> EagerSeq<'x> -> Job<EagerSeq<'x>>
+  val iterFun: ('x -> unit) -> EagerSeq<'x> -> Job<unit>
+  val iterJob: ('x -> Job<_>) -> EagerSeq<'x> -> Job<unit>
 
-  val iter: ('x -> Job<_>) -> EagerSeq<'x> -> Job<unit>
-
-  val map: ('x -> Job<'y>) -> EagerSeq<'x> -> Job<EagerSeq<'y>>
+  val mapFun: ('x -> 'y) -> EagerSeq<'x> -> Job<EagerSeq<'y>>
+  val mapJob: ('x -> Job<'y>) -> EagerSeq<'x> -> Job<EagerSeq<'y>>
 
   val toSeq: EagerSeq<'x> -> Job<ResizeArray<'x>>
 
-  val unfold: ('s -> Job<option<'x * 's>>) -> 's -> Job<EagerSeq<'x>>
+  val tryPickFun: ('x -> option<'y>) -> EagerSeq<'x> -> Job<option<'y>>
+
+  val unfoldFun: ('s -> option<'x * 's>) -> 's -> Job<EagerSeq<'x>>
+  val unfoldJob: ('s -> Job<option<'x * 's>>) -> 's -> Job<EagerSeq<'x>>
