@@ -9,7 +9,35 @@ open Hopac.Job.Infixes
 type EagerSeq<'x> = {EagerSeq: IVar<option<'x * EagerSeq<'x>>>}
 
 module EagerSeq =
-  let node () = {EagerSeq = ivar ()}
+  // TBD: Consider refactoring these.
+
+  module Now =
+    let empty () = {EagerSeq = IVar.Now.createFull None}
+    let singleton x = {EagerSeq = IVar.Now.createFull (Some (x, empty ()))}
+
+  let inline node () = {EagerSeq = ivar ()}
+
+  let collectJob (x2ySJ: 'x -> Job<EagerSeq<'y>>) (xs: EagerSeq<'x>) = Job.delay <| fun () ->
+    let rec loopXs xs rs =
+      Job.tryIn xs
+       <| function
+           | None -> rs <-= None
+           | Some (x, xs) ->
+             Job.tryIn (Job.delayWith x2ySJ x)
+              <| fun ys -> loopYs xs.EagerSeq ys.EagerSeq rs
+              <| fun e -> IVar.fillFailure rs e
+       <| fun e -> IVar.fillFailure rs e
+    and loopYs xs ys rs =
+      Job.tryIn ys
+       <| function
+           | None -> loopXs xs rs
+           | Some (y, ys) ->
+             let rs' = node ()
+             rs <-= Some (y, rs') >>= fun () ->
+             loopYs xs ys.EagerSeq rs'.EagerSeq
+       <| fun e -> IVar.fillFailure rs e
+    let rs = node ()
+    Job.queue (loopXs xs.EagerSeq rs.EagerSeq) >>% rs
 
   let rec tryPickFun (x2yO: 'x -> option<'y>) (xs: EagerSeq<'x>) =
     xs.EagerSeq >>= function
@@ -53,6 +81,22 @@ module EagerSeq =
   let filterFun x2b xs =
     chooseFun (fun x -> if x2b x then Some x else None) xs
   
+  let generateFun (u2xO: unit -> option<'x>) = Job.delay <| fun () ->
+    let rec loop xs =
+      let mutable exn = null
+      let xO = try u2xO () with e -> exn <- e ; None
+      match xO with
+       | None ->
+         match exn with
+          | null -> xs <-= None
+          | e -> IVar.fillFailure xs e
+       | Some x ->
+         let xs' = node ()
+         xs <-= Some (x, xs') >>= fun () ->
+         loop xs'.EagerSeq
+    let xs = node ()
+    Job.queue (loop xs.EagerSeq) >>% xs
+
   let generateJob (xoJ: Job<option<'x>>) = Job.delay <| fun () ->
     let rec loop xs =
       Job.tryIn xoJ
@@ -80,6 +124,11 @@ module EagerSeq =
 
   let mapJob (x2yJ: 'x -> Job<'y>) xs =
     chooseJob (fun x -> x2yJ x |>> Some) xs
+
+  let ofSeq (xs: seq<'x>) = Job.delay <| fun () ->
+    Job.using (xs.GetEnumerator ()) <| fun xs ->
+    generateFun <| fun () ->
+    if xs.MoveNext () then Some xs.Current else None
 
   let toSeq (xs: EagerSeq<'x>) = Job.delay <| fun () ->
     let rs = ResizeArray<_>()
