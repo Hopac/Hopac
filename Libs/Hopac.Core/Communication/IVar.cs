@@ -37,6 +37,13 @@ namespace Hopac {
       get { return Empty < State; }
     }
 
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal T Get() {
+      if (Empty == State)
+        return Value;
+      throw (this.Readers as Fail<T>).exn;
+    }
+
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
