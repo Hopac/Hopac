@@ -1078,8 +1078,7 @@ module IVar =
     /// This operation is mainly provided for advanced uses of write once
     /// variables such as when creating more complex data structures that make
     /// internal use of write once variables.  Using this to poll write once
-    /// variables is not generally a good idea and unless you are in control of
-    /// whoever writes to the write once variable.
+    /// variables is not generally a good idea.
     val get: IVar<'x> -> 'x
 
   /// Creates a job that creates a new write once variable.
