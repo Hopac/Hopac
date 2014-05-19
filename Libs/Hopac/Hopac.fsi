@@ -1063,13 +1063,24 @@ module IVar =
     val inline createFailure: exn -> IVar<'x>
 
     /// Returns true iff the given write once variable has already been filled
-    /// (either with a value or with a failure).  This operation is mainly
-    /// provided for advanced uses of write once variables such as when creating
-    /// more complex data structures that make internal use of write once
-    /// variables.  Using this to poll write once variables is not generally a
-    /// good idea and unless you are in control of whoever writes to the write
-    /// once variable the result may not be valid after this function returns.
+    /// (either with a value or with a failure).
+    ///
+    /// This operation is mainly provided for advanced uses of write once
+    /// variables such as when creating more complex data structures that make
+    /// internal use of write once variables.  Using this to poll write once
+    /// variables is not generally a good idea.
     val inline isFull: IVar<'x> -> bool
+
+    /// Returns the value or raises the failure exception written to the write
+    /// once variable.  It is considered an error if the write once variable has
+    /// not yet been written to.
+    ///
+    /// This operation is mainly provided for advanced uses of write once
+    /// variables such as when creating more complex data structures that make
+    /// internal use of write once variables.  Using this to poll write once
+    /// variables is not generally a good idea and unless you are in control of
+    /// whoever writes to the write once variable.
+    val get: IVar<'x> -> 'x
 
   /// Creates a job that creates a new write once variable.
   val create: unit -> Job<IVar<'x>>
