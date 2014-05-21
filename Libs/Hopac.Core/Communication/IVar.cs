@@ -39,7 +39,7 @@ namespace Hopac {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal T Get() {
-      if (Empty == State)
+      if (HasValue == State)
         return Value;
       throw (this.Readers as Fail<T>).exn;
     }
