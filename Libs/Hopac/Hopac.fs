@@ -137,58 +137,6 @@ module Util =
     override xK'.DoWork (wr) = Handler.Terminate (&wr, xK'.yK)
     override xK'.DoCont (wr, _) = Handler.Terminate (&wr, xK'.yK)
 
-  let mutable globalScheduler : Scheduler = null
-
-  let reallyInitGlobalScheduler () =
-    let t = typeof<Scheduler>
-    Monitor.Enter t
-    match globalScheduler with
-     | null ->
-       if not System.Runtime.GCSettings.IsServerGC then
-         printf "WARNING: You are using single-threaded workstation garbage \
-          collection, which means that parallel programs cannot scale.  Please \
-          configure your program to use server garbage collection.  See \
-          http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
-          for details.\n"
-       let sr = Scheduler (false,
-                           null,
-                           0,
-                           Environment.ProcessorCount,
-                           ThreadPriority.Normal,
-                           Unchecked.defaultof<_>)
-       globalScheduler <- sr
-       Monitor.Exit t
-       sr
-     | sr ->
-       Monitor.Exit t
-       sr
-
-  let inline initGlobalScheduler () =
-    match globalScheduler with
-     | null -> reallyInitGlobalScheduler ()
-     | sr -> sr
-
-  let mutable globalTimer : Timer = null
-
-  let reallyInitGlobalTimer () =
-    let sr = initGlobalScheduler ()
-    let t = typeof<Timer>
-    Monitor.Enter t
-    match globalTimer with
-     | null ->
-       let tr = Timer sr
-       globalTimer <- tr
-       Monitor.Exit t
-       tr
-     | tr ->
-       Monitor.Exit t
-       tr
-
-  let inline initGlobalTimer () =
-    match globalTimer with
-     | null -> reallyInitGlobalTimer ()
-     | tr -> tr
-
 /////////////////////////////////////////////////////////////////////////
 
 module IVar =
@@ -207,38 +155,6 @@ module IVar =
   let inline read (xI: IVar<'x>) = xI :> Job<'x>
   module Alt =
     let inline read (xI: IVar<'x>) = xI :> Alt<'x>
-
-/////////////////////////////////////////////////////////////////////////
-
-module Ch =
-  module Now =
-    let inline create () = Ch<'x> ()
-  module Global =
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (globalScheduler, xCh, x)
-  let create () = ctor Now.create ()
-  let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
-  let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
-  let inline take (xCh: Ch<'x>) = xCh :> Job<'x>
-  module Alt =
-    let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
-    let inline take (xCh: Ch<'x>) = xCh :> Alt<'x>
-
-/////////////////////////////////////////////////////////////////////////
-
-module Mailbox =
-  module Now =
-    let inline create () = Mailbox<'x> ()
-  module Global =
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xMb: Mailbox<'x>) (x: 'x) =
-      Mailbox<'x>.Send (globalScheduler, xMb, x)
-  let create () = ctor Now.create ()
-  let inline send (xMb: Mailbox<'x>) (x: 'x) =
-    MailboxSend<'x> (xMb, x) :> Job<unit>
-  let inline take (xMb: Mailbox<'x>) = xMb :> Job<'x>
-  module Alt =
-    let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -473,11 +389,6 @@ module Alt =
 /////////////////////////////////////////////////////////////////////////
 
 module Scheduler =
-  module Global =
-    let setTopLevelHandler e2uJO =
-      let sr = initGlobalScheduler ()
-      sr.TopLevelHandler <- Option.orDefaultOf e2uJO
-
   type Create =
     {Foreground: option<bool>
      IdleHandler: option<Job<int>>
@@ -493,6 +404,12 @@ module Scheduler =
        NumWorkers = None
        Priority = None
        TopLevelHandler = None}
+
+  module Global =
+    let mutable create = Create.Def
+
+    let setCreate (c: Create) =
+      create <- c
 
   let create (c: Create) =
     Scheduler (Option.orDefaultOf c.Foreground,
@@ -563,6 +480,90 @@ module Scheduler =
 
   let kill (sr: Scheduler) =
     Scheduler.Kill sr
+
+/////////////////////////////////////////////////////////////////////////
+
+[<AutoOpen>]
+module Global =
+
+  let mutable globalScheduler : Scheduler = null
+
+  let reallyInitGlobalScheduler () =
+    let t = typeof<Scheduler>
+    Monitor.Enter t
+    match globalScheduler with
+     | null ->
+       if not System.Runtime.GCSettings.IsServerGC then
+         printf "WARNING: You are using single-threaded workstation garbage \
+          collection, which means that parallel programs cannot scale.  Please \
+          configure your program to use server garbage collection.  See \
+          http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
+          for details.\n"
+       let sr = Scheduler.create Scheduler.Global.create
+       globalScheduler <- sr
+       Monitor.Exit t
+       sr
+     | sr ->
+       Monitor.Exit t
+       sr
+
+  let inline initGlobalScheduler () =
+    match globalScheduler with
+     | null -> reallyInitGlobalScheduler ()
+     | sr -> sr
+
+  let mutable globalTimer : Timer = null
+
+  let reallyInitGlobalTimer () =
+    let sr = initGlobalScheduler ()
+    let t = typeof<Timer>
+    Monitor.Enter t
+    match globalTimer with
+     | null ->
+       let tr = Timer sr
+       globalTimer <- tr
+       Monitor.Exit t
+       tr
+     | tr ->
+       Monitor.Exit t
+       tr
+
+  let inline initGlobalTimer () =
+    match globalTimer with
+     | null -> reallyInitGlobalTimer ()
+     | tr -> tr
+
+/////////////////////////////////////////////////////////////////////////
+
+module Ch =
+  module Now =
+    let inline create () = Ch<'x> ()
+  module Global =
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (globalScheduler, xCh, x)
+  let create () = ctor Now.create ()
+  let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
+  let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
+  let inline take (xCh: Ch<'x>) = xCh :> Job<'x>
+  module Alt =
+    let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
+    let inline take (xCh: Ch<'x>) = xCh :> Alt<'x>
+
+/////////////////////////////////////////////////////////////////////////
+
+module Mailbox =
+  module Now =
+    let inline create () = Mailbox<'x> ()
+  module Global =
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let send (xMb: Mailbox<'x>) (x: 'x) =
+      Mailbox<'x>.Send (globalScheduler, xMb, x)
+  let create () = ctor Now.create ()
+  let inline send (xMb: Mailbox<'x>) (x: 'x) =
+    MailboxSend<'x> (xMb, x) :> Job<unit>
+  let inline take (xMb: Mailbox<'x>) = xMb :> Job<'x>
+  module Alt =
+    let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 

@@ -1474,17 +1474,6 @@ type Scheduler
 /// requirements.
 module Scheduler =
 
-  /// Operations on the global scheduler.
-  module Global =  
-    /// Sets the top level exception handler job constructor of the global
-    /// scheduler.  When a job fails with an otherwise unhandled exception, the
-    /// job is killed and a new job is constructed with the top level handler
-    /// constructor and then started.  To avoid infinite loops, in case the top
-    /// level handler job raises exceptions, it is simply killed after printing
-    /// a message to the console.  The default top level handler, or `None`,
-    /// simply prints out a message to the console.
-    val setTopLevelHandler: option<exn -> Job<unit>> -> unit
-
   /// A record of scheduler configuration options.
   type Create =
     {
@@ -1532,6 +1521,13 @@ module Scheduler =
     
     /// Default options.
     static member Def: Create
+
+  /// Operations on the global scheduler.
+  module Global =
+    /// Sets options for creating the global scheduler.  This must be called
+    /// before invoking any Hopac functionality that implicitly creates the
+    /// global scheduler.
+    val setCreate: Create -> unit
 
   /// Creates a new local scheduler.
   ///
