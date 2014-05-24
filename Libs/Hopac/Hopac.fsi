@@ -462,9 +462,9 @@ module Job =
 #endif
   val inline tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
 
-  /// Implements a variation of the try-finally exception handling construct for
-  /// jobs.  The given action, specified as a function, is executed after the
-  /// job has been run, whether it fails or completes successfully.
+  /// Implements a variation of the `try-finally` exception handling construct
+  /// for jobs.  The given action, specified as a function, is executed after
+  /// the job has been run, whether it fails or completes successfully.
 #if DOC
   ///
   /// Reference implementation:
@@ -473,8 +473,8 @@ module Job =
 #endif
   val tryFinallyFun: Job<'x> -> (unit -> unit) -> Job<'x>
 
-  /// Implements a variation of the try-finally exception handling construct for
-  /// jobs.  The given action, specified as a job, is executed after the the job
+  /// Implements a variation of the `try-finally` exception handling construct
+  /// for jobs.  The given action, specified as a job, is executed after the job
   /// has been run, whether it fails or completes successfully.
   ///
   /// Note that the workflow notation of F# does not support this operation.  It
@@ -490,9 +490,9 @@ module Job =
 #endif
   val tryFinallyJob: Job<'x> -> Job<unit> -> Job<'x>
 
-  /// Implements the use construct for jobs.  The Dispose method of the given
-  /// disposable object is called after running the job constructed with the
-  /// disposable object.
+  /// Implements the `use` construct for jobs.  The `Dispose` method of the
+  /// given disposable object is called after running the job constructed with
+  /// the disposable object.
 #if DOC
   ///
   /// Reference implementation:
