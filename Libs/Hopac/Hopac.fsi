@@ -1087,8 +1087,13 @@ module IVar =
   /// Creates a job that writes the given value to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.
+  /// usage leads to undefined behavior.  See also `tryFill`.
   val inline fill: IVar<'x> -> 'x -> Job<unit>
+
+  /// Creates a job that tries to write the given value to the given write once
+  /// variable.  No operation takes places and no error is reported in case the
+  /// write once variable has already been written to.
+  val inline tryFill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes the given exception to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.

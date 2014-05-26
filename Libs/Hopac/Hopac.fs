@@ -150,6 +150,7 @@ module IVar =
       
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
+  let inline tryFill (xI: IVar<'x>) (x: 'x) = IVarTryFill<'x> (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
     IVarFillFailure<'x> (xI, e) :> Job<unit>
   let inline read (xI: IVar<'x>) = xI :> Job<'x>

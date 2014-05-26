@@ -93,9 +93,9 @@ namespace Hopac {
 
   namespace Core {
     /// Internal implementation detail.
-    public sealed class IVarFill<T> : Job<Unit> {
-      private readonly IVar<T> IV;
-      private readonly T X;
+    public class IVarFill<T> : Job<Unit> {
+      internal readonly IVar<T> IV;
+      internal readonly T X;
 
       /// Internal implementation detail.
       [MethodImpl(AggressiveInlining.Flag)]
@@ -104,18 +104,10 @@ namespace Hopac {
         this.X = x;
       }
 
-      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
-        var iv = this.IV;
-        iv.Value = this.X; // This assumes correct usage of IVar.
-      Spin:
-        var state = iv.State;
-        if (state < IVar<T>.Empty) goto Spin;
-        if (state != Interlocked.CompareExchange(ref iv.State, IVar<T>.HasValue, state)) goto Spin;
-
-        if (state > IVar<T>.Empty) goto IVarFull;
-
+      [MethodImpl(AggressiveInlining.Flag)]
+      internal static void ProcessReaders(IVar<T> iv, ref Worker wr) {
         var readers = iv.Readers;
-        if (null == readers) goto Empty;
+        if (null == readers) return;
         iv.Readers = null;
         int me = 0;
         Work cursor = readers;
@@ -139,13 +131,46 @@ namespace Hopac {
       TryNextReader:
         if (cursor != readers)
           goto TryReader;
+      }
 
-      Empty:
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        var iv = this.IV;
+        iv.Value = this.X; // This assumes correct usage of IVar.
+      Spin:
+        var state = iv.State;
+        if (state < IVar<T>.Empty) goto Spin;
+        if (state != Interlocked.CompareExchange(ref iv.State, IVar<T>.HasValue, state)) goto Spin;
+
+        if (state > IVar<T>.Empty) {
+          uK.DoHandle(ref wr, new Exception("IVar full"));
+        } else {
+          ProcessReaders(iv, ref wr);
+          Work.Do(uK, ref wr);
+        }
+      }
+    }
+
+    /// Internal implementation detail.
+    public sealed class IVarTryFill<T> : IVarFill<T> {
+
+      /// Internal implementation detail.
+      [MethodImpl(AggressiveInlining.Flag)]
+      public IVarTryFill(IVar<T> iv, T x) : base (iv, x) { }
+
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        var iv = this.IV;
+      Spin:
+        var state = iv.State;
+        if (state < IVar<T>.Empty) goto Spin;
+        if (state > IVar<T>.Empty) goto Done;
+        if (state != Interlocked.CompareExchange(ref iv.State, IVar<T>.Locked, state)) goto Spin;
+
+        iv.Value = this.X;
+        iv.State = IVar<T>.HasValue;
+
+        ProcessReaders(iv, ref wr);
+      Done:
         Work.Do(uK, ref wr);
-        return;
-
-      IVarFull:
-        uK.DoHandle(ref wr, new Exception("IVar full"));
       }
     }
 
