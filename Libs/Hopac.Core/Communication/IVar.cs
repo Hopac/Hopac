@@ -115,7 +115,7 @@ namespace Hopac {
         if (state > IVar<T>.Empty) {
           uK.DoHandle(ref wr, new Exception("IVar full"));
         } else {
-          WaitQueue.ProcessReaders(ref iv.Readers, iv.Value, ref wr);
+          WaitQueue.PickReaders(ref iv.Readers, iv.Value, ref wr);
           Work.Do(uK, ref wr);
         }
       }
@@ -123,7 +123,6 @@ namespace Hopac {
 
     /// Internal implementation detail.
     public sealed class IVarTryFill<T> : IVarFill<T> {
-
       /// Internal implementation detail.
       [MethodImpl(AggressiveInlining.Flag)]
       public IVarTryFill(IVar<T> iv, T x) : base (iv, x) { }
@@ -139,7 +138,7 @@ namespace Hopac {
         iv.Value = this.X;
         iv.State = IVar<T>.HasValue;
 
-        WaitQueue.ProcessReaders(ref iv.Readers, iv.Value, ref wr);
+        WaitQueue.PickReaders(ref iv.Readers, iv.Value, ref wr);
       Done:
         Work.Do(uK, ref wr);
       }
@@ -167,31 +166,11 @@ namespace Hopac {
         if (state > IVar<X>.Empty) goto IVarFull;
 
         var readers = xI.Readers;
-        xI.Readers = new Fail<X>(this.e);
+        var e = this.e;
+        xI.Readers = new Fail<X>(e);
         xI.State = IVar<X>.HasExn;
 
-        if (null == readers) goto Empty;
-        int me = 0;
-        Work cursor = readers;
-      TryReader:
-        var reader = cursor as Cont<X>;
-        cursor = cursor.Next;
-        var pk = reader.GetPick(ref me);
-        if (null == pk) goto GotReader;
-
-      TryPick:
-        var st = Pick.TryPick(pk);
-        if (st > 0) goto TryNextReader;
-        if (st < 0) goto TryPick;
-
-        Pick.SetNacks(ref wr, me, pk);
-      GotReader:
-        Worker.Push(ref wr, new FailWork(this.e, reader));
-
-      TryNextReader:
-        if (cursor != readers) goto TryReader;
-
-      Empty:
+        WaitQueue.FailReaders(readers, e, ref wr);
         Work.Do(uK, ref wr);
         return;
 

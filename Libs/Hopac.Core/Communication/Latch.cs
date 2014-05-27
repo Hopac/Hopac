@@ -95,7 +95,7 @@ namespace Hopac {
         var n = Interlocked.Decrement(ref latch.Count);
         if (0 == n) {
           latch.Lock();
-          WaitQueue.ProcessReaders(ref latch.Awaiters, null, ref wr);
+          WaitQueue.PickReaders(ref latch.Awaiters, null, ref wr);
         }
         Work.Do(uK, ref wr);
       }

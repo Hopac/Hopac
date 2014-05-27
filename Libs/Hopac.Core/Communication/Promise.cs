@@ -104,7 +104,7 @@ namespace Hopac {
         if (state > Running) goto Spin;
         if (Running != Interlocked.CompareExchange(ref pr.State, Completed, Running)) goto Spin;
 
-        WaitQueue.ProcessReaders(ref pr.Readers, pr.Value, ref wr);
+        WaitQueue.PickReaders(ref pr.Readers, pr.Value, ref wr);
       }
 
       internal override void DoWork(ref Worker wr) {
@@ -126,28 +126,7 @@ namespace Hopac {
         pr.Readers = new Fail<T>(e);
         pr.State = Failed;
 
-        if (null == readers)
-          return;
-        Work cursor = readers;
-      TryReader:
-        var reader = cursor as Cont<T>;
-        cursor = cursor.Next;
-        int me = 0;
-        var pk = reader.GetPick(ref me);
-        if (null == pk) goto GotReader;
-
-      TryPick:
-        var st = Pick.TryPick(pk);
-        if (st > 0) goto TryNextReader;
-        if (st < 0) goto TryPick;
-
-        Pick.SetNacks(ref wr, me, pk);
-
-      GotReader:
-        Worker.PushNew(ref wr, new FailWork(e, reader));
-
-      TryNextReader:
-        if (cursor != readers) goto TryReader;
+        WaitQueue.FailReaders(readers, e, ref wr);
       }
     }
   }

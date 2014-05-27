@@ -247,7 +247,7 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void ProcessReaders<T>(ref Cont<T> readersVar, T value, ref Worker wr) {
+    internal static void PickReaders<T>(ref Cont<T> readersVar, T value, ref Worker wr) {
       var readers = readersVar;
       if (null == readers) return;
       readersVar = null;
@@ -273,6 +273,31 @@ namespace Hopac.Core {
     TryNextReader:
       if (cursor != readers)
         goto TryReader;
+    }
+
+    internal static void FailReaders<T>(Cont<T> readers, Exception e, ref Worker wr) {
+      if (null == readers)
+        return;
+      Work cursor = readers;
+    TryReader:
+      var reader = cursor as Cont<T>;
+      cursor = cursor.Next;
+      int me = 0;
+      var pk = reader.GetPick(ref me);
+      if (null == pk) goto GotReader;
+
+    TryPick:
+      var st = Pick.TryPick(pk);
+      if (st > 0) goto TryNextReader;
+      if (st < 0) goto TryPick;
+
+      Pick.SetNacks(ref wr, me, pk);
+
+    GotReader:
+      Worker.PushNew(ref wr, new FailWork(e, reader));
+
+    TryNextReader:
+      if (cursor != readers) goto TryReader;
     }
   }
 }
