@@ -245,5 +245,34 @@ namespace Hopac.Core {
         last.Next = xK;
       }
     }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void ProcessReaders<T>(ref Cont<T> readersVar, T value, ref Worker wr) {
+      var readers = readersVar;
+      if (null == readers) return;
+      readersVar = null;
+      int me = 0;
+      Work cursor = readers;
+    TryReader:
+      var reader = cursor as Cont<T>;
+      cursor = cursor.Next;
+      var pk = reader.GetPick(ref me);
+      if (null == pk)
+        goto GotReader;
+
+    TryPick:
+      var st = Pick.TryPick(pk);
+      if (st > 0) goto TryNextReader;
+      if (st < 0) goto TryPick;
+
+      Pick.SetNacks(ref wr, me, pk);
+    GotReader:
+      reader.Value = value;
+      Worker.Push(ref wr, reader);
+
+    TryNextReader:
+      if (cursor != readers)
+        goto TryReader;
+    }
   }
 }

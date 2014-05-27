@@ -51,6 +51,7 @@
     <Compile Include="Assembly.cs" />
     <Compile Include="Communication\Ch.cs" />
     <Compile Include="Communication\IVar.cs" />
+    <Compile Include="Communication\Latch.cs" />
     <Compile Include="Communication\Lock.cs" />
     <Compile Include="Communication\Mailbox.cs" />
     <Compile Include="Communication\MVar.cs" />

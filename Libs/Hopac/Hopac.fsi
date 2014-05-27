@@ -1044,8 +1044,8 @@ module Ch =
 /// like channels do.  When simple rendezvous is necessary, a channel should be
 /// used instead.
 ///
-/// Note that `IVar` is a subtype of `Alt` and `xI :> Alt<'x>` is equivalent to
-/// `IVar.Alt.read xI`.
+/// Note that `IVar` is a subtype of `Alt` and `IVar.Alt.read xI` is equivalent to
+/// `xI :> Alt<'x>`.
 type IVar<'x> :> Alt<'x>
 #endif
 
@@ -1085,20 +1085,33 @@ module IVar =
   val create: unit -> Job<IVar<'x>>
 
   /// Creates a job that writes the given value to the given write once
-  /// variable.  It is an error to write to a single `IVar` more than once.
-  /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.  See also `tryFill`.
+  /// variable.  It is an error to write to a single write once variable more
+  /// than once.  This assumption may be used to optimize the implementation of
+  /// `fill` and incorrect usage leads to undefined behavior.  In most use cases
+  /// of write once variables this assumption naturally follows from the
+  /// property that there is only one concurrent job that may ever write to a
+  /// particular write once variable.  If that is not the case, then you should
+  /// likely use some other communication primitive.  See also `tryFill` and
+  /// `fillFailure`.
   val inline fill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that tries to write the given value to the given write once
   /// variable.  No operation takes places and no error is reported in case the
   /// write once variable has already been written to.
+  ///
+  /// In most use cases of write once variables it should be clear that a
+  /// particular variable is written to at most once, because there is only one
+  /// specific concurrent job that may write to the variable, and `tryFill`
+  /// should not be used as a substitute for not understanding how the program
+  /// behaves.  However, in some case it can be convinient to use a write once
+  /// variable as a single shot event and there may be several concurrent jobs
+  /// that initially trigger the event.  In such cases, you may use `tryFill`.
   val inline tryFill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes the given exception to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.
+  /// usage leads to undefined behavior.  See also `fill`.
   val inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
   /// Creates a job that, if necessary, waits until the given write once
@@ -1111,6 +1124,67 @@ module IVar =
     /// Creates an alternative that becomes available for picking after the
     /// write once variable has been written to.
     val inline read: IVar<'x> -> Alt<'x>
+
+////////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a dynamic latch.
+///
+/// Both a first-order interface, with `create`, `increment` and `decrement`
+/// operations, and a higher-order interface, with `within`, `holding`, `queue`
+/// and `queueAsAlt` operations, are provided for programming with latches.
+type Latch :> Alt<unit>
+#endif
+
+/// Operations on latches.
+module Latch =
+  // Higher-order interface ----------------------------------------------------
+
+  /// Creates a job that creates a new latch, passes it to the given function to
+  /// create a new job to run and then awaits for the latch to open.
+  val within: (Latch -> Job<'x>) -> Job<'x>
+
+  /// Creates a job that runs the given job holding the specified latch.  Note
+  /// that the latch is only held while the given job is being run.  See also
+  /// `Latch.queue`.
+  val holding: Latch -> Job<'x> -> Job<'x>
+
+  /// Creates a job that queues the given job to run as a separate concurrent
+  /// job and holds the latch until the queued job either returns or fails with
+  /// an exception.  In either case, the result of the queued job is ignored.
+  /// See also `Latch.queueAsAlt`.
+  val queue: Latch -> Job<_> -> Job<unit>
+
+  /// Creates a job that queues the given job to run as a separate concurrent
+  /// job and holds the latch until the queued job either returns or fails with
+  /// an exception.  An alternative is returned for observing the result or
+  /// failure of the queued job.
+  val queueAsAlt: Latch -> Job<'x> -> Job<Alt<'x>>
+
+  // First-order interface -----------------------------------------------------
+
+  /// Immediate operations on latches.
+  module Now =
+    /// Creates a new latch with the specified initial count.
+    val inline create: initial: int -> Latch
+
+    /// Increments the counter of the latch.
+    val inline increment: Latch -> unit
+
+  /// Returns a job that explicitly decrements the counter of the latch.  When
+  /// the counter reaches `0`, the latch becomes open and operations awaiting
+  /// the latch are resumed.
+  val inline decrement: Latch -> Job<unit>
+
+  // Await interface -----------------------------------------------------------
+
+  /// Returns a job that awaits for the latch to open.
+  val inline await: Latch -> Job<unit>
+
+  /// Selective operations on counter latches.
+  module Alt =
+    /// Returns an alternative that becomes available once the latch opens.
+    val inline await: Latch -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 

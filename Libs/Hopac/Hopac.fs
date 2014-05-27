@@ -1548,3 +1548,28 @@ module Infixes =
   let inline (<-=!) (xI: IVar<'x>) (e: exn) = IVarFillFailure<'x> (xI, e) :> Job<unit>
   let inline (<<-=) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline (<<-+) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
+
+/////////////////////////////////////////////////////////////////////////
+
+module Latch =
+  module Now =
+    let inline create initial = Latch (initial)
+    let inline increment (l: Latch) = l.Increment ()
+  let inline decrement (l: Latch) = l.Decrement ()
+  let inline await (l: Latch) = l :> Job<_>
+  module Alt =
+    let inline await (l: Latch) = l :> Alt<_>
+  let within (l2xJ: Latch -> Job<'x>) = Job.delay <| fun () ->
+    let l = Now.create 1
+    Job.tryFinallyJob
+      (Job.delayWith l2xJ l)
+      (decrement l >>. l)
+  let holding (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+    Now.increment l
+    Job.tryFinallyJob xJ (decrement l)
+  let queue (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+    Now.increment l
+    Job.queue (Job.tryFinallyJob xJ (decrement l))
+  let queueAsAlt (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+    Now.increment l
+    Promise.queueAsAlt (Job.tryFinallyJob xJ (decrement l))

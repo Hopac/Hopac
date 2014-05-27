@@ -104,35 +104,6 @@ namespace Hopac {
         this.X = x;
       }
 
-      [MethodImpl(AggressiveInlining.Flag)]
-      internal static void ProcessReaders(IVar<T> iv, ref Worker wr) {
-        var readers = iv.Readers;
-        if (null == readers) return;
-        iv.Readers = null;
-        int me = 0;
-        Work cursor = readers;
-      TryReader:
-        var reader = cursor as Cont<T>;
-        cursor = cursor.Next;
-        var pk = reader.GetPick(ref me);
-        if (null == pk)
-          goto GotReader;
-
-      TryPick:
-        var st = Pick.TryPick(pk);
-        if (st > 0) goto TryNextReader;
-        if (st < 0) goto TryPick;
-
-        Pick.SetNacks(ref wr, me, pk);
-      GotReader:
-        reader.Value = iv.Value;
-        Worker.Push(ref wr, reader);
-
-      TryNextReader:
-        if (cursor != readers)
-          goto TryReader;
-      }
-
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var iv = this.IV;
         iv.Value = this.X; // This assumes correct usage of IVar.
@@ -144,7 +115,7 @@ namespace Hopac {
         if (state > IVar<T>.Empty) {
           uK.DoHandle(ref wr, new Exception("IVar full"));
         } else {
-          ProcessReaders(iv, ref wr);
+          WaitQueue.ProcessReaders(ref iv.Readers, iv.Value, ref wr);
           Work.Do(uK, ref wr);
         }
       }
@@ -168,7 +139,7 @@ namespace Hopac {
         iv.Value = this.X;
         iv.State = IVar<T>.HasValue;
 
-        ProcessReaders(iv, ref wr);
+        WaitQueue.ProcessReaders(ref iv.Readers, iv.Value, ref wr);
       Done:
         Work.Do(uK, ref wr);
       }
