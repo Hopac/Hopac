@@ -214,8 +214,9 @@ has therefore eliminated those.  (Support for synchronization contexts is
 somewhat in conflict with the goals of Hopac (minimize overheads and maximize
 parallel performance) and it is unlikely that such support would be added to
 Hopac.  If preservation of synchronization contexts is necessary, you should
-stick to tasks and/or async.  Some form of support for cancellation might be
-added in the future.)
+stick to tasks and/or async.  Some specific form of support for cancellation
+might be added in the future, but it can already be expressed by using [selective
+communication](Docs/Programming.md#programming-with-alternatives) provided by Hopac.)
 
 Finally, where Hopac goes much further is in providing support for message
 passing primitives and the construction of first-class synchronous abstractions
