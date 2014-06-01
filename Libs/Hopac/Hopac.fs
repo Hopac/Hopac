@@ -1522,6 +1522,15 @@ type JobBuilder () =
     Job.whileDo u2b uJ
   member inline job.Zero () : Job<unit> = StaticData.unit :> Job<unit>
 
+type EmbeddedJob<'x> = struct
+    val Job: Job<'x>
+    new (job) = {Job = job}
+  end
+
+type EmbeddedJobBuilder () =
+  inherit JobBuilder ()
+  member this.Run (xJ: Job<'x>) : EmbeddedJob<'x> = EmbeddedJob<'x> (xJ)
+
 [<AutoOpen>]
 module TopLevel =
   let job = JobBuilder ()

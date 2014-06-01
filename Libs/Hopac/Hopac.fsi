@@ -126,6 +126,62 @@ type JobBuilder =
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Represents a job to be embedded within a computation built upon jobs.
+#if DOC
+///
+/// Embedded jobs can be useful when defining computations built upon jobs.
+/// Having to encode lightweight threads using the job monad is somewhat
+/// unfortunate, because it is such a fundamental abstraction.  One sometimes,
+/// perhaps even often, wants to define more interesting computations upon jobs,
+/// but the traditional way of doing that requires adding yet another costly
+/// layer of abstraction on top of jobs.  Another possibility is to expose the
+/// `Job<'x>` type constructor as shown in the following example:
+///
+///> type Monad<'x>
+///
+///> type MonadBuilder =
+///>   member Delay: unit -> Job<Monad<'x>>
+///>   member Return: 'x -> Job<Monad<'x>>
+///>   member Bind: Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///>   member Bind: EmbeddedJob<'x> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///
+/// The `Monad<'x>` type constructor and the `MonadBuilder` defines the new
+/// computation mechanism on top of jobs.  The `Bind` operation taking an
+/// `EmbeddedJob<'x>` allows one to conveniently embed arbitrary jobs within the
+/// computations without introducing nasty overload resolution problems.
+///
+/// Consider what would happen if one would instead define `MonadBuilder` as
+/// follows:
+///
+///> type MonadBuilder =
+///>   member Delay: unit -> Job<Monad<'x>>
+///>   member Return: 'x -> Job<Monad<'x>>
+///>   member Bind: Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///>   member Bind: Job<      'x > * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///
+/// A `Bind` operation is now almost always ambiguous and one would have to
+/// annotate bind expressions to resolve the ambiguity.
+///
+/// The types of the operations in the `MonadBuilder` may, at first glance, seem
+/// complicated.  Essentially the covariant positions in signature are wrapped
+/// with the `Job<_>` type constructor to make it possible to use lightweight
+/// threads.  In a language with built-in lightweight threads this would be
+/// unnecessary.  Reading the signature by mentally replacing every `Job<'x>`
+/// with just `'x`, the signature should become clear.
+#endif
+type EmbeddedJob<'x> = struct
+    val Job: Job<'x>
+    new: Job<'x> -> EmbeddedJob<'x>
+  end
+
+/// A builder for embedded jobs.
+type EmbeddedJobBuilder =
+  inherit JobBuilder
+  new: unit -> EmbeddedJobBuilder
+  member Run: Job<'x> -> EmbeddedJob<'x>
+
+////////////////////////////////////////////////////////////////////////////////
+
 /// Convenience bindings for programming with Hopac.
 [<AutoOpen>]
 module TopLevel =
