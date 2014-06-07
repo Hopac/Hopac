@@ -9,10 +9,6 @@ Here you will find documents describing Hopac.
   fundamental issues that affect the performance of parallel algorithms on
   shared memory multiprocessors and how those issues translate into practical
   design patterns.
-* [Hopac Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.html)
-  manual is generated from the Hopac library source code.
-* [Hopac.Extra Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.Extra.html)
-  manual is generated from the Hopac.Extra library source code.
 * [Notes on the Internal Implementation of Hopac](Internals.md) describes some
   aspects of the internal implementation of Hopac.  This document is not meant
   to be something that a user of Hopac would need to understand, but potential
