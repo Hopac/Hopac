@@ -1,6 +1,7 @@
-bin
-obj
-*~
-*.suo
-.#*
 *.nupkg
+*.suo
+*~
+.\#*
+bin
+gh-pages
+obj
