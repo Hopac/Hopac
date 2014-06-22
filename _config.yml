@@ -1,6 +1,0 @@
-encoding: utf-8
-
-markdown: redcarpet
-
-redcarpet:
-  extensions: [fenced_code_blocks]
