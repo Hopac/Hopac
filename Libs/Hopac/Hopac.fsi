@@ -413,7 +413,7 @@ module Job =
 
   /// Creates a job that invokes the given thunk to compute the result of the
   /// job.  `thunk u2x` is equivalent to `result () |>> u2x`.
-  val thunk: (unit -> 'x) -> Job<'x>
+  val inline thunk: (unit -> 'x) -> Job<'x>
 
   /////////////////////////////////////////////////////////////////////////////
 

@@ -186,6 +186,15 @@ namespace Hopac {
       }
     }
 
+    ///
+    public abstract class JobThunk<X> : Job<X> {
+      ///
+      public abstract X Do();
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Cont.Do(xK, ref wr, Do());
+      }
+    }
+
     internal static class Job {
       [MethodImpl(AggressiveInlining.Flag)]
       internal static void Do<T>(Job<T> tJ, ref Worker wr, Cont<T> tK) {
@@ -203,7 +212,8 @@ namespace Hopac {
           }
         }
 #else
-        tK.DoCont(ref wr, value);
+        wr.Handler = tK;
+        tJ.DoJob(ref wr, tK);
 #endif
       }
     }

@@ -592,9 +592,9 @@ module Job =
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK) = Cont.Do (yK, &wr, x2y x)}
 
-  let thunk (u2x: unit -> 'x) =
-    {new Job<'x> () with
-      override xJ'.DoJob (wr, xK) = Cont.Do (xK, &wr, u2x ())}
+  let inline thunk (u2x: unit -> 'x) =
+    {new JobThunk<'x> () with
+      override xJ'.Do () = u2x ()} :> Job<_>
 
   let forN (n: int) (xJ: Job<'x>) =
     {new Job<unit> () with
