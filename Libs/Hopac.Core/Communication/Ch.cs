@@ -336,5 +336,105 @@ namespace Hopac {
         Work.Do(uK, ref wr);
       }
     }
+
+    /// Internal implementation detail.
+    public sealed class ChTryGive<T> : Job<bool> {
+      private Ch<T> Ch;
+      private T X;
+
+      /// Internal implementation detail.
+      [MethodImpl(AggressiveInlining.Flag)]
+      public ChTryGive(Ch<T> ch, T x) {
+        this.Ch = ch;
+        this.X = x;
+      }
+
+      internal override void DoJob(ref Worker wr, Cont<bool> bK) {
+        bK.Value = false;
+        var ch = this.Ch;
+      TryNextTaker:
+        ch.Lock.Enter();
+        var tail = ch.Takers;
+        if (null == tail)
+          goto NoTakers;
+        var cursor = tail.Next;
+        if (tail == cursor) {
+          ch.Takers = null;
+          ch.Lock.Exit();
+        } else {
+          tail.Next = cursor.Next;
+          ch.Lock.Exit();
+          tail = cursor as Cont<T>;
+        }
+
+        var taker = tail as Taker<T>;
+        if (null == taker)
+          goto GotTaker;
+        var pkOther = taker.Pick;
+
+      TryPickOther:
+        var stOther = Pick.TryPick(pkOther);
+        if (stOther > 0) goto TryNextTaker;
+        if (stOther < 0) goto TryPickOther;
+
+        Pick.SetNacks(ref wr, taker.Me, pkOther);
+
+        tail = taker.Cont;
+      GotTaker:
+        tail.Value = this.X;
+        Worker.Push(ref wr, tail);
+        bK.Value = true;
+      NoTakers:
+        Work.Do(bK, ref wr);
+        return;
+      }
+    }
+
+    /// Internal implementation detail.
+    public sealed class ChTryTake<T> : Job<FSharpOption<T>> {
+      private Ch<T> ch;
+
+      /// Internal implementation detail.
+      public ChTryTake(Ch<T> ch) { this.ch = ch; }
+
+      internal override void DoJob(ref Worker wr, Cont<FSharpOption<T>> xK) {
+        xK.Value = null;
+        var ch = this.ch;
+      TryNextGiver:
+        ch.Lock.Enter();
+        var tail = ch.Givers;
+        if (null != tail) goto TryGiver;
+        ch.Lock.Exit();
+        Work.Do(xK, ref wr);
+        return;
+
+      TryGiver:
+        var cursor = tail.Next;
+        if (tail == cursor)
+          ch.Givers = null;
+        else
+          tail.Next = cursor.Next;
+        ch.Lock.Exit();
+
+        var giver = cursor as Giver<T>;
+        if (null == giver)
+          goto GotSend;
+
+        var pkOther = giver.Pick;
+        if (null == pkOther) goto GotGiver;
+
+      TryPickOther:
+        var stOther = Pick.TryPick(pkOther);
+        if (stOther > 0) goto TryNextGiver;
+        if (stOther < 0) goto TryPickOther;
+
+        Pick.SetNacks(ref wr, giver.Me, pkOther);
+      GotGiver:
+        Worker.Push(ref wr, giver.Cont);
+      GotSend:
+        Cont.Do(xK, ref wr, FSharpOption<T>.Some(cursor.Value));
+        return;
+      }
+    }
   }
 }

@@ -1065,6 +1065,23 @@ module Ch =
   /// (or sends) a value.
   val inline take: Ch<'x> -> Job<'x>
 
+  /// Polling, or non-blocking, operations on synchronous channels.  Note that
+  /// polling operations only make sense when the other side of the
+  /// communication is blocked waiting on the channel.  If both a giver and a
+  /// taker use polling operations on a channel, it is not guaranteed that
+  /// communication will ever happen.
+  module Try =
+    /// Creates a job that attempts to give a value to another job waiting on
+    /// the given channel.  The result indicates whether a value was given or
+    /// not.  Note that the other side of the communication must be blocked on
+    /// the channel for communication to happen.
+    val inline give: Ch<'x> -> 'x -> Job<bool>
+
+    /// Creates a job that attempts to take a value from another job waiting on
+    /// the given channel.  Note that the other side of the communication must
+    /// be blocked on the channel for communication to happen.
+    val inline take: Ch<'x> -> Job<option<'x>>
+
   /// Selective operations on synchronous channels.
   module Alt =
     /// Creates an alternative that, at instantiation time, offers to give the
