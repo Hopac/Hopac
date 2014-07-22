@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac</id>
-    <version>0.0.0.22</version>
+    <version>0.0.0.23</version>
     <title>Hopac</title>
     <summary>A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -11,7 +11,7 @@
     <projectUrl>https://github.com/VesaKarvonen/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
-    <releaseNotes></releaseNotes>
+    <releaseNotes>0.0.0.23: Fixed bug in Ch.Try.give introduced in previous version.</releaseNotes>
     <copyright>© Housemarque Inc.</copyright>
     <tags>f# fsharp parallel async concurrent</tags>
   </metadata>

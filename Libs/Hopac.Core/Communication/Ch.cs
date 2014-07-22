@@ -384,7 +384,11 @@ namespace Hopac {
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
         bK.Value = true;
+        Work.Do(bK, ref wr);
+        return;
+
       NoTakers:
+        ch.Lock.Exit();
         Work.Do(bK, ref wr);
         return;
       }
