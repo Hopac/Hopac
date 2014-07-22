@@ -23,6 +23,10 @@ namespace Hopac.Core {
     /// <summary>Stores the single shared proc job.</summary>
     public static Job<Proc> proc;
 
+    /// <summary>Stores the single shared proc that switches execution to a
+    /// worker thread.</summary>
+    public static Job<Unit> switchToWorker;
+
     /// <summary>Stores the single AsyncCallback delegate.</summary>
     public static AsyncCallback workAsyncCallback;
 
@@ -34,6 +38,7 @@ namespace Hopac.Core {
         zero = new Zero();
         scheduler = new GetScheduler();
         proc = new GetProc();
+        switchToWorker = new SwitchToWorker();
         workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
       }
     }
@@ -47,6 +52,13 @@ namespace Hopac.Core {
     private sealed class GetProc : Job<Proc> {
       internal override void DoJob(ref Worker wr, Cont<Proc> pK) {
         Cont.Do(pK, ref wr, pK.GetProc(ref wr));
+      }
+    }
+
+    private sealed class SwitchToWorker : Job<Unit> {
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        // See Worker.RunOnThisThread to understand why this works.
+        Worker.Push(ref wr, uK);
       }
     }
   }

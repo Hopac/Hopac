@@ -1153,6 +1153,10 @@ module Job =
 
   let inline scheduler () = StaticData.scheduler
 
+  ///////////////////////////////////////////////////////////////////////
+
+  let inline switchToWorker () = StaticData.switchToWorker
+
 /////////////////////////////////////////////////////////////////////////
 
 module Proc =
@@ -1492,37 +1496,109 @@ module Extensions =
            Handler.Terminate (&wr, xK'.State)
            xTCS.TrySetResult x |> ignore})}
 
+  module Async =
+    let inline start sr xA (xK: Cont<_>) =
+      let success = fun x ->
+        xK.Value <- x
+        Worker.RunOnThisThread (sr, xK)
+      let failure = fun exn ->
+        Worker.RunOnThisThread (sr, FailWork (exn, xK))
+      Async.StartWithContinuations (xA, success, failure, failure)
+
+    let inline startIn (context: SynchronizationContext) sr xA xK =
+      context.Post ((fun _ -> start sr xA xK), null)
+
+    let toJob (xA: Async<'x>) =
+      {new Job<'x> () with
+        override xJ'.DoJob (wr, xK) =
+         match wr.Event with
+          | null -> Worker.PushNew (&wr, JobWork<'x> (xJ', xK))
+          | _    -> start wr.Scheduler xA xK}
+
+    let toJobOn (context: SynchronizationContext) (xA: Async<'x>) =
+      match context with
+       | null ->
+         toJob xA
+       | _ ->
+         {new Job<'x> () with
+           override xJ'.DoJob (wr, xK) =
+            startIn context wr.Scheduler xA xK}
+
+    let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
+      assert (null <> sr)
+      Async.FromContinuations <| fun (x2u, e2u, c2u) ->
+        Worker.RunOnThisThread (sr, xJ, {new Cont_State<'x, Cont<unit>>() with
+         override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
+         override xK'.DoHandle (wr, e) = e2u e
+         override xK'.DoWork (wr) = x2u xK'.Value
+         override xK'.DoCont (wr, x) = x2u x})
+
+    module Global =
+      let ofJob (xJ: Job<'x>) =
+        ofJobOn (initGlobalScheduler ()) xJ
+
 /////////////////////////////////////////////////////////////////////////
 
 open Extensions
 open Job.Infixes
 
 type JobBuilder () =
+  member inline job.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+    Async.toJob xA >>= x2yJ
   member inline job.Bind (xT: Tasks.Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Task.bindJob (xT, x2yJ)
   member inline job.Bind (uT: Tasks.Task, u2xJ: unit -> Job<'x>) : Job<'x> =
     Task.bindJob (uT, u2xJ)
   member inline job.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xJ >>= x2yJ
+
+  member inline job.Combine (uA: Async<unit>, xJ: Job<'x>) : Job<'x> =
+    Async.toJob uA >>. xJ
+  member inline job.Combine (uT: Tasks.Task<unit>, xJ: Job<'x>) : Job<'x> =
+    Task.awaitJob uT >>. xJ
   member inline job.Combine (uT: Tasks.Task, xJ: Job<'x>) : Job<'x> =
     Task.awaitJob uT >>. xJ
   member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>. xJ
+
   member inline job.Delay (u2xJ: unit -> Job<'x>) : Job<'x> = Job.delay u2xJ
+
   member inline job.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
     Seq.iterJob x2uJ xs
   member inline job.For (xs: array<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
     Array.iterJob x2uJ xs
+
   member inline job.Return (x: 'x) : Job<'x> = Job.result x
+
+  member inline job.ReturnFrom (xA: Async<'x>) : Job<'x> = Async.toJob xA
+  member inline job.ReturnFrom (xT: Tasks.Task<'x>) : Job<'x> = Task.awaitJob xT
+  member inline job.ReturnFrom (uT: Tasks.Task) : Job<unit> = Task.awaitJob uT
   member inline job.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
+
+  member inline job.TryFinally (xA: Async<'x>, u2u: unit -> unit) : Job<'x> =
+    Job.tryFinallyFun (Async.toJob xA) u2u
+  member inline job.TryFinally (xT: Tasks.Task<'x>, u2u: unit -> unit) : Job<'x> =
+    Job.tryFinallyFun (Task.awaitJob xT) u2u
+  member inline job.TryFinally (uT: Tasks.Task, u2u: unit -> unit) : Job<unit> =
+    Job.tryFinallyFun (Task.awaitJob uT) u2u
   member inline job.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =
     Job.tryFinallyFun xJ u2u
+
+  member inline job.TryWith (xA: Async<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
+    Job.tryWith (Async.toJob xA) e2xJ
+  member inline job.TryWith (xT: Tasks.Task<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
+    Job.tryWith (Task.awaitJob xT) e2xJ
+  member inline job.TryWith (uT: Tasks.Task, e2xJ: exn -> Job<unit>) : Job<unit> =
+    Job.tryWith (Task.awaitJob uT) e2xJ
   member inline job.TryWith (xJ: Job<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith xJ e2xJ
+
   member inline job.Using (x: 'x, x2yJ: 'x -> Job<'y>) : Job<'y>
       when 'x :> IDisposable =
     Job.using x x2yJ
+
   member inline job.While (u2b: unit -> bool, uJ: Job<unit>) : Job<unit> =
     Job.whileDo u2b uJ
+
   member inline job.Zero () : Job<unit> = StaticData.unit :> Job<unit>
 
 type EmbeddedJob<'x> = struct

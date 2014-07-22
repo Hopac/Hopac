@@ -26,6 +26,7 @@ namespace Hopac.Core {
     internal SpinlockMCS.Node Node;
 #endif
     internal Scheduler Scheduler;
+    internal WorkerEvent Event;
 
 #if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
@@ -122,7 +123,7 @@ namespace Hopac.Core {
 #endif
       var iK = new IdleCont();
 
-      var mine = sr.Events[me];
+      wr.Event = sr.Events[me];
 
       while (null != sr) {
         try {
@@ -191,7 +192,7 @@ namespace Hopac.Core {
           if (null != work)
             goto SchedulerGotSome;
 
-          Scheduler.UnsafeWait(sr, iK.Value, mine);
+          Scheduler.UnsafeWait(sr, iK.Value, wr.Event);
           goto EnterScheduler;
         } catch (KillException) {
           Scheduler.Kill(sr);

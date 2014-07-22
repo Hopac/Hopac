@@ -66,6 +66,8 @@
 /// otherwise the `Fun` version.
 namespace Hopac
 
+open System.Threading
+open System.Threading.Tasks
 open System
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,20 +110,43 @@ type Void
 #endif
 type JobBuilder =
   new: unit -> JobBuilder
-  member inline Bind: Threading.Tasks.Task<'x> * ('x -> Job<'y>) -> Job<'y>
-  member inline Bind: Threading.Tasks.Task * (unit -> Job<'x>) -> Job<'x>
-  member inline Bind: Job<'x> * ('x -> Job<'y>) -> Job<'y>
-  member inline Combine: Threading.Tasks.Task * Job<'x> -> Job<'x>
-  member inline Combine: Job<unit> * Job<'x> -> Job<'x>
+
+  member inline Bind: Async<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:  Task<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:  Task     * (unit -> Job<'y>) -> Job<'y>
+  member inline Bind:   Job<'x> * ('x   -> Job<'y>) -> Job<'y>
+
+  member inline Combine: Async<unit> * Job<'x> -> Job<'x>
+  member inline Combine:  Task<unit> * Job<'x> -> Job<'x>
+  member inline Combine:  Task       * Job<'x> -> Job<'x>
+  member inline Combine:   Job<unit> * Job<'x> -> Job<'x>
+
   member inline Delay: (unit -> Job<'x>) -> Job<'x>
+
   member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
   member inline For: array<'x> * ('x -> Job<unit>) -> Job<unit>
+
   member inline Return: 'x -> Job<'x>
+
+  member inline ReturnFrom: Async<'x> -> Job<'x>
+  member inline ReturnFrom: Task<'x> -> Job<'x>
+  member inline ReturnFrom: Task -> Job<unit>
   member inline ReturnFrom: Job<'x> -> Job<'x>
-  member inline TryFinally: Job<'x> * (unit -> unit) -> Job<'x>
-  member inline TryWith: Job<'x> * (exn -> Job<'x>) -> Job<'x>
+
+  member inline TryFinally: Async<'x> * (unit -> unit) -> Job<'x>
+  member inline TryFinally:  Task<'x> * (unit -> unit) -> Job<'x>
+  member inline TryFinally:  Task     * (unit -> unit) -> Job<unit>
+  member inline TryFinally:   Job<'x> * (unit -> unit) -> Job<'x>
+
+  member inline TryWith: Async<'x> * (exn -> Job<'x>  ) -> Job<'x>
+  member inline TryWith:  Task<'x> * (exn -> Job<'x>  ) -> Job<'x>
+  member inline TryWith:  Task     * (exn -> Job<unit>) -> Job<unit>
+  member inline TryWith:   Job<'x> * (exn -> Job<'x>  ) -> Job<'x>
+
   member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
+
   member inline While: (unit -> bool) * Job<unit> -> Job<unit>
+
   member inline Zero: unit -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -767,6 +792,10 @@ module Job =
   /// the job that is suspended for the duration of the asynchronous operation
   /// can then be resumed on the same scheduler.
   val inline scheduler: unit -> Job<Scheduler>
+
+  /// Returns a job that ensures that the immediately following operation will
+  /// be executed on a Hopac worker thread.
+  val inline switchToWorker: unit -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1587,12 +1616,55 @@ module Extensions =
       /// the jobs have finished collecting the results into a list.
       val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
+  /// Operations for interfacing F# async operations with jobs.
+#if DOC
+  ///
+  /// Note that these operations are provided for interfacing with existing APIs
+  /// that work with async operations.  Running async operations within jobs and
+  /// vice versa incurs potentially significant overheads.
+  ///
+  /// Note that there is almost a one-to-one mapping between async operations
+  /// and jobs.  The main semantic difference between async operations and Hopac
+  /// jobs is the threads and schedulers they are being executed on.
+#endif
+  module Async =
+    /// Creates a job that starts the given async operation and then waits until
+    /// the started async operation finishes.  The async operation will be
+    /// started on a Hopac worker thread, which means the async operation will
+    /// continue on the thread pool.  Consider whether you need to call
+    /// `Async.SwitchToContext` or some other thread or synchronization context
+    /// switching async operation in your async operation.  See also: `toJobOn`.
+    val toJob: Async<'x> -> Job<'x>
+
+    /// Creates a job that posts the given async operation to the specified
+    /// synchronization context for execution and then waits until the started
+    /// async operation finishes.  As a special case, `toJobOn null xA` is
+    /// equivalent to `toJob xA`.
+    val toJobOn: SynchronizationContext -> Async<'x> -> Job<'x>
+
+    /// Creates an async operation that starts the given job on the specified
+    /// scheduler and then waits until the started job finishes.  See also:
+    /// `Job.scheduler`, `Async.Global.ofJob`.
+    val ofJobOn: Scheduler -> Job<'x> -> Async<'x>
+
+    /// Operations on the global scheduler.
+    module Global =
+      /// Creates an async operation that starts the given job on the global
+      /// scheduler and then waits until the started job finishes.  See also:
+      /// `Async.ofJobOn`.
+      val ofJob: Job<'x> -> Async<'x>
+
   /// Operations for interfacing tasks with jobs.
+#if DOC
   ///
   /// Note that these operations are provided for interfacing with existing
   /// APIs that work with tasks.  Starting a job as a task and then awaiting
   /// for its result has much higher overhead than simply starting the job as a
   /// `Promise`, for example.
+  ///
+  /// Note that tasks and jobs are quite different in nature as tasks are
+  /// comonadic while jobs are monadic.
+#endif
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
     /// the result of the task.  Note that this does not start the task.
