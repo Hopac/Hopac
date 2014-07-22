@@ -2,6 +2,7 @@
 *.suo
 *~
 .\#*
+\#*\#
 bin
 gh-pages
 obj
