@@ -1065,11 +1065,21 @@ module Ch =
   /// (or sends) a value.
   val inline take: Ch<'x> -> Job<'x>
 
-  /// Polling, or non-blocking, operations on synchronous channels.  Note that
-  /// polling operations only make sense when the other side of the
+  /// Polling, or non-blocking, operations on synchronous channels.
+#if DOC
+  ///
+  /// Note that polling operations only make sense when the other side of the
   /// communication is blocked waiting on the channel.  If both a giver and a
   /// taker use polling operations on a channel, it is not guaranteed that
   /// communication will ever happen.
+  ///
+  /// Also note that a job that performs arbitrarily many polling operations
+  /// without blocking should not be used in a cooperative system, like Hopac,
+  /// because such a job completely uses up a single core and prevents other
+  /// ready jobs from being executed.  Jobs that perform polling should be
+  /// designed so that after a finitely many poll operations they will block
+  /// waiting for communication.
+#endif
   module Try =
     /// Creates a job that attempts to give a value to another job waiting on
     /// the given channel.  The result indicates whether a value was given or
