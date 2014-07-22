@@ -350,13 +350,16 @@ namespace Hopac {
       }
 
       internal override void DoJob(ref Worker wr, Cont<bool> bK) {
-        bK.Value = false;
         var ch = this.Ch;
       TryNextTaker:
         ch.Lock.Enter();
         var tail = ch.Takers;
-        if (null == tail)
-          goto NoTakers;
+        if (null != tail) goto TryTaker;
+        ch.Lock.Exit();
+        Cont.Do(bK, ref wr, false);
+        return;
+
+      TryTaker:
         var cursor = tail.Next;
         if (tail == cursor) {
           ch.Takers = null;
@@ -368,8 +371,7 @@ namespace Hopac {
         }
 
         var taker = tail as Taker<T>;
-        if (null == taker)
-          goto GotTaker;
+        if (null == taker) goto GotTaker;
         var pkOther = taker.Pick;
 
       TryPickOther:
@@ -383,13 +385,7 @@ namespace Hopac {
       GotTaker:
         tail.Value = this.X;
         Worker.Push(ref wr, tail);
-        bK.Value = true;
-        Work.Do(bK, ref wr);
-        return;
-
-      NoTakers:
-        ch.Lock.Exit();
-        Work.Do(bK, ref wr);
+        Cont.Do(bK, ref wr, true);
         return;
       }
     }
