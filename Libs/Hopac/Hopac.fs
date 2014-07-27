@@ -1539,6 +1539,68 @@ module Extensions =
       let ofJob (xJ: Job<'x>) =
         ofJobOn (initGlobalScheduler ()) xJ
 
+    type OnWithSchedulerBuilder =
+      new (context: SynchronizationContext, scheduler: Scheduler) =
+        {Context = context; Scheduler = scheduler}
+
+      val Scheduler: Scheduler
+      val Context: SynchronizationContext
+
+      member inline this.Bind (tT: Tasks.Task<'T>, t2uA: 'T -> Async<'U>) =
+        async.Bind (Async.AwaitTask tT, t2uA)
+      member inline this.Bind (tJ: Job<'T>, t2uA: 'T -> Async<'U>) =
+        async.Bind (ofJobOn this.Scheduler tJ, t2uA)
+      member inline this.Bind (tA: Async<'T>, t2uA: 'T -> Async<'U>) =
+        async.Bind (tA, t2uA)
+
+      member inline this.Combine (uT: Tasks.Task<unit>, tA: Async<'T>) =
+        async.Combine (Async.AwaitTask uT, tA)
+      member inline this.Combine (uJ: Job<unit>, tA: Async<'T>) =
+        async.Combine (ofJobOn this.Scheduler uJ, tA)
+      member inline this.Combine (uA: Async<unit>, tA: Async<'T>) =
+        async.Combine (uA, tA)
+
+      member inline this.Delay (u2tA: unit -> Async<'T>) =
+        async.Delay u2tA
+
+      member inline this.For (ts: seq<'T>, t2uA: 'T -> Async<unit>) =
+        async.For (ts, t2uA)
+
+      member inline this.Return (t: 'T) = async.Return t
+
+      member inline this.ReturnFrom (tT: Tasks.Task<'T>) =
+        async.ReturnFrom (Async.AwaitTask tT)
+      member inline this.ReturnFrom (tJ: Job<'T>) =
+        async.ReturnFrom (ofJobOn this.Scheduler tJ)
+      member inline this.ReturnFrom (tA: Async<'T>) = async.ReturnFrom tA
+
+      member inline this.TryFinally (tT: Tasks.Task<'T>, u2u: unit -> unit) =
+        async.TryFinally (Async.AwaitTask tT, u2u)
+      member inline this.TryFinally (tJ: Job<'T>, u2u: unit -> unit) =
+        async.TryFinally (ofJobOn this.Scheduler tJ, u2u)
+      member inline this.TryFinally (tA: Async<'T>, u2u: unit -> unit) =
+        async.TryFinally (tA, u2u)
+
+      member inline this.TryWith (tT: Tasks.Task<'T>, e2tA: exn -> Async<'T>) =
+        async.TryWith (Async.AwaitTask tT, e2tA)
+      member inline this.TryWith (tJ: Job<'T>, e2tA: exn -> Async<'T>) =
+        async.TryWith (ofJobOn this.Scheduler tJ, e2tA)
+      member inline this.TryWith (tA: Async<'T>, e2tA: exn -> Async<'T>) =
+        async.TryWith (tA, e2tA)
+
+      member inline this.Using (t: 'T, t2uA: 'T -> Async<'U>) =
+        async.Using (t, t2uA)
+
+      member inline this.While (u2b: unit -> bool, uA: Async<unit>) =
+        async.While (u2b, uA)
+
+      member inline this.Zero () = async.Zero ()
+
+      member inline this.Run (xA: Async<'x>) = toJobOn this.Context xA
+
+  let inline asyncOn context scheduler =
+    Async.OnWithSchedulerBuilder (context, scheduler)
+
 /////////////////////////////////////////////////////////////////////////
 
 open Extensions

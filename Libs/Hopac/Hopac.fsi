@@ -91,15 +91,20 @@ type Void
 ///> if ... then ...
 ///> if ... then ... else ...
 ///> let ... = ... in ...
-///> let! ... = ... in ...
+///> let! ... = ... | async | task in ...
 ///> match ... with ...
 ///> return ...
-///> return! ...
-///> try ... finally ...
-///> try ... with ...
-///> use ... in ...
-///> use! ... in ...
+///> return! ... | async | task
+///> try ... | async | task finally ...
+///> try ... | async | task with ...
+///> use ... = ... in ...
+///> use! ... = ... | async | task in ...
 ///> while ... do ...
+///
+/// In the above, an ellipsis denotes either a job, an ordinary expression or a
+/// pattern.  A job workflow can also directly bind async operations, which will
+/// be started on a Hopac worker thread (see `Async.toJob`), and tasks (see
+/// `Task.awaitJob`).
 ///
 /// Note that the `Job` module provides more combinators for constructing jobs.
 /// For example, the F# workflow notation does not support `Job.tryFinallyJob`
@@ -123,15 +128,15 @@ type JobBuilder =
 
   member inline Delay: (unit -> Job<'x>) -> Job<'x>
 
-  member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
+  member inline For:   seq<'x> * ('x -> Job<unit>) -> Job<unit>
   member inline For: array<'x> * ('x -> Job<unit>) -> Job<unit>
 
   member inline Return: 'x -> Job<'x>
 
   member inline ReturnFrom: Async<'x> -> Job<'x>
-  member inline ReturnFrom: Task<'x> -> Job<'x>
-  member inline ReturnFrom: Task -> Job<unit>
-  member inline ReturnFrom: Job<'x> -> Job<'x>
+  member inline ReturnFrom:  Task<'x> -> Job<'x>
+  member inline ReturnFrom:  Task     -> Job<unit>
+  member inline ReturnFrom:   Job<'x> -> Job<'x>
 
   member inline TryFinally: Async<'x> * (unit -> unit) -> Job<'x>
   member inline TryFinally:  Task<'x> * (unit -> unit) -> Job<'x>
@@ -1646,11 +1651,15 @@ module Extensions =
 #endif
   module Async =
     /// Creates a job that starts the given async operation and then waits until
-    /// the started async operation finishes.  The async operation will be
-    /// started on a Hopac worker thread, which means the async operation will
-    /// continue on the thread pool.  Consider whether you need to call
-    /// `Async.SwitchToContext` or some other thread or synchronization context
-    /// switching async operation in your async operation.  See also: `toJobOn`.
+    /// the started async operation finishes.
+#if DOC
+    ///
+    /// The async operation will be started on a Hopac worker thread, which
+    /// means that the async operation will continue on the thread pool.
+    /// Consider whether you need to call `Async.SwitchToContext` or some other
+    /// thread or synchronization context switching async operation in your
+    /// async operation.  See also: `toJobOn`.
+#endif
     val toJob: Async<'x> -> Job<'x>
 
     /// Creates a job that posts the given async operation to the specified
@@ -1671,6 +1680,54 @@ module Extensions =
       /// `Async.ofJobOn`.
       val ofJob: Job<'x> -> Async<'x>
 
+    /// Builder for async workflows.  The methods in this builder delegate to
+    /// the default `async` builder.
+    type OnWithSchedulerBuilder =
+      new: SynchronizationContext * Scheduler -> OnWithSchedulerBuilder
+
+      val Scheduler: Scheduler
+      val Context: SynchronizationContext
+
+      member inline Bind:  Task<'T> * ('T   -> Async<'U>) -> Async<'U>
+      member inline Bind:   Job<'T> * ('T   -> Async<'U>) -> Async<'U>
+      member inline Bind: Async<'T> * ('T   -> Async<'U>) -> Async<'U>
+
+      member inline Combine:  Task<unit> * Async<'T> -> Async<'T>
+      member inline Combine:   Job<unit> * Async<'T> -> Async<'T>
+      member inline Combine: Async<unit> * Async<'T> -> Async<'T>
+
+      member inline Delay: (unit -> Async<'T>) -> Async<'T>
+
+      member inline For: seq<'T> * ('T -> Async<unit>) -> Async<unit>
+
+      member inline Return: 'T -> Async<'T>
+
+      member inline ReturnFrom:  Task<'T> -> Async<'T>
+      member inline ReturnFrom:   Job<'T> -> Async<'T>
+      member inline ReturnFrom: Async<'T> -> Async<'T>
+
+      member inline TryFinally:  Task<'T> * (unit -> unit) -> Async<'T>
+      member inline TryFinally:   Job<'T> * (unit -> unit) -> Async<'T>
+      member inline TryFinally: Async<'T> * (unit -> unit) -> Async<'T>
+
+      member inline TryWith:  Task<'T> * (exn -> Async<'T>) -> Async<'T>
+      member inline TryWith:   Job<'T> * (exn -> Async<'T>) -> Async<'T>
+      member inline TryWith: Async<'T> * (exn -> Async<'T>) -> Async<'T>
+
+      member inline Using: 'T * ('T -> Async<'U>) -> Async<'U> when 'T :> IDisposable
+
+      member inline While: (unit -> bool) * Async<unit> -> Async<unit>
+
+      member inline Zero: unit -> Async<unit>
+
+      member inline Run: Async<'x> -> Job<'x>
+
+  /// Builder for an async operation started on the given synchronization
+  /// context with jobs on the specified scheduler wrapped as a job.
+  val inline asyncOn: SynchronizationContext
+            -> Scheduler
+            -> Async.OnWithSchedulerBuilder
+
   /// Operations for interfacing tasks with jobs.
 #if DOC
   ///
@@ -1679,12 +1736,22 @@ module Extensions =
   /// for its result has much higher overhead than simply starting the job as a
   /// `Promise`, for example.
   ///
+  /// Note that starting tasks correctly can be tricky.  Hopac jobs are designed
+  /// to be executed by Hopac worker threads, which have the default `null` 
+  /// synchronization context like the .Net thread pool, but Hopac jobs can also
+  /// be started on other threads, which may live in non-default synchronization
+  /// contexts.  Tasks that have been written using the C# async-await mechanism
+  /// may capture the current synchronization context.  This means that when you
+  /// call a function to start a task within a Hopac job, you may need to
+  /// explicitly post that function call to a specific synchronization context.
+  ///
   /// Note that tasks and jobs are quite different in nature as tasks are
   /// comonadic while jobs are monadic.
 #endif
   type [<Sealed>] Task =
     /// Creates a job that waits for the given task to finish and then returns
-    /// the result of the task.  Note that this does not start the task.
+    /// the result of the task.  Note that this does not start the task.  Make
+    /// sure that the task is started correctly.
 #if DOC
     ///
     /// Reference implementation:
@@ -1700,7 +1767,7 @@ module Extensions =
     static member inline awaitJob: Threading.Tasks.Task<'x> -> Job<'x>
 
     /// Creates a job that waits until the given task finishes.  Note that this
-    /// does not start the task.
+    /// does not start the task.  Make sure that the task is started correctly.
     static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
 
     /// `bindJob (xT, x2yJ)` is equivalent to `awaitJob xT >>= x2yJ`.
