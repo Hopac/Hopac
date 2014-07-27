@@ -14,41 +14,54 @@ namespace Hopac {
     internal volatile int State;
     internal Cont<T> Readers;
 
-    internal const int Failed = -2;
-    internal const int Completed = -1;
-    internal const int Running = 0;
-    internal const int Locked = 1;
+    internal const int Locked = ~Empty;
+    internal const int Empty = 0;
+    internal const int HasValue = 1;
+    internal const int HasExn = 2;
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal Promise() { }
 
-    /// <summary>Creates a promise with the given value.</summary>
+    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(T value) {
-      this.State = Completed;
+      this.State = HasValue;
       this.Value = value;
     }
 
-    /// <summary>Creates a promise with the given failure exception.</summary>
+    /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(Exception e) {
-      this.State = Failed;
       this.Readers = new Fail<T>(e); // We assume failures are infrequent.
+      this.State = HasExn;
+    }
+
+    /// Internal implementation detail.
+    public bool Full {
+      [MethodImpl(AggressiveInlining.Flag)]
+      get { return Empty < State; }
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal T Get() {
+      if (HasValue == State)
+        return Value;
+      throw (this.Readers as Fail<T>).exn;
     }
 
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
-      if (state < Running) goto Completed;
-      if (state > Running) goto Spin;
-      if (state != Interlocked.CompareExchange(ref this.State, Locked, state)) goto Spin;
+      if (state > Empty) goto Completed;
+      if (state < Empty) goto Spin;
+      if (state != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
 
       WaitQueue.AddTaker(ref this.Readers, aK);
-      this.State = Running;
+      this.State = Empty;
       return;
 
     Completed:
-      if (state == Completed)
+      if (state == HasValue)
         Cont.Do(aK, ref wr, this.Value);
       else
         aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
@@ -58,12 +71,12 @@ namespace Hopac {
       var pkSelf = aE.pk;
     Spin:
       var state = this.State;
-      if (state < Running) goto Completed;
-      if (state > Running) goto Spin;
-      if (state != Interlocked.CompareExchange(ref this.State, Locked, state)) goto Spin;
+      if (state > Empty) goto Completed;
+      if (state < Empty) goto Spin;
+      if (state != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
 
       WaitQueue.AddTaker(ref this.Readers, i, pkSelf, aK);
-      this.State = Running;
+      this.State = Empty;
       aE.TryElse(ref wr, i + 1);
       return;
 
@@ -74,7 +87,7 @@ namespace Hopac {
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
-      if (state == Completed)
+      if (state == HasValue)
         Cont.Do(aK, ref wr, this.Value);
       else
         aK.DoHandle(ref wr, (this.Readers as Fail<T>).exn);
@@ -82,13 +95,13 @@ namespace Hopac {
       return;
     }
 
-    internal sealed class PrCont : Cont<T> {
-      private readonly Promise<T> pr;
+    internal sealed class Fulfill : Cont<T> {
+      private readonly Promise<T> tP;
       private Cont<Unit> procFin;
 
       [MethodImpl(AggressiveInlining.Flag)]
-      internal PrCont(Promise<T> pr) {
-        this.pr = pr;
+      internal Fulfill(Promise<T> tP) {
+        this.tP = tP;
       }
 
       internal override Proc GetProc(ref Worker wr) {
@@ -96,15 +109,15 @@ namespace Hopac {
       }
 
       [MethodImpl(AggressiveInlining.Flag)]
-      internal void Do(ref Worker wr, T v) {
-        var pr = this.pr;
-        pr.Value = v;
+      internal void Do(ref Worker wr, T t) {
+        var tP = this.tP;
+        tP.Value = t;
       Spin:
-        var state = pr.State;
-        if (state > Running) goto Spin;
-        if (Running != Interlocked.CompareExchange(ref pr.State, Completed, Running)) goto Spin;
+        var state = tP.State;
+        if (state != Empty) goto Spin;
+        if (Empty != Interlocked.CompareExchange(ref tP.State, HasValue, state)) goto Spin;
 
-        WaitQueue.PickReaders(ref pr.Readers, pr.Value, ref wr);
+        WaitQueue.PickReaders(ref tP.Readers, tP.Value, ref wr);
       }
 
       internal override void DoWork(ref Worker wr) {
@@ -116,15 +129,15 @@ namespace Hopac {
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        var pr = this.pr;
+        var tP = this.tP;
       Spin:
-        var state = pr.State;
-        if (state > Running) goto Spin;
-        if (Running != Interlocked.CompareExchange(ref pr.State, Locked, Running)) goto Spin;
+        var state = tP.State;
+        if (state != Empty) goto Spin;
+        if (Empty != Interlocked.CompareExchange(ref tP.State, Locked, state)) goto Spin;
 
-        var readers = pr.Readers;
-        pr.Readers = new Fail<T>(e);
-        pr.State = Failed;
+        var readers = tP.Readers;
+        tP.Readers = new Fail<T>(e);
+        tP.State = HasExn;
 
         WaitQueue.FailReaders(readers, e, ref wr);
       }

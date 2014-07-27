@@ -149,10 +149,10 @@ module IVar =
     let get (xI: IVar<'x>) : 'x = xI.Get ()
       
   let create () = ctor Now.create ()
-  let inline fill (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
-  let inline tryFill (xI: IVar<'x>) (x: 'x) = IVarTryFill<'x> (xI, x) :> Job<unit>
+  let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
+  let inline tryFill (xI: IVar<'x>) (x: 'x) = IVar<'x>.TryFill (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
-    IVarFillFailure<'x> (xI, e) :> Job<unit>
+    IVar<'x>.FillFailure (xI, e) :> Job<unit>
   let inline read (xI: IVar<'x>) = xI :> Job<'x>
   module Alt =
     let inline read (xI: IVar<'x>) = xI :> Alt<'x>
@@ -166,14 +166,14 @@ module Promise =
        let pr = Promise<'x> ()
        xPrK.Value <- pr
        Worker.Push (&wr, xPrK)
-       Job.Do (xJ, &wr, Promise<'x>.PrCont (pr))}
+       Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
   let queue (xJ: Job<'x>) =
     {new Job<Promise<'x>> () with
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
        Worker.PushNew (&wr, {new WorkHandler () with
         override w'.DoWork (wr) =
-         let prc = Promise<'x>.PrCont (pr)
+         let prc = Promise<'x>.Fulfill (pr)
          wr.Handler <- prc
          xJ.DoJob (&wr, prc)})
        Cont.Do (xPrK, &wr, pr)}
@@ -183,20 +183,22 @@ module Promise =
        let pr = Promise<'x> ()
        xPrK.Value <- pr
        Worker.Push (&wr, xPrK)
-       Job.Do (xJ, &wr, Promise<'x>.PrCont (pr))}
+       Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
   let queueAsAlt (xJ: Job<'x>) =
     {new Job<Alt<'x>> () with
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
        Worker.PushNew (&wr, {new WorkHandler () with
         override w'.DoWork (wr) =
-         let prc = Promise<'x>.PrCont (pr)
+         let prc = Promise<'x>.Fulfill (pr)
          wr.Handler <- prc
          xJ.DoJob (&wr, prc)})
        Cont.Do (xPrK, &wr, upcast pr)}
   module Now =
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
+    let inline isFulfilled (xP: Promise<'x>) = xP.Full
+    let get (xP: Promise<'x>) = xP.Get ()
   let inline read (xPr: Promise<'x>) = xPr :> Job<'x>
   module Alt =
     let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
@@ -1632,8 +1634,8 @@ module Infixes =
   let inline (<-?) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
   let inline (<--) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline (<-+) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
-  let inline (<-=) (xI: IVar<'x>) (x: 'x) = IVarFill<'x> (xI, x) :> Job<unit>
-  let inline (<-=!) (xI: IVar<'x>) (e: exn) = IVarFillFailure<'x> (xI, e) :> Job<unit>
+  let inline (<-=) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
+  let inline (<-=!) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
   let inline (<<-=) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline (<<-+) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
 

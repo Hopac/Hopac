@@ -1156,9 +1156,9 @@ module Ch =
 /// like channels do.  When simple rendezvous is necessary, a channel should be
 /// used instead.
 ///
-/// Note that `IVar` is a subtype of `Alt` and `IVar.Alt.read xI` is equivalent to
-/// `xI :> Alt<'x>`.
-type IVar<'x> :> Alt<'x>
+/// Note that `IVar` is a subtype of `Promise` and `IVar.Alt.read xI` is
+/// equivalent to `xI :> Alt<'x>`.
+type IVar<'x> :> Promise<'x>
 #endif
 
 /// Operations on write once variables.
@@ -1477,6 +1477,23 @@ module Promise =
 
     /// Creates a promise with the given failure exception.
     val inline withFailure: exn -> Promise<'x>
+
+    /// Returns true iff the given promise has already been fulfilled (either
+    /// with a value or with a failure).
+    ///
+    /// This operation is mainly provided for advanced uses of promises such as
+    /// when creating more complex data structures that make internal use of
+    /// promises.  Using this to poll promises is not generally a good idea.
+    val inline isFulfilled: Promise<'x> -> bool
+
+    /// Returns the value or raises the failure exception that the promise has
+    /// been fulfilled with.  It is considered an error if the promise has not
+    /// yet been fulfilled.
+    ///
+    /// This operation is mainly provided for advanced uses of promises such as
+    /// when creating more complex data structures that make internal use of
+    /// promises.  Using this to poll promises is not generally a good idea.
+    val get: Promise<'x> -> 'x
 
   /// Creates a job that creates a promise, whose value is computed with the
   /// given job, which is immediately started to run as a separate concurrent
