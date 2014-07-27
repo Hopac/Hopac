@@ -10,3 +10,4 @@ open Hopac.Infixes ;;
 open Hopac.Job.Infixes ;;
 open Hopac.Alt.Infixes ;;
 open Hopac.Extensions ;;
+open Hopac.Extra ;;
