@@ -1,14 +1,11 @@
 Here you will find the Hopac libraries:
 
 * Hopac
-* Hopac.Extra
 * Hopac.Core
+* Hopac.Extra
+* Hopac.Experimental
 
 **Hopac** is the main library that an application using Hopac links to.
-
-**Hopac.Extra** provides additional abstractions that are programmed on top of
-the Hopac library.  You may find some of these abstractions useful, but there
-is no need to use the extra library when using Hopac.
 
 **Hopac.Core** is essentially an internal implementation library, written in
 C#, that defines some of the types and internal operations of the Hopac
@@ -19,3 +16,10 @@ for having a separate core library is performance.  At the time of writing, C#
 still allows many of the internal synchronization protocols fundamental to
 Hopac to be written in such a way that it makes an order of magnitude
 performance difference compared to what is conveniently expressible within F#.
+
+**Hopac.Extra** provides additional abstractions that are programmed on top of
+the Hopac library.  You may find some of these abstractions useful, but there
+is no need to use the extra library when using Hopac.
+
+**Hopac.Experimental** is similar to Hopac.Extra, but the additional
+abstractions are more experimental in nature and subject to radical changes.
