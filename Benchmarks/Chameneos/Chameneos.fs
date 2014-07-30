@@ -174,10 +174,10 @@ module HopacAlt =
          csch.Done <-= None >>= fun () ->
          outCh <-+ Some msgOut >>% Some msgIn
        else
-         outCh <-+ None >>% None) <|>
+         outCh <-+ None >>% None) <|>?
       (Alt.delay <| fun () ->
        let inCh = ch ()
-       (csch.Ch <-? (msgOut, inCh) >>=? fun () -> inCh :> Job<_>) <|>
+       (csch.Ch <-? (msgOut, inCh) >>=? fun () -> inCh :> Job<_>) <|>?
        csch.Done)
 
   module Creature =

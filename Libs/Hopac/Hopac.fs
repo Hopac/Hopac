@@ -298,7 +298,7 @@ module Alt =
         | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (xK, xE))}
 
   module Infixes =
-    let (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
+    let (<|>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
          let pk = Pick ()
@@ -313,6 +313,9 @@ module Alt =
          xA1.TryAlt (&wr, i, xK, {new Else (xE.pk) with
           override xE'.TryElse (wr, i) =
            xA2.TryAlt (&wr, i, xK, xE)})}
+
+    let inline (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) : Job<'x> =
+      xA1 <|>? xA2 :> Job<_>
  
     let inline (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new AltMap<'x, 'y> (xA) with

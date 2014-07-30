@@ -13,5 +13,5 @@ module Alt =
 
   module Infixes =
     let (<+>) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
-      (xA >>=? fun x -> yA |>> fun y -> (x, y)) <|>
+      (xA >>=? fun x -> yA |>> fun y -> (x, y)) <|>?
       (yA >>=? fun y -> xA |>> fun x -> (x, y))

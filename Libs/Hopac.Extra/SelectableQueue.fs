@@ -35,8 +35,8 @@ module SelectableQueue =
         msgs.Remove msgNode
       match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
        | None         -> cancelAlt
-       | Some msgNode -> cancelAlt <|> giveAlt msgNode
-    sendAlt <|> takeAlt <|> Alt.choose (Seq.map prepare (nodes reqs))
+       | Some msgNode -> cancelAlt <|>? giveAlt msgNode
+    sendAlt <|>? takeAlt <|> Alt.choose (Seq.map prepare (nodes reqs))
     |> Job.foreverServer >>% q
 
   module Alt =

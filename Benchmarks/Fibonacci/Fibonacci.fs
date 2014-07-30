@@ -194,9 +194,9 @@ module FibNck =
     else
       Promise.queue (fibWithNack (n-2L) cancel) >>= fun xP ->
       Promise.start (fibWithNack (n-1L) cancel) >>= fun yP ->
-      (xP >>=? fun x -> (yP |>>? fun y -> x+y) <|> cancel :> Job<_>) <|>
-      (yP >>=? fun y -> (xP |>>? fun x -> x+y) <|> cancel :> Job<_>) <|>
-      cancel :> Job<_>
+      (xP >>=? fun x -> (yP |>>? fun y -> x+y) <|> cancel) <|>?
+      (yP >>=? fun y -> (xP |>>? fun x -> x+y) <|> cancel) <|>
+      cancel
 
   let fib n =
     Alt.withNack <| fun nack ->

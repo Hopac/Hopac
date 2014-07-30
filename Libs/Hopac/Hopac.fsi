@@ -898,12 +898,12 @@ module Alt =
   ///
   /// Note that if an alternative created with `withNack` is not instantiated,
   /// then no negative acknowledgment is created.  For example, given an
-  /// alternative of the form `always () <|> withNack (...)` the `withNack`
+  /// alternative of the form `always () <|>? withNack (...)` the `withNack`
   /// alternative is never instantiated.
   val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the
-  /// given alternatives is.  See also: `<|>`.
+  /// given alternatives is.  See also: `<|>?`, `<|>`.
   ///
   /// Note that `choose []` is equivalent to `never ()` and `pick (choose [])`
   /// is equivalent to `abort ()`.
@@ -912,10 +912,10 @@ module Alt =
   /// Reference implementation:
   ///
   ///> let choose xAs = Alt.delay <| fun () ->
-  ///>   Seq.foldBack (<|>) xAs (never ())
+  ///>   Seq.foldBack (<|>?) xAs (never ())
   ///
   /// Above, `Seq.foldBack` has the obvious meaning.  Alternatively we could
-  /// define `xA1 <|> xA2` to be equivalent to `choose [xA1; xA2]` and consider
+  /// define `xA1 <|>? xA2` to be equivalent to `choose [xA1; xA2]` and consider
   /// `choose` as primitive.
 #endif
   val choose: seq<Alt<'x>> -> Alt<'x>
@@ -926,15 +926,18 @@ module Alt =
   /// of the infix operators into scope.
   module Infixes =
     /// Creates an alternative that is available for picking when either of the
-    /// given alternatives is available.  `xA1 <|> xA2` is an optimized version
-    /// of `choose [xA1; xA2]`.
+    /// given alternatives is available.  `xA1 <|>? xA2` is an optimized version
+    /// of `choose [xA1; xA2]`.  See also: `<|>`.
     ///
     /// The given alternatives are processed in a left-to-right order with
     /// short-cut evaluation.  In other words, given an alternative of the form
     /// `first <|> second`, the `first` alternative is first instantiated and,
     /// if it is pickable, is committed to and the `second` alternative will not
     /// be instantiated at all.
-    val (<|>): Alt<'x> -> Alt<'x> -> Alt<'x>
+    val (<|>?): Alt<'x> -> Alt<'x> -> Alt<'x>
+
+    /// `xA1 <|> xA2` is equivalent to `Alt.pick (xA1 <|>? xA2)`.
+    val inline (<|>): Alt<'x> -> Alt<'x> -> Job<'x>
 
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given
