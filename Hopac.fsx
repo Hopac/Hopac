@@ -1,4 +1,4 @@
-// Tip: Add --lib:<hopac-root-directory> to your F# interactive options
+#I __SOURCE_DIRECTORY__ ;;
 
 #r "Libs\\Hopac.Core\\bin\\Release\\Hopac.Core.dll" ;;
 #r "Libs\\Hopac\\bin\\Release\\Hopac.dll" ;;
