@@ -218,14 +218,29 @@ module TopLevel =
   /// Default expression builder for jobs.
   val job: JobBuilder
 
-  /// Starts running the given job on the global scheduler and then waits for
-  /// the job to either return successfully or fail.  See also: `abort`.
+  /// Starts running the given job on the global scheduler and then blocks the
+  /// current thread waiting for the job to either return successfully or fail.
+#if DOC
   ///
-  /// Note that using this function in a job workflow is not optimal and should
-  /// never be needed, because within a workflow the result of a job can be
-  /// obtained by binding.
+  /// WARNING: Use of `run` should be considered carefully, because calling
+  /// `run` from an arbitrary thread can cause deadlock.
   ///
-  /// This is the same function as `Job.Global.run`.
+  /// `run` is mainly provided for conveniently running Hopac code from F#
+  /// Interactive and can also be used as an entry point to the Hopac runtime in
+  /// console applications.  In Windows applications, for example, `run` should
+  /// not be called from the GUI thread.
+  ///
+  /// A call of `run xJ` is safe when the call is not made from within a Hopac
+  /// worker thread and the job `xJ` does not perform operations that might
+  /// block or that might directly, or indirectly, need to communicate with the
+  /// thread from which `run` is being called.
+  /// 
+  /// Note that using this function from within a job workflow should never be
+  /// needed, because within a workflow the result of a job can be obtained by
+  /// binding.
+  ///
+  /// This is the same function as `Job.Global.run`.  See also: `abort`.
+#endif
   val inline run: Job<'x> -> 'x
 
   /// Starts running the given job on the global scheduler, but does not wait
@@ -363,12 +378,23 @@ module Job =
     /// should use `Job.server` instead.
     val server: Job<Void> -> unit
 
-    /// Starts running the given job on the global scheduler and then waits for
-    /// the job to either return successfully or fail.  See also: `abort`.
+    /// Starts running the given job on the global scheduler and then blocks the
+    /// current thread waiting for the job to either return successfully or
+    /// fail.
+#if DOC
     ///
-    /// Note that using this function in a job workflow is not optimal and
-    /// should never be needed, because within a workflow the result of a job
-    /// can be obtained by binding.
+    /// WARNING: Use of `run` should be considered carefully, because calling
+    /// `run` from an arbitrary thread can cause deadlock.
+    ///
+    /// A call of `run xJ` is safe when the call is not made from within a Hopac
+    /// worker thread and the job `xJ` does not perform operations that might
+    /// block or that might directly, or indirectly, need to communicate with
+    /// the thread from which `run` is being called.
+    /// 
+    /// Note that using this function from within a job workflow should never be
+    /// needed, because within a workflow the result of a job can be obtained by
+    /// binding.
+#endif
     val run: Job<'x> -> 'x
 
   /////////////////////////////////////////////////////////////////////////////
