@@ -28,6 +28,9 @@ namespace Hopac.Core {
     internal Scheduler Scheduler;
     internal WorkerEvent Event;
 
+    [ThreadStatic]
+    internal static bool IsWorkerThread;
+
 #if TRAMPOLINE
     [MethodImpl(AggressiveInlining.Flag)]
     internal void Init(Scheduler sr, void *StackLimit, int bytes) {
@@ -115,6 +118,8 @@ namespace Hopac.Core {
     }
     
     internal static void Run(Scheduler sr, int me) {
+      IsWorkerThread = true;
+
       var wr = new Worker();
 #if TRAMPOLINE
       wr.Init(sr, &wr.StackLimit, 4000);
