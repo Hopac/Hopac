@@ -1,3 +1,5 @@
+> [API](README.md#api) &#xb7; [Download](README.md#download) &#xb7; [License](LICENSE.md)
+
 Hopac: Higher-Order, Parallel, Asynchronous and Concurrent
 ==========================================================
 
@@ -28,6 +30,17 @@ via [NuGet](http://www.nuget.org/).  At the moment, these packages are
 considered to have experimental status, but major API changes are not expected
 before first release.  Please report any problems you might encounter.
 
+API
+---
+
+API Reference:
+
+* [Hopac](http://vesakarvonen.github.io/Hopac/Hopac.html)
+* [Hopac.Extra](http://vesakarvonen.github.io/Hopac/Hopac.Extra.html)
+
+API manuals are generated from the library sources.
+
+
 Documentation
 -------------
 
@@ -41,11 +54,7 @@ memory multiprocessors and how those issues translate into practical design
 patterns.  Note that these documents are works in progress and are still being
 updated frequently.  Feedback on these documents is most welcome!
 
-There is also a
-[Hopac Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.html)
-manual generated from the Hopac library sources and the
-[Hopac.Extra Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.Extra.html)
-manual is generated from the Hopac.Extra library sources.  There are also some
+There are also some
 [Notes on the Internal Implementation of Hopac](Docs/Internals.md), but that
 document is not meant to be something that a user of the library would need to
 be intimately familiar with.
