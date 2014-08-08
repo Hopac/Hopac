@@ -10,21 +10,20 @@ open Hopac.Infixes
 
 type AltsCons<'x> =
   | Next of 'x * Alt<AltsCons<'x>>
-  | Error of exn
   | Done
 and Alts<'x> = In of Alt<AltsCons<'x>>
 
 module Alts =
   let inline out (In x) = x
 
+  let inline Done' () = Job.result Done
+  let inline Next' (x, xO) = Job.result <| Next (x, xO)
+
   let consume (onNext: 'x -> Job<unit>)
-              (onError: exn -> Job<unit>)
-              (onDone: Job<unit>)
               (In xO: Alts<'x>) : Job<unit> =
     let rec loop xO =
       xO >>= function
-       | Done -> onDone
-       | Error e -> onError e
+       | Done -> Job.unit ()
        | Next (x, xO) -> onNext x >>= fun () -> loop xO
     loop xO
 
@@ -34,91 +33,84 @@ module Alts =
 
   let inline start f =
     Alt.withNack <| fun nack ->
-    let rI = ivar ()
-    Job.start (f nack rI) >>%
-    upcast rI
+    Promise.startAsAlt (f (nack >>=? Job.abort))
 
-  let rec mergeTo yO1 yO2 nack yI =
+  let rec mergeAbort yO1 yO2 abort =
     let inline case yO1 yO2 =
       yO1 >>=? function
-        | Error e ->
-          yI <-= Error e
-        | Done ->
-          (yO2 >>=? fun y -> yI <-= y) <|> nack
-        | Next (y, yO1) ->
-          yI <-= Next (y, merge' yO1 yO2)
-    case yO1 yO2 <|>? case yO2 yO1 <|> nack
+        | Done -> yO2 <|> abort
+        | Next (y, yO1) -> Next' (y, mergeOut yO1 yO2)
+    case yO1 yO2 <|>? case yO2 yO1 <|> abort
 
-  and merge' xO1 xO2 =
-    start (mergeTo xO1 xO2)
+  and mergeOut xO1 xO2 =
+    start <| mergeAbort xO1 xO2
 
   let merge (In xO1: Alts<'x>) (In xO2: Alts<'x>) : Alts<'x> =
-    In <| merge' xO1 xO2
+    In <| mergeOut xO1 xO2
 
-  let bindFun (In xO: Alts<'x>) (x2yO: 'x -> Alts<'y>) : Alts<'y> =
-    let rec loop xO =
-      start <| fun nack yI ->
+  let bindJob (In xO: Alts<'x>) (x2yOJ: 'x -> Job<Alts<'y>>) : Alts<'y> =
+    let rec loop (xO: Alt<AltsCons<_>>) =
+      start <| fun abort ->
       (xO >>=? function
-        | Done -> yI <-= Done
-        | Error e -> yI <-= Error e
+        | Done -> Done' ()
         | Next (x, xO) ->
-          mergeTo (x2yO x |> out) (loop xO) nack yI) <|> nack
+          x2yOJ x >>= fun (In yO) ->
+          mergeAbort yO (loop xO) abort) <|> abort
     In <| loop xO
 
-  let throttle (span: TimeSpan) (In xO: Alts<'x>) : Alts<'x> =
-    let spanAlt = Timer.Global.timeOut span
-    let rec stabilize x xO nack xI =
+  let bindFun (xO: Alts<'x>) (x2yO: 'x -> Alts<'y>) : Alts<'y> =
+    bindJob xO (x2yO >> Job.result)
+
+  let throttle (timeOut: Alt<unit>) (In xO: Alts<'x>) : Alts<'x> =
+    let rec stabilize x xO abort =
       (xO >>=? function
-        | (Done | Error _) as x -> xI <-= x
-        | Next (x, xO) -> stabilize x xO nack xI) <|>?
-      (spanAlt >>=? fun () -> xI <-= Next (x, initial xO)) <|> nack
+        | Done -> Job.result Done
+        | Next (x, xO) -> stabilize x xO abort) <|>?
+      (timeOut |>>? fun () -> Next (x, initial xO)) <|> abort
     and initial xO =
-      start <| fun nack xI ->
+      start <| fun abort ->
       xO >>= function
-       | (Done | Error _) as x -> xI <-= x
-       | Next (x, xO) -> stabilize x xO nack xI
+       | Done -> Job.result Done
+       | Next (x, xO) -> stabilize x xO abort
     In <| initial xO
 
   let noDups (In xO: Alts<'x>) : Alts<'x> =
-    let rec lastWas x' xO nack xI =
+    let rec lastWas x' xO abort =
       (xO >>=? function
-        | (Done | Error _) as x -> xI <-= x
+        | Done -> Done' ()
         | Next (x, xO) ->
           if x' = x then
-            lastWas x xO nack xI
+            lastWas x xO abort
           else
-            xI <-= produce x xO) <|> nack
+            Job.result <| produce x xO) <|> abort
     and produce x xO =
       Next (x, start (lastWas x xO))
     In (xO |>>? function
-         | (Done | Error _) as x -> x
+         | Done -> Done
          | Next (x, xO) -> produce x xO)
 
   let mapJob (x2yJ: 'x -> Job<'y>) (In xO: Alts<'x>) : Alts<'y> =
     let rec loop xO =
-      start <| fun nack yI ->
+      start <| fun abort ->
       (xO >>=? function
-        | Done -> yI <-= Done
-        | Error e -> yI <-= Error e
+        | Done -> Done' ()
         | Next (x, xO) ->
-          x2yJ x >>= fun y ->
-          yI <-= Next (y, loop xO)) <|> nack
+          x2yJ x |>> fun y ->
+          Next (y, loop xO)) <|> abort
     In <| loop xO
 
-  let mapFun (x2y: 'x -> 'y) (In xO: Alts<'x>) : Alts<'y> =
-    let rec loop xO =
-      xO |>>? function
-       | Done -> Done
-       | Error e -> Error e
-       | Next (x, xO) -> Next (x2y x, loop xO)
-    In <| loop xO
+  let mapFun (x2y: 'x -> 'y) (xO: Alts<'x>) : Alts<'y> =
+    mapJob (x2y >> Job.result) xO
 
-  let foldFun (sx2s: 's -> 'x -> 's) (s: 's) (In xO: Alts<'x>) : Alts<'s> =
+  let foldJob (sx2sJ: 's -> 'x -> Job<'s>) (s: 's) (In xO: Alts<'x>) : Alts<'s> =
     let rec loop s xO =
-      xO |>>? function
-       | Done -> Done
-       | Error e -> Error e
-       | Next (x, xO) ->
-         let s = sx2s s x
-         Next (s, loop s xO)
+      start <| fun abort ->
+      (xO >>=? function
+        | Done -> Done' ()
+        | Next (x, xO) ->
+          sx2sJ s x |>> fun s ->
+          Next (s, loop s xO)) <|> abort
     In <| Alt.always (Next (s, loop s xO))
+
+  let foldFun (sx2s: 's -> 'x -> 's) (s: 's) (xO: Alts<'x>) : Alts<'s> =
+    foldJob (fun s x -> sx2s s x |> Job.result) s xO
