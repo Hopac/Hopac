@@ -19,13 +19,14 @@ module Alts =
   let inline Done' () = Job.result Done
   let inline Next' (x, xO) = Job.result <| Next (x, xO)
 
-  let consume (onNext: 'x -> Job<unit>)
-              (In xO: Alts<'x>) : Job<unit> =
+  let consume (onNext: 'x -> Job<unit>) (In xO: Alts<'x>) : Job<unit> =
     let rec loop xO =
       xO >>= function
        | Done -> Job.unit ()
        | Next (x, xO) -> onNext x >>= fun () -> loop xO
     loop xO
+
+  // Primitives ----------------------------------------------------------------
 
   let zero () : Alts<'x> = In <| Alt.always Done
 
@@ -58,8 +59,23 @@ module Alts =
           mergeAbort yO (loop xO) abort) <|> abort
     In <| loop xO
 
-  let bindFun (xO: Alts<'x>) (x2yO: 'x -> Alts<'y>) : Alts<'y> =
-    bindJob xO (x2yO >> Job.result)
+  let processJob ( x2syOJ:       'x -> Job<'s * option<'y>>)
+                 (sx2syOJ: 's -> 'x -> Job<'s * option<'y>>)
+                 (In xO: Alts<'x>) : Alts<'y> =
+   let rec choose xO abort = function
+     | (s, None) -> fold xO s abort
+     | (s, Some y) -> Next' (y, start <| fold xO s)
+   and fold xO s abort =
+     (xO >>=? function
+       | Done -> Done' ()
+       | Next (x, xO) ->
+         sx2syOJ s x >>= choose xO abort) <|> abort
+   let initial abort =
+     (xO >>=? function
+       | Done -> Done' ()
+       | Next (x, xO) ->
+         x2syOJ x >>= choose xO abort) <|> abort
+   In <| start initial
 
   let throttle (timeOut: Alt<unit>) (In xO: Alts<'x>) : Alts<'x> =
     let rec stabilize x xO abort =
@@ -74,43 +90,33 @@ module Alts =
        | Next (x, xO) -> stabilize x xO abort
     In <| initial xO
 
-  let noDups (In xO: Alts<'x>) : Alts<'x> =
-    let rec lastWas x' xO abort =
-      (xO >>=? function
-        | Done -> Done' ()
-        | Next (x, xO) ->
-          if x' = x then
-            lastWas x xO abort
-          else
-            Job.result <| produce x xO) <|> abort
-    and produce x xO =
-      Next (x, start (lastWas x xO))
-    In (xO |>>? function
-         | Done -> Done
-         | Next (x, xO) -> produce x xO)
+  // User definable ------------------------------------------------------------
 
-  let mapJob (x2yJ: 'x -> Job<'y>) (In xO: Alts<'x>) : Alts<'y> =
-    let rec loop xO =
-      start <| fun abort ->
-      (xO >>=? function
-        | Done -> Done' ()
-        | Next (x, xO) ->
-          x2yJ x |>> fun y ->
-          Next (y, loop xO)) <|> abort
-    In <| loop xO
+  let scanJob (sx2sJ: 's -> 'x -> Job<'s>) (s: 's) (xO: Alts<'x>) : Alts<'s> =
+    let inline sx2ssOJ s x = sx2sJ s x |>> fun s -> (s, Some s)
+    processJob (sx2ssOJ s) sx2ssOJ xO
+
+  let chooseJob (x2yOJ: 'x -> Job<option<'y>>) (xO: Alts<'x>) : Alts<'y> =
+    let inline x2syOJ x = x2yOJ x >>= fun yO -> Job.result ((), yO)
+    processJob x2syOJ (fun _ -> x2syOJ) xO
+
+  let mapJob (x2yJ: 'x -> Job<'y>) (xO: Alts<'x>) : Alts<'y> =
+    chooseJob (fun x -> x2yJ x |>> Some) xO
+
+  let scanFun (sx2s: 's -> 'x -> 's) (s: 's) (xO: Alts<'x>) : Alts<'s> =
+    scanJob (fun s x -> sx2s s x |> Job.result) s xO
 
   let mapFun (x2y: 'x -> 'y) (xO: Alts<'x>) : Alts<'y> =
     mapJob (x2y >> Job.result) xO
 
-  let foldJob (sx2sJ: 's -> 'x -> Job<'s>) (s: 's) (In xO: Alts<'x>) : Alts<'s> =
-    let rec loop s xO =
-      start <| fun abort ->
-      (xO >>=? function
-        | Done -> Done' ()
-        | Next (x, xO) ->
-          sx2sJ s x |>> fun s ->
-          Next (s, loop s xO)) <|> abort
-    In <| Alt.always (Next (s, loop s xO))
+  let bindFun (xO: Alts<'x>) (x2yO: 'x -> Alts<'y>) : Alts<'y> =
+    bindJob xO (x2yO >> Job.result)
 
-  let foldFun (sx2s: 's -> 'x -> 's) (s: 's) (xO: Alts<'x>) : Alts<'s> =
-    foldJob (fun s x -> sx2s s x |> Job.result) s xO
+  let chooseFun (x2yO: 'x -> option<'y>) (xO: Alts<'x>) : Alts<'y> =
+    chooseJob (x2yO >> Job.result) xO
+
+  let noDups (xO: Alts<'x>) : Alts<'x> =
+    processJob
+      <| fun x -> Job.result (x, Some x)
+      <| fun x' x -> Job.result (x, if x' = x then None else Some x)
+      <| xO
