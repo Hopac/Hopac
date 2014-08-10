@@ -128,8 +128,7 @@ type JobBuilder =
 
   member inline Delay: (unit -> Job<'x>) -> Job<'x>
 
-  member inline For:   seq<'x> * ('x -> Job<unit>) -> Job<unit>
-  member inline For: array<'x> * ('x -> Job<unit>) -> Job<unit>
+  member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
 
   member inline Return: 'x -> Job<'x>
 
@@ -913,6 +912,7 @@ module Alt =
   /// selective operations.  The negative acknowledgment alternative will be
   /// available for picking in case some other instantiated alternative involved
   /// in the choice is committed to instead.
+#if DOC
   ///
   /// Like `guard`, `withNack` is typically used to encapsulate the client side
   /// operation of a concurrent protocol.  The client side operation typically
@@ -926,6 +926,7 @@ module Alt =
   /// then no negative acknowledgment is created.  For example, given an
   /// alternative of the form `always () <|>? withNack (...)` the `withNack`
   /// alternative is never instantiated.
+#endif
   val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the

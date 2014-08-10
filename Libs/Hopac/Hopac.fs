@@ -1631,8 +1631,6 @@ type JobBuilder () =
 
   member inline job.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
     Seq.iterJob x2uJ xs
-  member inline job.For (xs: array<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
-    Array.iterJob x2uJ xs
 
   member inline job.Return (x: 'x) : Job<'x> = Job.result x
 
