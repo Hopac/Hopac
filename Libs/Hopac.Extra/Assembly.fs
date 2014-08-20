@@ -7,7 +7,7 @@ open System.Runtime.InteropServices
 [<AutoOpen>]
 module internal AssemblyInfo =
   [<Literal>]
-  let Version = "0.0.0.5"
+  let Version = "0.0.0.6"
 
 [<assembly: AssemblyTitle("Hopac.Extra")>]
 [<assembly: AssemblyDescription("Provides additional utilities for programming with Hopac.")>]
