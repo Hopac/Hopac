@@ -116,7 +116,7 @@ module HopacAlt =
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {getCh = ch (); putCh = ch ()}
     Job.iterateServer x (fun x ->
-      c.putCh <|> (c.getCh <-? x >>%? x) :> Job<_>) >>% c
+      c.putCh <|> (c.getCh <-? x >>%? x)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "

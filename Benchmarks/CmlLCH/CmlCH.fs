@@ -73,7 +73,7 @@ module BufferedCh =
          inCh |>> fun x -> ([x], [])
        | ((x::xs) as xxs, ys) ->
          (inCh |>>? fun y -> (xxs, y::ys)) <|>
-         (outCh <-? x >>%? (xs, ys)) :> Job<_>
+         (outCh <-? x >>%? (xs, ys))
        | ([], ys) ->
          Job.result (List.rev ys, [])) >>%
     (inCh, outCh)
