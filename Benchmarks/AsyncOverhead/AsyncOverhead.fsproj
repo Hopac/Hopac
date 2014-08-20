@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>AsyncOverhead</RootNamespace>
     <AssemblyName>AsyncOverhead</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>AsyncOverhead</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <TargetFrameworkProfile />

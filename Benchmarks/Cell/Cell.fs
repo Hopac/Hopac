@@ -196,7 +196,6 @@ module AsyncCell =
 
 let tick () =
   for i=1 to 5 do
-    Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     GC.WaitForPendingFinalizers ()
     Threading.Thread.Sleep 50

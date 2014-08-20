@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Fibonacci</RootNamespace>
     <AssemblyName>Fibonacci</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>Fibonacci</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>

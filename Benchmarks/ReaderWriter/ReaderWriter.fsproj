@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>ReaderWriter</RootNamespace>
     <AssemblyName>ReaderWriter</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>ReaderWriter</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <TargetFrameworkProfile />

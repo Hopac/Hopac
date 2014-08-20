@@ -159,7 +159,6 @@ module Async =
 let inline cleanup (d: TimeSpan) =
   let stop = DateTime.UtcNow + d + d + TimeSpan.FromSeconds 2.0
   while DateTime.UtcNow <= stop do
-    Runtime.GCSettings.LargeObjectHeapCompactionMode <- Runtime.GCLargeObjectHeapCompactionMode.CompactOnce
     GC.Collect ()
     GC.WaitForPendingFinalizers ()
     Threading.Thread.Sleep 250

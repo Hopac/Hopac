@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>PingPong</RootNamespace>
     <AssemblyName>PingPong</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>PingPong</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
