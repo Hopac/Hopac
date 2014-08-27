@@ -306,13 +306,13 @@ let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| 
   mA <<-+ i2m i >>. i
 ```
 
-To reply to a message, the agent then needs to write to the given `IVar`:
+To reply to a message, the actor then needs to write to the given `IVar`:
 
 ```fsharp
 let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI <-= r
 ```
 
-Consider the following echo agent:
+Consider the following echo actor:
 
 ```fsharp
 type Echo<'x> = Echo of 'x * AsyncReplyChannel<'x>
@@ -323,7 +323,7 @@ let echo () = MailboxProcessor.Start <| fun inbox -> async {
 }
 ```
 
-Using the previously defined combinators, we could express a similar agent as
+Using the previously defined combinators, we could express a similar actor as
 follows:
 
 ```fsharp
