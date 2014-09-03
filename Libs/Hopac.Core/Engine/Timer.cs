@@ -10,7 +10,6 @@ namespace Hopac.Core {
   internal class Timer : Job<int> {
     internal WorkTimed TopTimed;
     internal SpinlockTTAS Lock;
-    internal int TimedCount;
     internal uint unique = 0;
     internal Scheduler Scheduler;
 
