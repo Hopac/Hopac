@@ -1,9 +1,9 @@
 #I __SOURCE_DIRECTORY__ ;;
 
-#r "Libs\\Hopac.Core\\bin\\Release\\Hopac.Core.dll" ;;
-#r "Libs\\Hopac\\bin\\Release\\Hopac.dll" ;;
-#r "Libs\\Hopac.Extra\\bin\\Release\\Hopac.Extra.dll" ;;
-#r "Libs\\Hopac.Experimental\\bin\\Release\\Hopac.Experimental.dll" ;;
+#r "Libs/Hopac.Core/bin/Release/Hopac.Core.dll" ;;
+#r "Libs/Hopac/bin/Release/Hopac.dll" ;;
+#r "Libs/Hopac.Extra/bin/Release/Hopac.Extra.dll" ;;
+#r "Libs/Hopac.Experimental/bin/Release/Hopac.Experimental.dll" ;;
 
 open System ;;
 open Hopac.Experimental ;;
