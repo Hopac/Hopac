@@ -1,3 +1,5 @@
+language: objective-c
+
 env:
   - EnableNuGetPackageRestore=true
   - MONO_VERSION=3.6.0
