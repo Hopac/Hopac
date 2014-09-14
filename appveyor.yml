@@ -9,4 +9,6 @@ matrix:
 
 platform: Any CPU
 
-configuration: Release
+configuration:
+  - Debug
+  - Release
