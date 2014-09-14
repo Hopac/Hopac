@@ -1,5 +1,8 @@
 language: objective-c
 
+notifications:
+  email: false
+
 env:
   global:
     - EnableNuGetPackageRestore=true
