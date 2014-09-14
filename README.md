@@ -1,4 +1,4 @@
-> [API](README.md#api) &#xb7; [Download](README.md#download) &#xb7; [License](LICENSE.md) &#xb7; [![Build status](https://ci.appveyor.com/api/projects/status/4i0h995ra0jwomc2)](https://ci.appveyor.com/project/VesaKarvonen/hopac)
+> [API](README.md#api) &#xb7; [Download](README.md#download) &#xb7; [License](LICENSE.md) &#xb7; [![Build status](https://ci.appveyor.com/api/projects/status/4i0h995ra0jwomc2)](https://ci.appveyor.com/project/VesaKarvonen/hopac) &#xb7; [![Build Status](https://travis-ci.org/VesaKarvonen/Hopac.svg?branch=master)](https://travis-ci.org/VesaKarvonen/Hopac)
 
 Hopac: Higher-Order, Parallel, Asynchronous and Concurrent
 ==========================================================
