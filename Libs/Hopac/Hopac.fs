@@ -494,12 +494,17 @@ module Global =
 
   let mutable globalScheduler : Scheduler = null
 
+  let inline isMono () =
+      match Type.GetType "Mono.Runtime" with
+       | null -> false
+       | _ -> true
+
   let reallyInitGlobalScheduler () =
     let t = typeof<Scheduler>
     Monitor.Enter t
     match globalScheduler with
      | null ->
-       if not System.Runtime.GCSettings.IsServerGC then
+       if not System.Runtime.GCSettings.IsServerGC && not (isMono ()) then
          printf "WARNING: You are using single-threaded workstation garbage \
           collection, which means that parallel programs cannot scale.  Please \
           configure your program to use server garbage collection.  See \
