@@ -766,22 +766,18 @@ module Job =
     let (<*>) (xJ: Job<'x>) (yJ: Job<'y>) =
       {new Job<'x * 'y> () with
         override xyJ'.DoJob (wr, xyK) =
-          match wr.Scheduler.WorkStack with
-           | null ->
-             let yK' = ParTuple<'x, 'y> (xyK)
-             Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
-              override xK'.GetProc (wr) = yK'.GetProc (&wr)
-              override xK'.DoHandle (wr, e) = yK'.DoHandle (&wr, e)
-              override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
-              override xK'.DoWork (wr) =
-               match xK'.State with
-                | null -> yK'.DoOtherCont (&wr, xK'.Value)
-                | xJ ->
-                  xK'.State <- null
-                  xJ.DoJob (&wr, xK')})
-             yJ.DoJob (&wr, yK')
-           | _ ->
-            xJ.DoJob (&wr, PairCont (yJ, xyK))}
+         let yK' = ParTuple<'x, 'y> (xyK)
+         Worker.PushNew (&wr, {new Cont_State<_, _> (xJ) with
+          override xK'.GetProc (wr) = yK'.GetProc (&wr)
+          override xK'.DoHandle (wr, e) = yK'.DoHandle (&wr, e)
+          override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
+          override xK'.DoWork (wr) =
+           match xK'.State with
+            | null -> yK'.DoOtherCont (&wr, xK'.Value)
+            | xJ ->
+              xK'.State <- null
+              xJ.DoJob (&wr, xK')})
+         yJ.DoJob (&wr, yK')}
 
   ///////////////////////////////////////////////////////////////////////
 
