@@ -210,7 +210,7 @@ do tick ()
    test  true 10 10 10
    test  true 100 100 100
    test  true 1000 1000 1000
-   test false 10 10 1000000
+   test false 100 10 100000
    test false 1000 1000 10000
    test  true 10000 1000 1000
    test false 1000 10000 1000
