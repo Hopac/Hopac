@@ -223,14 +223,19 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
+let inline isMono () =
+  match Type.GetType "Mono.Runtime" with
+   | null -> false
+   | _ -> true
+
 do for p in [1; Environment.ProcessorCount] do
      for l in [50003; 503; 53] do
        for n in [500; 500000; 50000000] do
          printf "\nWith %d rings of length %d passing %d msgs:\n\n" p l n
          if n <= 500000 then
-           if l <= 503 then
+           if l <= 503 && not (isMono ()) then
              Native.run l n p ; cleanup ()
            MPPost.run l n p ; cleanup ()
-         ChGive.run l n p ; cleanup ()   
+         ChGive.run l n p ; cleanup ()
          MbSend.run l n p ; cleanup ()
          ChSend.run l n p ; cleanup ()
