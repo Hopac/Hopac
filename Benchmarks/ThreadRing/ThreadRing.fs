@@ -20,39 +20,43 @@ module Native =
     let events =
       Array.init p <| fun i ->
       counters.[i] <- ref m
-      Array.init n <| fun _ -> new AutoResetEvent (false)
-    let finishEvents = Array.init p <| fun _ -> new AutoResetEvent (false)
+      Array.init n <| fun _ ->
+        (new AutoResetEvent (false), new AutoResetEvent (false))
     for i=0 to p-1 do
       let counter = counters.[i]
       let events = events.[i]
-      let finish = finishEvents.[i]
       for j=0 to n-1 do
-        let myEvent = events.[j]
-        let nextEvent = events.[(j+1)%n]
+        let (myEvent, meDoneEvent) = events.[j]
+        let (nextEvent, _) = events.[(j+1)%n]
         let thread =
           Thread (ThreadStart (fun () ->
-                    myEvent.WaitOne () |> ignore
-                    while !counter > 0 do
-                      let c = !counter - 1
-                      counter := c
-                      if c = 0 then
-                        finish.Set () |> ignore
-                      else
-                        nextEvent.Set () |> ignore
-                        myEvent.WaitOne () |> ignore
-                    nextEvent.Set () |> ignore
-                    myEvent.Set () |> ignore),
+                    let rec loop () =
+                      myEvent.WaitOne () |> ignore
+                      match !counter with
+                       | 0 ->
+                         nextEvent.Set () |> ignore
+                         myEvent.Dispose ()
+                         meDoneEvent.Set () |> ignore
+                       | 1 ->
+                         counter := 0
+                         nextEvent.Set () |> ignore
+                         myEvent.WaitOne () |> ignore
+                         myEvent.Dispose ()
+                         meDoneEvent.Set () |> ignore
+                       | n ->
+                         counter := n - 1
+                         nextEvent.Set () |> ignore
+                         loop ()
+                    loop ()),
                   512)
         thread.Start ()
     printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
     for i=0 to p-1 do
-      events.[i].[0].Set () |> ignore
+      (fst events.[i].[0]).Set () |> ignore
     for i=0 to p-1 do
-      finishEvents.[i].WaitOne () |> ignore
-      finishEvents.[i].Dispose ()
       for j=0 to n-1 do
-        events.[i].[j].WaitOne () |> ignore
-        events.[i].[j].Dispose ()
+        (snd events.[i].[j]).WaitOne () |> ignore
+        (snd events.[i].[j]).Dispose ()
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
@@ -223,17 +227,12 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-let inline isMono () =
-  match Type.GetType "Mono.Runtime" with
-   | null -> false
-   | _ -> true
-
 do for p in [1; Environment.ProcessorCount] do
      for l in [50003; 503; 53] do
-       for n in [500; 500000; 50000000] do
+       for n in [500; 5000; 50000; 500000; 50000000] do
          printf "\nWith %d rings of length %d passing %d msgs:\n\n" p l n
          if n <= 500000 then
-           if l <= 503 && not (isMono ()) then
+           if l <= 503 then
              Native.run l n p ; cleanup ()
            MPPost.run l n p ; cleanup ()
          ChGive.run l n p ; cleanup ()
