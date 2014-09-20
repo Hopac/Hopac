@@ -34,11 +34,7 @@ namespace Hopac.Core {
     }
   }
 
-  internal sealed class AlwaysUnit : Alt<Unit> {
-    internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
-      uK.DoWork(ref wr);
-    }
-
+  internal abstract class AlwaysUnitBase : Alt<Unit> {
     internal override void TryAlt(ref Worker wr, int i, Cont<Unit> uK, Else uE) {
       var pkSelf = uE.pk;
     TryPick:
@@ -52,6 +48,18 @@ namespace Hopac.Core {
 
     AlreadyPicked:
       return;
+    }
+  }
+
+  internal sealed class AlwaysUnitTC : AlwaysUnitBase {
+    internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+      uK.DoWork(ref wr);
+    }
+  }
+
+  internal sealed class AlwaysUnitNonTC : AlwaysUnitBase {
+    internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+      Work.Do(uK, ref wr);
     }
   }
 }

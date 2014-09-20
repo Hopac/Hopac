@@ -34,7 +34,12 @@ namespace Hopac.Core {
     /// This is safe to be called from multiple threads.</summary>
     public static void Init() {
       if (null == unit) {
-        unit = new AlwaysUnit();
+        unsafe {
+          if (sizeof(IntPtr) == 8)
+            unit = new AlwaysUnitTC();
+          else
+            unit = new AlwaysUnitNonTC();
+        }
         zero = new Zero();
         scheduler = new GetScheduler();
         proc = new GetProc();
