@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac</id>
-    <version>0.0.0.24</version>
+    <version>0.0.0.25</version>
     <title>Hopac</title>
     <summary>A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -11,7 +11,8 @@
     <projectUrl>https://github.com/VesaKarvonen/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
-    <releaseNotes>0.0.0.24: Switched to .Net framework 4.5 (was 4.5.1).
+    <releaseNotes>0.0.0.25: Minor tweaks to make Hopac work more nicely on Mono 3.6.0+.
+0.0.0.24: Switched to .Net framework 4.5 (was 4.5.1).
 0.0.0.24: Removed For array overload to avoid typing issue.  Array.iterJob should now be used in performance critical cases.
 0.0.0.24: Added experimental Async &lt;-&gt; Job interop support.
 0.0.0.24: Renamed &lt;|&gt; to &lt;|&gt;? and added &lt;|&gt; with result type restricted to Job.
