@@ -211,6 +211,11 @@ module FibNck =
 
 /////////////////////////////////////////////////////////////////////////
 
+let inline isMono () =
+  match Type.GetType "Mono.Runtime" with
+   | null -> false
+   | _ -> true
+
 let cleanup () =
   for i=1 to 5 do
     GC.Collect ()
@@ -225,6 +230,7 @@ do for n in [10L; 20L; 30L; 40L] do
      SerialJob.run n ; cleanup ()
      FibNck.run n ; cleanup ()
      SerAsc.run n ; cleanup ()
-     Task.run n ; cleanup ()
+     if not (isMono ()) then
+       Task.run n ; cleanup ()
      if n <= 30L then
        ParAsc.run n ; cleanup ()
