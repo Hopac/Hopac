@@ -22,7 +22,7 @@ let runHopacTCS numOps n =
   }
   run (Array.create n (loop numOps) |> Job.conIgnore)
   let d = timer.Elapsed
-  printf "%8d*%-2d %fs - %8.0f ops/s\n"
+  printf "%8d*%-2d %8fs - %8.0f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
 let runHopac numOps n =
@@ -35,7 +35,7 @@ let runHopac numOps n =
   }
   run (Array.create n (loop numOps) |> Job.conIgnore)
   let d = timer.Elapsed
-  printf "%8d*%-2d %fs - %8.0f ops/s\n"
+  printf "%8d*%-2d %8fs - %8.0f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
 let runAsyncTCS numOps n =
@@ -53,7 +53,7 @@ let runAsyncTCS numOps n =
   |> Async.Parallel
   |> Async.RunSynchronously |> ignore
   let d = timer.Elapsed
-  printf "%8d*%-2d %fs - %8.0f ops/s\n"
+  printf "%8d*%-2d %8fs - %8.0f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
 let runAsync numOps n =
@@ -68,15 +68,21 @@ let runAsync numOps n =
   |> Async.Parallel
   |> Async.RunSynchronously |> ignore
   let d = timer.Elapsed
-  printf "%8d*%-2d %fs - %8.0f ops/s\n"
+  printf "%8d*%-2d %8fs - %8.0f ops/s\n"
    numOps n d.TotalSeconds (float (numOps*n) / d.TotalSeconds)
 
-do for f in [runHopacTCS; runHopac; runAsyncTCS; runAsync] do
+let inline isMono () =
+  match Type.GetType "Mono.Runtime" with
+   | null -> false
+   | _ -> true
+
+do let d = if isMono () then 10 else 1
+   for (f, d) in [(runHopacTCS, 1); (runHopac, d); (runAsyncTCS, 1); (runAsync, d)] do
      for (numOps, n) in [(100, 1)
                          (1500000, 1)
                          (1000000, 2)
                          (1500000, 4)
                          (1000000, 8)] do
-      f numOps n
+      f (numOps / d) n
       GC.Collect ()
       System.Threading.Thread.Sleep 100
