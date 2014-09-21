@@ -234,7 +234,7 @@ let inline isMono () =
 
 do for p in [1; Environment.ProcessorCount] do
      for l in [50003; 503; 53] do
-       for n in [500; 5000; 50000; 500000; 50000000] do
+       for n in [500; 500000; 50000000] do
          printf "\nWith %d rings of length %d passing %d msgs:\n\n" p l n
          if n <= 500000 then
            if l <= (if isMono () then 53 else 503) then
