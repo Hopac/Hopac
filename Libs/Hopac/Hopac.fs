@@ -494,17 +494,12 @@ module Global =
 
   let mutable globalScheduler : Scheduler = null
 
-  let inline isMono () =
-      match Type.GetType "Mono.Runtime" with
-       | null -> false
-       | _ -> true
-
   let reallyInitGlobalScheduler () =
     let t = typeof<Scheduler>
     Monitor.Enter t
     match globalScheduler with
      | null ->
-       if not System.Runtime.GCSettings.IsServerGC && not (isMono ()) then
+       if not System.Runtime.GCSettings.IsServerGC && not StaticData.isMono then
          printf "WARNING: You are using single-threaded workstation garbage \
           collection, which means that parallel programs cannot scale.  Please \
           configure your program to use server garbage collection.  See \
@@ -688,12 +683,15 @@ module Job =
         if cond () then xJ.DoJob (&wr, xK') else uK.DoWork (&wr)}.DoWork (&wr)}
 
   let result (x: 'x) =
-    if sizeof<IntPtr> = 8 then {new Job<'x> () with
-      override self.DoJob (wr, xK) =
-       xK.DoCont (&wr, x)}
-    else {new Job<'x> () with
-      override self.DoJob (wr, xK) =
-       Cont.Do (xK, &wr, x)}
+    // XXX Does this speed things up?
+    if sizeof<IntPtr> = 8 && not StaticData.isMono then
+      {new Job<'x> () with
+        override self.DoJob (wr, xK) =
+         xK.DoCont (&wr, x)}
+    else
+      {new Job<'x> () with
+        override self.DoJob (wr, xK) =
+         Cont.Do (xK, &wr, x)}
 
   let inline unit () = StaticData.unit :> Job<_>
 

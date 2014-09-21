@@ -11,6 +11,9 @@ namespace Hopac.Core {
   /// corner case the program should explicitly arrange the `Init` method of
   /// this class to be called.</summary>
   public static class StaticData {
+    /// <summary>Whether we are on Mono rather than .Net.</summary>
+    public static bool isMono;
+
     /// <summary>Stores the single shared unit alternative.</summary>
     public static Alt<Unit> unit;
 
@@ -34,8 +37,9 @@ namespace Hopac.Core {
     /// This is safe to be called from multiple threads.</summary>
     public static void Init() {
       if (null == unit) {
+        isMono = null != Type.GetType ("Mono.Runtime");
         unsafe {
-          if (sizeof(IntPtr) == 8)
+          if (!isMono && sizeof(IntPtr) == 8)
             unit = new AlwaysUnitTC();
           else
             unit = new AlwaysUnitNonTC();
