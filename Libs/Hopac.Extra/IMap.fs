@@ -3,7 +3,6 @@
 namespace Hopac.Extra
 
 open System.Collections.Generic
-open System.Threading
 open Hopac
 open Hopac.Infixes
 open Hopac.Extensions
