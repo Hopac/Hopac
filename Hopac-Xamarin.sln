@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{F4BC6995-54E8-435E-87C2-6A3E187E022D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hopac.Core-iOS", "Libs\Hopac.Core\Hopac.Core-iOS.csproj", "{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}"
+EndProject
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac-iOS", "Libs\Hopac\Hopac-iOS.fsproj", "{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0} = {F4BC6995-54E8-435E-87C2-6A3E187E022D}
+		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2} = {F4BC6995-54E8-435E-87C2-6A3E187E022D}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Libs\Hopac.Core\Hopac.Core-PCL.csproj
+	EndGlobalSection
+EndGlobal
