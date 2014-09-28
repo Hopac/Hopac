@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac</id>
-    <version>0.0.0.27</version>
+    <version>0.0.0.28</version>
     <title>Hopac</title>
     <summary>A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -11,7 +11,8 @@
     <projectUrl>https://github.com/VesaKarvonen/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
-    <releaseNotes>0.0.0.27: MonoTouch
+    <releaseNotes>0.0.0.28: MonoAndroid
+0.0.0.27: MonoTouch
 0.0.0.26: Fixed not to rely on tail calls on Mono.
 0.0.0.25: Minor tweaks to make Hopac work more nicely on Mono 3.6.0+.
 0.0.0.24: Switched to .Net framework 4.5 (was 4.5.1).
@@ -24,16 +25,19 @@
     <tags>f# fsharp parallel async concurrent</tags>
   </metadata>
   <files>
-    <file src="../Libs/Hopac/bin/Release/Hopac.Core.xml" target="lib/net45" />
-    <file src="../Libs/Hopac/bin/Release/Hopac.xml" target="lib/net45" />
+    <file target="lib/MonoAndroid" src="../Libs/Hopac/bin/Release-Android/Hopac.Core.dll" />
+    <file target="lib/MonoAndroid" src="../Libs/Hopac/bin/Release-Android/Hopac.dll" />
+    <file target="lib/MonoAndroid" src="../Libs/Hopac/bin/Release/Hopac.Core.xml" />
+    <file target="lib/MonoAndroid" src="../Libs/Hopac/bin/Release/Hopac.xml" />
 
-    <file src="../Libs/Hopac/bin/Release/Hopac.Core.xml" target="lib/MonoTouch" />
-    <file src="../Libs/Hopac/bin/Release/Hopac.xml" target="lib/MonoTouch" />
+    <file target="lib/MonoTouch" src="../Libs/Hopac/bin/Release-iOS/Hopac.Core.dll" />
+    <file target="lib/MonoTouch" src="../Libs/Hopac/bin/Release-iOS/Hopac.dll" />
+    <file target="lib/MonoTouch" src="../Libs/Hopac/bin/Release/Hopac.Core.xml" />
+    <file target="lib/MonoTouch" src="../Libs/Hopac/bin/Release/Hopac.xml" />
 
-    <file src="../Libs/Hopac/bin/Release/Hopac.Core.dll" target="lib/net45" />
-    <file src="../Libs/Hopac/bin/Release/Hopac.dll" target="lib/net45" />
-
-    <file src="../Libs/Hopac/bin/Release-iOS/Hopac.Core.dll" target="lib/MonoTouch" />
-    <file src="../Libs/Hopac/bin/Release-iOS/Hopac.dll" target="lib/MonoTouch" />
+    <file target="lib/net45" src="../Libs/Hopac/bin/Release/Hopac.Core.dll" />
+    <file target="lib/net45" src="../Libs/Hopac/bin/Release/Hopac.Core.xml" />
+    <file target="lib/net45" src="../Libs/Hopac/bin/Release/Hopac.dll" />
+    <file target="lib/net45" src="../Libs/Hopac/bin/Release/Hopac.xml" />
   </files>
 </package>
