@@ -15,3 +15,4 @@ configuration:
 
 build:
   project: Hopac.sln
+  verbosity: quiet
