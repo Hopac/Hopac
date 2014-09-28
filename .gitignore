@@ -1,5 +1,6 @@
 *.nupkg
 *.suo
+*.userprefs
 *~
 .\#*
 \#*\#
