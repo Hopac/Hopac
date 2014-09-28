@@ -18,7 +18,7 @@ namespace Hopac.Core {
     public static Alt<Unit> unit;
 
     /// <summary>Stores the single shared zero alternative.</summary>
-    public static Alt<Unit> zero;
+    public static volatile Alt<Unit> zero;
 
     /// <summary>Stores the single shared scheduler job.</summary>
     public static Job<Scheduler> scheduler;
@@ -36,7 +36,7 @@ namespace Hopac.Core {
     /// <summary>This is normally called automatically by Hopac library code.
     /// This is safe to be called from multiple threads.</summary>
     public static void Init() {
-      if (null == unit) {
+      if (null == zero) {
         isMono = null != Type.GetType ("Mono.Runtime");
         unsafe {
           if (!isMono && sizeof(IntPtr) == 8)
@@ -44,11 +44,11 @@ namespace Hopac.Core {
           else
             unit = new AlwaysUnitNonTC();
         }
-        zero = new Zero();
         scheduler = new GetScheduler();
         proc = new GetProc();
         switchToWorker = new SwitchToWorker();
         workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
+        zero = new Zero(); // Must be written last!
       }
     }
 
