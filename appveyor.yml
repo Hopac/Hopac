@@ -12,3 +12,6 @@ platform: Any CPU
 configuration:
   - Debug
   - Release
+
+build:
+  project: Hopac.sln
