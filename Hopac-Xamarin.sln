@@ -7,16 +7,28 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hopac.Core-iOS", "Libs\Hopa
 EndProject
 Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac-iOS", "Libs\Hopac\Hopac-iOS.fsproj", "{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hopac.Core-Android", "Libs\Hopac.Core\Hopac.Core-Android.csproj", "{2EC4A4B4-53C6-4274-86A2-E736E5F3155C}"
+EndProject
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac-Android", "Libs\Hopac\Hopac-Android.fsproj", "{095A2968-99F9-4D37-AE05-0F5F89BCADD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{095A2968-99F9-4D37-AE05-0F5F89BCADD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{095A2968-99F9-4D37-AE05-0F5F89BCADD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{095A2968-99F9-4D37-AE05-0F5F89BCADD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{095A2968-99F9-4D37-AE05-0F5F89BCADD4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EC4A4B4-53C6-4274-86A2-E736E5F3155C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EC4A4B4-53C6-4274-86A2-E736E5F3155C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EC4A4B4-53C6-4274-86A2-E736E5F3155C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EC4A4B4-53C6-4274-86A2-E736E5F3155C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -25,8 +37,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2ADE80C9-C6BF-4240-AACB-8FCD18850BE0} = {F4BC6995-54E8-435E-87C2-6A3E187E022D}
 		{2EE2EA8B-3B6E-43E9-A724-50E6222F28D2} = {F4BC6995-54E8-435E-87C2-6A3E187E022D}
+		{2EC4A4B4-53C6-4274-86A2-E736E5F3155C} = {F4BC6995-54E8-435E-87C2-6A3E187E022D}
+		{095A2968-99F9-4D37-AE05-0F5F89BCADD4} = {F4BC6995-54E8-435E-87C2-6A3E187E022D}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Libs\Hopac.Core\Hopac.Core-PCL.csproj
+		StartupItem = Libs\Hopac.Core\Hopac.Core-iOS.csproj
 	EndGlobalSection
 EndGlobal

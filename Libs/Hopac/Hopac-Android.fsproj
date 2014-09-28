@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{F2A71F9B-5D33-465A-A702-920D77279786}</ProjectTypeGuids>
+    <ProjectGuid>{095A2968-99F9-4D37-AE05-0F5F89BCADD4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Hopac</RootNamespace>
+    <MonoAndroidAssetsPrefix>Assets</MonoAndroidAssetsPrefix>
+    <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
+    <AndroidResgenClass>Resource</AndroidResgenClass>
+    <AndroidResgenFile>Resources\Resource.designer.fs</AndroidResgenFile>
+    <AndroidUseLatestPlatformSdk>True</AndroidUseLatestPlatformSdk>
+    <AssemblyName>Hopac</AssemblyName>
+    <TargetFrameworkVersion>v4.4</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Debug-Android</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>true</Tailcalls>
+    <PlatformTarget>
+    </PlatformTarget>
+    <DocumentationFile>bin\Debug-Android\Hopac.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release-Android</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <PlatformTarget>
+    </PlatformTarget>
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>true</Tailcalls>
+    <DocumentationFile>bin\Release-Android\Hopac.XML</DocumentationFile>
+    <DefineConstants>
+    </DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="Mono.Android" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assembly.fs" />
+    <Compile Include="Hopac.fsi" />
+    <Compile Include="Hopac.fs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.FSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core-Android.csproj">
+      <Project>{2EC4A4B4-53C6-4274-86A2-E736E5F3155C}</Project>
+      <Name>Hopac.Core-Android</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
