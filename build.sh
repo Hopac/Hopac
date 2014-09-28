@@ -1,13 +1,14 @@
 #!/bin/bash
 
-set -x
 set -e
 
-nuget restore Hopac.sln
+nuget restore Hopac.sln -Verbosity quiet
 
 function build () {
-    xbuild /p:Configuration=$1
+    xbuild /nologo /verbosity:quiet /p:Configuration=$2 $1
 }
 
-build Debug
-build Release
+build Hopac.sln Debug
+build Hopac.sln Release
+#build Hopac-Xamarin.sln Debug
+#build Hopac-Xamarin.sln Release
