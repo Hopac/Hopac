@@ -1548,50 +1548,50 @@ module Extensions =
       val Scheduler: Scheduler
       val Context: SynchronizationContext
 
-      member inline this.Bind (tT: Tasks.Task<'T>, t2uA: 'T -> Async<'U>) =
-        async.Bind (Async.AwaitTask tT, t2uA)
-      member inline this.Bind (tJ: Job<'T>, t2uA: 'T -> Async<'U>) =
-        async.Bind (ofJobOn this.Scheduler tJ, t2uA)
-      member inline this.Bind (tA: Async<'T>, t2uA: 'T -> Async<'U>) =
-        async.Bind (tA, t2uA)
+      member inline this.Bind (xT: Tasks.Task<'x>, x2yA: 'x -> Async<'y>) =
+        async.Bind (Async.AwaitTask xT, x2yA)
+      member inline this.Bind (xJ: Job<'x>, x2yA: 'x -> Async<'y>) =
+        async.Bind (ofJobOn this.Scheduler xJ, x2yA)
+      member inline this.Bind (xA: Async<'x>, x2yA: 'x -> Async<'y>) =
+        async.Bind (xA, x2yA)
 
-      member inline this.Combine (uT: Tasks.Task<unit>, tA: Async<'T>) =
-        async.Combine (Async.AwaitTask uT, tA)
-      member inline this.Combine (uJ: Job<unit>, tA: Async<'T>) =
-        async.Combine (ofJobOn this.Scheduler uJ, tA)
-      member inline this.Combine (uA: Async<unit>, tA: Async<'T>) =
-        async.Combine (uA, tA)
+      member inline this.Combine (uT: Tasks.Task<unit>, xA: Async<'x>) =
+        async.Combine (Async.AwaitTask uT, xA)
+      member inline this.Combine (uJ: Job<unit>, xA: Async<'x>) =
+        async.Combine (ofJobOn this.Scheduler uJ, xA)
+      member inline this.Combine (uA: Async<unit>, xA: Async<'x>) =
+        async.Combine (uA, xA)
 
-      member inline this.Delay (u2tA: unit -> Async<'T>) =
-        async.Delay u2tA
+      member inline this.Delay (u2xA: unit -> Async<'x>) =
+        async.Delay u2xA
 
-      member inline this.For (ts: seq<'T>, t2uA: 'T -> Async<unit>) =
-        async.For (ts, t2uA)
+      member inline this.For (ts: seq<'x>, x2uA: 'x -> Async<unit>) =
+        async.For (ts, x2uA)
 
-      member inline this.Return (t: 'T) = async.Return t
+      member inline this.Return (t: 'x) = async.Return t
 
-      member inline this.ReturnFrom (tT: Tasks.Task<'T>) =
-        async.ReturnFrom (Async.AwaitTask tT)
-      member inline this.ReturnFrom (tJ: Job<'T>) =
-        async.ReturnFrom (ofJobOn this.Scheduler tJ)
-      member inline this.ReturnFrom (tA: Async<'T>) = async.ReturnFrom tA
+      member inline this.ReturnFrom (xT: Tasks.Task<'x>) =
+        async.ReturnFrom (Async.AwaitTask xT)
+      member inline this.ReturnFrom (xJ: Job<'x>) =
+        async.ReturnFrom (ofJobOn this.Scheduler xJ)
+      member inline this.ReturnFrom (xA: Async<'x>) = async.ReturnFrom xA
 
-      member inline this.TryFinally (tT: Tasks.Task<'T>, u2u: unit -> unit) =
-        async.TryFinally (Async.AwaitTask tT, u2u)
-      member inline this.TryFinally (tJ: Job<'T>, u2u: unit -> unit) =
-        async.TryFinally (ofJobOn this.Scheduler tJ, u2u)
-      member inline this.TryFinally (tA: Async<'T>, u2u: unit -> unit) =
-        async.TryFinally (tA, u2u)
+      member inline this.TryFinally (xT: Tasks.Task<'x>, u2u: unit -> unit) =
+        async.TryFinally (Async.AwaitTask xT, u2u)
+      member inline this.TryFinally (xJ: Job<'x>, u2u: unit -> unit) =
+        async.TryFinally (ofJobOn this.Scheduler xJ, u2u)
+      member inline this.TryFinally (xA: Async<'x>, u2u: unit -> unit) =
+        async.TryFinally (xA, u2u)
 
-      member inline this.TryWith (tT: Tasks.Task<'T>, e2tA: exn -> Async<'T>) =
-        async.TryWith (Async.AwaitTask tT, e2tA)
-      member inline this.TryWith (tJ: Job<'T>, e2tA: exn -> Async<'T>) =
-        async.TryWith (ofJobOn this.Scheduler tJ, e2tA)
-      member inline this.TryWith (tA: Async<'T>, e2tA: exn -> Async<'T>) =
-        async.TryWith (tA, e2tA)
+      member inline this.TryWith (xT: Tasks.Task<'x>, e2xA: exn -> Async<'x>) =
+        async.TryWith (Async.AwaitTask xT, e2xA)
+      member inline this.TryWith (xJ: Job<'x>, e2xA: exn -> Async<'x>) =
+        async.TryWith (ofJobOn this.Scheduler xJ, e2xA)
+      member inline this.TryWith (xA: Async<'x>, e2xA: exn -> Async<'x>) =
+        async.TryWith (xA, e2xA)
 
-      member inline this.Using (t: 'T, t2uA: 'T -> Async<'U>) =
-        async.Using (t, t2uA)
+      member inline this.Using (x: 'x, x2yA: 'x -> Async<'y>) =
+        async.Using (x, x2yA)
 
       member inline this.While (u2b: unit -> bool, uA: Async<unit>) =
         async.While (u2b, uA)

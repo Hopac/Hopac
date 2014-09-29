@@ -1718,33 +1718,33 @@ module Extensions =
       val Scheduler: Scheduler
       val Context: SynchronizationContext
 
-      member inline Bind:  Task<'T> * ('T   -> Async<'U>) -> Async<'U>
-      member inline Bind:   Job<'T> * ('T   -> Async<'U>) -> Async<'U>
-      member inline Bind: Async<'T> * ('T   -> Async<'U>) -> Async<'U>
+      member inline Bind:  Task<'x> * ('x -> Async<'y>) -> Async<'y>
+      member inline Bind:   Job<'x> * ('x -> Async<'y>) -> Async<'y>
+      member inline Bind: Async<'x> * ('x -> Async<'y>) -> Async<'y>
 
-      member inline Combine:  Task<unit> * Async<'T> -> Async<'T>
-      member inline Combine:   Job<unit> * Async<'T> -> Async<'T>
-      member inline Combine: Async<unit> * Async<'T> -> Async<'T>
+      member inline Combine:  Task<unit> * Async<'x> -> Async<'x>
+      member inline Combine:   Job<unit> * Async<'x> -> Async<'x>
+      member inline Combine: Async<unit> * Async<'x> -> Async<'x>
 
-      member inline Delay: (unit -> Async<'T>) -> Async<'T>
+      member inline Delay: (unit -> Async<'x>) -> Async<'x>
 
-      member inline For: seq<'T> * ('T -> Async<unit>) -> Async<unit>
+      member inline For: seq<'x> * ('x -> Async<unit>) -> Async<unit>
 
-      member inline Return: 'T -> Async<'T>
+      member inline Return: 'x -> Async<'x>
 
-      member inline ReturnFrom:  Task<'T> -> Async<'T>
-      member inline ReturnFrom:   Job<'T> -> Async<'T>
-      member inline ReturnFrom: Async<'T> -> Async<'T>
+      member inline ReturnFrom:  Task<'x> -> Async<'x>
+      member inline ReturnFrom:   Job<'x> -> Async<'x>
+      member inline ReturnFrom: Async<'x> -> Async<'x>
 
-      member inline TryFinally:  Task<'T> * (unit -> unit) -> Async<'T>
-      member inline TryFinally:   Job<'T> * (unit -> unit) -> Async<'T>
-      member inline TryFinally: Async<'T> * (unit -> unit) -> Async<'T>
+      member inline TryFinally:  Task<'x> * (unit -> unit) -> Async<'x>
+      member inline TryFinally:   Job<'x> * (unit -> unit) -> Async<'x>
+      member inline TryFinally: Async<'x> * (unit -> unit) -> Async<'x>
 
-      member inline TryWith:  Task<'T> * (exn -> Async<'T>) -> Async<'T>
-      member inline TryWith:   Job<'T> * (exn -> Async<'T>) -> Async<'T>
-      member inline TryWith: Async<'T> * (exn -> Async<'T>) -> Async<'T>
+      member inline TryWith:  Task<'x> * (exn -> Async<'x>) -> Async<'x>
+      member inline TryWith:   Job<'x> * (exn -> Async<'x>) -> Async<'x>
+      member inline TryWith: Async<'x> * (exn -> Async<'x>) -> Async<'x>
 
-      member inline Using: 'T * ('T -> Async<'U>) -> Async<'U> when 'T :> IDisposable
+      member inline Using: 'x * ('x -> Async<'y>) -> Async<'y> when 'x :> IDisposable
 
       member inline While: (unit -> bool) * Async<unit> -> Async<unit>
 
