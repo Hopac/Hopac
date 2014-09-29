@@ -499,10 +499,15 @@ module Global =
     Monitor.Enter t
     match globalScheduler with
      | null ->
-       if not System.Runtime.GCSettings.IsServerGC && not StaticData.isMono then
-         printf "WARNING: You are using single-threaded workstation garbage \
-          collection, which means that parallel programs cannot scale.  Please \
-          configure your program to use server garbage collection.  See \
+       if StaticData.isMono then
+         if System.GC.MaxGeneration = 0 then
+           Console.WriteLine "WARNING: You are using the Boehm GC, which means \
+            that parallel programs cannot scale.  Please configure your \
+            program to use the SGen GC."
+       elif not System.Runtime.GCSettings.IsServerGC then
+         Console.WriteLine "WARNING: You are using single-threaded workstation \
+          garbage collection, which means that parallel programs cannot scale.  \
+          Please configure your program to use server garbage collection.  See \
           http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
           for details.\n"
        let sr = Scheduler.create Scheduler.Global.create
