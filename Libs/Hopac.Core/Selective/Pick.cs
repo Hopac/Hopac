@@ -38,8 +38,9 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static void PickClaimed(Pick pk) {
+    internal static void PickClaimedAndSetNacks(ref Worker wr, int i, Pick pk) {
       pk.State = 1;
+      SetNacks(ref wr, i, pk);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]

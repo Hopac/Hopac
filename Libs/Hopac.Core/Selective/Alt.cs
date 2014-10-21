@@ -118,7 +118,7 @@ namespace Hopac {
             xA = Do();
             Pick.Unclaim(pk);
           } catch (Exception e) {
-            Pick.PickClaimed(pk);
+            Pick.PickClaimedAndSetNacks(ref wr, i, pk);
             xA = new AltFail<X>(e);
           }
           xA.TryAlt(ref wr, i, xK, xE);

@@ -105,8 +105,7 @@ namespace Hopac {
       WaitQueue.ReplaceRange(ref this.Givers, giver, cache);
       this.Lock.Exit();
       if (null != pkOther) {
-        Pick.PickClaimed(pkOther);
-        Pick.SetNacks(ref wr, giver.Me, pkOther);
+        Pick.PickClaimedAndSetNacks(ref wr, giver.Me, pkOther);
       }
       Pick.SetNacks(ref wr, i, pkSelf);
       Worker.Push(ref wr, giver.Cont);
@@ -279,8 +278,7 @@ namespace Hopac {
         WaitQueue.ReplaceRange(ref ch.Takers, taker, cache);
         ch.Lock.Exit();
         if (null != pkOther) {
-          Pick.PickClaimed(pkOther);
-          Pick.SetNacks(ref wr, me, pkOther);
+          Pick.PickClaimedAndSetNacks(ref wr, me, pkOther);
         }
         Pick.SetNacks(ref wr, i, pkSelf);
         taker.Value = this.X;

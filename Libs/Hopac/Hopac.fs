@@ -235,7 +235,7 @@ module Alt =
    override xAK'.GetProc (wr) =
     Handler.GetProc (&wr, &xAK'.xK)
    override xAK'.DoHandle (wr, e) =
-    Pick.PickClaimed xAK'.xE.pk
+    Pick.PickClaimedAndSetNacks (&wr, xAK'.i, xAK'.xE.pk)
     Handler.DoHandle (xAK'.xK, &wr, e)
    override xAK'.DoWork (wr) =
     let xE = xAK'.xE
@@ -273,7 +273,7 @@ module Alt =
     override xAK'.GetProc (wr) =
      Handler.GetProc (&wr, &xAK'.xK)
     override xAK'.DoHandle (wr, e) =
-     Pick.PickClaimed xAK'.xE.pk
+     Pick.PickClaimedAndSetNacks (&wr, xAK'.xE.pk.Nacks.I0, xAK'.xE.pk)
      Handler.DoHandle (xAK'.xK, &wr, e)
     override xAK'.DoWork (wr) =
      let xE = xAK'.xE
