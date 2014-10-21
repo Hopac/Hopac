@@ -55,6 +55,34 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal static void RemoveRange<T>(ref Send<T> queue, Send<T> last) {
+      var tail = queue;
+      if (tail == last)
+        queue = null;
+      else
+        tail.Next = last.Next;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void RemoveRange<T>(ref Cont<T> queue, Work last) {
+      var tail = queue;
+      if (tail == last)
+        queue = null;
+      else
+        tail.Next = last.Next;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void RemoveRangeInclusive<T>(Send<T> tail, Send<T> next) {
+      tail.Next = next;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void RemoveRangeInclusive(Work tail, Work next) {
+      tail.Next = next;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal static void ReplaceRange<T>(ref Send<T> queue, Send<T> last, Send<T> cache) {
       var tail = queue;
       if (tail == last) {

@@ -72,7 +72,7 @@ namespace Hopac {
       if (st > 0) goto AlreadyPicked;
       if (st < 0) goto TryPick;
 
-      WaitQueue.ReplaceRange(ref this.Givers, cursor, cache);
+      WaitQueue.RemoveRange(ref this.Givers, cursor);
       this.Lock.Exit();
 
       Pick.SetNacks(ref wr, i, pkSelf);
@@ -80,7 +80,7 @@ namespace Hopac {
       return;
 
     AlreadyPicked:
-      WaitQueue.ReplaceRangeInclusive(this.Givers, cursor, cache);
+      WaitQueue.RemoveRangeInclusive(this.Givers, cursor);
       this.Lock.Exit();
       return;
 
@@ -102,7 +102,7 @@ namespace Hopac {
       if (stSelf < 0) goto BackOff;
 
       //GotGiver:
-      WaitQueue.ReplaceRange(ref this.Givers, giver, cache);
+      WaitQueue.RemoveRange(ref this.Givers, giver);
       this.Lock.Exit();
       if (null != pkOther) {
         Pick.PickClaimedAndSetNacks(ref wr, giver.Me, pkOther);
@@ -137,7 +137,7 @@ namespace Hopac {
     SelfAlreadyPicked:
       if (null != pkOther) Pick.Unclaim(pkOther);
 
-      WaitQueue.ReplaceRangeInclusive(this.Givers, giver, cache);
+      WaitQueue.RemoveRangeInclusive(this.Givers, giver);
       this.Lock.Exit();
       return;
     }
@@ -275,7 +275,7 @@ namespace Hopac {
         if (stSelf > 0) goto SelfAlreadyPicked;
         if (stSelf < 0) goto BackOff;
 
-        WaitQueue.ReplaceRange(ref ch.Takers, taker, cache);
+        WaitQueue.RemoveRange(ref ch.Takers, taker);
         ch.Lock.Exit();
         if (null != pkOther) {
           Pick.PickClaimedAndSetNacks(ref wr, me, pkOther);
@@ -311,7 +311,7 @@ namespace Hopac {
       SelfAlreadyPicked:
         if (null != pkOther) Pick.Unclaim(pkOther);
 
-        WaitQueue.ReplaceRangeInclusive(ch.Takers, taker, cache);
+        WaitQueue.RemoveRangeInclusive(ch.Takers, taker);
         ch.Lock.Exit();
         return;
       }
