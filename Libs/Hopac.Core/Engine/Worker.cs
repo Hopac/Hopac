@@ -20,7 +20,7 @@ namespace Hopac.Core {
     internal Work WorkStack;
     internal Handler Handler;
 #if TRAMPOLINE
-    internal void *StackLimit;
+    internal byte *StackLimit;
 #endif
 #if ENABLE_MCS
     internal SpinlockMCS.Node Node;
@@ -31,13 +31,10 @@ namespace Hopac.Core {
     [ThreadStatic]
     internal static bool IsWorkerThread;
 
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal void Init(Scheduler sr, int bytes) {
 #if TRAMPOLINE
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal void Init(Scheduler sr, void *StackLimit, int bytes) {
-      this.StackLimit = (byte *)StackLimit - bytes;
-#else
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal void Init(Scheduler sr) {
+      this.StackLimit = Unsafe.GetStackPtr() - bytes;
 #endif
 #if ENABLE_MCS
       Node.Init();
@@ -80,11 +77,8 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void RunOnThisThread(Scheduler sr, Work work) {
       var wr = new Worker();
-#if TRAMPOLINE
-      wr.Init(sr, &wr.StackLimit, 1000);
-#else
-      wr.Init(sr);
-#endif
+      wr.Init(sr, 1000);
+
       Scheduler.Inc(sr);
 
       try {
@@ -100,11 +94,8 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void RunOnThisThread<T>(Scheduler sr, Job<T> tJ, Cont<T> tK) {
       var wr = new Worker();
-#if TRAMPOLINE
-      wr.Init(sr, &wr.StackLimit, 1000);
-#else
-      wr.Init(sr);
-#endif
+      wr.Init(sr, 1000);
+
       Scheduler.Inc(sr);
 
       try {
@@ -121,11 +112,8 @@ namespace Hopac.Core {
       IsWorkerThread = true;
 
       var wr = new Worker();
-#if TRAMPOLINE
-      wr.Init(sr, &wr.StackLimit, 4000);
-#else
-      wr.Init(sr);
-#endif
+      wr.Init(sr, 4000);
+
       var iK = new IdleCont();
 
       wr.Event = sr.Events[me];

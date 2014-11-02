@@ -80,6 +80,7 @@
     <Compile Include="Util\SpinlockTicket.cs" />
     <Compile Include="Util\SpinlockTTAS.cs" />
     <Compile Include="Util\SpinlockMCS.cs" />
+    <Compile Include="Util\Unsafe.cs" />
     <Compile Include="Util\WorkQueueLock.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
