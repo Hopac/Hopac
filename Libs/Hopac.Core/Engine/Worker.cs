@@ -22,9 +22,6 @@ namespace Hopac.Core {
 #if TRAMPOLINE
     internal byte *StackLimit;
 #endif
-#if ENABLE_MCS
-    internal SpinlockMCS.Node Node;
-#endif
     internal Scheduler Scheduler;
     internal WorkerEvent Event;
 
@@ -35,9 +32,6 @@ namespace Hopac.Core {
     internal void Init(Scheduler sr, int bytes) {
 #if TRAMPOLINE
       this.StackLimit = Unsafe.GetStackPtr() - bytes;
-#endif
-#if ENABLE_MCS
-      Node.Init();
 #endif
       this.Scheduler = sr;
     }
