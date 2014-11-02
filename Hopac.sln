@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{0F31BE63-CB73-4207-94E8-158D3077F24A}"
 	ProjectSection(SolutionItems) = preProject
@@ -56,13 +56,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6B539F10-FF76-4EA2-9A2F-594F377CEEC2}"
 	ProjectSection(SolutionItems) = preProject
 		Docs\Actors.md = Docs\Actors.md
-		Docs\Hopac.Extra.html = Docs\Hopac.Extra.html
-		Docs\Hopac.html = Docs\Hopac.html
 		Docs\Internals.md = Docs\Internals.md
 		Docs\Performance.md = Docs\Performance.md
 		Docs\Programming.md = Docs\Programming.md
 		Docs\README.md = Docs\README.md
-		Docs\RefGen.fsx = Docs\RefGen.fsx
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-FF76-4EA2-9A2F-594F387CEEC2}"
