@@ -1208,18 +1208,21 @@ module Timer =
       new (t, me, pk, uK) = {inherit WorkTimed (t, me, pk); uK=uK}
 
     let timeOut (span: System.TimeSpan) =
-      let ms = span.Ticks / 10000L
-      if ms < 0L || 2147483647L < ms then
-        failwith "TimeSpan out of allowed range"
-      let ms = int ms
-      {new Alt<unit> () with
-        override uA'.DoJob (wr, uK) =
-         (initGlobalTimer ()).SynchronizedPushTimed
-          (WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
-        override uA'.TryAlt (wr, i, uK, uE) =
-         (initGlobalTimer ()).SynchronizedPushTimed
-          (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
-         uE.TryElse (&wr, i+1)}
+      if span = Timeout.InfiniteTimeSpan then
+        Alt.zero ()
+      else
+        let ms = span.Ticks / 10000L
+        if ms < 0L || 2147483647L < ms then
+          failwith "TimeSpan out of allowed range"
+        let ms = int ms
+        {new Alt<unit> () with
+          override uA'.DoJob (wr, uK) =
+           (initGlobalTimer ()).SynchronizedPushTimed
+            (WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
+          override uA'.TryAlt (wr, i, uK, uE) =
+           (initGlobalTimer ()).SynchronizedPushTimed
+            (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
+           uE.TryElse (&wr, i+1)}
 
     let sleep (span: TimeSpan) = timeOut span :> Job<unit>
 
