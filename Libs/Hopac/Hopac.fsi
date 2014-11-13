@@ -251,6 +251,15 @@ module TopLevel =
   /// This is the same function as `Job.Global.start`.
   val inline start: Job<_> -> unit
 
+  /// Like `start`, but the given job is known never to return normally, so the
+  /// job can be spawned in an even more lightweight manner.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.server` instead.
+  ///
+  /// This is the same function as `Job.Global.server`.
+  val inline server: Job<Void> -> unit
+
   /// Use object as alternative.  This function is a NOP and is provided as a
   /// kind of syntactic alternative to using a type cast.
   val inline asAlt: Alt<'x> -> Alt<'x>
@@ -270,9 +279,17 @@ module TopLevel =
   /// `IVar.Now.create`.
   val inline ivar: unit -> IVar<'x>
 
+  /// Creates a new write once variable with the given value.  This is the same
+  /// function as `IVar.Now.createFull`.
+  val inline ivarFull: 'x -> IVar<'x>  
+
   /// Creates a serialized variable that is initially empty.  This is the same
   /// function as `MVar.Now.create`.
   val inline mvar: unit -> MVar<'x>
+
+  /// Creates a new serialized variable that initially contains the given value.
+  /// This is the same function as `MVar.Now.createFull`.
+  val inline mvarFull: 'x -> MVar<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 

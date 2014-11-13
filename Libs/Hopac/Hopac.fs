@@ -1687,8 +1687,8 @@ module TopLevel =
   let job = JobBuilder ()
 
   let inline run x = Job.Global.run x
-
   let inline start x = Job.Global.start x
+  let inline server x = Job.Global.server x
 
   let inline asAlt (xA: Alt<'x>) = xA
   let inline asJob (xJ: Job<'x>) = xJ
@@ -1696,7 +1696,9 @@ module TopLevel =
   let inline ch () = Ch<'x> ()
   let inline mb () = Mailbox<'x> ()
   let inline ivar () = IVar<'x> ()
+  let inline ivarFull x = IVar.Now.createFull x
   let inline mvar () = MVar<'x> ()
+  let inline mvarFull x = MVar.Now.createFull x
 
 /////////////////////////////////////////////////////////////////////////
 
