@@ -846,7 +846,7 @@ module Job =
 
   /// Given a job, creates a new job that behaves exactly like the given job,
   /// except that the new job obviously cannot be directly downcast to the
-  /// underlying type of the given alternative.  This operation is provided for
+  /// underlying type of the given job.  This operation is provided for
   /// debugging purposes.  You can always break abstractions using reflection.
   /// See also: `Alt.paranoid`.
   val paranoid: Job<'x> -> Job<'x>
