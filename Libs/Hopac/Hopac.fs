@@ -430,7 +430,7 @@ module Scheduler =
                  | None -> Environment.ProcessorCount
                  | Some n ->
                    if n < 1 then
-                     failwith "Invalid number of workers specified: %d" n
+                     failwithf "Invalid number of workers specified: %d" n
                    n),
                (match c.Priority with
                  | None -> ThreadPriority.Normal
