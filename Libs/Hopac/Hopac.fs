@@ -1218,13 +1218,22 @@ module Timer =
       override wt.DoWork (wr) = wt.uK.DoWork (&wr)
       new (t, me, pk, uK) = {inherit WorkTimed (t, me, pk); uK=uK}
 
+    let outOfRange ticks =
+      failwithf "Timeout out of range (ticks = %d)" ticks
+
     let timeOut (span: System.TimeSpan) =
-      if span = Timeout.InfiniteTimeSpan then
-        Alt.zero ()
+      let ticks = span.Ticks
+      let ms = (ticks + 9999L) / 10000L // Rounds up.
+      if ticks <= 0L then
+        if -10000L = ticks then
+          StaticData.zero
+        elif 0L = ticks then
+          StaticData.unit
+        else
+          outOfRange ticks
+      elif 21474836470000L < ticks then
+        outOfRange ticks
       else
-        let ms = span.Ticks / 10000L
-        if ms < 0L || 2147483647L < ms then
-          failwith "TimeSpan out of allowed range"
         let ms = int ms
         {new Alt<unit> () with
           override uA'.DoJob (wr, uK) =
