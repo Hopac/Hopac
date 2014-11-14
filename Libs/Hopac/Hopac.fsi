@@ -844,6 +844,13 @@ module Job =
   /// be executed on a Hopac worker thread.
   val inline switchToWorker: unit -> Job<unit>
 
+  /// Given a job, creates a new job that behaves exactly like the given job,
+  /// except that the new job obviously cannot be directly downcast to the
+  /// underlying type of the given alternative.  This operation is provided for
+  /// debugging purposes.  You can always break abstractions using reflection.
+  /// See also: `Alt.paranoid`.
+  val paranoid: Job<'x> -> Job<'x>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
@@ -1038,6 +1045,13 @@ module Alt =
   ///
   /// Note that `select []` is equivalent to `abort ()`.
   val inline select: seq<Alt<'x>> -> Job<'x>
+
+  /// Given an alternative, creates a new alternative that behaves exactly like
+  /// the given alternative, except that the new alternative obviously cannot be
+  /// directly downcast to the underlying type of the given alternative.  This
+  /// operation is provided for debugging purposes.  You can always break
+  /// abstractions using reflection.  See also: `Job.paranoid`.
+  val paranoid: Alt<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 

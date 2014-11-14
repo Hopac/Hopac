@@ -392,6 +392,11 @@ module Alt =
          wr.Handler <- yK
          yE.TryElse (&wr, i)})}
 
+  let paranoid (xA: Alt<'x>) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) = xA.DoJob (&wr, xK)
+      override xA'.TryAlt (wr, i, xK, xE) = xA.TryAlt (&wr, i, xK, xE)}
+
 /////////////////////////////////////////////////////////////////////////
 
 module Scheduler =
@@ -1165,6 +1170,12 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   let inline switchToWorker () = StaticData.switchToWorker
+
+  ///////////////////////////////////////////////////////////////////////
+
+  let paranoid (xJ: Job<'x>) =
+    {new Job<'x> () with
+      override xJ'.DoJob (wr, xK) = xJ.DoJob (&wr, xK)}
 
 /////////////////////////////////////////////////////////////////////////
 
