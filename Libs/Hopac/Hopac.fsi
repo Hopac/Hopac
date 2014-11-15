@@ -233,7 +233,7 @@ module TopLevel =
   /// worker thread and the job `xJ` does not perform operations that might
   /// block or that might directly, or indirectly, need to communicate with the
   /// thread from which `run` is being called.
-  /// 
+  ///
   /// Note that using this function from within a job workflow should never be
   /// needed, because within a workflow the result of a job can be obtained by
   /// binding.
@@ -281,7 +281,7 @@ module TopLevel =
 
   /// Creates a new write once variable with the given value.  This is the same
   /// function as `IVar.Now.createFull`.
-  val inline ivarFull: 'x -> IVar<'x>  
+  val inline ivarFull: 'x -> IVar<'x>
 
   /// Creates a serialized variable that is initially empty.  This is the same
   /// function as `MVar.Now.create`.
@@ -406,7 +406,7 @@ module Job =
     /// worker thread and the job `xJ` does not perform operations that might
     /// block or that might directly, or indirectly, need to communicate with
     /// the thread from which `run` is being called.
-    /// 
+    ///
     /// Note that using this function from within a job workflow should never be
     /// needed, because within a workflow the result of a job can be obtained by
     /// binding.
@@ -1798,7 +1798,7 @@ module Extensions =
   /// `Promise`, for example.
   ///
   /// Note that starting tasks correctly can be tricky.  Hopac jobs are designed
-  /// to be executed by Hopac worker threads, which have the default `null` 
+  /// to be executed by Hopac worker threads, which have the default `null`
   /// synchronization context like the .Net thread pool, but Hopac jobs can also
   /// be started on other threads, which may live in non-default synchronization
   /// contexts.  Tasks that have been written using the C# async-await mechanism
@@ -1809,7 +1809,7 @@ module Extensions =
   /// Note that tasks and jobs are quite different in nature as tasks are
   /// comonadic while jobs are monadic.
 #endif
-  type [<Sealed>] Task =
+  type Task with
     /// Creates a job that waits for the given task to finish and then returns
     /// the result of the task.  Note that this does not start the task.  Make
     /// sure that the task is started correctly.
@@ -1817,7 +1817,7 @@ module Extensions =
     ///
     /// Reference implementation:
     ///
-    ///> let awaitJob (xT: Threading.Tasks.Task<'x>) =
+    ///> let awaitJob (xT: Task<'x>) =
     ///>   Job.scheduler () >>= fun sr ->
     ///>   let xI = ivar ()
     ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
@@ -1825,21 +1825,38 @@ module Extensions =
     ///>   |> ignore
     ///>   upcast xI
 #endif
-    static member inline awaitJob: Threading.Tasks.Task<'x> -> Job<'x>
+    static member inline awaitJob: Task<'x> -> Job<'x>
 
     /// Creates a job that waits until the given task finishes.  Note that this
     /// does not start the task.  Make sure that the task is started correctly.
-    static member inline awaitJob: Threading.Tasks.Task -> Job<unit>
+    static member inline awaitJob: Task -> Job<unit>
 
     /// `bindJob (xT, x2yJ)` is equivalent to `awaitJob xT >>= x2yJ`.
-    static member inline bindJob: Threading.Tasks.Task<'x> * ('x -> Job<'y>) -> Job<'y>
+    static member inline bindJob: Task<'x> * ('x -> Job<'y>) -> Job<'y>
 
     /// `bindJob (uT, u2xJ)` is equivalent to `awaitJob uT >>= u2xJ`.
-    static member inline bindJob: Threading.Tasks.Task * (unit -> Job<'x>) -> Job<'x>
+    static member inline bindJob: Task * (unit -> Job<'x>) -> Job<'x>
 
     /// Creates a job that starts the given job as a separate concurrent job,
     /// whose result can be obtained from the returned task.
-    static member startJob: Job<'x> -> Job<Threading.Tasks.Task<'x>>
+    static member startJob: Job<'x> -> Job<Task<'x>>
+
+  /// Operations for interfacing the system `ThreadPool` with jobs.
+  type ThreadPool with
+    /// Creates a job that queues the given thunk to execute on the system
+    /// `ThreadPool` and then waits for the result of the thunk.
+    static member queueAsJob: (unit -> 'x) -> Job<'x>
+
+  /// Operations for interfacing with `WaitHandle`s.
+  type WaitHandle with
+    /// Creates a job that awaits for the given wait handle with the specified
+    /// timeout using the `RegisterWaitForSingleObject` API of the system
+    /// `ThreadPool`.
+    member awaitAsJob: TimeSpan -> Job<bool>
+
+    /// Creates a job that awaits for the given wait handle using the
+    /// `RegisterWaitForSingleObject` API of the system `ThreadPool`.
+    member awaitAsJob: Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1887,7 +1904,7 @@ module Scheduler =
       /// Specifies the priority of the worker threads.  The default is to use
       /// `Normal` priority.
       Priority: option<Threading.ThreadPriority>
-     
+
       /// Specifies the top level exception handler job constructor of the
       /// scheduler.  When a job fails with an otherwise unhandled exception,
       /// the job is killed and a new job is constructed with the top level
@@ -1897,7 +1914,7 @@ module Scheduler =
       /// handler simply prints out a message to the console.
       TopLevelHandler: option<exn -> Job<unit>>
     }
-    
+
     /// Default options.
     static member Def: Create
 

@@ -7,6 +7,7 @@ open System.Collections.Generic
 open System.Diagnostics
 open System.Runtime.CompilerServices
 open System.Threading
+open System.Threading.Tasks
 open Hopac.Core
 
 /////////////////////////////////////////////////////////////////////////
@@ -147,7 +148,7 @@ module IVar =
     let inline isFull (xI: IVar<'x>) = xI.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xI: IVar<'x>) : 'x = xI.Get ()
-      
+
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline tryFill (xI: IVar<'x>) (x: 'x) = IVar<'x>.TryFill (xI, x) :> Job<unit>
@@ -202,7 +203,7 @@ module Promise =
   let inline read (xPr: Promise<'x>) = xPr :> Job<'x>
   module Alt =
     let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
-    
+
 /////////////////////////////////////////////////////////////////////////
 
 module Alt =
@@ -258,7 +259,7 @@ module Alt =
       override xA'.Do () = u2xA ()} :> Alt<_>
 
   let inline pick (xA: Alt<'x>) = xA :> Job<'x>
-     
+
   type WithNackElse (nk: Nack, xE: Else) =
     inherit Else (xE.pk)
     override xE'.TryElse (wr, i) =
@@ -316,7 +317,7 @@ module Alt =
 
     let inline (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) : Job<'x> =
       xA1 <|>? xA2 :> Job<_>
- 
+
     let inline (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new AltMap<'x, 'y> (xA) with
         override yA'.Do (x) = x2y x} :> Alt<_>
@@ -1085,7 +1086,7 @@ module Job =
     inherit Handler
     [<DefaultValue>] val mutable Finished: int
     [<DefaultValue>] val mutable Started: int
-    [<DefaultValue>] val mutable Exns: ResizeArray<exn> 
+    [<DefaultValue>] val mutable Exns: ResizeArray<exn>
     val mutable xs: IEnumerator<'x>
     val uK: Cont<unit>
     new (xs, uK) = {xs=xs; uK=uK}
@@ -1494,26 +1495,26 @@ module Extensions =
   ///////////////////////////////////////////////////////////////////////
 
   open Job.Infixes
-  
-  type [<Sealed>] Task =
-    static member inline awaitJob (xTask: Tasks.Task<'x>) =
+
+  type Task with
+    static member inline awaitJob (xTask: Task<'x>) =
       AwaitTaskWithResult<'x> (xTask) :> Job<'x>
 
-    static member inline awaitJob (task: Tasks.Task) =
+    static member inline awaitJob (task: Task) =
       AwaitTask (task) :> Job<unit>
 
-    static member inline bindJob (xT: Tasks.Task<'x>, x2yJ: 'x -> Job<'y>) =
+    static member inline bindJob (xT: Task<'x>, x2yJ: 'x -> Job<'y>) =
       {new BindTaskWithResult<'x, 'y> (xT) with
         override yJ'.Do (x) = x2yJ x} :> Job<_>
 
-    static member inline bindJob (uT: Tasks.Task, u2xJ: unit -> Job<'x>) =
+    static member inline bindJob (uT: Task, u2xJ: unit -> Job<'x>) =
       {new BindTask<'x> (uT) with
         override xJ'.Do () = u2xJ ()} :> Job<_>
 
     static member startJob (xJ: Job<'x>) =
-      {new Job<Tasks.Task<'x>> () with
+      {new Job<Task<'x>> () with
         override xTJ'.DoJob (wr, xTK) =
-         let xTCS = Tasks.TaskCompletionSource<'x> ()
+         let xTCS = TaskCompletionSource<'x> ()
          xTK.Value <- xTCS.Task
          Worker.Push (&wr, xTK)
          Job.Do (xJ, &wr, {new Cont_State<'x, Cont<unit>> () with
@@ -1527,6 +1528,33 @@ module Extensions =
           override xK'.DoCont (wr, x) =
            Handler.Terminate (&wr, xK'.State)
            xTCS.TrySetResult x |> ignore})}
+
+  type ThreadPool with
+    static member queueAsJob (thunk: unit -> 'x) : Job<'x> =
+      Job.scheduler () >>= fun sr ->
+      let rV = IVar.Now.create ()
+      ThreadPool.QueueUserWorkItem (fun _ ->
+        Scheduler.start sr
+         (try IVar.fill rV (thunk ()) with e -> IVar.fillFailure rV e))
+      |> ignore
+      upcast rV
+
+  type WaitHandle with
+    member wh.awaitAsJob (timeout: TimeSpan) : Job<bool> =
+      Job.scheduler () >>= fun sr ->
+      let rV = IVar.Now.create ()
+      ThreadPool.RegisterWaitForSingleObject
+       (wh, (fun _ r -> Scheduler.start sr (IVar.fill rV r)),
+        null, timeout, true) |> ignore
+      upcast rV
+
+    member wh.awaitAsJob: Job<unit> =
+      Job.scheduler () >>= fun sr ->
+      let rV = IVar.Now.create ()
+      ThreadPool.RegisterWaitForSingleObject
+       (wh, (fun _ _ -> Scheduler.start sr (IVar.fill rV ())),
+        null, -1, true) |> ignore
+      upcast rV
 
   module Async =
     let inline start sr xA (xK: Cont<_>) =
@@ -1576,14 +1604,14 @@ module Extensions =
       val Scheduler: Scheduler
       val Context: SynchronizationContext
 
-      member inline this.Bind (xT: Tasks.Task<'x>, x2yA: 'x -> Async<'y>) =
+      member inline this.Bind (xT: Task<'x>, x2yA: 'x -> Async<'y>) =
         async.Bind (Async.AwaitTask xT, x2yA)
       member inline this.Bind (xJ: Job<'x>, x2yA: 'x -> Async<'y>) =
         async.Bind (ofJobOn this.Scheduler xJ, x2yA)
       member inline this.Bind (xA: Async<'x>, x2yA: 'x -> Async<'y>) =
         async.Bind (xA, x2yA)
 
-      member inline this.Combine (uT: Tasks.Task<unit>, xA: Async<'x>) =
+      member inline this.Combine (uT: Task<unit>, xA: Async<'x>) =
         async.Combine (Async.AwaitTask uT, xA)
       member inline this.Combine (uJ: Job<unit>, xA: Async<'x>) =
         async.Combine (ofJobOn this.Scheduler uJ, xA)
@@ -1598,20 +1626,20 @@ module Extensions =
 
       member inline this.Return (t: 'x) = async.Return t
 
-      member inline this.ReturnFrom (xT: Tasks.Task<'x>) =
+      member inline this.ReturnFrom (xT: Task<'x>) =
         async.ReturnFrom (Async.AwaitTask xT)
       member inline this.ReturnFrom (xJ: Job<'x>) =
         async.ReturnFrom (ofJobOn this.Scheduler xJ)
       member inline this.ReturnFrom (xA: Async<'x>) = async.ReturnFrom xA
 
-      member inline this.TryFinally (xT: Tasks.Task<'x>, u2u: unit -> unit) =
+      member inline this.TryFinally (xT: Task<'x>, u2u: unit -> unit) =
         async.TryFinally (Async.AwaitTask xT, u2u)
       member inline this.TryFinally (xJ: Job<'x>, u2u: unit -> unit) =
         async.TryFinally (ofJobOn this.Scheduler xJ, u2u)
       member inline this.TryFinally (xA: Async<'x>, u2u: unit -> unit) =
         async.TryFinally (xA, u2u)
 
-      member inline this.TryWith (xT: Tasks.Task<'x>, e2xA: exn -> Async<'x>) =
+      member inline this.TryWith (xT: Task<'x>, e2xA: exn -> Async<'x>) =
         async.TryWith (Async.AwaitTask xT, e2xA)
       member inline this.TryWith (xJ: Job<'x>, e2xA: exn -> Async<'x>) =
         async.TryWith (ofJobOn this.Scheduler xJ, e2xA)
@@ -1639,18 +1667,18 @@ open Job.Infixes
 type JobBuilder () =
   member inline job.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Async.toJob xA >>= x2yJ
-  member inline job.Bind (xT: Tasks.Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+  member inline job.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Task.bindJob (xT, x2yJ)
-  member inline job.Bind (uT: Tasks.Task, u2xJ: unit -> Job<'x>) : Job<'x> =
+  member inline job.Bind (uT: Task, u2xJ: unit -> Job<'x>) : Job<'x> =
     Task.bindJob (uT, u2xJ)
   member inline job.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xJ >>= x2yJ
 
   member inline job.Combine (uA: Async<unit>, xJ: Job<'x>) : Job<'x> =
     Async.toJob uA >>. xJ
-  member inline job.Combine (uT: Tasks.Task<unit>, xJ: Job<'x>) : Job<'x> =
+  member inline job.Combine (uT: Task<unit>, xJ: Job<'x>) : Job<'x> =
     Task.awaitJob uT >>. xJ
-  member inline job.Combine (uT: Tasks.Task, xJ: Job<'x>) : Job<'x> =
+  member inline job.Combine (uT: Task, xJ: Job<'x>) : Job<'x> =
     Task.awaitJob uT >>. xJ
   member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>. xJ
 
@@ -1662,24 +1690,24 @@ type JobBuilder () =
   member inline job.Return (x: 'x) : Job<'x> = Job.result x
 
   member inline job.ReturnFrom (xA: Async<'x>) : Job<'x> = Async.toJob xA
-  member inline job.ReturnFrom (xT: Tasks.Task<'x>) : Job<'x> = Task.awaitJob xT
-  member inline job.ReturnFrom (uT: Tasks.Task) : Job<unit> = Task.awaitJob uT
+  member inline job.ReturnFrom (xT: Task<'x>) : Job<'x> = Task.awaitJob xT
+  member inline job.ReturnFrom (uT: Task) : Job<unit> = Task.awaitJob uT
   member inline job.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
 
   member inline job.TryFinally (xA: Async<'x>, u2u: unit -> unit) : Job<'x> =
     Job.tryFinallyFun (Async.toJob xA) u2u
-  member inline job.TryFinally (xT: Tasks.Task<'x>, u2u: unit -> unit) : Job<'x> =
+  member inline job.TryFinally (xT: Task<'x>, u2u: unit -> unit) : Job<'x> =
     Job.tryFinallyFun (Task.awaitJob xT) u2u
-  member inline job.TryFinally (uT: Tasks.Task, u2u: unit -> unit) : Job<unit> =
+  member inline job.TryFinally (uT: Task, u2u: unit -> unit) : Job<unit> =
     Job.tryFinallyFun (Task.awaitJob uT) u2u
   member inline job.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =
     Job.tryFinallyFun xJ u2u
 
   member inline job.TryWith (xA: Async<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith (Async.toJob xA) e2xJ
-  member inline job.TryWith (xT: Tasks.Task<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
+  member inline job.TryWith (xT: Task<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith (Task.awaitJob xT) e2xJ
-  member inline job.TryWith (uT: Tasks.Task, e2xJ: exn -> Job<unit>) : Job<unit> =
+  member inline job.TryWith (uT: Task, e2xJ: exn -> Job<unit>) : Job<unit> =
     Job.tryWith (Task.awaitJob uT) e2xJ
   member inline job.TryWith (xJ: Job<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith xJ e2xJ
