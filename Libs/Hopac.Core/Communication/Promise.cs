@@ -14,13 +14,22 @@ namespace Hopac {
     internal volatile int State;
     internal Cont<T> Readers;
 
-    internal const int Locked = ~Empty;
-    internal const int Empty = 0;
-    internal const int HasValue = 1;
-    internal const int HasExn = 2;
+    internal const int Delayed = 0;
+    internal const int Running = 1;
+    internal const int HasValue = 2;
+    internal const int HasExn = 3;
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Promise() { }
+    internal Promise() {
+      this.State = Running;
+    }
+
+    /// Internal implementation detail.
+    [MethodImpl(AggressiveInlining.Flag)]
+    public Promise(Job<T> tJ) {
+      this.State = Delayed;
+      this.Readers = new Fulfill(tJ);
+    }
 
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
@@ -39,7 +48,7 @@ namespace Hopac {
     /// Internal implementation detail.
     public bool Full {
       [MethodImpl(AggressiveInlining.Flag)]
-      get { return Empty < State; }
+      get { return HasValue <= State; }
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -52,12 +61,27 @@ namespace Hopac {
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
-      if (state > Empty) goto Completed;
-      if (state < Empty) goto Spin;
+      if (state > Running) goto Completed;
+      if (state < Delayed) goto Spin;
       if (state != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
 
+      if (Delayed == state)
+        goto Delayed;
+
       WaitQueue.AddTaker(ref this.Readers, aK);
-      this.State = Empty;
+      this.State = Running;
+      return;
+
+    Delayed:
+      var readers = this.Readers;
+      this.Readers = aK;
+      aK.Next = aK;
+      this.State = Running;
+
+      var fulfill = readers as Fulfill;
+      var tJ = fulfill.tP;
+      fulfill.tP = this;
+      Job.Do(tJ, ref wr, fulfill);
       return;
 
     Completed:
@@ -71,13 +95,33 @@ namespace Hopac {
       var pkSelf = aE.pk;
     Spin:
       var state = this.State;
-      if (state > Empty) goto Completed;
-      if (state < Empty) goto Spin;
+      if (state > Running) goto Completed;
+      if (state < Delayed) goto Spin;
       if (state != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
 
+      if (Delayed == state)
+        goto Delayed;
+
       WaitQueue.AddTaker(ref this.Readers, i, pkSelf, aK);
-      this.State = Empty;
+      this.State = Running;
       aE.TryElse(ref wr, i + 1);
+      return;
+
+    Delayed:
+      var taker = new Taker<T>();
+      taker.Cont = aK;
+      taker.Me = i;
+      taker.Pick = pkSelf;
+      taker.Next = taker;
+
+      var readers = this.Readers;
+      this.Readers = taker;
+      this.State = Running;
+
+      var fulfill = readers as Fulfill;
+      var tJ = fulfill.tP;
+      fulfill.tP = this;
+      Job.Do(tJ, ref wr, fulfill);
       return;
 
     Completed:
@@ -96,11 +140,11 @@ namespace Hopac {
     }
 
     internal sealed class Fulfill : Cont<T> {
-      private readonly Promise<T> tP;
+      internal Job<T> tP;
       private Cont<Unit> procFin;
 
       [MethodImpl(AggressiveInlining.Flag)]
-      internal Fulfill(Promise<T> tP) {
+      internal Fulfill(Job<T> tP) {
         this.tP = tP;
       }
 
@@ -110,12 +154,12 @@ namespace Hopac {
 
       [MethodImpl(AggressiveInlining.Flag)]
       internal void Do(ref Worker wr, T t) {
-        var tP = this.tP;
+        var tP = this.tP as Promise<T>;
         tP.Value = t;
       Spin:
         var state = tP.State;
-        if (state != Empty) goto Spin;
-        if (Empty != Interlocked.CompareExchange(ref tP.State, HasValue, state)) goto Spin;
+        if (state != Running) goto Spin;
+        if (Running != Interlocked.CompareExchange(ref tP.State, HasValue, state)) goto Spin;
 
         WaitQueue.PickReaders(ref tP.Readers, tP.Value, ref wr);
       }
@@ -129,11 +173,11 @@ namespace Hopac {
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        var tP = this.tP;
+        var tP = this.tP as Promise<T>;
       Spin:
         var state = tP.State;
-        if (state != Empty) goto Spin;
-        if (Empty != Interlocked.CompareExchange(ref tP.State, Locked, state)) goto Spin;
+        if (state != Running) goto Spin;
+        if (Running != Interlocked.CompareExchange(ref tP.State, ~state, state)) goto Spin;
 
         var readers = tP.Readers;
         tP.Readers = new Fail<T>(e);

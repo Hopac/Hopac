@@ -1538,6 +1538,13 @@ type Promise<'x> :> Alt<'x>
 module Promise =
   /// Immediate or non-workflow operations on promises.
   module Now =
+    /// Creates a promise whose value is computed lazily with the given job when
+    /// an attempt is made to read the promise. Although the job is not started
+    /// immediately, the effect is that the delayed job will be run as a
+    /// separate job, which means it is possible to communicate with it as long
+    /// the delayed job is started before trying to communicate with it.
+    val inline delay: Job<'x> -> Promise<'x>
+
     /// Creates a promise with the given value.
     val inline withValue: 'x -> Promise<'x>
 
@@ -1578,12 +1585,14 @@ module Promise =
   val queueAsAlt: Job<'x> -> Job<Alt<'x>>
 
   /// Creates a job that waits for the promise to be computed and then returns
-  /// its value (or fails with exception).
+  /// its value (or fails with exception).  If the promise was delayed, it is
+  /// started as a separate job.
   val inline read: Promise<'x> -> Job<'x>
 
   /// Selective operations on promises.
   module Alt =
-    /// Creates an alternative for reading the promise.
+    /// Creates an alternative for reading the promise.  If the promise was
+    /// delayed, it is started as a separate job.
     val inline read: Promise<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////

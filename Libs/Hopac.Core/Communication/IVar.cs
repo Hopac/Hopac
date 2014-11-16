@@ -33,10 +33,10 @@ namespace Hopac {
         tI.Value = this.t; // This assumes correct usage of IVar.
       Spin:
         var state = tI.State;
-        if (state < Empty) goto Spin;
+        if (state < Delayed) goto Spin;
         if (state != Interlocked.CompareExchange(ref tI.State, HasValue, state)) goto Spin;
 
-        if (state > Empty) {
+        if (state > Running) {
           uK.DoHandle(ref wr, new Exception("IVar full"));
         } else {
           WaitQueue.PickReaders(ref tI.Readers, tI.Value, ref wr);
@@ -55,8 +55,8 @@ namespace Hopac {
         var tI = this.tI;
       Spin:
         var state = tI.State;
-        if (state < Empty) goto Spin;
-        if (state > Empty) goto Done;
+        if (state < Delayed) goto Spin;
+        if (state > Running) goto Done;
         if (state != Interlocked.CompareExchange(ref tI.State, ~state, state)) goto Spin;
 
         tI.Value = this.t;
@@ -84,10 +84,10 @@ namespace Hopac {
         var tI = this.tI;
       Spin:
         var state = tI.State;
-        if (state < Empty) goto Spin;
-        if (state != Interlocked.CompareExchange(ref tI.State, Locked, state)) goto Spin;
+        if (state < Delayed) goto Spin;
+        if (state != Interlocked.CompareExchange(ref tI.State, ~state, state)) goto Spin;
 
-        if (state > Empty) goto IVarFull;
+        if (state > Running) goto IVarFull;
 
         var readers = tI.Readers;
         var e = this.e;
