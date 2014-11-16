@@ -211,10 +211,7 @@ module Alt =
 
   let inline unit () = StaticData.unit
 
-  let never () =
-    {new Alt<'x> () with
-      override xA'.DoJob (wr, _) = ()
-      override xA'.TryAlt (wr, i, xK, xE) = xE.TryElse (&wr, i)}
+  let never () = Never<_>() :> Alt<_>
 
   let inline zero () = StaticData.zero
 
@@ -706,9 +703,7 @@ module Job =
 
   let inline unit () = StaticData.unit :> Job<_>
 
-  let abort () =
-    {new Job<_> () with
-      override xJ'.DoJob (_, _) = ()}
+  let abort () = Never<_>() :> Job<_>
 
   let raises (e: exn) =
     {new Job<_> () with

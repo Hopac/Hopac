@@ -48,7 +48,7 @@ namespace Hopac.Core {
         proc = new GetProc();
         switchToWorker = new SwitchToWorker();
         workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
-        zero = new Zero(); // Must be written last!
+        zero = new Never<Unit>(); // Must be written last!
       }
     }
 
