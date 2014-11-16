@@ -1545,6 +1545,12 @@ module Promise =
     /// the delayed job is started before trying to communicate with it.
     val inline delay: Job<'x> -> Promise<'x>
 
+    /// Same as `delay`, but returns the promise as a `Job<'x>`.
+    val inline delayAsJob: Job<'x> -> Job<'x>
+
+    /// Same as `delay`, but returns the promise as an `Alt<'x>`.
+    val inline delayAsAlt: Job<'x> -> Alt<'x>
+
     /// Creates a promise with the given value.
     val inline withValue: 'x -> Promise<'x>
 

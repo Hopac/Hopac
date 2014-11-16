@@ -197,6 +197,8 @@ module Promise =
        Cont.Do (xPrK, &wr, upcast pr)}
   module Now =
     let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
+    let inline delayAsJob (xJ: Job<'x>) = Promise<'x> (xJ) :> Job<_>
+    let inline delayAsAlt (xJ: Job<'x>) = Promise<'x> (xJ) :> Alt<_>
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
     let inline isFulfilled (xP: Promise<'x>) = xP.Full
