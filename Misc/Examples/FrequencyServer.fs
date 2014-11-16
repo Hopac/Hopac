@@ -38,9 +38,9 @@ let create () = Job.delay <| fun () ->
       let freq = e.Current
       free.Remove freq |> ignore
       allocated.Add (proc, freq) |> ignore
-      IVar.fill replyI freq
+      replyI <-= freq
     else
-      IVar.fillFailure replyI NoFrequency
+      replyI <-=! NoFrequency
   let deallocate proc freq =
     if allocated.Remove (proc, freq) then
       free.Add freq |> ignore

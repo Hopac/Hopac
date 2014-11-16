@@ -25,8 +25,8 @@ module EagerSeq =
            | Some (x, xs) ->
              Job.tryIn (Job.delayWith x2ySJ x)
               <| fun ys -> loopYs xs.EagerSeq ys.EagerSeq rs
-              <| fun e -> IVar.fillFailure rs e
-       <| fun e -> IVar.fillFailure rs e
+              <| fun e -> rs <-=! e
+       <| fun e -> rs <-=! e
     and loopYs xs ys rs =
       Job.tryIn ys
        <| function
@@ -35,7 +35,7 @@ module EagerSeq =
              let rs' = node ()
              rs <-= Some (y, rs') >>= fun () ->
              loopYs xs ys.EagerSeq rs'.EagerSeq
-       <| fun e -> IVar.fillFailure rs e
+       <| fun e -> rs <-=! e
     let rs = node ()
     Job.queue (loopXs xs.EagerSeq rs.EagerSeq) >>% rs
 
@@ -58,7 +58,7 @@ module EagerSeq =
              let ys' = node ()
              ys <-= Some (y, ys') >>= fun () ->
              loop xs.EagerSeq ys'.EagerSeq
-       <| fun e -> IVar.fillFailure ys e
+       <| fun e -> ys <-=! e
     let ys = node ()
     Job.queue (loop xs.EagerSeq ys.EagerSeq) >>% ys
 
@@ -74,7 +74,7 @@ module EagerSeq =
              let ys' = node ()
              ys <-= Some (y, ys') >>= fun () ->
              loop xs.EagerSeq ys'.EagerSeq
-       <| fun e -> IVar.fillFailure ys e
+       <| fun e -> ys <-=! e
     let ys = node ()
     Job.queue (loop xs.EagerSeq ys.EagerSeq) >>% ys
 
@@ -89,7 +89,7 @@ module EagerSeq =
        | None ->
          match exn with
           | null -> xs <-= None
-          | e -> IVar.fillFailure xs e
+          | e -> xs <-=! e
        | Some x ->
          let xs' = node ()
          xs <-= Some (x, xs') >>= fun () ->
@@ -106,17 +106,17 @@ module EagerSeq =
              let xs' = node ()
              xs <-= Some (x, xs') >>= fun () ->
              loop xs'.EagerSeq
-       <| fun e -> IVar.fillFailure xs e
+       <| fun e -> xs <-=! e
     let xs = node ()
     Job.queue (loop xs.EagerSeq) >>% xs
 
   let rec iterFun (x2u: 'x -> unit) (xs: EagerSeq<'x>) =
-    xs.EagerSeq >>= function None -> Job.result ()
+    xs.EagerSeq >>= function None -> Job.unit ()
                            | Some (x, xs) -> x2u x ; iterFun x2u xs
 
   let rec iterJob (x2yJ: 'x -> Job<'y>) (xs: EagerSeq<'x>) =
     xs.EagerSeq >>= function
-     | None -> Job.result ()
+     | None -> Job.unit ()
      | Some (x, xs) -> x2yJ x >>= fun _ -> iterJob x2yJ xs
 
   let mapFun (x2y: 'x -> 'y) xs =
@@ -150,7 +150,7 @@ module EagerSeq =
           | null ->
             xs <-= None
           | e ->
-            IVar.fillFailure xs e
+            xs <-=! e
        | Some (x, s) ->
          let xs' = node ()
          xs <-= Some (x, xs') >>= fun () ->
@@ -167,6 +167,6 @@ module EagerSeq =
              let xs' = node ()
              xs <-= Some (x, xs') >>= fun () ->
              loop s xs'.EagerSeq
-       <| fun e -> IVar.fillFailure xs e
+       <| fun e -> xs <-=! e
     let xs = node ()
     Job.queue (loop s xs.EagerSeq) >>% xs
