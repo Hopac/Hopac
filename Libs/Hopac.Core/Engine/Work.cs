@@ -22,9 +22,7 @@ namespace Hopac.Core {
     internal static void Do(Work work, ref Worker wr) {
 #if TRAMPOLINE
       unsafe {
-        byte stack;
-        void* ptr = &stack;
-        if (ptr < wr.StackLimit) {
+        if (Unsafe.GetStackPtr() < wr.StackLimit) {
           work.Next = wr.WorkStack;
           wr.WorkStack = work;
         } else {

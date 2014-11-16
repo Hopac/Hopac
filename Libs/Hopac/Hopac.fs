@@ -692,14 +692,14 @@ module Job =
 
   let result (x: 'x) =
     // XXX Does this speed things up?
-    if sizeof<IntPtr> = 8 && not StaticData.isMono then
-      {new Job<'x> () with
-        override self.DoJob (wr, xK) =
-         xK.DoCont (&wr, x)}
-    else
+    if sizeof<IntPtr> <> 8 || StaticData.isMono then
       {new Job<'x> () with
         override self.DoJob (wr, xK) =
          Cont.Do (xK, &wr, x)}
+    else
+      {new Job<'x> () with
+        override self.DoJob (wr, xK) =
+         xK.DoCont (&wr, x)}
 
   let inline unit () = StaticData.unit :> Job<_>
 

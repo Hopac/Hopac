@@ -200,9 +200,7 @@ namespace Hopac {
       internal static void Do<T>(Job<T> tJ, ref Worker wr, Cont<T> tK) {
 #if TRAMPOLINE
         unsafe {
-          byte stack;
-          void* ptr = &stack;
-          if (ptr < wr.StackLimit) {
+          if (Unsafe.GetStackPtr() < wr.StackLimit) {
             var w = new JobWork<T>(tJ, tK);
             w.Next = wr.WorkStack;
             wr.WorkStack = w;
