@@ -541,7 +541,7 @@ module Job =
   module Infixes =
     /// Creates a job that first runs the given job and then passes the result
     /// of that job to the given function to build another job which will then
-    /// be run.  This is the same as `bind`.
+    /// be run.  This is the same as `bind` with the arguments flipped.
     val inline (>>=): Job<'x> -> ('x -> Job<'y>) -> Job<'y>
 
     /// Creates a job that runs the given two jobs and returns the result of the
@@ -740,13 +740,13 @@ module Job =
   /// Creates a job that repeats the given job indefinitely.  The results, if
   /// any, from the given job are ignored.  See also: `foreverServer`,
   /// `iterate`.
+#if DOC
   ///
   /// It is a common programming pattern to use server jobs that loop
   /// indefinitely and communicate with clients via channels.  When a job is
   /// blocked waiting for communication on one or more channels and the channels
   /// become garbage (no longer reachable by any other job) the job can be
   /// garbage collected as well.
-#if DOC
   ///
   /// Reference implementation:
   ///
@@ -756,13 +756,13 @@ module Job =
 
   /// Creates a job that indefinitely iterates the given job constructor
   /// starting with the given value.  See also: `iterateServer`, `forever`.
+#if DOC
   ///
   /// It is a common programming pattern to use server jobs that loop
   /// indefinitely and communicate with clients via channels.  When a job is
   /// blocked waiting for communication on one or more channels and the channels
   /// become garbage (no longer reachable by any other job) the job can be
   /// garbage collected as well.
-#if DOC
   ///
   /// Reference implementation:
   ///
@@ -822,9 +822,11 @@ module Job =
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// then waits for all of the jobs to finish.  The results of the jobs are
   /// ignored.
+#if DOC
   ///
   /// Note that when multiple jobs raise exceptions, then the created job raises
   /// an `AggregateException`.
+#endif
   val conIgnore: seq<Job<_>> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
