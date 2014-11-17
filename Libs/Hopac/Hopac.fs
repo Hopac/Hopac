@@ -370,19 +370,29 @@ module Alt =
        if xAs.MoveNext () then
          let pk = Pick ()
          xAs.Current.TryAlt (&wr, 0, xK, {new Else (pk) with
-          override xE'.TryElse (wr, i) =
-           if xAs.MoveNext () then
-             xAs.Current.TryAlt (&wr, i, xK, xE')})
-      override xA'.TryAlt (wr, i, xK, xE) =
-       let xAs = xAs.GetEnumerator ()
-       if xAs.MoveNext () then
-         xAs.Current.TryAlt (&wr, i, xK, {new Else (xE.pk) with
+          override xE'.Finalize () = xAs.Dispose ()
           override xE'.TryElse (wr, i) =
            if xAs.MoveNext () then
              xAs.Current.TryAlt (&wr, i, xK, xE')
            else
+             xAs.Dispose ()
+             GC.SuppressFinalize xE'})
+       else
+         xAs.Dispose ()
+      override xA'.TryAlt (wr, i, xK, xE) =
+       let xAs = xAs.GetEnumerator ()
+       if xAs.MoveNext () then
+         xAs.Current.TryAlt (&wr, i, xK, {new Else (xE.pk) with
+          override xE'.Finalize () = xAs.Dispose ()
+          override xE'.TryElse (wr, i) =
+           if xAs.MoveNext () then
+             xAs.Current.TryAlt (&wr, i, xK, xE')
+           else
+             xAs.Dispose ()
+             GC.SuppressFinalize xE'
              xE.TryElse (&wr, i)})
        else
+         xAs.Dispose ()
          xE.TryElse (&wr, i)}
 
   let inline select xAs = choose xAs :> Job<'x>
