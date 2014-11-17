@@ -16,11 +16,11 @@ module Alts =
 
 module BufferedChViaPick =
   type Buffer<'a> =
-   {InsCh: Ch<'a>
-    RemCh: Ch<'a>}
-  let create () =
-    Ch.create () >>= fun insCh ->
-    Ch.create () >>= fun remCh ->
+    {InsCh: Ch<'a>
+     RemCh: Ch<'a>}
+  let create () = Job.delay <| fun () ->
+    let insCh = ch ()
+    let remCh = ch ()
     let rec loop buf =
       match buf with
        | [] ->
