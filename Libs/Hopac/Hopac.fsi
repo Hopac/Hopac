@@ -642,13 +642,20 @@ module Job =
 
   /// Implements the `use` construct for jobs.  The `Dispose` method of the
   /// given disposable object is called after running the job constructed with
-  /// the disposable object.
+  /// the disposable object.  See also: `abort`.
 #if DOC
   ///
   /// Reference implementation:
   ///
   ///> let using (x: 'x when 'x :> IDisposable) x2yJ =
   ///>   tryFinallyFun (delayWith x2yJ x) (x :> IDisposable).Dispose
+  ///
+  /// Note that the `Dispose` method is not called if the job aborts before
+  /// returning from the scope of the `using` job.  This is not a serious
+  /// problem, because scoped disposal of managed resources is usually an
+  /// optimization and unmanaged resources should already be cleaned up by
+  /// finalizers.  In cases where you need to ensure scoped disposal, make sure
+  /// that the job does not abort before returning.
 #endif
   val using: 'x -> ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
 

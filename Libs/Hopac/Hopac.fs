@@ -370,26 +370,22 @@ module Alt =
        if xAs.MoveNext () then
          let pk = Pick ()
          xAs.Current.TryAlt (&wr, 0, xK, {new Else (pk) with
-          override xE'.Finalize () = xAs.Dispose ()
           override xE'.TryElse (wr, i) =
            if xAs.MoveNext () then
              xAs.Current.TryAlt (&wr, i, xK, xE')
            else
-             xAs.Dispose ()
-             GC.SuppressFinalize xE'})
+             xAs.Dispose ()})
        else
          xAs.Dispose ()
       override xA'.TryAlt (wr, i, xK, xE) =
        let xAs = xAs.GetEnumerator ()
        if xAs.MoveNext () then
          xAs.Current.TryAlt (&wr, i, xK, {new Else (xE.pk) with
-          override xE'.Finalize () = xAs.Dispose ()
           override xE'.TryElse (wr, i) =
            if xAs.MoveNext () then
              xAs.Current.TryAlt (&wr, i, xK, xE')
            else
              xAs.Dispose ()
-             GC.SuppressFinalize xE'
              xE.TryElse (&wr, i)})
        else
          xAs.Dispose ()
@@ -869,25 +865,22 @@ module Job =
        xJ.DoJob (&wr, xK')}
 
   let using (x: 'x when 'x :> IDisposable) (x2yJ: 'x -> Job<'y>) =
+    // REMINDER: Dispose() of managed resources is an optimization.  Do not
+    // implement Finalize() for managed resources.  See:
+    //   http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK_) =
        let yK' = {new Cont_State<'y, _> (yK_) with
         override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
         override yK'.DoHandle (wr, e) =
-         let yK = yK'.State
-         wr.Handler <- yK
          x.Dispose ()
-         Handler.DoHandle (yK, &wr, e)
+         let yK = yK'.State in wr.Handler <- yK ; Handler.DoHandle (yK, &wr, e)
         override yK'.DoWork (wr) =
-         let yK = yK'.State
-         wr.Handler <- yK
          x.Dispose ()
-         yK.DoCont (&wr, yK'.Value)
+         let yK = yK'.State in wr.Handler <- yK ; yK.DoCont (&wr, yK'.Value)
         override yK'.DoCont (wr, y) =
-         let yK = yK'.State
-         wr.Handler <- yK
          x.Dispose ()
-         yK.DoCont (&wr, y)}
+         let yK = yK'.State in wr.Handler <- yK ; yK.DoCont (&wr, y)}
        wr.Handler <- yK'
        (x2yJ x).DoJob (&wr, yK')}
 
@@ -987,23 +980,27 @@ module Job =
          let xK' = {new Cont<'x> () with
           override xK'.GetProc (wr) = xsK.GetProc (&wr)
           override xK'.DoHandle (wr, e) =
-           wr.Handler <- xsK ; xJs.Dispose () ; xsK.DoHandle (&wr, e)
+           xJs.Dispose ()
+           wr.Handler <- xsK ; xsK.DoHandle (&wr, e)
           override xK'.DoWork (wr) =
            xsK.Value.Add xK'.Value
            if xJs.MoveNext () then
              xJs.Current.DoJob (&wr, xK')
            else
-             wr.Handler <- xsK ; xJs.Dispose () ; xsK.DoWork (&wr)
+             xJs.Dispose ()
+             wr.Handler <- xsK ; xsK.DoWork (&wr)
           override xK'.DoCont (wr, x) =
            xsK.Value.Add x
            if xJs.MoveNext () then
              xJs.Current.DoJob (&wr, xK')
            else
-             wr.Handler <- xsK ; xJs.Dispose () ; xsK.DoWork (&wr)}
+             xJs.Dispose ()
+             wr.Handler <- xsK ; xsK.DoWork (&wr)}
          wr.Handler <- xK'
          xJs.Current.DoJob (&wr, xK')
        else
-         xJs.Dispose () ; Work.Do (xsK, &wr)}
+         xJs.Dispose ()
+         Work.Do (xsK, &wr)}
 
   let seqIgnore (xJs: seq<Job<'x>>) =
     {new Job<unit> () with
@@ -1013,21 +1010,25 @@ module Job =
          let xK' = {new Cont<'x> () with
           override xK'.GetProc (wr) = uK.GetProc (&wr)
           override xK'.DoHandle (wr, e) =
-           wr.Handler <- uK ; xJs.Dispose () ; uK.DoHandle (&wr, e)
+           xJs.Dispose ()
+           wr.Handler <- uK ; uK.DoHandle (&wr, e)
           override xK'.DoWork (wr) =
            if xJs.MoveNext () then
              xJs.Current.DoJob (&wr, xK')
            else
-             wr.Handler <- uK ; xJs.Dispose () ; uK.DoWork (&wr)
+             xJs.Dispose ()
+             wr.Handler <- uK ; uK.DoWork (&wr)
           override xK'.DoCont (wr, _) =
            if xJs.MoveNext () then
              xJs.Current.DoJob (&wr, xK')
            else
-             wr.Handler <- uK ; xJs.Dispose () ;  uK.DoWork (&wr)}
+             xJs.Dispose ()
+             wr.Handler <- uK ; uK.DoWork (&wr)}
          wr.Handler <- xK'
          xJs.Current.DoJob (&wr, xK')
        else
-         xJs.Dispose () ; Work.Do (uK, &wr)}
+         xJs.Dispose ()
+         Work.Do (uK, &wr)}
 
   type [<AbstractClass>] ConCollect<'x, 'y> =
     inherit Work
@@ -1377,17 +1378,20 @@ module Extensions =
          let yK' = {new Cont<'y> () with
           override yK'.GetProc (wr) = uK.GetProc (&wr)
           override yK'.DoHandle (wr, e) =
-           wr.Handler <- uK ; xs.Dispose () ; uK.DoHandle (&wr, e)
+           xs.Dispose ()
+           wr.Handler <- uK ; uK.DoHandle (&wr, e)
           override yK'.DoCont (wr, _) =
            if xs.MoveNext () then
              (x2yJ xs.Current).DoJob (&wr, yK')
            else
-             wr.Handler <- uK ; xs.Dispose () ; uK.DoWork (&wr)
+             xs.Dispose ()
+             wr.Handler <- uK ; uK.DoWork (&wr)
           override yK'.DoWork (wr) =
            if xs.MoveNext () then
              (x2yJ xs.Current).DoJob (&wr, yK')
            else
-             wr.Handler <- uK ; xs.Dispose () ; uK.DoWork (&wr)}
+             xs.Dispose ()
+             wr.Handler <- uK ; uK.DoWork (&wr)}
          wr.Handler <- yK'
          Work.Do (yK', &wr)}
 
@@ -1400,19 +1404,22 @@ module Extensions =
            let yK' = {new Cont<'y> () with
             override yK'.GetProc (wr) = ysK.GetProc (&wr)
             override yK'.DoHandle (wr, e) =
-             wr.Handler <- ysK ; xs.Dispose () ; ysK.DoHandle (&wr, e)
+             xs.Dispose ()
+             wr.Handler <- ysK ; ysK.DoHandle (&wr, e)
             override yK'.DoWork (wr) =
              ysK.Value.Add yK'.Value
              if xs.MoveNext () then
                (x2yJ xs.Current).DoJob (&wr, yK')
              else
-               wr.Handler <- ysK ; xs.Dispose () ; ysK.DoWork (&wr)
+               xs.Dispose ()
+               wr.Handler <- ysK ; ysK.DoWork (&wr)
             override yK'.DoCont (wr, y) =
              ysK.Value.Add y
              if xs.MoveNext () then
                (x2yJ xs.Current).DoJob (&wr, yK')
              else
-               wr.Handler <- ysK ; xs.Dispose () ; ysK.DoWork (&wr)}
+               xs.Dispose ()
+               wr.Handler <- ysK ; ysK.DoWork (&wr)}
            wr.Handler <- yK'
            (x2yJ xs.Current).DoJob (&wr, yK')
          else
@@ -1428,17 +1435,20 @@ module Extensions =
            let xK' = {new Cont<'x> () with
             override xK'.GetProc (wr) = xK.GetProc (&wr)
             override xK'.DoHandle (wr, e) =
-             wr.Handler <- xK ; ys.Dispose () ; xK.DoHandle (&wr, e)
+             ys.Dispose ()
+             wr.Handler <- xK ; xK.DoHandle (&wr, e)
             override xK'.DoWork (wr) =
              if ys.MoveNext () then
                (xy2xJ.Invoke (xK'.Value, ys.Current)).DoJob (&wr, xK')
              else
-               wr.Handler <- xK ; ys.Dispose () ; xK.DoCont (&wr, xK'.Value)
+               ys.Dispose ()
+               wr.Handler <- xK ; xK.DoCont (&wr, xK'.Value)
             override xK'.DoCont (wr, x) =
              if ys.MoveNext () then
                (xy2xJ.Invoke (x, ys.Current)).DoJob (&wr, xK')
              else
-               wr.Handler <- xK ; ys.Dispose () ; xK.DoCont (&wr, x)}
+               ys.Dispose ()
+               wr.Handler <- xK ; xK.DoCont (&wr, x)}
            wr.Handler <- xK'
            (xy2xJ.Invoke (x, ys.Current)).DoJob (&wr, xK')
          else
