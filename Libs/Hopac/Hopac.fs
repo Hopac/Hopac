@@ -298,6 +298,14 @@ module Alt =
         | null -> ()
         | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (xK, xE))}
 
+  let inline map (x2y: 'x -> 'y) (xA: Alt<'x>) =
+    {new AltMap<'x, 'y> (xA) with
+      override yA'.Do (x) = x2y x} :> Alt<_>
+
+  let inline wrap (x2yJ: 'x -> Job<'y>) (xA: Alt<'x>) =
+    {new AltBind<'x, 'y> (xA) with
+      override yA'.Do (x) = x2yJ x} :> Alt<_>
+
   module Infixes =
     let (<|>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
@@ -703,6 +711,14 @@ module Job =
       {new Job<'x> () with
         override self.DoJob (wr, xK) =
          xK.DoCont (&wr, x)}
+
+  let inline bind (x2yJ: 'x -> Job<'y>) (xJ: Job<'x>) =
+    {new JobBind<'x, 'y> (xJ) with
+      override yJ'.Do (x) = x2yJ x} :> Job<_>
+
+  let inline map (x2y: 'x -> 'y) (xJ: Job<'x>) =
+    {new JobMap<'x, 'y> (xJ) with
+      override yJ'.Do (x) = x2y x} :> Job<_>
 
   let inline unit () = StaticData.unit :> Job<_>
 
