@@ -72,8 +72,8 @@
     <Compile Include="Util\Condition.cs" />
     <Compile Include="Util\SpinlockTicket.cs" />
     <Compile Include="Util\SpinlockTTAS.cs" />
-    <Compile Include="Util\SpinlockMCS.cs" />
     <Compile Include="Util\WorkQueueLock.cs" />
+    <Compile Include="Util\Unsafe.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.MonoTouch.CSharp.targets" />
 </Project>
