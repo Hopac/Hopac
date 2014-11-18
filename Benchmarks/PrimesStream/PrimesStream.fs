@@ -63,6 +63,49 @@ module Sequential =
 
 /////////////////////////////////////////////////////////////////////////
 
+module HopacJob =
+  type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Job<Stream<'a>>}
+
+  let rec iterate (step: 'a -> 'a) (init: 'a) : Job<Stream<_>> = Job.thunk <| fun () ->
+    {Value = init;
+     Next = iterate step (step init)}
+
+  let rec filter (pred: 'a -> bool) (xs: Stream<'a>) : Job<Stream<'a>> =
+    let next = xs.Next >>= filter pred
+    if pred xs.Value then
+      Job.result {Value = xs.Value; Next = next}
+    else
+      next
+
+  let sieve : Job<Stream<_>> =
+    let rec sieve nats =
+      let prime = nats.Value
+      {Value = prime;
+       Next = nats.Next >>= filter (fun x -> x % prime <> 0) |>> sieve}
+    iterate (fun x -> x+1) 2 |>> sieve
+
+  let primes n = Job.delay <| fun () ->
+    let before = GC.GetTotalMemory true
+    let result = Array.zeroCreate n
+    let rec loop i primes =
+      if i < n then
+        result.[i] <- primes.Value
+        primes.Next >>= loop (i+1)
+      else
+        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
+        Job.result result
+    sieve >>= loop 0
+
+  let run n =
+    printf "JobStream:     "
+    let timer = Stopwatch.StartNew ()
+    let ps = run (primes n)
+    let d = timer.Elapsed
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
+    d
+
+/////////////////////////////////////////////////////////////////////////
+
 module HopacPromise =
   type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Promise<Stream<'a>>}
 
@@ -78,12 +121,12 @@ module HopacPromise =
       next
 
   let sieve : Job<Stream<_>> =
-    let rec sieve nats = Job.thunk <| fun () ->
+    let rec sieve nats =
       let prime = nats.Value
       {Value = prime;
        Next =
-        Promise.Now.delay (nats.Next >>= filter (fun x -> x % prime <> 0) >>= sieve)}
-    iterate (fun x -> x+1) 2 >>= sieve
+        Promise.Now.delay (nats.Next >>= filter (fun x -> x % prime <> 0) |>> sieve)}
+    iterate (fun x -> x+1) 2 |>> sieve
 
   let primes n = Job.delay <| fun () ->
     let before = GC.GetTotalMemory true
@@ -140,7 +183,7 @@ module HopacCh =
     
 /////////////////////////////////////////////////////////////////////////
 
-module Async =
+module AsyncMb =
   type Stream<'a> = MailboxProcessor<AsyncReplyChannel<'a>>
   let inline take (s: Stream<'a>) = s.PostAndAsyncReply (fun x -> x)
 
@@ -200,6 +243,55 @@ module Async =
 
 /////////////////////////////////////////////////////////////////////////
 
+module Async =
+  type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Async<Stream<'a>>}
+
+  let inline result x = async.Return x
+  let inline (>>=) x f = async.Bind (x, f)
+  let inline (|>>) x f = async.Bind (x, f >> result)
+
+  let rec iterate (step: 'a -> 'a) (init: 'a) : Async<Stream<_>> = async {
+    return {Value = init;
+            Next = iterate step (step init)}
+  }
+
+  let rec filter (pred: 'a -> bool) (xs: Stream<'a>) : Async<Stream<'a>> =
+    let next = xs.Next >>= filter pred
+    if pred xs.Value then
+      result {Value = xs.Value; Next = next}
+    else
+      next
+
+  let sieve : Async<Stream<_>> =
+    let rec sieve nats =
+      let prime = nats.Value
+      {Value = prime;
+       Next = nats.Next >>= filter (fun x -> x % prime <> 0) |>> sieve}
+    iterate (fun x -> x+1) 2 |>> sieve
+
+  let primes n = async {
+    let before = GC.GetTotalMemory true
+    let results = Array.zeroCreate n
+    let rec loop i primes =
+      if i < n then
+        results.[i] <- primes.Value
+        primes.Next >>= loop (i+1)
+      else
+        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
+        result results
+    return! sieve >>= loop 0
+  }
+
+  let run n =
+    printf "AsyncStream:   "
+    let timer = Stopwatch.StartNew ()
+    let ps = Async.RunSynchronously (primes n)
+    let d = timer.Elapsed
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
+    d
+
+/////////////////////////////////////////////////////////////////////////
+
 let inline cleanup (d: TimeSpan) =
   let stop = DateTime.UtcNow + d + d + TimeSpan.FromSeconds 2.0
   while DateTime.UtcNow <= stop do
@@ -213,6 +305,10 @@ do let ns = [10; 100; 1000; 2500; 5000; 7500; 10000]
    for n in ns do
      HopacCh.run n |> cleanup
    for n in ns do
-     HopacPromise.run n |> cleanup
+     HopacJob.run n |> cleanup
    for n in ns do
      Async.run n |> cleanup
+   for n in ns do
+     HopacPromise.run n |> cleanup
+   for n in ns do
+     AsyncMb.run n |> cleanup
