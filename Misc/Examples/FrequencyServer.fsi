@@ -7,9 +7,7 @@ open Hopac
 type Frequency = int
 type FrequencyServer
 
-val create: unit -> Job<FrequencyServer>
+val create: seq<Frequency> -> Job<FrequencyServer>
 
-exception NoFrequency
-
-val allocate: FrequencyServer -> Job<Frequency>
+val allocate: FrequencyServer -> Alt<Frequency>
 val deallocate: FrequencyServer -> Frequency -> Job<unit>

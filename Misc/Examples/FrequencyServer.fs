@@ -10,48 +10,60 @@ open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 
-exception NoFrequency
-
 type Frequency = int
-type Request =
-  | Allocate of Proc * IVar<Frequency>
-  | Deallocate of Proc * Frequency
-type FrequencyServer = { reqCh: Ch<Request> }
+type FrequencyServer = {
+    allocCh: Ch<Proc * Alt<unit> * Ch<Frequency>>
+    deallocCh: Ch<Proc * Frequency>
+  }
 
-let allocate s =
+let allocate s = Alt.withNack <| fun nack ->
   Proc.self () >>= fun self ->
-  let replyI = ivar ()
-  s.reqCh <-+ Allocate (self, replyI) >>.
-  replyI
+  let replyCh = ch ()
+  s.allocCh <-+ (self, nack, replyCh) >>%
+  upcast replyCh
 
 let deallocate s freq =
   Proc.self () >>= fun self ->
-  s.reqCh <-- Deallocate (self, freq)
+  s.deallocCh <-- (self, freq)
 
-let create () = Job.delay <| fun () ->
-  let s = {reqCh = ch ()}
-  let free = HashSet<_>([10;11;12;13;14;15])
+let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
+  let self = {allocCh = ch (); deallocCh = ch ()}
+
+  let free = HashSet<_>(frequencies)
   let allocated = HashSet<_>()
-  let allocate proc replyI =
+
+  let alloc =
+    self.allocCh >>=? fun (proc, nack, replyCh) ->
     let mutable e = free.GetEnumerator ()
     if e.MoveNext () then
       let freq = e.Current
-      free.Remove freq |> ignore
-      allocated.Add (proc, freq) |> ignore
-      replyI <-= freq
+      e.Dispose ()
+      (replyCh <-? freq |>>? fun () ->
+       free.Remove freq |> ignore
+       allocated.Add (proc, freq) |> ignore) <|>
+      nack
     else
-      replyI <-=! NoFrequency
+      e.Dispose ()
+      Job.unit ()
+
   let deallocate proc freq =
     if allocated.Remove (proc, freq) then
       free.Add freq |> ignore
     // We just ignore spurious deallocations.
-  let reqAlt =
-    s.reqCh >>=? function
-     | Allocate (proc, replyI) -> allocate proc replyI
-     | Deallocate (proc, freq) -> deallocate proc freq ; Job.unit ()
-  let joinAlt =
+
+  let dealloc =
+    self.deallocCh |>>? fun (proc, freq) ->
+    deallocate proc freq
+
+  let join =
     allocated
     |> Seq.map (fun (proc, freq) ->
        proc |>>? fun () -> deallocate proc freq)
     |> Alt.choose
-  Job.foreverServer (reqAlt <|> joinAlt) >>% s
+
+  let noneFree = dealloc <|>? join
+  let someFree = alloc <|>? noneFree
+
+  Job.iterateServer () (fun () ->
+    upcast (if 0 < free.Count then someFree else noneFree)) >>%
+  self
