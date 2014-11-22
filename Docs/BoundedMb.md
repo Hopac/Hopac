@@ -1,4 +1,4 @@
-# A Case study of Expressiveness: A Bounded Mailbox
+# A Case Study of Expressiveness: A Bounded Mailbox
 
 Bounded blocking queues are a useful tool for coordinating work among
 co-operating processes.  They provide *lubrication* in the form of buffering
@@ -59,8 +59,8 @@ val it : int = 321
 As demonstrated above, even though the second `AsyncAdd` operation timed out,
 the item was added to the queue.  One could say that this is just a bug in
 `BlockingQueueAgent`, but I would rather argue that the bug is in F#'s `async`
-and `MailboxProcessor`, because they don't really support this kind of
-compositional programming.
+and `MailboxProcessor` abstractions, because they don't really support this kind
+of compositional programming.
 
 ## Hopac based BoundedMb
 
@@ -84,7 +84,9 @@ simply that special case support for those is not needed.  Hopac's alternative
 mechanism[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 already provides for those.  Because the `put` and `take` operations are
 provided as alternatives, a client can selectively synchronize on any number of
-operations on bounded mailboxes, timeouts and other synchronous operations:
+operations on bounded mailboxes,
+timeouts[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+and other synchronous operations:
 
 ```fsharp
 Alt.select [
@@ -120,7 +122,7 @@ module BoundedMb =
     let take xB = xB.takeCh :> Alt<_>
 ```
 
-Take a moment to read through the above implementation.  It uses a basic
+Take a moment to read through the above implementation.  It uses the basic
 client-server programming technique.  `put` and `take` requests use separate
 channels.  Depending on the state of the underlying queue, the server responds
 to either only `get`, only `take` or both kinds of requests.  In a simple case
@@ -155,5 +157,5 @@ Here is an exercise for the reader.  Forget for a moment that you already know
 that timeouts in `BlockingQueueAgent` are broken.  Then take the three
 implementations, read through their source code and try to either convince
 yourself that each implementation is correct or, alternatively, demonstrate a
-bug in their implementations.  Which implementation was the easiest to
-understand and reason about?
+bug in an implementation.  Which implementation was the easiest to understand
+and reason about?
