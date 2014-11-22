@@ -1,4 +1,4 @@
-# Case study of Expressiveness: A Bounded Mailbox
+# A Case study of Expressiveness: A Bounded Mailbox
 
 Bounded blocking queues are a useful tool for coordinating work among
 co-operating processes.  They provide *lubrication* in the form of buffering
@@ -81,10 +81,10 @@ module BoundedMb =
 Looking at the above signature, you may be wondering where is the support for
 timeouts or operations like `AddToAny` of `BlockingCollection`.  The answer is
 simply that special case support for those is not needed.  Hopac's alternative
-mechanism already provides for those.  Because the `put` and `take` operations
-are provided as alternatives, a client can selectively synchronize on any
-number of operations on bounded mailboxes, timeouts and other synchronous
-operations:
+mechanism[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
+already provides for those.  Because the `put` and `take` operations are
+provided as alternatives, a client can selectively synchronize on any number of
+operations on bounded mailboxes, timeouts and other synchronous operations:
 
 ```fsharp
 Alt.select [
@@ -125,7 +125,9 @@ client-server programming technique.  `put` and `take` requests use separate
 channels.  Depending on the state of the underlying queue, the server responds
 to either only `get`, only `take` or both kinds of requests.  In a simple case
 like this, cancellation is already taken care off by the synchronous nature of
-channels.  In a more complex scenario, we would make use of the `withNack`
+channels[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).
+In a more complex scenario, we would make use of the
+`withNack`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
 combinator.
 
 Here is a sample interactive session with `BoundedMb`:
