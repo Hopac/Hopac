@@ -126,7 +126,7 @@ Take a moment to read through the above implementation.  It uses the basic
 client-server programming technique.  `put` and `take` requests use separate
 channels.  Depending on the state of the underlying queue, the server responds
 to either only `get`, only `take` or both kinds of requests.  In a simple case
-like this, cancellation is already taken care off by the synchronous nature of
+like this, cancellation is already taken care of by the synchronous nature of
 channels[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).
 In a more complex scenario, we would make use of the
 `withNack`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
