@@ -25,11 +25,11 @@ provides methods like
 [AddToAny](http://msdn.microsoft.com/en-us/library/dd394986%28v=vs.110%29.aspx)
 and
 [TakeFromAny](http://msdn.microsoft.com/en-us/library/dd381962%28v=vs.110%29.aspx)
-that allow for performing an operation one of a given set of collections.
+that allow for performing an operation on one of a given set of collections.
 
 There is a reference implementation of
 [BlockingCollection.cs](http://referencesource.microsoft.com/#System/sys/system/collections/concurrent/BlockingCollection.cs).
-As easily seen, it is by far the longest of the three implementations.
+As can be easily seen, it is by far the longest of the three implementations.
 
 ## About the BlockingQueueAgent
 
@@ -59,7 +59,7 @@ val it : int = 321
 As demonstrated above, even though the second `AsyncAdd` operation timed out,
 the item was added to the queue.  One could say that this is just a bug in
 `BlockingQueueAgent`, but I would rather argue that the bug is in F#'s `async`
-and `MailboxProcessor`, because they don't really support for this kind of
+and `MailboxProcessor`, because they don't really support this kind of
 compositional programming.
 
 ## Hopac based BoundedMb
