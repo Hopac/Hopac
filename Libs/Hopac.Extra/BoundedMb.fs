@@ -18,7 +18,7 @@ module BoundedMb =
       else
         Job.thunk <| fun () ->
         let theCh = ch ()
-        {putCh = theCh; getCh = theCh}
+        {putCh = theCh; takeCh = theCh}
     else
       Job.delay <| fun () ->
       let self = {putCh = ch (); takeCh = ch ()}
