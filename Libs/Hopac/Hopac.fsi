@@ -896,7 +896,7 @@ module Job =
 /// `select` statement.  In Hopac and Concurrent ML, selective synchronous
 /// operations are not limited to primitive message passing operations (see
 /// `Ch.Alt.give` and `Ch.Alt.take`), but are instead first-class values (see
-/// `choose`) and can be extended with user-defined code (see `>>=?` and
+/// `choose`) and can be extended with user-defined code (see `wrap` and
 /// `withNack`) allowing the encapsulation of concurrent protocols as selective
 /// synchronous operations.
 ///
