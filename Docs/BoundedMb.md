@@ -3,8 +3,9 @@
 Bounded blocking queues are a useful tool for coordinating work among
 co-operating processes.  They provide *lubrication* in the form of buffering
 between producers and consumers to smooth out small variations in processing
-speeds.  They also provide *back pressure* in the form of blocking producers
-when consumers cannot keep up.
+speeds.  They also provide
+[back-pressure](http://ferd.ca/queues-don-t-fix-overload.html) in the form of
+blocking producers when consumers cannot keep up.
 
 The .Net concurrent collections includes the
 [BlockingCollection](http://msdn.microsoft.com/en-us/library/dd267312%28v=vs.110%29.aspx)
