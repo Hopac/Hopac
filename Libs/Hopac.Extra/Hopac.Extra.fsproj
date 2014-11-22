@@ -74,6 +74,8 @@
     <Compile Include="IMap.fs" />
     <Compile Include="EagerSeq.fsi" />
     <Compile Include="EagerSeq.fs" />
+    <Compile Include="BoundedMb.fsi" />
+    <Compile Include="BoundedMb.fs" />
   </ItemGroup>
   <PropertyGroup>
     <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
