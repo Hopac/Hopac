@@ -24,8 +24,8 @@ module Streams =
   let one x = Alt.always (Cons (x, zero<_>)) :> Streams<'x>
 
   let inline memo x = Promise.Now.delayAsAlt x
-  let inline (>>=?*) x f = x >>=? f |> memo
-  let inline (|>>?*) x f = x |>>? f |> memo
+  let inline (>>=*) x f = x >>=? f |> memo
+  let inline (|>>*) x f = x |>>? f |> memo
   let inline (<|>*) x y = x <|> y |> memo
 
   let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
@@ -50,7 +50,7 @@ module Streams =
     return! !streams |> xs2yJ
   }
 
-  let rec ofAlt xA = xA |>>?* fun x -> Cons (x, ofAlt xA)
+  let rec ofAlt xA = xA |>>* fun x -> Cons (x, ofAlt xA)
 
   let rec merge ls rs =
     mergeSwap ls rs <|>* mergeSwap rs ls
@@ -60,12 +60,12 @@ module Streams =
        | Cons (l, ls) -> Cons (l, merge rs ls)
 
   let rec append (ls: Streams<_>) (rs: Streams<_>) =
-    ls >>=?* function
+    ls >>=* function
        | Nil -> upcast rs
        | Cons (l, ls) -> cons l (append ls rs)
 
   let rec choose x2yO xs =
-    xs >>=?* function
+    xs >>=* function
        | Nil -> nil
        | Cons (x, xs) ->
          match x2yO x with
@@ -73,13 +73,13 @@ module Streams =
           | Some y -> cons y (choose x2yO xs)
 
   let rec map x2y xs =
-    xs |>>?* function
+    xs |>>* function
        | Nil -> Nil
        | Cons (x, xs) -> Cons (x2y x, map x2y xs)
 
   let rec joinWith (join: Streams<_> -> Streams<_> -> Streams<_>)
                    (xxs: Streams<Streams<_>>) =
-    xxs >>=?* function
+    xxs >>=* function
         | Nil -> nil
         | Cons (xs, xxs) -> upcast join xs (joinWith join xxs)
 
@@ -102,13 +102,13 @@ module Streams =
     |> memo
 
   let rec collectLatest (x2ys: 'x -> Streams<'y>) (xs: Streams<'x>) =
-    xs >>=?* function
+    xs >>=* function
        | Nil -> nil
        | Cons (x, xs) ->
          upcast append (takeUntil xs (x2ys x)) (collectLatest x2ys xs)
 
   let rec throttle timeout xs =
-    xs >>=?* function
+    xs >>=* function
        | Nil -> nil
        | Cons (x, xs) -> throttleGot1 timeout xs x
   and throttleGot1 timeout xs x =
