@@ -160,3 +160,32 @@ implementations, read through their source code and try to either convince
 yourself that each implementation is correct or, alternatively, demonstrate a
 bug in an implementation.  Which implementation was the easiest to understand
 and reason about?
+
+## A More Verbose Rendering of a BoundedMb
+
+As the symbolic operators might be difficult to read at first, here is a version
+that only uses the basic monadic bind operator (`>>=`).  All other operations
+are done using non-symbolic variations.
+
+```fsharp
+type BoundedMb<'x> = {putCh: Ch<'x>; takeCh: Ch<'x>}
+
+module BoundedMb =
+  let create capacity = Job.delay <| fun () ->
+    let self = {putCh = ch (); takeCh = ch ()}
+    let queue = Queue<_>()
+    let put = Alt.map queue.Enqueue (Ch.Alt.take self.putCh)
+    let take () =
+      Alt.map (queue.Dequeue >> ignore)
+       (Ch.Alt.give self.takeCh (queue.Peek ()))
+    let proc = Job.delay <| fun () ->
+      match queue.Count with
+       | 0 -> upcast put
+       | n when n = capacity -> upcast (take ())
+       | _ -> Alt.select [take (); put] // <|> is a bit faster
+    Job.foreverServer proc >>= fun () ->
+    Job.result self
+  module Alt =
+    let put xB x = Ch.Alt.give xB.putCh x
+    let take xB = Ch.Alt.take xB.takeCh
+```
