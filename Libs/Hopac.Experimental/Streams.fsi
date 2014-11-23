@@ -2,6 +2,7 @@
 
 namespace Hopac.Experimental
 
+open System
 open Hopac
 
 type Stream<'x> =
@@ -16,6 +17,8 @@ module Streams =
 
   val ofSeq: seq<'x> -> Streams<'x>
   val ofAlt: Alt<'x> -> Streams<'x>
+
+  val subscribingTo: IObservable<'x> -> (Streams<'x> -> Job<'y>) -> Job<'y>
 
   val merge: Streams<'x> -> Streams<'x> -> Streams<'x>
   val append: Streams<'x> -> Streams<'x> -> Streams<'x>

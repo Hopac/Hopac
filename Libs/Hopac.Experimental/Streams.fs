@@ -35,8 +35,20 @@ module Streams =
       xs.Dispose ()
       Nil
 
-  let ofSeq (xs: seq<'xs>) = memo << Job.delay <| fun () ->
+  let ofSeq (xs: seq<_>) = memo << Job.delay <| fun () ->
     upcast ofEnum (xs.GetEnumerator ())
+
+  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> Job<'y>) = job {
+    let streams = ref (ivar ())
+    use unsubscribe = xs.Subscribe {new IObserver<_> with
+      override this.OnCompleted () = !streams <-= Nil |> start
+      override this.OnError (e) = !streams <-=! e |> start
+      override this.OnNext (value) =
+        let next = ivar ()
+        !streams <-= Cons (value, next) |> start
+        streams := next}
+    return! !streams |> xs2yJ
+  }
 
   let rec ofAlt xA = xA |>>?* fun x -> Cons (x, ofAlt xA)
 
