@@ -1,9 +1,9 @@
 # A Case Study of Expressiveness: A Bounded Mailbox
 
-Bounded blocking queues are a useful tool for coordinating work among
-co-operating processes.  They provide *lubrication* in the form of buffering
-between producers and consumers to smooth out small variations in processing
-speeds.  They also provide
+*Bounded blocking queues* are a useful tool for coordinating work among
+co-operating processes.  They provide *slack* and *lubrication* in the form of
+buffering between producers and consumers to allow them to proceed in parallel
+and to smooth out small variations in processing speeds.  They also provide
 [back-pressure](http://ferd.ca/queues-don-t-fix-overload.html) in the form of
 blocking producers when consumers cannot keep up.
 
