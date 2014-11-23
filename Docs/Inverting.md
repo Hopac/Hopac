@@ -55,3 +55,58 @@ type IObserver<'x> =
   abstract OnNext: 'x -> unit
 ```
 
+
+
+
+## Inverting Event Streams
+
+So, could we invert back the inversion of control while also supporting powerful
+combinators for combining events?  An intrinsic part of the education of a
+functional programmer is the introduction of the concept of lazy streams.  There
+are many ways to design such lazy streams.  Here is one:
+
+```fsharp
+type Stream<'x> =
+  | Nil
+  | Cons of Value: 'x * Next: Lazy<Stream<'x>>
+```
+
+All the combinators that an event stream combinator library like Rx supports can
+easily be implemented for lazy streams&mdash;except for the fact that lazy
+streams have no concept of time.  Fortunately, to recover a concept of time, we
+can simply replace the `Lazy` type constructor with the `Alt` type constructor:
+
+```fsharp
+type Stream<'x> =
+  | Nil
+  | Cons of Value: 'x * Next: Alt<Stream<'x>>
+```
+
+It is straightforward to convert all lazy stream combinators to this new
+representation and we will soon look at several examples.  However, what is more
+important is that time is now a part of the representation and using combinators
+such as `Alt.choose` it is possible to construct streams that depend on time.
+
+The `Alt` type constructor is in fact more expressive than required, because it
+does not imply memoizing the streams.  So, in practice, when writing stream
+combinators, we will make sure that the we memoize the streams.
+
+
+
+
+
+
+
+
+
+## Related work
+
+Tomas Petricek has previously introduced the concept of
+[F# asynchronous sequences](http://tomasp.net/blog/async-sequences.aspx/).
+Building on top of the asynchronous workflows or `async` of F# Petricek's
+streams fail to capture the full power of Rx style event streams.  The F#
+`async` mechanism does not directly provide for a non-deterministic choice
+operator or memoization (promises or futures).  In particular, asynchronous
+sequences do not provide a `merge` combinator.  Hopac directly provides both a
+choice operator and promises, which makes it straightforward to extend the power
+of streams.
