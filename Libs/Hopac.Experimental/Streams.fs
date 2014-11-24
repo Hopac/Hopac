@@ -24,8 +24,8 @@ module Streams =
   let one x = Alt.always (Cons (x, zero<_>)) :> Streams<'x>
 
   let inline memo x = Promise.Now.delayAsAlt x
-  let inline (>>=*) x f = x >>=? f |> memo
-  let inline (|>>*) x f = x |>>? f |> memo
+  let inline (>>=*) x f = x >>= f |> memo
+  let inline (|>>*) x f = x |>> f |> memo
   let inline (<|>*) x y = x <|> y |> memo
 
   let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
@@ -71,14 +71,13 @@ module Streams =
          override this.Dispose () =
           lock subs <| fun () -> subs.Remove xS |> ignore}}
 
-  let rec ofAlt xA = xA |>>* fun x -> Cons (x, ofAlt xA)
+  let rec ofAlt (xA: Alt<_>) = xA |>>* fun x -> Cons (x, ofAlt xA)
 
   let rec merge ls rs =
     mergeSwap ls rs <|>* mergeSwap rs ls
   and mergeSwap ls rs =
-    ls |>>? function
-       | Nil -> Nil
-       | Cons (l, ls) -> Cons (l, merge rs ls)
+    ls |>>? function Nil -> Nil
+                   | Cons (l, ls) -> Cons (l, merge rs ls)
 
   let rec append (ls: Streams<_>) (rs: Streams<_>) =
     ls >>=* function
@@ -94,9 +93,8 @@ module Streams =
           | Some y -> cons y (choose x2yO xs)
 
   let rec map x2y xs =
-    xs |>>* function
-       | Nil -> Nil
-       | Cons (x, xs) -> Cons (x2y x, map x2y xs)
+    xs |>>* function Nil -> Nil
+                   | Cons (x, xs) -> Cons (x2y x, map x2y xs)
 
   let rec joinWith (join: Streams<_> -> Streams<_> -> Streams<_>)
                    (xxs: Streams<Streams<_>>) =
@@ -109,9 +107,8 @@ module Streams =
 
   let rec switchOn ys xs =
     ys <|>*
-    xs >>=? function
-       | Nil -> nil
-       | Cons (x, xs) -> cons x (switchOn ys xs)
+    xs >>=? function Nil -> nil
+                   | Cons (x, xs) -> cons x (switchOn ys xs)
 
   let takeUntil evt = switchOn (evt >>%? Nil)
 
@@ -129,14 +126,12 @@ module Streams =
          upcast append (takeUntil xs (x2ys x)) (collectLatest x2ys xs)
 
   let rec throttle timeout xs =
-    xs >>=* function
-       | Nil -> nil
-       | Cons (x, xs) -> throttleGot1 timeout xs x
+    xs >>=* function Nil -> nil
+                   | Cons (x, xs) -> throttleGot1 timeout xs x
   and throttleGot1 timeout xs x =
     (timeout >>=? fun _ -> cons x (throttle timeout xs)) <|>
-    (xs >>=? function
-        | Nil -> cons x zero
-        | Cons (x, xs) -> throttleGot1 timeout xs x)
+    (xs >>=? function Nil -> cons x zero
+                    | Cons (x, xs) -> throttleGot1 timeout xs x)
 
   let rec zipXY f x xs y ys =
     let gotx = xs >>=? function Nil -> nil | Cons (x, xs) -> zipXY f x xs y ys
