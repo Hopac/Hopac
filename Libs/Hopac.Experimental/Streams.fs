@@ -50,6 +50,27 @@ module Streams =
     return! !streams |> xs2yJ
   }
 
+  let toObservable (xs: Streams<'x>) : IObservable<'x> =
+    // XXX Use a better approach than naive locking.
+    let subs = HashSet<IObserver<_>>()
+    let inline iter f =
+      Array.iter f << lock subs <| fun () ->
+      let xs = Array.zeroCreate subs.Count
+      subs.CopyTo xs
+      xs
+    let rec loop xs =
+      Job.tryIn xs
+       <| function Nil -> Job.unit << iter <| fun xS -> xS.OnCompleted ()
+                 | Cons (x, xs) -> iter (fun xS -> xS.OnNext x); loop xs
+       <| fun e -> Job.unit << iter <| fun xS -> xS.OnError e
+    loop xs |> start
+    {new IObservable<'x> with
+      override this.Subscribe xS =
+       lock subs <| fun () -> subs.Add xS |> ignore
+       {new IDisposable with
+         override this.Dispose () =
+          lock subs <| fun () -> subs.Remove xS |> ignore}}
+
   let rec ofAlt xA = xA |>>* fun x -> Cons (x, ofAlt xA)
 
   let rec merge ls rs =

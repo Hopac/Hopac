@@ -20,6 +20,8 @@ module Streams =
 
   val subscribingTo: IObservable<'x> -> (Streams<'x> -> Job<'y>) -> Job<'y>
 
+  val toObservable: Streams<'x> -> IObservable<'x>
+
   val merge: Streams<'x> -> Streams<'x> -> Streams<'x>
   val append: Streams<'x> -> Streams<'x> -> Streams<'x>
 
