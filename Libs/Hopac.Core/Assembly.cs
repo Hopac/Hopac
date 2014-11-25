@@ -33,7 +33,7 @@ namespace Hopac {
     public const string Product = "Hopac";
     public const string Company = "Housemarque Inc.";
     public const string Copyright = "© Housemarque Inc.";
-    public const string Version = "0.0.0.30";
+    public const string Version = "0.0.0.31";
     public const string FileVersion = Version;
     public const string Trademark = "";
     public const string Culture = "";
