@@ -100,8 +100,8 @@ let rec merge (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
   mergeSwap ls rs <|>? mergeSwap rs ls
 and mergeSwap (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
   ls |>>? function
-     | Nil -> Nil
-     | Cons (l, ls) -> Cons (l, merge rs ls)
+     | Nil -> upcast rs
+     | Cons (l, ls) -> cons l (merge rs ls)
 ```
 
 This doesn't quite lead to the most desirable semantics.  The `Alt` type
@@ -128,8 +128,8 @@ let rec merge (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
   mergeSwap ls rs <|>* mergeSwap rs ls
 and mergeSwap (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
   ls |>>? function
-     | Nil -> Nil
-     | Cons (l, ls) -> Cons (l, merge rs ls)
+     | Nil -> upcast rs
+     | Cons (l, ls) -> cons l (merge rs ls)
 ```
 
 
