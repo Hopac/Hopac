@@ -16,12 +16,16 @@ type Stream<'x> =
 type Streams<'x> = Alt<Stream<'x>>
 
 module Streams =
-  let inline nil<'x> = Job.result Nil :> Job<Stream<'x>>
-  let inline cons x xs = Job.result (Cons (x, xs)) :> Job<Stream<_>>
+  let inline nil'<'x> = Alt.always Nil :> Streams<'x>
+  let inline nil<'x> = nil'<'x> :> Job<_>
+  let inline cons' x xs = Alt.always (Cons (x, xs))
+  let inline cons x xs = cons' x xs :> Job<_>
 
-  let zero<'x> = Alt.always Nil :> Streams<'x>
+  let zero<'x> = nil'<'x>
 
-  let one x = Alt.always (Cons (x, zero<_>)) :> Streams<'x>
+  let one x = cons' x zero
+
+  let never<'x> = Alt.never () :> Streams<'x>
 
   let inline memo x = Promise.Now.delayAsAlt x
   let inline (>>=*) x f = x >>= f |> memo
@@ -38,7 +42,7 @@ module Streams =
   let ofSeq (xs: seq<_>) = memo << Job.delay <| fun () ->
     upcast ofEnum (xs.GetEnumerator ())
 
-  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> Job<'y>) = job {
+  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) = job {
     let streams = ref (ivar ())
     use unsubscribe = xs.Subscribe {new IObserver<_> with
       override this.OnCompleted () = !streams <-= Nil |> start
@@ -47,7 +51,7 @@ module Streams =
         let next = ivar ()
         !streams <-= Cons (value, next) |> start
         streams := next}
-    return! !streams |> xs2yJ
+    return! !streams |> xs2yJ :> Job<_>
   }
 
   let toObservable (xs: Streams<'x>) : IObservable<'x> =
@@ -76,41 +80,54 @@ module Streams =
   let rec merge ls rs =
     mergeSwap ls rs <|>* mergeSwap rs ls
   and mergeSwap ls rs =
-    ls |>>? function Nil -> Nil
-                   | Cons (l, ls) -> Cons (l, merge rs ls)
+    ls >>=? function Nil -> upcast rs
+                   | Cons (l, ls) -> cons l (merge rs ls)
 
   let rec append (ls: Streams<_>) (rs: Streams<_>) =
-    ls >>=* function
-       | Nil -> upcast rs
-       | Cons (l, ls) -> cons l (append ls rs)
+    ls >>=* function Nil -> upcast rs
+                   | Cons (l, ls) -> cons l (append ls rs)
 
-  let rec choose x2yO xs =
+  let rec chooseJob x2yOJ xs =
     xs >>=* function
        | Nil -> nil
        | Cons (x, xs) ->
-         match x2yO x with
-          | None -> upcast choose x2yO xs
-          | Some y -> cons y (choose x2yO xs)
+         x2yOJ x >>= function
+          | None -> upcast chooseJob x2yOJ xs
+          | Some y -> cons y (chooseJob x2yOJ xs)
+  let chooseFun x2yO xs = chooseJob (x2yO >> Job.result) xs
 
-  let rec map x2y xs =
-    xs |>>* function Nil -> Nil
-                   | Cons (x, xs) -> Cons (x2y x, map x2y xs)
+  let filterJob x2bJ xs =
+    chooseJob (fun x -> x2bJ x |>> fun b -> if b then Some x else None) xs
+  let filterFun x2b xs = filterJob (x2b >> Job.result) xs
 
-  let rec joinWith (join: Streams<_> -> Streams<_> -> Streams<_>)
-                   (xxs: Streams<Streams<_>>) =
-    xxs >>=* function
-        | Nil -> nil
-        | Cons (xs, xxs) -> upcast join xs (joinWith join xxs)
+  let mapJob x2yJ xs = chooseJob (x2yJ >> Job.map Some) xs
+  let mapFun x2y xs = mapJob (x2y >> Job.result) xs
 
-  let mergeMap x2ys xs = xs |> map x2ys |> joinWith merge
-  let appendMap x2ys xs = xs |> map x2ys |> joinWith append
+  let rec joinWithJob (join: Streams<'x> -> Streams<'y> -> #Job<Streams<'y>>)
+                      (xxs: Streams<Streams<'x>>) =
+    xxs >>=* function Nil -> nil
+                    | Cons (xs, xxs) ->
+                      join xs (joinWithJob join xxs) >>= Alt.pick
+
+  let joinWithFun join xxs = joinWithJob (fun a b -> join a b |> Job.result) xxs
+
+  let mergeMapJob x2ysJ xs = xs |> mapJob x2ysJ |> joinWithFun merge
+  let mergeMapFun x2ys xs = xs |> mapFun x2ys |> joinWithFun merge
+
+  let appendMapJob x2ysJ xs = xs |> mapJob x2ysJ |> joinWithFun append
+  let appendMapFun x2ys xs = xs |> mapFun x2ys |> joinWithFun append
+
+  let rec skipUntil evt xs =
+    (evt >>=? fun _ -> upcast xs) <|>*
+    (xs >>=? function Nil -> nil
+                    | Cons (x, xs) -> upcast skipUntil evt xs)
 
   let rec switchOn ys xs =
     ys <|>*
     xs >>=? function Nil -> nil
                    | Cons (x, xs) -> cons x (switchOn ys xs)
 
-  let takeUntil evt = switchOn (evt >>%? Nil)
+  let takeUntil evt xs = switchOn (evt >>%? Nil) xs
 
   let rec catchOnce (e2xs: _ -> Streams<_>) xs =
     Job.tryIn xs
@@ -136,10 +153,25 @@ module Streams =
   let rec zipXY f x xs y ys =
     let gotx = xs >>=? function Nil -> nil | Cons (x, xs) -> zipXY f x xs y ys
     let goty = ys >>=? function Nil -> nil | Cons (y, ys) -> zipXY f x xs y ys
-    cons (f x y) (gotx <|>* goty)
+    f x y >>= fun z -> cons z (gotx <|>* goty)
   let zipX f x xs ys = ys >>=? function Nil -> nil | Cons (y, ys) -> zipXY f x xs y ys
   let zipY f xs y ys = xs >>=? function Nil -> nil | Cons (x, xs) -> zipXY f x xs y ys
-  let zipWith f xs ys =
+  let zipWithJob f xs ys =
     let gotx = xs >>=? function Nil -> nil | Cons (x, xs) -> upcast zipX f x xs ys
     let goty = ys >>=? function Nil -> nil | Cons (y, ys) -> upcast zipY f xs y ys
     gotx <|>* goty
+  let zipWithFun f xs ys = zipWithJob (fun x y -> f x y |> Job.result) xs ys
+
+  let rec scanJob s2x2sJ s xs =
+    cons' s (xs >>=* function Nil -> nil
+                            | Cons (x, xs) ->
+                              s2x2sJ s x >>= fun s -> upcast scanJob s2x2sJ s xs)
+  let scanFun s2x2s s xs = scanJob (fun s x -> s2x2s s x |> Job.result) s xs
+
+  let rec iterJob x2uJ xs =
+    xs >>= function Nil -> Job.unit ()
+                  | Cons (x, xs) -> x2uJ x >>. iterJob x2uJ xs
+  let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
+
+  let delayEachBy evt xs =
+    mapJob (fun x -> evt >>% x) xs
