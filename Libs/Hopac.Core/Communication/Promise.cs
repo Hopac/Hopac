@@ -121,7 +121,8 @@ namespace Hopac {
       var fulfill = readers as Fulfill;
       var tJ = fulfill.tP;
       fulfill.tP = this;
-      Job.Do(tJ, ref wr, fulfill);
+      Worker.PushNew(ref wr, new JobWork<T>(tJ, fulfill));
+      aE.TryElse(ref wr, i + i);
       return;
 
     Completed:
