@@ -1446,7 +1446,7 @@ module Latch =
 /// should only be at most one job that holds the state to be written to a
 /// serialized variable.  Indeed, the idea is that access to that state is
 /// serialized.  If this cannot be guaranteed, in other words, there might be
-/// two more more jobs trying to fill a serialized variable, then you should not
+/// two or more jobs trying to fill a serialized variable, then you should not
 /// be using serialized variables.
 ///
 /// Another way to put it is that serialized variables are designed to be used
