@@ -32,7 +32,7 @@ let fetchAsync (name, url:string) = async {
 }
 ```
 
-The difference is that the above version lets exceptions fall though.
+The difference is that the above version lets exceptions fall through.
 
 Let's then write a generic helper function for wrapping `async` operations as
 selective synchronous operations:
