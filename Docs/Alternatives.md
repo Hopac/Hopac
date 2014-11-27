@@ -47,11 +47,17 @@ let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNack <| fun nack ->
       try
         let! x = xA
         do rI <-= x |> start
+        // do printfn "Success"
       with e ->
         do rI <-=! e |> start
+        // do printfn "Failure"
     }
   Async.Start (op, cancellationToken = tokenSource.Token)
-  Job.start (nack |>> fun () -> tokenSource.Cancel ()) >>%
+  nack
+  |>> fun () ->
+        tokenSource.Cancel ()
+        // printfn "Cancel"
+  |> Job.start >>%
   upcast rI
 ```
 
@@ -94,9 +100,9 @@ let runFastest () =
 ```
 
 If you have trouble understanding what is going on, I recommend that you modify
-the above `fetchAlt` implementation with some `printfn` calls to reveal what
-happens.  In particular, add a `printfn` after the `Cancel ()` call and after
-the `rI <-= sprintf ...` expression.
+the above `asyncAsAlt` implementation by turning the `printfn` calls in the
+comments to code.  When you rerun the example, you can the observe what happens
+inside the abstraction.  Don't forget to recompile all the code!
 
 Of course, we can also select from other kinds of alternatives.  For example,
 operations created with `fetchAlt` also work with timeouts:
