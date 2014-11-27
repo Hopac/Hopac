@@ -15,19 +15,19 @@ library would be
 Event streams are a powerful abstraction and can significantly help to reduce
 the so called *callback hell*.  Nevertheless, event stream combinators do not
 fundamentally change the fact that control is still in the event processing
-*framework* rather than in the client program.  Adhering to the Hollywood
--principle, the event streams call your callbacks and not the other way around.
+*framework* rather than in the client program.  Adhering to the *Hollywood
+-principle*, the event streams call your callbacks and not the other way around.
 This makes it difficult to directly match control flow to program state.
-Callbacks examine and modify mutable program state and the resulting program can
-be difficult to understand and reason about.
+Callbacks examine and *modify mutable program state* and the resulting program
+can be difficult to understand and reason about.
 
 One of the primary motivations for using lightweight threads for user interfaces
 has been that they have allowed one to invert back the inversion of control
 caused by events so that the control will be in client code.  Once simple
 control flow is recovered, it is possible to directly match control flow with
-program state, allowing the use of simple programming techniques such as lexical
-binding, recursion, and immutable data structures that are easy to understand
-and reason about.
+program state, allowing the use of simple programming techniques such as
+*lexical binding*, *recursion*, and *immutable data* structures that are easy to
+understand and reason about.
 
 In this note we will show that the selective synchronous operations aka
 alternatives of Hopac are powerful enough to invert back the inversion of
@@ -92,8 +92,9 @@ and Streams<'x> = Lazy<Stream<'x>>
 
 All the combinators that an event stream combinator library like Rx supports can
 easily be implemented for lazy streams&mdash;except for the fact that lazy
-streams have no concept of time.  Fortunately, to recover a concept of time, we
-can simply replace the `Lazy` type constructor with the `Alt` type constructor:
+streams have no concept of time or choice.  Fortunately, to recover a concept of
+time or choice, we can simply replace the `Lazy` type constructor with the `Alt`
+type constructor:
 
 ```fsharp
 type Stream<'x> =
@@ -102,7 +103,8 @@ type Stream<'x> =
 and Streams<'x> = Alt<Stream<'x>>
 ```
 
-We'll refer to the above kind of streams as *choice streams*.
+We'll refer to the above kind of streams as *choice streams*, because they
+support a kind of non-deterministic choice via the `Alt<_>` type constructor.
 
 It is straightforward to convert all lazy stream combinators to choice stream
 combinators.  For example, given a suitable defined bind operation `>>=`
@@ -141,7 +143,7 @@ let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
 ```
 
 However, what is really important is that time is a part of the representation
-choice streams and using combinators such as `Alt.choose` it is possible to
+of choice streams and using combinators such as `Alt.choose` it is possible to
 construct streams that depend on time.
 
 Here is a first attempt at implementing a `merge` combinator:
