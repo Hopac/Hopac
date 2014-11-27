@@ -107,7 +107,7 @@ We'll refer to the above kind of streams as *choice streams*, because they
 support a kind of non-deterministic choice via the `Alt<_>` type constructor.
 
 It is straightforward to convert all lazy stream combinators to choice stream
-combinators.  For example, given a suitable defined bind operation `>>=`
+combinators.  For example, given a suitably defined bind operation `>>=`
 
 ```fsharp
 let (>>=) (xL: Lazy<'x>) (x2yL: 'x -> Lazy<'y>) : Lazy<'y> =
@@ -144,7 +144,8 @@ let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
 
 However, what is really important is that time is a part of the representation
 of choice streams and using combinators such as `Alt.choose` it is possible to
-construct streams that depend on time.
+construct streams that may including timed operations and make non-deterministic
+choices between multiple streams.
 
 Here is a first attempt at implementing a `merge` combinator:
 
@@ -157,13 +158,15 @@ and mergeSwap (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
      | Cons (l, ls) -> cons l (merge rs ls)
 ```
 
-There is no nice way to write the above kind of `merge` for lazy streams.
-However, there is one problem with the above formulation.  Can you spot it?
+There is no nice to write the above kind of `merge` for lazy streams.  However,
+there is one problem with the above implementation.  Can you spot it?
 
 The above version of `merge` produces an *ephemeral* stream: it could produce
 different results each time it is examined.  We don't want that, because it
-could lead to nasty inconsistencies.  So, in practice, when writing choice
-stream combinators, we will make sure that the we *memoize* the streams.
+could lead to nasty inconsistencies when the stream is consumed by multiple
+clients.  So, in practice, when writing choice stream combinators, we will make
+sure that streams always produce the same results and in this case we can
+*memoize* the stream.
 
 To memoize choice streams, we introduce a couple of auxiliary memoizing
 combinators:
@@ -187,10 +190,10 @@ and mergeSwap (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
      | Cons (l, ls) -> cons l (merge rs ls)
 ```
 
-What about `append`?  If we assume that both the streams given to `append` have
-already been memoized, then the resulting stream will always be the same.
-Avoiding memoization can bring some performance benefits, but we can also write
-a memoizing version of `append` as follows:
+What about `append`?  If we assume that both the streams given to `append`
+already always produce the same results, then the resulting stream will always
+be the same.  Avoiding memoization can bring some performance benefits, but we
+can also write a memoizing version of `append` as follows:
 
 ```fsharp
 let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
@@ -198,9 +201,9 @@ let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
                  | Cons (l, ls) -> cons l (append ls rs)
 ```
 
-As can actually be seen from the two examples already, given a choice stream or
-any number of choice streams, one can process elements from such a stream by
-means of a simple loop.
+As can actually be seen from the above two examples already, given a choice
+stream or any number of choice streams, one can process elements from such a
+stream by means of a simple loop.
 
 When multiple streams need to be processed concurrently, one can spawn a
 separate lightweight thread (or job) for each such concurrent activity.
@@ -209,10 +212,17 @@ Choice streams are lazy.  Once you stop pulling elements from a stream and the
 variable referring to the stream is no longer reachable, the stream can be
 garbage collected.
 
-So, basically, with choice streams we can now use functional programming to both
-combine event streams and also use functional programming to consume streams.
-With Rx, we can use functional programming techniques to combine streams, but
-must then resort to imperative programming to consume streams.
+As can also be seen from the above examples, choice stream combinators look
+quite familiar.  A functional programmer should not find it difficult to write
+new combinators based on existing combinators or even to write new combinators
+from scratch.
+
+So, basically, with choice streams we can use functional programming to combine
+event streams and we can also use functional programming to consume streams.
+With Rx, we can use functional programming techniques to combine streams, but we
+must then resort to imperative programming to consume streams.  To put it
+another way, with choice streams, you can have your cake and eat it too.  With
+Rx, you can have your cake, and then let Rx feed it to you.
 
 ## Further
 
