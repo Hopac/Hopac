@@ -20,6 +20,8 @@ module Streams =
   val ofSeq: seq<'x> -> Streams<'x>
   val ofAlt: Alt<'x> -> Streams<'x>
 
+  val collectAllAsSeq: Streams<'x> -> Job<seq<'x>>
+
   val subscribingTo: IObservable<'x> -> (Streams<'x> -> #Job<'y>) -> Job<'y>
 
   val toObservable: Streams<'x> -> IObservable<'x>

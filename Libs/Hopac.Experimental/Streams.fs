@@ -107,7 +107,7 @@ module Streams =
                       (xxs: Streams<Streams<'x>>) =
     xxs >>=* function Nil -> nil
                     | Cons (xs, xxs) ->
-                      join xs (joinWithJob join xxs) >>= Alt.pick
+                      join xs (joinWithJob join xxs) |> Job.join
 
   let joinWithFun join xxs = joinWithJob (fun a b -> join a b |> Job.result) xxs
 
@@ -150,16 +150,15 @@ module Streams =
     (xs >>=? function Nil -> cons x zero
                     | Cons (x, xs) -> throttleGot1 timeout xs x)
 
+  let inline got ls zip =
+    ls >>=? function Nil -> nil | Cons (l, ls) -> upcast zip l ls
   let rec zipXY f x xs y ys =
-    let gotx = xs >>=? function Nil -> nil | Cons (x, xs) -> zipXY f x xs y ys
-    let goty = ys >>=? function Nil -> nil | Cons (y, ys) -> zipXY f x xs y ys
-    f x y >>= fun z -> cons z (gotx <|>* goty)
-  let zipX f x xs ys = ys >>=? function Nil -> nil | Cons (y, ys) -> zipXY f x xs y ys
-  let zipY f xs y ys = xs >>=? function Nil -> nil | Cons (x, xs) -> zipXY f x xs y ys
-  let zipWithJob f xs ys =
-    let gotx = xs >>=? function Nil -> nil | Cons (x, xs) -> upcast zipX f x xs ys
-    let goty = ys >>=? function Nil -> nil | Cons (y, ys) -> upcast zipY f xs y ys
-    gotx <|>* goty
+    f x y >>= fun z -> cons z (zipY f xs y ys <|>* zipX f ys x xs)
+  and zipYX f y ys x xs =
+    f x y >>= fun z -> cons z (zipX f ys x xs <|>* zipY f xs y ys)
+  and zipX f ys x xs = got ys (zipXY f x xs)
+  and zipY f xs y ys = got xs (zipYX f y ys)
+  let zipWithJob f xs ys = got xs (zipX f ys) <|>* got ys (zipY f xs)
   let zipWithFun f xs ys = zipWithJob (fun x y -> f x y |> Job.result) xs ys
 
   let rec scanJob s2x2sJ s xs =
@@ -172,6 +171,10 @@ module Streams =
     xs >>= function Nil -> Job.unit ()
                   | Cons (x, xs) -> x2uJ x >>. iterJob x2uJ xs
   let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
+
+  let collectAllAsSeq (xs: Streams<'x>) = Job.delay <| fun () ->
+    let ys = ResizeArray<_>()
+    iterFun ys.Add xs >>% (ys :> seq<_>)
 
   let delayEachBy evt xs =
     mapJob (fun x -> evt >>% x) xs
