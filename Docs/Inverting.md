@@ -149,7 +149,7 @@ of choice streams and using combinators such as
 `Alt.choose`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
 and
 `<|>?`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E?)
-it is possible to construct streams that may including timed operations and make
+it is possible to construct streams that may include timed operations and make
 non-deterministic choices between multiple streams.
 
 Here is a first attempt at implementing a `merge` combinator:
@@ -215,8 +215,51 @@ stream by means of a simple loop.
 When multiple streams need to be processed concurrently, one can spawn a
 separate lightweight thread (or job) for each such concurrent activity.
 
-Choice streams are lazy.  Once you stop pulling elements from a stream and the
-variable referring to the stream is no longer reachable, the stream can be
+Stream producers can be written in various ways.  One way is to write a loop
+that simply constructs the stream using lazy promises&mdash;just like the stream
+combinators above do.  For example, a sequence can be lazily converted to choice
+stream using the below `ofSeq` function:
+
+```fsharp
+let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
+  if xs.MoveNext () then
+    Cons (xs.Current, ofEnum xs)
+  else
+    xs.Dispose ()
+    Nil
+
+let ofSeq (xs: seq<_>) = memo << Job.delay <| fun () ->
+  upcast ofEnum (xs.GetEnumerator ())
+```
+
+Another way is to represent the tail of a stream using a write once variable aka
+an
+`IVar<_>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar)
+and have the producer
+`fill`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.IVar.fill)
+that write once variable with a new stream node (containing a new write once
+variable).  This way one can convert ordinary imperative event sources to choice
+streams.  For example, the following scoped `subscribingTo` function subscribes
+to an `IObservable<_>` and calls a job constructor with the resulting stream:
+
+```fsharp
+let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) = job {
+  let streams = ref (ivar ())
+  use unsubscribe = xs.Subscribe {new IObserver<_> with
+    override this.OnCompleted () = !streams <-= Nil |> start
+    override this.OnError (e) = !streams <-=! e |> start
+    override this.OnNext (value) =
+      let next = ivar ()
+      !streams <-= Cons (value, next) |> start
+      streams := next}
+  return! !streams |> xs2yJ :> Job<_>
+}
+```
+
+Choice streams combinators are lazy.  Once a stream consumer stops pulling
+elements from the stream and the variable referring to the stream is no longer
+reachable, the stream can be garbage collected.  Once a stream producer is
+garbage collected, threads waiting on the end of the associated stream can be
 garbage collected.
 
 Errors in choice streams are handled in the usual way.  The `memo` combinator we
