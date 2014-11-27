@@ -197,10 +197,10 @@ and mergeSwap (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
      | Cons (l, ls) -> cons l (merge rs ls)
 ```
 
-What about `append`?  If we assume that both the streams given to `append`
-already always produce the same results, then the resulting stream will always
-be the same.  Avoiding memoization can bring some performance benefits, but we
-can also write a memoizing version of `append` as follows:
+What about `append`?  If we assume that both streams given to `append` already
+always produce the same results, then the resulting stream will always be the
+same.  Avoiding memoization can bring some performance benefits, but we can also
+write a memoizing version of `append` as follows:
 
 ```fsharp
 let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
@@ -232,15 +232,16 @@ let ofSeq (xs: seq<_>) = memo << Job.delay <| fun () ->
   upcast ofEnum (xs.GetEnumerator ())
 ```
 
-Another way is to represent the tail of a stream using a write once variable aka
-an
+Another way is to represent the tail of a choice stream using a write once
+variable aka an
 `IVar<_>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar)
 and have the producer
 `fill`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.IVar.fill)
 that write once variable with a new stream node (containing a new write once
 variable).  This way one can convert ordinary imperative event sources to choice
 streams.  For example, the following scoped `subscribingTo` function subscribes
-to an `IObservable<_>` and calls a job constructor with the resulting stream:
+to an `IObservable<_>` and calls a job constructor with the resulting choice
+stream:
 
 ```fsharp
 let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) = job {
@@ -275,11 +276,11 @@ new combinators based on existing combinators or even to write new combinators
 from scratch.
 
 So, basically, with choice streams we can use functional programming to combine
-event streams and we can also use functional programming to consume streams.
-With Rx, we can use functional programming to combine streams, but we must then
-resort to imperative programming to consume streams.  To put it another way,
-with choice streams, you can have your cake and eat it too.  With Rx, you can
-have your cake, and then let Rx feed it to you.
+choice streams and we can also use functional programming to consume choice
+streams.  With Rx, we can use functional programming to combine event streams,
+but we must then resort to imperative programming to consume event streams.  To
+put it another way, with choice streams, you can have your cake and eat it too.
+With Rx, you can have your cake, and then let Rx feed it to you.
 
 ## Further
 
