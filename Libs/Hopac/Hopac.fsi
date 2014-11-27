@@ -1457,11 +1457,11 @@ module Latch =
 /// atomic and access to the state will be serialized.
 ///
 /// In general, aside from a possible initial `fill` operation, an access to a
-/// serialized should be of the form `take >>= ... fill` or of the form `read`.
-/// On the other hand, accesses of the form `fill` and `read >>= ... fill` are
-/// unsafe.  A `take` operation effectively grants permission to the job to
-/// access the shared state.  The `fill` operation then gives that permission to
-/// the next job that wants to access the shared state.
+/// serialized variable should be of the form `take >>= ... fill` or of the form
+/// `read`.  On the other hand, accesses of the form `fill` and `read >>=
+/// ... fill` are unsafe.  A `take` operation effectively grants permission to
+/// the job to access the shared state.  The `fill` operation then gives that
+/// permission to the next job that wants to access the shared state.
 ///
 /// The following example illustrates the idea of passing a permission token:
 ///
