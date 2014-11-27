@@ -1425,17 +1425,43 @@ module Latch =
 #if DOC
 /// Represents a serialized variable.
 ///
-/// Serialized variables, or variables for short, can be used in situations
-/// where multiple concurrent jobs need serialized access to shared state.
+/// You can use serialized variables to serialize access to a specific piece of
+/// shared state.  The idea is that one and only one concurrent job has access
+/// to that state at any one time.  This way access to the shared state is
+/// entirely serialized.
 ///
-/// A serialized variable can be either empty or full.  When an attempt is made
-/// to take the value of an empty variable, the job is suspended until some
-/// other job fills the variable with a value.  Serialized variables are
-/// designed to be used in such a way that the variable acts as a mechanism for
-/// passing a permission token, the value contained by the variable, from one
-/// concurrent job to another.  Only the concurrent job that holds the token is
-/// allowed to fill the variable.  When used in this way, operations on the
-/// variable appear as atomic and access to the state will be serialized.
+/// WARNING: Unfortunately, `MVar`s are easy to use unsafely.  Do not use an
+/// `MVar` to pass information from a client to a server, for example.  Use a
+/// `Ch` or `Mailbox` for that.  Note that if you are familiar with the `MVar`
+/// abstraction provided by Concurrent Haskell, then it is important to realize
+/// that the semantics and intended usage of Hopac's and Concurrent ML's `MVar`
+/// are quite different.  The `MVar` of Concurrent Haskell is a bit like a
+/// simplified `Ch` with a buffer of one element and some additional operations.
+/// The `MVar` of Hopac and Concurrent ML does not allow usage as a kind of
+/// buffered channel.
+///
+/// A serialized variable can be either empty or full.  When a job makes an
+/// attempt to take the value of an empty variable, the job is suspended until
+/// some other job fills the variable with a value.  At any one time there
+/// should only be at most one job that holds the state to be written to a
+/// serialized variable.  Indeed, the idea is that access to that state is
+/// serialized.  If this cannot be guaranteed, in other words, there might be
+/// two more more jobs trying to fill a serialized variable, then you should not
+/// be using serialized variables.
+///
+/// Another way to put it is that serialized variables are designed to be used
+/// in such a way that the variable acts as a mechanism for passing a permission
+/// token, the value contained by the variable, from one concurrent job to
+/// another.  Only the concurrent job that holds the token is allowed to fill
+/// the variable.  When used in this way, operations on the variable appear as
+/// atomic and access to the state will be serialized.
+///
+/// In general, aside from a possible initial `fill` operation, an access to a
+/// serialized should be of the form `take >>= ... fill` or of the form `read`.
+/// On the other hand, accesses of the form `fill` and `read >>= ... fill` are
+/// unsafe.  A `take` operation effectively grants permission to the job to
+/// access the shared state.  The `fill` operation then gives that permission to
+/// the next job that wants to access the shared state.
 ///
 /// The following example illustrates the idea of passing a permission token:
 ///
@@ -1451,10 +1477,6 @@ module Latch =
 ///
 /// Note that `MVar` is a subtype of `Alt` and `xM :> Alt<'x>` is equivalent to
 /// `MVar.Alt.take xM`.
-///
-/// Note that if you are familiar with the `MVar` abstraction provided by
-/// Concurrent Haskell, then it is important to realize that the semantics and
-/// intended usage of Hopac's and Concurrent ML's `MVar` are quite different.
 type MVar<'x> :> Alt<'x>
 #endif
 
