@@ -276,10 +276,10 @@ from scratch.
 
 So, basically, with choice streams we can use functional programming to combine
 event streams and we can also use functional programming to consume streams.
-With Rx, we can use functional programming techniques to combine streams, but we
-must then resort to imperative programming to consume streams.  To put it
-another way, with choice streams, you can have your cake and eat it too.  With
-Rx, you can have your cake, and then let Rx feed it to you.
+With Rx, we can use functional programming to combine streams, but we must then
+resort to imperative programming to consume streams.  To put it another way,
+with choice streams, you can have your cake and eat it too.  With Rx, you can
+have your cake, and then let Rx feed it to you.
 
 ## Further
 
