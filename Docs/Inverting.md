@@ -217,8 +217,8 @@ separate lightweight thread (or job) for each such concurrent activity.
 
 Stream producers can be written in various ways.  One way is to write a loop
 that simply constructs the stream using lazy promises&mdash;just like the stream
-combinators above do.  For example, a sequence can be lazily converted to choice
-stream using the below `ofSeq` function:
+combinators above do.  For example, a sequence can be lazily converted to a
+choice stream using the below `ofSeq` function:
 
 ```fsharp
 let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
@@ -256,7 +256,7 @@ let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) = job {
 }
 ```
 
-Choice streams combinators are lazy.  Once a stream consumer stops pulling
+Choice stream combinators are lazy.  Once a stream consumer stops pulling
 elements from the stream and the variable referring to the stream is no longer
 reachable, the stream can be garbage collected.  Once a stream producer is
 garbage collected, threads waiting on the end of the associated stream can be
