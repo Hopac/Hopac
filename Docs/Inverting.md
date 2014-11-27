@@ -32,7 +32,8 @@ understand and reason about.
 In this note we will show that the selective synchronous operations aka
 alternatives of Hopac are powerful enough to invert back the inversion of
 control caused by event stream combinators.  The discovery of this simple
-programming technique was triggered when Lev Gorodinski asked how "to do
+programming technique was triggered when Lev Gorodinski
+[asked](https://twitter.com/eulerfx/status/534014908095287296) how "to do
 non-deterministic merge" for a Hopac based sequence he was working on.  This
 technique differs from Lev Gorodinski's approach only in that the streams are
 directly represented as selective synchronous operations that are memoized.
