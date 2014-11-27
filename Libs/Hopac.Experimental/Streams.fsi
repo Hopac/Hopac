@@ -68,3 +68,5 @@ module Streams =
   val iterFun: ('x ->    unit) -> Streams<'x> -> Job<unit>
 
   val delayEachBy: Job<_> -> Streams<'x> -> Streams<'x>
+
+  val groupBy: ('x -> 'k) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality

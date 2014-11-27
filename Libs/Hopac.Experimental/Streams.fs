@@ -8,6 +8,7 @@ open Hopac
 open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
+open Hopac.Extensions
 
 type Stream<'x> =
   | Nil
@@ -178,3 +179,52 @@ module Streams =
 
   let delayEachBy evt xs =
     mapJob (fun x -> evt >>% x) xs
+
+  let groupBy (keyOf: 'x -> 'k) (os: Streams<'x>) : Streams<'k * Streams<'x>> =
+    let key2branch = Dictionary<'k, IVar<Stream<'x>>>()
+    let main = ref (ivar ())
+    let baton = mvarFull os
+    let rec wrap self xs newK oldK =
+      (xs >>=? function Nil -> nil | Cons (x, xs) -> cons x (self xs)) <|>*
+      (let rec serve os =
+         os >>= function
+          | Nil ->
+            key2branch.Values
+            |> Seq.iterJob (fun i -> i <-= Nil) >>.
+            (!main <-= Nil) >>% Nil
+          | Cons (o, os) ->
+            let mutable e: exn = null
+            let k = try keyOf o with e' -> e <- e' ; Unchecked.defaultof<_>
+            match e with
+             | null ->
+               let mutable i = Unchecked.defaultof<_>
+               if key2branch.TryGetValue (k, &i) then
+                 let i' = ivar ()
+                 key2branch.[k] <- i'
+                 i <-= Cons (o, i') >>. oldK serve os k o i'
+               else
+                 let i' = ivar ()
+                 i <- ivarFull (Cons (o, i'))
+                 key2branch.Add (k, i')
+                 let i' = ivar ()
+                 let m = !main
+                 main := i'
+                 let ki = (k, wrapBranch k (i :> Streams<_>))
+                 m <-= Cons (ki, i') >>. newK serve os ki i'
+             | e ->
+               key2branch.Values
+               |> Seq.iterJob (fun i -> i <-=! e) >>.
+               (!main <-=! e) >>! e
+       baton >>=? serve)
+    and wrapBranch k xs =
+      wrap (wrapBranch k) xs
+       <| fun serve os _ _ -> serve os
+       <| fun serve os k' x xs ->
+            if k = k'
+            then baton <<-= os >>% Cons (x, wrapBranch k xs)
+            else serve os
+    let rec wrapMain xs =
+      wrap wrapMain xs
+       <| fun _ os ki i -> baton <<-= os >>% Cons (ki, wrapMain i)
+       <| fun serve os _ _ _ -> serve os
+    !main |> wrapMain
