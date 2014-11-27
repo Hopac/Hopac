@@ -722,6 +722,8 @@ module Job =
     {new JobBind<'x, 'y> (xJ) with
       override yJ'.Do (x) = x2yJ x} :> Job<_>
 
+  let inline join (xJJ: Job<#Job<'x>>) = JobJoin<_, _>(xJJ) :> Job<_>
+
   let inline map (x2y: 'x -> 'y) (xJ: Job<'x>) =
     {new JobMap<'x, 'y> (xJ) with
       override yJ'.Do (x) = x2y x} :> Job<_>

@@ -45,6 +45,32 @@ namespace Hopac {
     }
 
     ///
+    public sealed class JobJoin<X, JX> : Job<X> where JX : Job<X> {
+      private Job<JX> xJJ;
+      ///
+      public JobJoin(Job<JX> xJJ) { this.xJJ = xJJ; }
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        xJJ.DoJob(ref wr, new ContJoin(xK));
+      }
+      private sealed class ContJoin : Cont<JX> {
+        private Cont<X> xK;
+        internal ContJoin(Cont<X> xK) { this.xK = xK; }
+        internal override Proc GetProc(ref Worker wr) {
+          return Handler.GetProc(ref wr, ref xK);
+        }
+        internal override void DoHandle(ref Worker wr, Exception e) {
+          Handler.DoHandle(xK, ref wr, e);
+        }
+        internal override void DoWork(ref Worker wr) {
+          this.Value.DoJob(ref wr, xK);
+        }
+        internal override void DoCont(ref Worker wr, JX xJ) {
+          xJ.DoJob(ref wr, xK);         
+        }
+      }
+    }
+
+    ///
     public abstract class JobTryIn<X, Y> : Job<Y> {
       private Job<X> xJ;
       ///

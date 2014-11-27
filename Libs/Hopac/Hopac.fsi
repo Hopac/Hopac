@@ -509,6 +509,9 @@ module Job =
   /// run.  This is the same as `>>=` with the arguments flipped.
   val inline bind: ('x -> Job<'y>) -> Job<'x> -> Job<'y>
 
+  /// `join xJJ` is equivalent to `bind id xJJ`.
+  val inline join: Job<#Job<'x>> -> Job<'x>
+
   /// Creates a job that runs the given job and maps the result of the job with
   /// the given function.  This is the same as `|>>` with the arguments flipped.
   val inline map: ('x -> 'y) -> Job<'x> -> Job<'y>
