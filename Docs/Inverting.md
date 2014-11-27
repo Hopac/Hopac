@@ -162,8 +162,8 @@ and mergeSwap (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
      | Cons (l, ls) -> cons l (merge rs ls)
 ```
 
-There is no nice to write the above kind of `merge` for lazy streams.  However,
-there is one problem with the above implementation.  Can you spot it?
+There is no nice way to write the above kind of `merge` for lazy streams.
+However, there is one problem with the above implementation.  Can you spot it?
 
 The above version of `merge` produces an *ephemeral* stream: it could produce
 different results each time it is examined.  We don't want that, because it
