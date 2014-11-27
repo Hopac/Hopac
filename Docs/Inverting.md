@@ -212,6 +212,11 @@ Choice streams are lazy.  Once you stop pulling elements from a stream and the
 variable referring to the stream is no longer reachable, the stream can be
 garbage collected.
 
+Errors in choice streams are handled in the usual way.  The `memo` combinator we
+made above uses a `Promise` underneath.  If a choice stream producer raises an
+exception, it will be captured by a promise and ultimately reraised when the
+promise is examined by a choice stream consumer.
+
 As can also be seen from the above examples, choice stream combinators look
 quite familiar.  A functional programmer should not find it difficult to write
 new combinators based on existing combinators or even to write new combinators
