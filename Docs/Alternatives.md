@@ -101,7 +101,7 @@ let runFastest () =
 
 If you have trouble understanding what is going on, I recommend that you modify
 the above `asyncAsAlt` implementation by turning the `printfn` calls in the
-comments to code.  When you rerun the example, you can the observe what happens
+comments to code.  When you rerun the example, you can then observe what happens
 inside the abstraction.  Don't forget to recompile all the code!
 
 Of course, we can also select from other kinds of alternatives.  For example,
@@ -117,6 +117,6 @@ let runWithTimeout seconds =
   |> run
 ```
 
-Note the above `run...` functions are only intended as examples.  The idea with
-alternatives is that users can freely combine them as selective synchronous
+Note that the above `run...` functions are only intended as examples.  The idea
+with alternatives is that users can freely combine them as selective synchronous
 operations.  Wrapping an alternative as a function defeats that purpose.
