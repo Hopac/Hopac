@@ -3,12 +3,15 @@
 The F# `async` mechanism supports *cancellation* in the form of having a
 cancellation token carried along and checked by the async monad.  Hopac jobs do
 not implicitly carry or check any form of cancellation token.  On the other
-hand, the synchronous channels[]() of Hopac support *rendezvous* and the
-alternative mechanism provides *negative acknowledgments* via the `withNack`
+hand, the
+[synchronous channels](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch)
+of Hopac support *rendezvous* and the alternative mechanism provides *negative
+acknowledgments* via the
+`withNack`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
 combinator.  The idea is that alternatives represent *selective synchronous
 operations*.  When synchronizing on a choice of multiple alternatives, only one
-alternative will be committed to.  Relying on idempotency, rendezvous, or
-negative acknowledgments alternatives can be designed and implemented so that
+alternative will be committed to.  Relying on *idempotency*, *rendezvous*, or
+*negative acknowledgments* alternatives can be designed and implemented so that
 they do not have an effect unless they are committed to.
 
 The
