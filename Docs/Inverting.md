@@ -93,7 +93,8 @@ and Streams<'x> = Lazy<Stream<'x>>
 All the combinators that an event stream combinator library like Rx supports can
 easily be implemented for lazy streams&mdash;except for the fact that lazy
 streams have no concept of time or choice.  Fortunately, to recover a concept of
-time or choice, we can simply replace the `Lazy` type constructor with the `Alt`
+time or choice, we can simply replace the `Lazy<_>` type constructor with the
+`Alt<_>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 type constructor:
 
 ```fsharp
@@ -143,9 +144,12 @@ let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
 ```
 
 However, what is really important is that time is a part of the representation
-of choice streams and using combinators such as `Alt.choose` it is possible to
-construct streams that may including timed operations and make non-deterministic
-choices between multiple streams.
+of choice streams and using combinators such as
+`Alt.choose`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
+and
+`<|>?`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E?)
+it is possible to construct streams that may including timed operations and make
+non-deterministic choices between multiple streams.
 
 Here is a first attempt at implementing a `merge` combinator:
 
@@ -169,13 +173,15 @@ sure that streams always produce the same results and in this case we can
 *memoize* the stream.
 
 To memoize choice streams, we introduce a couple of auxiliary memoizing
-combinators:
+combinators using the lazy
+`Promise.Now.delayAsAlt`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Promise.Now.delayAsAlt)
+combinator:
 
 ```fsharp
-let inline memo x = Promise.Now.delayAsAlt x
-let inline (>>=*) x f = x >>= f |> memo
-let inline (|>>*) x f = x |>> f |> memo
-let inline (<|>*) x y = x <|> y |> memo
+let memo x = Promise.Now.delayAsAlt x
+let (>>=*) x f = x >>= f |> memo
+let (|>>*) x f = x |>> f |> memo
+let (<|>*) x y = x <|> y |> memo
 ```
 
 Using the above memoizing choice combinator, `<|>*`, we can now implement a
@@ -213,9 +219,11 @@ variable referring to the stream is no longer reachable, the stream can be
 garbage collected.
 
 Errors in choice streams are handled in the usual way.  The `memo` combinator we
-made above uses a `Promise` underneath.  If a choice stream producer raises an
-exception, it will be captured by a promise and ultimately reraised when the
-promise is examined by a choice stream consumer.
+made above uses a
+`Promise`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Promise)
+underneath.  If a choice stream producer raises an exception, it will be
+captured by a promise and ultimately reraised when the promise is examined by a
+choice stream consumer.
 
 As can also be seen from the above examples, choice stream combinators look
 quite familiar.  A functional programmer should not find it difficult to write
