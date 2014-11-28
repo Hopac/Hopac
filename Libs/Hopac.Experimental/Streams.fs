@@ -180,6 +180,15 @@ module Streams =
   let delayEachBy evt xs =
     mapJob (fun x -> evt >>% x) xs
 
+  let inline tryIn u2v vK eK =
+    let mutable e = null
+    let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
+    match e with
+     | null -> vK v
+     | e -> eK e
+
+  let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
+
   let groupBy (keyOf: 'x -> 'k) (os: Streams<'x>) : Streams<'k * Streams<'x>> =
     let key2branch = Dictionary<'k, IVar<Stream<'x>>>()
     let main = ref (ivar ())
@@ -193,28 +202,26 @@ module Streams =
             |> Seq.iterJob (fun i -> i <-= Nil) >>.
             (!main <-= Nil) >>% Nil
           | Cons (o, os) ->
-            let mutable e: exn = null
-            let k = try keyOf o with e' -> e <- e' ; Unchecked.defaultof<_>
-            match e with
-             | null ->
-               let mutable i = Unchecked.defaultof<_>
-               if key2branch.TryGetValue (k, &i) then
-                 let i' = ivar ()
-                 key2branch.[k] <- i'
-                 i <-= Cons (o, i') >>. oldK serve os k o i'
-               else
-                 let i' = ivar ()
-                 i <- ivarFull (Cons (o, i'))
-                 key2branch.Add (k, i')
-                 let i' = ivar ()
-                 let m = !main
-                 main := i'
-                 let ki = (k, wrapBranch k (i :> Streams<_>))
-                 m <-= Cons (ki, i') >>. newK serve os ki i'
-             | e ->
-               key2branch.Values
-               |> Seq.iterJob (fun i -> i <-=! e) >>.
-               (!main <-=! e) >>! e
+            tryIn <| fun () -> keyOf o
+             <| fun k ->
+                  match key2branch.TryGetValue k with
+                   | Just i ->
+                     let i' = ivar ()
+                     key2branch.[k] <- i'
+                     i <-= Cons (o, i') >>. oldK serve os k o i'
+                   | Nothing ->
+                     let i' = ivar ()
+                     let i = ivarFull (Cons (o, i'))
+                     key2branch.Add (k, i')
+                     let i' = ivar ()
+                     let m = !main
+                     main := i'
+                     let ki = (k, wrapBranch k (i :> Streams<_>))
+                     m <-= Cons (ki, i') >>. newK serve os ki i'
+             <| fun e ->
+                  key2branch.Values
+                  |> Seq.iterJob (fun i -> i <-=! e) >>.
+                  (!main <-=! e) >>! e
        baton >>=? serve)
     and wrapBranch k xs =
       wrap (wrapBranch k) xs
