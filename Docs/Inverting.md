@@ -284,6 +284,8 @@ but we must then resort to imperative programming to consume event streams.  To
 put it another way, with choice streams, you can have your cake and eat it too.
 With Rx, you can have your cake, and then let Rx feed it to you.
 
+## How to GroupBy without being pushy?
+
 Is that all?  Can lazy *pull-based* choice streams do everything that
 *push-based* Rx does?  In a recent
 [talk](https://www.youtube.com/watch?v=pOl4E8x3fmw), Erik Meijer
@@ -294,8 +296,6 @@ interactive and reactive programming for a few weeks now and I have to agree
 with Meijer that `groupBy` is difficult to do in a pull-based manner.  So, is it
 possible?  Can we do `groupBy` in the lazy pull-based manner in which choice
 streams operate?  Yes, we can.
-
-## GroupBy
 
 Compared to the previously seen choice stream combinators, `groupBy` is
 significantly more complicated.  Let's first look at the signature of `groupBy`:
@@ -311,14 +311,14 @@ val groupBy: keyOf: ('x -> 'k)
 the elements pulled from the source stream.
 
 What does `groupBy` really do?  It basically categorizes or filters elements
-from the source sequence into the groups.  However, we can't return new streams
-as simple recursive loops filtering elements from the source stream, because
-that would be inefficient.  We need to make it so that each element is
-categorized only once.  Fortunately we already saw in the previous section how
-to create a stream using write once variables.  We create a new stream tail
-variable for each stream that `groupBy` returns and put those tails into a
-dictionary.  The code that categorizes elements from the source stream then
-pushes elements to those streams updating the dictionary.
+from the source stream into the groups.  However, we can't return new streams as
+simple recursive loops filtering elements from the source stream, because that
+would be inefficient.  We need to make it so that each element is categorized
+only once.  Fortunately we already saw in the previous section how to create a
+stream using write once variables.  We create a new stream tail variable for
+each stream that `groupBy` returns and put those tails into a dictionary.  The
+code that categorizes elements from the source stream then pushes elements to
+those streams updating the dictionary.
 
 The first instinct on where and how to do such categorizing might be to spawn a
 concurrent job to pull the source stream and then push to the target streams.
@@ -329,7 +329,7 @@ Even if one would stop pulling elements from all the streams returned by
 dedicated process for categorizing elements, we need to make it so that pull
 operations on the streams returned by `groupBy` co-operate.
 
-To make the co-operation possible, we put the source stream in a serialized
+To make such co-operation possible, we put the source stream into a serialized
 variable[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.MVar)
 to make it so that at most one process holds the reference to the original
 stream at any time.  When a pull operation on a returned stream is started, an
@@ -341,13 +341,13 @@ the categorized element it desired.
 So, let's finally look at the code with some additional comments:
 
 ```fsharp
-let groupBy (keyOf: 'x -> 'k) (os: Streams<'x>) : Streams<'k * Streams<'x>> =
+let groupBy (keyOf: 'x -> 'k) (ss: Streams<'x>) : Streams<'k * Streams<'x>> =
   // Dictionary to hold the tail write once vars of categorized streams:
   let key2branch = Dictionary<'k, IVar<Stream<'x>>>()
   // Ref cell to hold the tail write once var of the main result stream:
   let main = ref (ivar ())
   // Serialized variable to hold the source stream:
-  let baton = mvarFull os
+  let baton = mvarFull ss
   // Shared code to propagate exception to all result streams:
   let raised e =
     key2branch.Values
@@ -358,50 +358,50 @@ let groupBy (keyOf: 'x -> 'k) (os: Streams<'x>) : Streams<'k * Streams<'x>> =
     // Selective sync op to get next element from a specific stream:
     (xs >>=? function Nil -> nil | Cons (x, xs) -> cons x (self xs)) <|>*
     // Selective sync op to serve all the streams:
-    (let rec serve os =
-       Job.tryIn os
+    (let rec serve ss =
+       Job.tryIn ss
         <| function
             | Nil ->
               // Source stream closed, so close all result streams:
               key2branch.Values
               |> Seq.iterJob (fun i -> i <-= Nil) >>.
               (!main <-= Nil) >>% Nil
-            | Cons (o, os) ->
-              tryIn <| fun () -> keyOf o
+            | Cons (s, ss) ->
+              tryIn <| fun () -> keyOf s
                <| fun k ->
                     match key2branch.TryGetValue k with
                      | Just i ->
                        // Push to previously created category:
                        let i' = ivar ()
                        key2branch.[k] <- i'
-                       i <-= Cons (o, i') >>. oldK serve os k o i'
+                       i <-= Cons (s, i') >>. oldK serve ss k s i'
                      | Nothing ->
                        // Create & push to main a new category:
                        let i' = ivar ()
-                       let i = ivarFull (Cons (o, i'))
+                       let i = ivarFull (Cons (s, i'))
                        key2branch.Add (k, i')
                        let i' = ivar ()
                        let m = !main
                        main := i'
                        let ki = (k, wrapBranch k (i :> Streams<_>))
-                       m <-= Cons (ki, i') >>. newK serve os ki i'
+                       m <-= Cons (ki, i') >>. newK serve ss ki i'
                <| raised
         <| raised
      baton >>=? serve)
   // Wrapper for branch streams:
   and wrapBranch k xs =
     wrap (wrapBranch k) xs
-     <| fun serve os _ _ -> serve os
-     <| fun serve os k' x xs ->
+     <| fun serve ss _ _ -> serve ss
+     <| fun serve ss k' x xs ->
           // Did we get an element or do we continue serving?
           if k = k'
-          then baton <<-= os >>% Cons (x, wrapBranch k xs)
-          else serve os
+          then baton <<-= ss >>% Cons (x, wrapBranch k xs)
+          else serve ss
   // Wrapper for the main stream:
   let rec wrapMain xs =
     wrap wrapMain xs
-     <| fun _ os ki i -> baton <<-= os >>% Cons (ki, wrapMain i)
-     <| fun serve os _ _ _ -> serve os
+     <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
+     <| fun serve ss _ _ _ -> serve ss
    // Return the main branch:
   !main |> wrapMain
 ```
