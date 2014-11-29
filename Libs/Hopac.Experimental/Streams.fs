@@ -190,48 +190,65 @@ module Streams =
   let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
   let groupBy (keyOf: 'x -> 'k) (os: Streams<'x>) : Streams<'k * Streams<'x>> =
+    // Dictionary to hold the tail write once vars of categorized streams:
     let key2branch = Dictionary<'k, IVar<Stream<'x>>>()
+    // Ref cell to hold the tail write once var of the main result stream:
     let main = ref (ivar ())
+    // Serialized variable to hold the source stream:
     let baton = mvarFull os
+    // Shared code to propagate exception to all result streams:
+    let raised e =
+      key2branch.Values
+      |> Seq.iterJob (fun i -> i <-=! e) >>.
+      (!main <-=! e) >>! e
+    // Shared code for the main and branch streams:
     let rec wrap self xs newK oldK =
+      // Selective sync op to get next element from a specific stream:
       (xs >>=? function Nil -> nil | Cons (x, xs) -> cons x (self xs)) <|>*
+      // Selective sync op to serve all the streams:
       (let rec serve os =
-         os >>= function
-          | Nil ->
-            key2branch.Values
-            |> Seq.iterJob (fun i -> i <-= Nil) >>.
-            (!main <-= Nil) >>% Nil
-          | Cons (o, os) ->
-            tryIn <| fun () -> keyOf o
-             <| fun k ->
-                  match key2branch.TryGetValue k with
-                   | Just i ->
-                     let i' = ivar ()
-                     key2branch.[k] <- i'
-                     i <-= Cons (o, i') >>. oldK serve os k o i'
-                   | Nothing ->
-                     let i' = ivar ()
-                     let i = ivarFull (Cons (o, i'))
-                     key2branch.Add (k, i')
-                     let i' = ivar ()
-                     let m = !main
-                     main := i'
-                     let ki = (k, wrapBranch k (i :> Streams<_>))
-                     m <-= Cons (ki, i') >>. newK serve os ki i'
-             <| fun e ->
-                  key2branch.Values
-                  |> Seq.iterJob (fun i -> i <-=! e) >>.
-                  (!main <-=! e) >>! e
+         Job.tryIn os
+          <| function
+              | Nil ->
+                // Source stream closed, so close all result streams:
+                key2branch.Values
+                |> Seq.iterJob (fun i -> i <-= Nil) >>.
+                (!main <-= Nil) >>% Nil
+              | Cons (o, os) ->
+                tryIn <| fun () -> keyOf o
+                 <| fun k ->
+                      match key2branch.TryGetValue k with
+                       | Just i ->
+                         // Push to previously created category:
+                         let i' = ivar ()
+                         key2branch.[k] <- i'
+                         i <-= Cons (o, i') >>. oldK serve os k o i'
+                       | Nothing ->
+                         // Create & push to main a new category:
+                         let i' = ivar ()
+                         let i = ivarFull (Cons (o, i'))
+                         key2branch.Add (k, i')
+                         let i' = ivar ()
+                         let m = !main
+                         main := i'
+                         let ki = (k, wrapBranch k (i :> Streams<_>))
+                         m <-= Cons (ki, i') >>. newK serve os ki i'
+                 <| raised
+          <| raised
        baton >>=? serve)
+    // Wrapper for branch streams:
     and wrapBranch k xs =
       wrap (wrapBranch k) xs
        <| fun serve os _ _ -> serve os
        <| fun serve os k' x xs ->
+            // Did we get an element or do we continue serving?
             if k = k'
             then baton <<-= os >>% Cons (x, wrapBranch k xs)
             else serve os
+    // Wrapper for the main stream:
     let rec wrapMain xs =
       wrap wrapMain xs
        <| fun _ os ki i -> baton <<-= os >>% Cons (ki, wrapMain i)
        <| fun serve os _ _ _ -> serve os
+     // Return the main branch:
     !main |> wrapMain
