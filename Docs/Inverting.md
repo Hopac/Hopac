@@ -415,6 +415,17 @@ functionality comparable to Rx in the number of lines in
 [SelectMany.cs](https://github.com/mono/rx/blob/master/Rx/NET/Source/System.Reactive.Linq/Reactive/Linq/Observable/SelectMany.cs)
 that contain only curly braces.
 
+## Summary
+
+Feature           | Choice Streams    | Reactive Extensions
+-----------------:|:----------------- |:-------------------
+Approach          | Lazy Pull         | Eager Push
+Merge             | Yes               | Yes
+GroupBy           | Yes               | Yes
+Compositions      | Declarative       | Declarative
+Consumers         | Functional        | Imperative
+Consumers GC'ed   | Yes               | No, must unsubscribe
+
 ## Let's see some more code!
 
 There is an experimental library based on the above technique.  See:
