@@ -417,14 +417,15 @@ that contain only curly braces.
 
 ## Summary
 
-Feature           | Choice Streams    | Reactive Extensions
------------------:|:----------------- |:-------------------
-Approach          | Lazy Pull         | Eager Push
-Merge             | Yes               | Yes
-GroupBy           | Yes               | Yes
-Compositions      | Declarative       | Declarative
-Consumers         | Functional        | Imperative
-Consumers GC'ed   | Yes               | No, must unsubscribe
+Feature            | Choice Streams    | Reactive Extensions
+------------------:|:----------------- |:-------------------
+Approach           | Lazy Pull         | Eager Push
+Merge              | Yes               | Yes
+GroupBy            | Yes               | Yes
+Consistent Streams | Yes               | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html)
+Compositions       | Declarative       | Declarative
+Consumers          | Functional        | Imperative
+Consumers GC'ed    | Yes               | No, must unsubscribe
 
 ## Let's see some more code!
 
