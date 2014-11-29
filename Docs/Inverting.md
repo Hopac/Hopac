@@ -31,7 +31,7 @@ understand and reason about.
 
 In this note we will show that the selective synchronous operations aka
 alternatives of Hopac are powerful enough to invert back the inversion of
-control caused by event stream combinators.  The discovery of this simple
+control caused by event stream combinators.  The discovery of this _simple_
 programming technique was triggered when Lev Gorodinski
 [asked](https://twitter.com/eulerfx/status/534014908095287296) how "to do
 non-deterministic merge" for a Hopac based sequence he was working on.  This
