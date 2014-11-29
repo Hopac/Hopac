@@ -289,13 +289,15 @@ With Rx, you can have your cake, and then let Rx feed it to you.
 Is that all?  Can lazy *pull-based* choice streams do everything that
 *push-based* Rx does?  In a recent
 [talk](https://www.youtube.com/watch?v=pOl4E8x3fmw), Erik Meijer
-[said](https://www.youtube.com/watch?v=pOl4E8x3fmw#t=36m42s) that "if you're
-doing `groupBy` in a pull-based way [blah blah] buffer [blah blah] deadlock
-[blah blah] so, I don't know how to do `groupBy`."  I've been thinking about
-interactive and reactive programming for a few weeks now and I have to agree
-with Meijer that `groupBy` is difficult to do in a pull-based manner.  So, is it
-possible?  Can we do `groupBy` in the lazy pull-based manner in which choice
-streams operate?  Yes, we can.
+[said](https://www.youtube.com/watch?v=pOl4E8x3fmw#t=36m42s) that
+
+> if you're doing `groupBy` in a pull-based way [blah blah] buffer [blah blah]
+> deadlock [blah blah] so, I don't know how to do `groupBy`
+
+I've been thinking about interactive and reactive programming for a few weeks
+now and I have to agree with Meijer that `groupBy` is difficult to do in a
+pull-based manner.  So, is it possible?  Can we do `groupBy` in the lazy
+pull-based manner in which choice streams operate?  Yes, we can.
 
 Compared to the previously seen choice stream combinators, `groupBy` is
 significantly more complicated.  Let's first look at the signature of `groupBy`:
