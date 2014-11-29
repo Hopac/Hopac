@@ -210,15 +210,17 @@ let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
 
 As can actually be seen from the above two examples already, given a choice
 stream or any number of choice streams, one can process elements from such a
-stream by means of a simple loop.
+stream by means of a simple loop that essentially pulls elements from the choice
+stream or streams.  When multiple streams need to be processed concurrently, one
+can spawn a separate lightweight thread (or job) for each such concurrent
+activity.
 
-When multiple streams need to be processed concurrently, one can spawn a
-separate lightweight thread (or job) for each such concurrent activity.
+## Stream producers
 
 Stream producers can be written in various ways.  One way is to write a loop
-that simply constructs the stream using lazy promises&mdash;just like the stream
-combinators above do.  For example, a sequence can be lazily converted to a
-choice stream using the below `ofSeq` function:
+that simply constructs the stream using lazy promises&mdash;just like the
+previously shown stream combinators do.  For example, a sequence can be lazily
+converted to a choice stream using the below `ofSeq` function:
 
 ```fsharp
 let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
@@ -282,7 +284,136 @@ but we must then resort to imperative programming to consume event streams.  To
 put it another way, with choice streams, you can have your cake and eat it too.
 With Rx, you can have your cake, and then let Rx feed it to you.
 
-## Further
+Is that all?  Can lazy *pull-based* choice streams do everything that
+*push-based* Rx does?  In a recent
+[talk](https://www.youtube.com/watch?v=pOl4E8x3fmw), Erik Meijer
+[said](https://www.youtube.com/watch?v=pOl4E8x3fmw#t=36m42s) that "if you're
+doing `groupBy` in a pull-based way [blah blah] buffer [blah blah] deadlock
+[blah blah] so, I don't know how to do `groupBy`."  I've been thinking about
+interactive and reactive programming for a few weeks now and I have to agree
+with Meijer that `groupBy` is difficult to do in a pull-based manner.  So, is it
+possible?  Can we do `groupBy` in the lazy pull-based manner in which choice
+streams operate?  Yes, we can.
+
+## GroupBy
+
+Compared to the previously seen choice stream combinators, `groupBy` is
+significantly more complicated.  Let's first look at the signature of `groupBy`:
+
+```fsharp
+val groupBy: keyOf: ('x -> 'k)
+          -> Streams<'x>
+          -> Streams<'k * Streams<'x>> when 'k: equality
+```
+
+`groupBy` is not just a simple transform on a fixed number of choice streams.
+`groupBy` has to be able to incrementally create and return new streams based on
+the elements pulled from the source stream.
+
+What does `groupBy` really do?  It basically categorizes or filters elements
+from the source sequence into the groups.  However, we can't return new streams
+as simple recursive loops filtering elements from the source stream, because
+that would be inefficient.  We need to make it so that each element is
+categorized only once.  Fortunately we already saw in the previous section how
+to create a stream using write once variables.  We create a new stream tail
+variable for each stream that `groupBy` returns and put those tails into a
+dictionary.  The code that categorizes elements from the source stream then
+pushes elements to those streams updating the dictionary.
+
+The first instinct on where and how to do such categorizing might be to spawn a
+concurrent job to pull the source stream and then push to the target streams.
+But we can't have a concurrent job in `groupBy` eagerly pulling from the source
+stream, because that would break the laziness and would cause a space-time leak.
+Even if one would stop pulling elements from all the streams returned by
+`groupBy` the categorizing process would remain live.  Instead of spawning a
+dedicated process for categorizing elements, we need to make it so that pull
+operations on the streams returned by `groupBy` co-operate.
+
+To make the co-operation possible, we put the source stream in a serialized
+variable[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.MVar)
+to make it so that at most one process holds the reference to the original
+stream at any time.  When a pull operation on a returned stream is started, an
+attempt is made to take the source stream from the serialized variable or to
+just take the next element from the readily categorized stream.  If the pull
+operation gets the source stream, it then serves all the streams until it gets
+the categorized element it desired.
+
+So, let's finally look at the code with some additional comments:
+
+```fsharp
+let groupBy (keyOf: 'x -> 'k) (os: Streams<'x>) : Streams<'k * Streams<'x>> =
+  // Dictionary to hold the tail write once vars of categorized streams:
+  let key2branch = Dictionary<'k, IVar<Stream<'x>>>()
+  // Ref cell to hold the tail write once var of the main result stream:
+  let main = ref (ivar ())
+  // Serialized variable to hold the source stream:
+  let baton = mvarFull os
+  // Shared code to propagate exception to all result streams:
+  let raised e =
+    key2branch.Values
+    |> Seq.iterJob (fun i -> i <-=! e) >>.
+    (!main <-=! e) >>! e
+  // Shared code for the main and branch streams:
+  let rec wrap self xs newK oldK =
+    // Selective sync op to get next element from a specific stream:
+    (xs >>=? function Nil -> nil | Cons (x, xs) -> cons x (self xs)) <|>*
+    // Selective sync op to serve all the streams:
+    (let rec serve os =
+       Job.tryIn os
+        <| function
+            | Nil ->
+              // Source stream closed, so close all result streams:
+              key2branch.Values
+              |> Seq.iterJob (fun i -> i <-= Nil) >>.
+              (!main <-= Nil) >>% Nil
+            | Cons (o, os) ->
+              tryIn <| fun () -> keyOf o
+               <| fun k ->
+                    match key2branch.TryGetValue k with
+                     | Just i ->
+                       // Push to previously created category:
+                       let i' = ivar ()
+                       key2branch.[k] <- i'
+                       i <-= Cons (o, i') >>. oldK serve os k o i'
+                     | Nothing ->
+                       // Create & push to main a new category:
+                       let i' = ivar ()
+                       let i = ivarFull (Cons (o, i'))
+                       key2branch.Add (k, i')
+                       let i' = ivar ()
+                       let m = !main
+                       main := i'
+                       let ki = (k, wrapBranch k (i :> Streams<_>))
+                       m <-= Cons (ki, i') >>. newK serve os ki i'
+               <| raised
+        <| raised
+     baton >>=? serve)
+  // Wrapper for branch streams:
+  and wrapBranch k xs =
+    wrap (wrapBranch k) xs
+     <| fun serve os _ _ -> serve os
+     <| fun serve os k' x xs ->
+          // Did we get an element or do we continue serving?
+          if k = k'
+          then baton <<-= os >>% Cons (x, wrapBranch k xs)
+          else serve os
+  // Wrapper for the main stream:
+  let rec wrapMain xs =
+    wrap wrapMain xs
+     <| fun _ os ki i -> baton <<-= os >>% Cons (ki, wrapMain i)
+     <| fun serve os _ _ _ -> serve os
+   // Return the main branch:
+  !main |> wrapMain
+```
+
+That is a lot of code, but it is nothing compared to
+[SelectMany.cs](https://github.com/mono/rx/blob/master/Rx/NET/Source/System.Reactive.Linq/Reactive/Linq/Observable/SelectMany.cs)
+of Rx.  I plan to try and fit an implementation of choice streams that provides
+functionality comparable to Rx in the number of lines in
+[SelectMany.cs](https://github.com/mono/rx/blob/master/Rx/NET/Source/System.Reactive.Linq/Reactive/Linq/Observable/SelectMany.cs)
+that contain only curly braces.
+
+## Let's see some more code!
 
 There is an experimental library based on the above technique.  See:
 
