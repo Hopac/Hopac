@@ -992,8 +992,8 @@ module Alt =
   ///> let counterServer : Ch<int * Alt<unit> * Ch<int>> =
   ///>   let reqCh = ch ()
   ///>   server << Job.iterate 0 <| fun oldCounter ->
-  ///>     reqCh >>= fun (increment, nack, replyCh) ->
-  ///>     let newCounter = oldCounter + increment
+  ///>     reqCh >>= fun (n, nack, replyCh) ->
+  ///>     let newCounter = oldCounter + n
   ///>     (replyCh <-? newCounter >>%? newCounter) <|>
   ///>     (nack                   >>%? oldCounter)
   ///>   reqCh
