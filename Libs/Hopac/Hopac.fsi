@@ -981,6 +981,39 @@ module Alt =
   /// other alternative, the negative acknowledgment token becomes pickable and
   /// the server can also abort the operation.
   ///
+  /// Here is a simple example of an operation encapsulated using `withNack`.
+  /// The idea is that we have a server that maintains a counter.  Clients can
+  /// request the server to increment the counter and return the incremented
+  /// counter value.  We further want to make it so that in case the client does
+  /// not commit to the operation, the counter in the server is not updated.
+  ///
+  /// Here is the server communication channel and the server loop:
+  ///
+  ///> let counterServer : Ch<int * Alt<unit> * Ch<int>> =
+  ///>   let reqCh = ch ()
+  ///>   server << Job.iterate 0 <| fun oldCounter ->
+  ///>     reqCh >>= fun (increment, nack, replyCh) ->
+  ///>     let newCounter = oldCounter + increment
+  ///>     (replyCh <-? newCounter >>%? newCounter) <|>
+  ///>     (nack                   >>%? oldCounter)
+  ///>   reqCh
+  ///
+  /// Note how the server tries to synchronize on either giving the new counter
+  /// value to the client or the negative acknowledgment.
+  ///
+  /// Here is the encapsulated client side operation:
+  ///
+  ///> let incrementBy n : Alt<int> = Alt.withNack <| fun nack ->
+  ///>   let replyCh = ch ()
+  ///>   counterServer <-+ (n, nack, replyCh) >>%
+  ///>   upcast replyCh
+  ///
+  /// The client side operation just sends the negative acknowledgment to the
+  /// server as a part of the request.  It is essential that a channel, rather
+  /// than a write once variable, is used for the reply.  It is also a good idea
+  /// to avoid blocking inside `withNack`, which is why an asynchronous send is
+  /// used inside the client side operation.
+  ///
   /// Note that if an alternative created with `withNack` is not instantiated,
   /// then no negative acknowledgment is created.  For example, given an
   /// alternative of the form `always () <|>? withNack (...)` the `withNack`
