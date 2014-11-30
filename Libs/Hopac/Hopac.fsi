@@ -802,10 +802,11 @@ module Job =
   ///
   ///> let seqCollect (xJs: seq<Job<'x>>) = Job.delay <| fun () ->
   ///>   let xs = ResizeArray<_>()
-  ///>   let xJs = xJs.GetEnumerator ()
+  ///>   Job.using (xJs.GetEnumerator ()) <| fun xJs ->
   ///>   Job.whileDo xJs.MoveNext (Job.delay <| fun () ->
   ///>     xJs.Current |>> xs.Add) >>%
   ///>   xs
+
 #endif
   val seqCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
 
@@ -816,7 +817,7 @@ module Job =
   /// Reference implementation:
   ///
   ///> let seqIgnore (xJs: seq<Job<_>>) = Job.delay <| fun () ->
-  ///>   let xJs = xJs.GetEnumerator ()
+  ///>   Job.using (xJs.GetEnumerator ()) <| fun xJs ->
   ///>   Job.whileDo xJs.MoveNext (Job.delay <| fun () ->
   ///>     xJs.Current)
 #endif
@@ -1754,7 +1755,7 @@ module Extensions =
     /// Reference implementation:
     ///
     ///> let iterJob x2yJ (xs: seq<'x>) = Job.delay <| fun () ->
-    ///>   let xs = xs.GetEnumerator ()
+    ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
     ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
     ///>     x2yJ xs.Current)
 #endif
@@ -1768,7 +1769,7 @@ module Extensions =
     ///
     ///> let mapJob x2yJ (xs: seq<'x>) = Job.delay <| fun () ->
     ///>   let ys = ResizeArray<_>()
-    ///>   let xs = xs.GetEnumerator ()
+    ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
     ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
     ///>     x2yJ xs.Current |>> ys.Add) >>%
     ///>   ys
@@ -1782,7 +1783,7 @@ module Extensions =
     /// Reference implementation:
     ///
     ///> let foldJob xy2xJ x (ys: seq<'y>) = Job.delay <| fun () ->
-    ///>   let ys = ys.GetEnumerator ()
+    ///>   Job.using (ys.GetEnumerator ()) <| fun ys ->
     ///>   let rec loop x =
     ///>     if ys.MoveNext () then
     ///>       xy2xJ x ys.Current >>= loop
