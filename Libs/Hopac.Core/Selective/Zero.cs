@@ -1,7 +1,8 @@
 ﻿// Copyright (C) by Housemarque, Inc.
 
 namespace Hopac.Core {
-  internal sealed class Never<X> : Alt<X> {
+  ///
+  public sealed class Never<X> : Alt<X> {
     internal override void DoJob(ref Worker wr, Cont<X> aK) { }
 
     internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
