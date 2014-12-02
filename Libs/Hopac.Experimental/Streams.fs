@@ -10,11 +10,46 @@ open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Extensions
 
+[<AutoOpen>]
+module internal Util =
+  let inline memo x = Promise.Now.delayAsAlt x
+  let inline (>>=*) x f = x >>= f |> memo
+  let inline (|>>*) x f = x |>> f |> memo
+  let inline (<|>*) x y = x <|> y |> memo
+
+  let inline tryIn u2v vK eK =
+    let mutable e = null
+    let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
+    match e with
+     | null -> vK v
+     | e -> eK e
+
+  let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
+
 type Stream<'x> =
   | Nil
   | Cons of Value: 'x * Next: Alt<Stream<'x>>
 
 type Streams<'x> = Alt<Stream<'x>>
+
+type StreamSource<'x> = {
+    tail: MVar<IVar<Stream<'x>>>
+  }
+
+module StreamSource =
+  let create () = {tail = mvarFull (ivar ())}
+  let inline doTail ss op =
+    ss.tail >>=? fun tail ->
+    if IVar.Now.isFull tail
+    then ss.tail <<-= tail >>! Exception ("StreamSource: closed")
+    else op tail
+  let value ss x =
+    doTail ss <| fun tail ->
+    let next = ivar ()
+    ss.tail <<-= next >>. (tail <-= Cons (x, next))
+  let error ss e = doTail ss <| fun tail -> tail <-=! e >>. (ss.tail <<-= tail)
+  let close ss = doTail ss <| fun tail -> tail <-= Nil >>. (ss.tail <<-= tail)
+  let tap ss = MVar.read ss.tail >>= IVar.read |> memo
 
 module Streams =
   let inline nil'<'x> = Alt.always Nil :> Streams<'x>
@@ -28,34 +63,21 @@ module Streams =
 
   let never<'x> = Alt.never () :> Streams<'x>
 
-  let inline memo x = Promise.Now.delayAsAlt x
-  let inline (>>=*) x f = x >>= f |> memo
-  let inline (|>>*) x f = x |>> f |> memo
-  let inline (<|>*) x y = x <|> y |> memo
-
   let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
-    if xs.MoveNext () then
-      Cons (xs.Current, ofEnum xs)
-    else
-      xs.Dispose ()
-      Nil
+    if xs.MoveNext () then Cons (xs.Current, ofEnum xs) else xs.Dispose () ; Nil
 
   let ofSeq (xs: seq<_>) = memo << Job.delay <| fun () ->
     upcast ofEnum (xs.GetEnumerator ())
 
-  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) = job {
-    let streams = ref (ivar ())
-    use unsubscribe = xs.Subscribe {new IObserver<_> with
-      override this.OnCompleted () = !streams <-= Nil |> start
-      override this.OnError (e) = !streams <-=! e |> start
-      override this.OnNext (value) =
-        let next = ivar ()
-        !streams <-= Cons (value, next) |> start
-        streams := next}
-    return! !streams |> xs2yJ :> Job<_>
-  }
+  let subscribingTo (xs: IObservable<'x>) xs2yJ = Job.delay <| fun () ->
+    let ss = StreamSource.create ()
+    Job.using (xs.Subscribe {new IObserver<_> with
+      override t.OnCompleted () = StreamSource.close ss |> start
+      override t.OnError (e) = StreamSource.error ss e |> start
+      override t.OnNext (v) = StreamSource.value ss v |> start}) <| fun _ ->
+    StreamSource.tap ss |> xs2yJ :> Job<_>
 
-  let toObservable (xs: Streams<'x>) : IObservable<'x> =
+  let toObservable xs =
     // XXX Use a better approach than naive locking.
     let subs = HashSet<IObserver<_>>()
     let inline iter f =
@@ -180,37 +202,20 @@ module Streams =
   let delayEachBy evt xs =
     mapJob (fun x -> evt >>% x) xs
 
-  let inline tryIn u2v vK eK =
-    let mutable e = null
-    let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
-    match e with
-     | null -> vK v
-     | e -> eK e
-
-  let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
-
   let groupBy (keyOf: 'x -> 'k) (ss: Streams<'x>) : Streams<'k * Streams<'x>> =
-    // Dictionary to hold the tail write once vars of categorized streams:
     let key2branch = Dictionary<'k, IVar<Stream<'x>>>()
-    // Ref cell to hold the tail write once var of the main result stream:
     let main = ref (ivar ())
-    // Serialized variable to hold the source stream:
     let baton = mvarFull ss
-    // Shared code to propagate exception to all result streams:
     let raised e =
       key2branch.Values
       |> Seq.iterJob (fun i -> i <-=! e) >>.
       (!main <-=! e) >>! e
-    // Shared code for the main and branch streams:
     let rec wrap self xs newK oldK =
-      // Selective sync op to get next element from a specific stream:
       (xs >>=? function Nil -> nil | Cons (x, xs) -> cons x (self xs)) <|>*
-      // Selective sync op to serve all the streams:
       (let rec serve ss =
          Job.tryIn ss
           <| function
               | Nil ->
-                // Source stream closed, so close all result streams:
                 key2branch.Values
                 |> Seq.iterJob (fun i -> i <-= Nil) >>.
                 (!main <-= Nil) >>% Nil
@@ -219,12 +224,10 @@ module Streams =
                  <| fun k ->
                       match key2branch.TryGetValue k with
                        | Just i ->
-                         // Push to previously created category:
                          let i' = ivar ()
                          key2branch.[k] <- i'
                          i <-= Cons (s, i') >>. oldK serve ss k s i'
                        | Nothing ->
-                         // Create & push to main a new category:
                          let i' = ivar ()
                          let i = ivarFull (Cons (s, i'))
                          key2branch.Add (k, i')
@@ -236,19 +239,15 @@ module Streams =
                  <| raised
           <| raised
        baton >>=? serve)
-    // Wrapper for branch streams:
     and wrapBranch k xs =
       wrap (wrapBranch k) xs
        <| fun serve ss _ _ -> serve ss
        <| fun serve ss k' x xs ->
-            // Did we get an element or do we continue serving?
             if k = k'
             then baton <<-= ss >>% Cons (x, wrapBranch k xs)
             else serve ss
-    // Wrapper for the main stream:
     let rec wrapMain xs =
       wrap wrapMain xs
        <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
-     // Return the main branch:
     !main |> wrapMain

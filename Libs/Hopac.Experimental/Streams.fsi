@@ -11,6 +11,17 @@ type Stream<'x> =
 
 type Streams<'x> = Alt<Stream<'x>>
 
+type StreamSource<'x>
+
+module StreamSource =
+  val create: unit -> StreamSource<'x>
+
+  val value: StreamSource<'x> -> 'x -> Alt<unit>
+  val error: StreamSource<'x> -> exn -> Alt<unit>
+  val close: StreamSource<'x> -> Alt<unit>
+
+  val tap: StreamSource<'x> -> Streams<'x>
+
 module Streams =
   val zero<'x> : Streams<'x>
   val one: 'x -> Streams<'x>
