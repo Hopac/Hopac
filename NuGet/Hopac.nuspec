@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac</id>
-    <version>0.0.0.31</version>
+    <version>0.0.0.32</version>
     <title>Hopac</title>
     <summary>A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -11,7 +11,8 @@
     <projectUrl>https://github.com/VesaKarvonen/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
-    <releaseNotes>0.0.0.31: Fixed bug in delayed promises as selective operations.
+    <releaseNotes>0.0.0.32: Attempt to work around an inlining issue with Alt.never calls.
+0.0.0.31: Fixed bug in delayed promises as selective operations.
 0.0.0.30: Added non-operator versions of bind, map and wrap for convenience.
 0.0.0.30: Reintroduced lazy promises.
 0.0.0.30: Enhanced timeOut to work with zero and infinite time spans.
