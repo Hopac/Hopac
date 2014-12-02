@@ -889,20 +889,46 @@ module Job =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a first-class synchronous operation.
+/// Represents a first-class selective synchronous operation.
 ///
 /// The inspiration for alternatives comes from the events of Concurrent ML.
 /// The term ''alternative'' was chosen, because the term ''event'' is already
 /// widely used in .Net.
 ///
 /// Simpler forms of selective synchronization exists in various languages.  For
-/// example, the occam language has an `alt` statement and the Go language has a
-/// `select` statement.  In Hopac and Concurrent ML, selective synchronous
-/// operations are not limited to primitive message passing operations (see
-/// `Ch.Alt.give` and `Ch.Alt.take`), but are instead first-class values (see
-/// `choose`) and can be extended with user-defined code (see `wrap` and
-/// `withNack`) allowing the encapsulation of concurrent protocols as selective
-/// synchronous operations.
+/// example, the occam language has an `alt` statement, the Go language has a
+/// `select` statement and Clojure's core.async has an `alt` function.  In Hopac
+/// and Concurrent ML, selective synchronous operations are not limited to
+/// primitive message passing operations (see `Ch.Alt.give` and `Ch.Alt.take`),
+/// but are instead first-class values (see `choose`) and can be extended with
+/// user-defined code (see `wrap` and `withNack`) allowing the encapsulation of
+/// concurrent protocols as selective synchronous operations.
+///
+/// The idea of alternatives is to allow one to introduce new selective
+/// synchronous operations to be used with non-determinic choice aka `choose`.
+/// Obviously, when you have a concurrent server that responds to some protocol,
+/// you don't have to perform the protocol as a selective synchronous operation.
+/// However, if you do encapsulate the protocol as a selective synchronous
+/// operation, you can then combine the operation with other selective
+/// synchronous operations.  That is the essence of Hopac and CML.
+///
+/// If a selective synchronous operation is not committed to then it should have
+/// essentially no effect.  In order to create such alternatives, one may take
+/// advantage of idempotency, rendezvous and negative acknowledgments.  Here are
+/// few rules of thumb:
+///
+/// - If you don't need to send arguments to a server, you can synchronize on a
+/// `take` operation from the server's reply channel.
+///
+/// - If you have an idempotent operation, you can use `guard` to send the
+/// arguments and a write once variable to the server and then synchronize on
+/// the write once variable for the reply.
+///
+/// - If you have a non-idempotent operation, you can use `withNack` to send the
+/// arguments, negative acknowledgment token and a channel to the server and
+/// then synchronize on a `take` operation on the channel for the reply.
+///
+/// See `withNack` for an illustrative toy example.
 ///
 /// Note that `Alt` is a subtype of `Job`.  You can use an alternative in any
 /// context that requires a job and `xA >>= fun x -> ...` is equivalent to `pick
@@ -983,9 +1009,10 @@ module Alt =
   ///
   /// Here is a simple example of an operation encapsulated using `withNack`.
   /// The idea is that we have a server that maintains a counter.  Clients can
-  /// request the server to increment the counter and return the incremented
-  /// counter value.  We further want to make it so that in case the client does
-  /// not commit to the operation, the counter in the server is not updated.
+  /// request the server to increment the counter by a specific amount and
+  /// return the incremented counter value.  We further want to make it so that
+  /// in case the client does not commit to the operation, the counter in the
+  /// server is not updated.
   ///
   /// Here is the server communication channel and the server loop:
   ///
@@ -1009,10 +1036,11 @@ module Alt =
   ///>   upcast replyCh
   ///
   /// The client side operation just sends the negative acknowledgment to the
-  /// server as a part of the request.  It is essential that a channel, rather
-  /// than a write once variable, is used for the reply.  It is also a good idea
-  /// to avoid blocking inside `withNack`, which is why an asynchronous send is
-  /// used inside the client side operation.
+  /// server as a part of the request.  It is essential that a synchronous
+  /// rendezvous via a channel, rather than e.g. a write once variable, is used
+  /// for the reply.  It is also important to avoid blocking inside `withNack`,
+  /// which is why an asynchronous send is used inside the client side
+  /// operation.
   ///
   /// Note that if an alternative created with `withNack` is not instantiated,
   /// then no negative acknowledgment is created.  For example, given an
