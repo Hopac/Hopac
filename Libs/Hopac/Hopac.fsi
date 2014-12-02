@@ -952,7 +952,7 @@ module Alt =
   /// Creates an alternative that is never available for picking.
   ///
   /// Note that `pick (never ())` is equivalent to `abort ()`.
-  val never: unit -> Alt<'x>
+  val inline never: unit -> Alt<'x>
 
   /// Return an alternative that is never available for picking.  `zero ()` is
   /// an optimized version of `never ()`.

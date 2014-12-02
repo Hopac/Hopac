@@ -214,7 +214,7 @@ module Alt =
 
   let inline unit () = StaticData.unit
 
-  let never () = Never<_>() :> Alt<_>
+  let inline never () = Never<_>() :> Alt<_>
 
   let inline zero () = StaticData.zero
 
