@@ -1531,7 +1531,8 @@ module Latch =
 /// the job to access the shared state.  The `fill` operation then gives that
 /// permission to the next job that wants to access the shared state.
 ///
-/// The following example illustrates the idea of passing a permission token:
+/// Here is an implementation of a synchronization object similar to the .Net
+/// `AutoResetEvent` using serialized variables:
 ///
 ///> type AutoResetEvent (init: bool) =
 ///>   let set = if init then mvarFull () else mvar ()
@@ -1539,9 +1540,9 @@ module Latch =
 ///>   member this.Set = unset <|> set >>= MVar.fill set
 ///>   member this.Wait = set >>=? MVar.fill unset
 ///
-/// The above example implements a synchronization object similar to the .Net
-/// `AutoResetEvent` using two serialized variables of which at most one holds
-/// the unit value at any time.
+/// The idea is to use two serialized variables to represent the state of the
+/// synchronization object.  At most one of the variables, representing the
+/// state of the synchronization object, is full at any time.
 ///
 /// Note that `MVar` is a subtype of `Alt` and `xM :> Alt<'x>` is equivalent to
 /// `MVar.Alt.take xM`.
