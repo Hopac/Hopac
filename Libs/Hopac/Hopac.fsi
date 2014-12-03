@@ -917,23 +917,23 @@ module Job =
 /// advantage of idempotency, rendezvous and negative acknowledgments.  Here are
 /// few rules of thumb:
 ///
-/// - If you don't need to send arguments to the server, you can synchronize on
-/// a `take` operation from the server's reply channel.  E.g. an operation to
-/// take an element from a concurrent buffer.
+/// - If you don't need to send arguments to the server, you can synchronize
+/// using a `take` operation on the server's reply channel.  E.g. an operation
+/// to take an element from a concurrent buffer.
 ///
-/// - If you need a result from the server, aside from acknowledgment that the
-/// operation has been performed, you can synchronize on a `give` operation on
-/// the server's request channel.  E.g. an operation to remove a specified
-/// element from a concurrent bag.
+/// - If you don't need a result from the server, aside from acknowledgment that
+/// the operation has been performed, you can synchronize using a `give`
+/// operation on the server's request channel.  E.g. an operation to remove a
+/// specified element from a concurrent bag.
 ///
 /// - If you have an idempotent operation, you can use `guard` to send the
-/// arguments and a write once variable to the server and then synchronize on
-/// the write once variable for the reply.  E.g. request to receive a timeout
-/// event.
+/// arguments and a write once variable to the server and then synchronize using
+/// a `read` operation on the write once variable for the reply.  E.g. request
+/// to receive a timeout event.
 ///
 /// - If you have a non-idempotent operation, you can use `withNack` to send the
 /// arguments, negative acknowledgment token and a channel to the server and
-/// then synchronize on a `take` operation on the channel for the reply.  See
+/// then synchronize using a `take` operation on the channel for the reply.  See
 /// `withNack` for an illustrative toy example.
 ///
 /// Note that `Alt` is a subtype of `Job`.  You can use an alternative in any
