@@ -647,7 +647,7 @@ for a second and then prints a given message:
 ```fsharp
 let hello what = job {
   for i=1 to 3 do
-    do! Job.sleep (TimeSpan.FromSeconds 1.0)
+    do! Timer.Global.sleep (TimeSpan.FromSeconds 1.0)
     do printfn "%s" what
 }
 ```
@@ -657,7 +657,7 @@ Let's then start two such jobs roughly half a second a part:
 ```fsharp
 > run <| job {
   do! Job.start (hello "Hello, from a job!")
-  do! Job.sleep (TimeSpan.FromSeconds 0.5)
+  do! Timer.Global.sleep (TimeSpan.FromSeconds 0.5)
   do! Job.start (hello "Hello, from another job!")
 } ;;
 val it : unit = ()
@@ -681,7 +681,7 @@ allows a parent job to wait for a child job:
 ```fsharp
 > run <| job {
   let! j1 = Promise.start (hello "Hello, from a job!")
-  do! Job.sleep (TimeSpan.FromSeconds 0.5)
+  do! Timer.Global.sleep (TimeSpan.FromSeconds 0.5)
   let! j2 = Promise.start (hello "Hello, from another job!")
   do! Promise.read j1
   do! Promise.read j2
@@ -709,7 +709,7 @@ mechanism:
 ```fsharp
 > run <| job {
   let! j1 = Promise.start (hello "Hello, from a job!")
-  do! Job.sleep (TimeSpan.FromSeconds 0.5)
+  do! Timer.Global.sleep (TimeSpan.FromSeconds 0.5)
   let! j2 = Promise.start (hello "Hello, from another job!")
   do! Alt.select
        [Promise.Alt.read j1 >>=? fun () ->
@@ -743,9 +743,9 @@ for starting and waiting for a sequence of jobs.  In this case we don't care
 about the results of the jobs, so `Job.conIgnore` is what we use:
 
 ```fsharp
-> [Job.sleep (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
-   Job.sleep (TimeSpan.FromSeconds 0.3) >>. hello "Hello, from second job!" ;
-   Job.sleep (TimeSpan.FromSeconds 0.6) >>. hello "Hello, from third job"]
+> [Timer.Global.sleep (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
+   Timer.Global.sleep (TimeSpan.FromSeconds 0.3) >>. hello "Hello, from second job!" ;
+   Timer.Global.sleep (TimeSpan.FromSeconds 0.6) >>. hello "Hello, from third job"]
 |> Job.conIgnore |> run ;;
 Hello, from first job!
 Hello, from second job!
@@ -1511,7 +1511,7 @@ Or a client could use a timeout to avoid waiting indefinitely for a lock:
 
 ```fsharp
 Alt.select [acquire server lock >>=? (* critical section *)
-            timeOut duration >>=? (* do something else *)]
+            Timer.Global.timeOut duration >>=? (* do something else *)]
 ```
 
 What is important here is that the `acquire` alternative must work correctly
