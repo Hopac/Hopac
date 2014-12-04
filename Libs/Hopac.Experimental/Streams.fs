@@ -32,16 +32,14 @@ type Stream<'x> =
 
 type Streams<'x> = Alt<Stream<'x>>
 
-type StreamSource<'x> = {
-    tail: MVar<IVar<Stream<'x>>>
-  }
+type StreamSrc<'x> = {tail: MVar<IVar<Stream<'x>>>}
 
-module StreamSource =
+module StreamSrc =
   let create () = {tail = mvarFull (ivar ())}
   let inline doTail ss op =
     ss.tail >>=? fun tail ->
     if IVar.Now.isFull tail
-    then ss.tail <<-= tail >>! Exception ("StreamSource: closed")
+    then ss.tail <<-= tail >>! Exception ("StreamSrc: closed")
     else op tail
   let value ss x =
     doTail ss <| fun tail ->
@@ -50,6 +48,18 @@ module StreamSource =
   let error ss e = doTail ss <| fun tail -> tail <-=! e >>. (ss.tail <<-= tail)
   let close ss = doTail ss <| fun tail -> tail <-= Nil >>. (ss.tail <<-= tail)
   let tap ss = MVar.read ss.tail >>= IVar.read |> memo
+
+type StreamVar<'x> = {state: MVar<'x * IVar<Stream<'x>>>}
+
+module StreamVar =
+  let create x = {state = mvarFull (x, ivar ())}
+  let updateJob sv x2xJ =
+    sv.state >>=? fun (x, n) ->
+    x2xJ x >>= fun x' ->
+    let n' = ivar ()
+    n <-= Cons (x', n') >>. (sv.state <<-= (x', n'))
+  let updateFun sv x2x = updateJob sv (x2x >> Job.result)
+  let tap sv = MVar.read sv.state |>> (fun (x, n) -> Cons (x, n)) |> memo
 
 module Streams =
   let inline nil'<'x> = Alt.always Nil :> Streams<'x>
@@ -70,12 +80,12 @@ module Streams =
     upcast ofEnum (xs.GetEnumerator ())
 
   let subscribingTo (xs: IObservable<'x>) xs2yJ = Job.delay <| fun () ->
-    let ss = StreamSource.create ()
+    let ss = StreamSrc.create ()
     Job.using (xs.Subscribe {new IObserver<_> with
-      override t.OnCompleted () = StreamSource.close ss |> start
-      override t.OnError (e) = StreamSource.error ss e |> start
-      override t.OnNext (v) = StreamSource.value ss v |> start}) <| fun _ ->
-    StreamSource.tap ss |> xs2yJ :> Job<_>
+      override t.OnCompleted () = StreamSrc.close ss |> start
+      override t.OnError (e) = StreamSrc.error ss e |> start
+      override t.OnNext (v) = StreamSrc.value ss v |> start}) <| fun _ ->
+    StreamSrc.tap ss |> xs2yJ :> Job<_>
 
   let toObservable xs =
     // XXX Use a better approach than naive locking.
