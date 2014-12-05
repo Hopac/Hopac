@@ -75,7 +75,8 @@ module Streams =
 
   val catchOnce: (exn -> Streams<'x>) -> Streams<'x> -> Streams<'x>
 
-  val collectLatest: ('x -> Streams<'y>) -> Streams<'x> -> Streams<'y>
+  val collectLatestJob: ('x -> #Job<Streams<'y>>) -> Streams<'x> -> Streams<'y>
+  val collectLatestFun: ('x ->      Streams<'y> ) -> Streams<'x> -> Streams<'y>
 
   val throttle: timeout: Alt<_> -> Streams<'x> -> Streams<'x>
 
@@ -90,6 +91,7 @@ module Streams =
 
   val delayEachBy: Job<_> -> Streams<'x> -> Streams<'x>
 
-  val groupBy: ('x -> 'k) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality
+  val groupByJob: ('x -> #Job<'k>) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality
+  val groupByFun: ('x ->      'k ) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality
 
   val sample: ticks: Streams<_> -> Streams<'x> -> Streams<'x>
