@@ -261,3 +261,11 @@ module Streams =
        <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
     !main |> wrapMain
+
+  let rec sample ts xs = sampleGot0 ts xs |> memo
+  and sampleGot0 ts xs =
+    (ts >>=? function Nil -> nil | Cons (_, ts) -> sampleGot0 ts xs) <|>
+    (xs >>=? function Nil -> nil | Cons (x, xs) -> sampleGot1 ts x xs)
+  and sampleGot1 ts x xs =
+    (ts >>=? function Nil -> nil | Cons (_, ts) -> cons x (sample ts xs)) <|>
+    (xs >>=? function Nil -> nil | Cons (x, xs) -> sampleGot1 ts x xs)

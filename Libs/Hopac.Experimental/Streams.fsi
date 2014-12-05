@@ -77,7 +77,7 @@ module Streams =
 
   val collectLatest: ('x -> Streams<'y>) -> Streams<'x> -> Streams<'y>
 
-  val throttle: Alt<_> -> Streams<'x> -> Streams<'x>
+  val throttle: timeout: Alt<_> -> Streams<'x> -> Streams<'x>
 
   val zipWithJob: ('x -> 'y -> #Job<'z>) -> Streams<'x> -> Streams<'y> -> Streams<'z>
   val zipWithFun: ('x -> 'y ->      'z ) -> Streams<'x> -> Streams<'y> -> Streams<'z>
@@ -91,3 +91,5 @@ module Streams =
   val delayEachBy: Job<_> -> Streams<'x> -> Streams<'x>
 
   val groupBy: ('x -> 'k) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality
+
+  val sample: ticks: Streams<_> -> Streams<'x> -> Streams<'x>
