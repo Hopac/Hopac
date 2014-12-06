@@ -113,11 +113,10 @@ module Streams =
   let inline mapc c xs = xs >>=? function Nil -> nil | Cons (x, xs) -> c x xs :> Job<_>
   let inline mapcm c xs = mapc c xs |> memo
 
-  let rec merge ls rs =
-    mergeSwap ls rs <|>* mergeSwap rs ls
-  and mergeSwap ls rs =
-    ls >>=? function Nil -> upcast rs
-                   | Cons (l, ls) -> cons l (merge rs ls)
+  let amb ls rs = mapc cons ls <|>* mapc cons rs
+  let rec merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
+  and mergeSwap ls rs = ls >>=? function Nil -> upcast rs
+                                       | Cons (l, ls) -> cons l (merge rs ls)
 
   let rec append (ls: Streams<_>) (rs: Streams<_>) =
     ls >>=* function Nil -> upcast rs

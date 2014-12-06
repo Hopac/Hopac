@@ -47,6 +47,7 @@ module Streams =
 
   val toObservable: Streams<'x> -> IObservable<'x>
 
+  val amb: Streams<'x> -> Streams<'x> -> Streams<'x>
   val merge: Streams<'x> -> Streams<'x> -> Streams<'x>
   val append: Streams<'x> -> Streams<'x> -> Streams<'x>
 
