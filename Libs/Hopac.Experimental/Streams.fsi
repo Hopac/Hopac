@@ -81,6 +81,9 @@ module Streams =
 
   val throttle: timeout: Alt<_> -> Streams<'x> -> Streams<'x>
 
+  val combineLatestWithJob: ('x -> 'y -> #Job<'z>) -> Streams<'x> -> Streams<'y> -> Streams<'z>
+  val combineLatestWithFun: ('x -> 'y ->      'z ) -> Streams<'x> -> Streams<'y> -> Streams<'z>
+
   val zipWithJob: ('x -> 'y -> #Job<'z>) -> Streams<'x> -> Streams<'y> -> Streams<'z>
   val zipWithFun: ('x -> 'y ->      'z ) -> Streams<'x> -> Streams<'y> -> Streams<'z>
 

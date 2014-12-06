@@ -171,13 +171,20 @@ module Streams =
     (xs >>=? function Nil -> cons x zero
                     | Cons (x, xs) -> throttleGot1 timeout x xs)
 
-  let rec zipXY f x xs y ys =
-    f x y >>= fun z -> cons z (zipY f xs y ys <|>* zipX f ys x xs)
-  and zipYX f y ys x xs =
-    f x y >>= fun z -> cons z (zipX f ys x xs <|>* zipY f xs y ys)
-  and zipX f ys x xs = mapc (zipXY f x xs) ys
-  and zipY f xs y ys = mapc (zipYX f y ys) xs
-  let zipWithJob f xs ys = mapc (zipX f ys) xs <|>* mapc (zipY f xs) ys
+  let rec clXY f x xs y ys =
+    f x y >>= fun z -> cons z (clY f xs y ys <|>* clX f ys x xs)
+  and clYX f y ys x xs =
+    f x y >>= fun z -> cons z (clX f ys x xs <|>* clY f xs y ys)
+  and clX f ys x xs = mapc (clXY f x xs) ys
+  and clY f xs y ys = mapc (clYX f y ys) xs
+  let combineLatestWithJob f xs ys = mapc (clX f ys) xs <|>* mapc (clY f xs) ys
+  let combineLatestWithFun f xs ys =
+    combineLatestWithJob (fun x y -> f x y |> Job.result) xs ys
+
+  let rec zipXY f x y xs ys = f x y >>= fun z -> cons z (zipWithJob f xs ys)
+  and zipX f ys x xs = mapc (fun y ys -> zipXY f x y xs ys) ys
+  and zipY f xs y ys = mapc (fun x xs -> zipXY f x y xs ys) xs
+  and zipWithJob f xs ys = mapc (zipX f ys) xs <|>* mapc (zipY f xs) ys
   let zipWithFun f xs ys = zipWithJob (fun x y -> f x y |> Job.result) xs ys
 
   let rec scanJob f s xs =
