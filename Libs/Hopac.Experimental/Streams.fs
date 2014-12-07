@@ -108,7 +108,9 @@ module Streams =
          override this.Dispose () =
           lock subs <| fun () -> subs.Remove xS |> ignore}}
 
-  let rec ofAlt (xA: Alt<_>) = xA |>>* fun x -> Cons (x, ofAlt xA)
+  let rec foreverJob xJ = xJ |>>* fun x -> Cons (x, foreverJob xJ)
+
+  let onceJob xJ = xJ |>>* fun x -> Cons (x, nil)
 
   let inline mapnc n (c: _ -> _ -> #Job<_>) xs =
     xs >>=? function Nil -> n | Cons (x, xs) -> c x xs
@@ -117,17 +119,10 @@ module Streams =
   let inline mapc c xs = xs >>=? mapC c
   let inline mapcm c xs = mapc c xs |> memo
 
-  let amb ls rs = mapc cons ls <|>* mapc cons rs
-
-  let rec merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
-  and mergeSwap ls rs = mapnc rs (fun l ls -> cons l (merge rs ls)) ls
-
-  let rec append ls rs = mapnc rs (fun l ls -> cons l (append ls rs)) ls
-
   let rec chooseJob x2yOJ xs =
     mapcm (fun x xs ->
-             x2yOJ x >>= function None -> chooseJob x2yOJ xs
-                                | Some y -> cons y (chooseJob x2yOJ xs)) xs
+             let n = chooseJob x2yOJ xs
+             x2yOJ x >>= function None -> n | Some y -> cons y n) xs
   let chooseFun x2yO xs = chooseJob (x2yO >> Job.result) xs
 
   let filterJob x2bJ xs =
@@ -137,36 +132,42 @@ module Streams =
   let mapJob x2yJ xs = chooseJob (x2yJ >> Job.map Some) xs
   let mapFun x2y xs = mapJob (x2y >> Job.result) xs
 
-  let rec joinWithJob (join: Streams<'x> -> Streams<'y> -> #Job<Streams<'y>>)
-                      (xxs: Streams<Streams<'x>>) =
-    mapcm (fun xs xxs -> join xs (joinWithJob join xxs) |> Job.join) xxs
-  let joinWithFun join xxs = joinWithJob (fun a b -> join a b |> Job.result) xxs
+  let amb ls rs = mapc cons ls <|>* mapc cons rs
 
-  let mergeMapJob x2ysJ xs = xs |> mapJob x2ysJ |> joinWithFun merge
-  let mergeMapFun x2ys xs = xs |> mapFun x2ys |> joinWithFun merge
+  let rec mergeSwap ls rs = mapnc rs (fun l ls -> cons l (merge rs ls)) ls
+  and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
 
-  let appendMapJob x2ysJ xs = xs |> mapJob x2ysJ |> joinWithFun append
-  let appendMapFun x2ys xs = xs |> mapFun x2ys |> joinWithFun append
+  let rec append ls rs = mapnc rs (fun l ls -> cons l (append ls rs)) ls
+
+  let rec switch ls rs = rs <|>* mapc (fun l ls -> cons l (switch ls rs)) ls
+
+  let rec joinWith (join: Streams<'x> -> Streams<'y> -> Streams<'y>)
+                   (xxs: Streams<Streams<'x>>) =
+    mapcm (fun xs xxs -> join xs (joinWith join xxs)) xxs
+
+  let mapJoin join x2ys xs = xs |> mapFun x2ys |> joinWith join
+
+  let ambMap x2ys xs = mapJoin amb x2ys xs
+  let mergeMap x2ys xs = mapJoin merge x2ys xs
+  let appendMap x2ys xs = mapJoin append x2ys xs
+  let switchMap x2ys xs = mapJoin switch x2ys xs
 
   let rec skipUntil evt xs =
     (evt >>=? fun _ -> xs) <|>* mapc (fun _ -> skipUntil evt) xs
 
-  let rec switchOn ys xs = ys <|>* mapc (fun x xs -> cons x (switchOn ys xs)) xs
-
-  let takeUntil evt xs = switchOn (evt >>%? Nil) xs
+  let switchOn rs ls = switch ls rs
+  let takeUntil evt xs = switch xs (evt >>%? Nil)
 
   let rec catchOnce (e2xs: _ -> Streams<_>) xs =
     Job.tryIn xs (mapC (fun x xs -> cons x (catchOnce e2xs xs))) e2xs |> memo
 
-  let rec collectLatestJob (x2ysJ: 'x -> #Job<Streams<'y>>) xs =
-    mapcm (fun x xs -> x2ysJ x >>= fun ys ->
-             append (takeUntil xs ys) (collectLatestJob x2ysJ xs)) xs
-  let collectLatestFun f xs = collectLatestJob (f >> Job.result) xs
+  let rec catch (e2xs: _ -> Streams<_>) xs =
+    catchOnce (fun e -> catch e2xs (e2xs e)) xs
 
-  let rec throttle timeout xs = mapcm (throttleGot1 timeout) xs
-  and throttleGot1 timeout x xs =
+  let rec throttleGot1 timeout x xs =
     (timeout >>=? fun _ -> cons x (throttle timeout xs)) <|>?
     (xs >>=? function Nil -> one x | Cons (x, xs) -> throttleGot1 timeout x xs)
+  and throttle timeout xs = mapcm (throttleGot1 timeout) xs
 
   let rec clXY f x xs y ys =
     f x y >>= fun z -> cons z (clY f xs y ys <|>* clX f ys x xs)
@@ -188,15 +189,35 @@ module Streams =
     cons s (mapcm (fun x xs -> f s x >>= fun s -> scanJob f s xs) xs)
   let scanFun f s xs = scanJob (fun s x -> f s x |> Job.result) s xs
 
+  let rec foldJob f s xs =
+    xs >>= function Nil -> Job.result s
+                  | Cons (x, xs) -> f s x >>= fun s -> foldJob f s xs
+  let foldFun f s xs = foldJob (fun s x -> f s x |> Job.result) s xs
+
+  let count xs = foldFun (fun s _ -> s+1) 0 xs |> memo
+
   let rec iterJob x2uJ xs =
     mapnc (Job.unit ()) (fun x xs -> x2uJ x >>. iterJob x2uJ xs) xs :> Job<_>
   let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
 
-  let collectAllAsSeq xs = Job.delay <| fun () ->
+  let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray<_>()
-    iterFun ys.Add xs >>% (ys :> seq<_>)
+    iterFun ys.Add xs >>% ys
 
   let delayEachBy evt xs = mapJob (fun x -> evt >>% x) xs
+
+  let distinctByJob x2kJ xs = memo << Job.delay <| fun () ->
+    let ks = HashSet<_>() in filterJob (x2kJ >> Job.map ks.Add) xs
+  let distinctByFun x2k xs = distinctByJob (Job.lift x2k) xs
+
+  let updateRef xR x = if !xR = x then false else xR := x ; true
+  let distinctUntilChangedByJob x2kJ xs = // XXX rewrite
+    mapcm (fun x xs ->
+             x2kJ x >>= fun k ->
+             let kR = ref k
+             cons x (filterJob (x2kJ >> Job.map (updateRef kR)) xs)) xs
+  let distinctUntilChangedByFun x2k xs =
+    distinctUntilChangedByJob (Job.lift x2k) xs
 
   let groupByJob (keyOf: 'x -> #Job<'k>) ss =
     let key2br = Dictionary<'k, IVar<Stream<'x>>>()
@@ -247,11 +268,24 @@ module Streams =
     !main |> wrapMain
   let groupByFun keyOf ss = groupByJob (keyOf >> Job.result) ss
 
-  let rec sample ts xs = sampleGot0 ts xs |> memo
-  and sampleGot0 ts xs =
+  let rec sampleGot0 ts xs =
     mapc (fun _ ts -> sampleGot0 ts xs) ts <|> mapc (sampleGot1 ts) xs
   and sampleGot1 ts x xs =
     mapc (fun _ ts -> cons x (sample ts xs)) ts <|> mapc (sampleGot1 ts) xs
+  and sample ts xs = sampleGot0 ts xs |> memo
 
   let rec skip' n xs = if 0 < n then mapc (fun _ -> skip' (n-1)) xs else xs
   let skip n xs = if n < 0 then failwith "skip: n < 0" else skip' n xs |> memo
+
+  let rec take' n xs =
+    if 0 < n then mapcm (fun x -> cons x << take' (n-1)) xs else nil
+  let take n xs = if n < 0 then failwith "take: n < 0" else take' n xs
+
+  let inline mapcnm f (xs: Streams<_>) =
+    xs >>=* function Nil -> failwith "empty" | Cons (x, xs) -> f x xs
+
+  let head xs = mapcnm (fun x _ -> Job.result x) xs
+  let tail xs = skip 1 xs
+  let single xs =
+    mapcnm (fun x xs -> xs |>> function Nil -> x | _ -> failwith "single") xs
+  let last xs = mapcnm (foldFun (fun _ x -> x)) xs
