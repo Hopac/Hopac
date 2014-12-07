@@ -33,10 +33,12 @@ module StreamVar =
   val tap: StreamVar<'x> -> Streams<'x>
 
 module Streams =
-  val zero<'x> : Streams<'x>
-  val one: 'x -> Streams<'x>
+  val inline never<'x> : Streams<'x>
 
-  val never<'x> : Streams<'x>
+  val inline nil<'x> : Streams<'x>
+  val cons: 'x -> Streams<'x> -> Streams<'x>
+
+  val one: 'x -> Streams<'x>
 
   val ofSeq: seq<'x> -> Streams<'x>
   val ofAlt: Alt<'x> -> Streams<'x>
@@ -99,3 +101,5 @@ module Streams =
   val groupByFun: ('x ->      'k ) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality
 
   val sample: ticks: Streams<_> -> Streams<'x> -> Streams<'x>
+
+  val skip: int -> Streams<'x> -> Streams<'x>
