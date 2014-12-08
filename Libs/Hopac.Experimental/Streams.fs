@@ -165,21 +165,21 @@ module Streams =
     catchOnce (fun e -> catch e2xs (e2xs e)) xs
 
   let rec throttleGot1 timeout x xs =
-    (timeout >>=? fun _ -> cons x (throttle timeout xs)) <|>?
+    (timeout |>>? fun _ -> Cons (x, throttle timeout xs)) <|>?
     (xs >>=? function Nil -> one x | Cons (x, xs) -> throttleGot1 timeout x xs)
   and throttle timeout xs = mapcm (throttleGot1 timeout) xs
 
   let rec clXY f x xs y ys =
-    f x y >>= fun z -> cons z (clY f xs y ys <|>* clX f ys x xs)
+    f x y |>> fun z -> Cons (z, clY f xs y ys <|>* clX f ys x xs)
   and clYX f y ys x xs =
-    f x y >>= fun z -> cons z (clX f ys x xs <|>* clY f xs y ys)
+    f x y |>> fun z -> Cons (z, clX f ys x xs <|>* clY f xs y ys)
   and clX f ys x xs = mapc (clXY f x xs) ys
   and clY f xs y ys = mapc (clYX f y ys) xs
   let combineLatestWithJob f xs ys = mapc (clX f ys) xs <|>* mapc (clY f xs) ys
   let combineLatestWithFun f xs ys =
     combineLatestWithJob (fun x y -> f x y |> Job.result) xs ys
 
-  let rec zipXY f x y xs ys = f x y >>= fun z -> cons z (zipWithJob f xs ys)
+  let rec zipXY f x y xs ys = f x y |>> fun z -> Cons (z, zipWithJob f xs ys)
   and zipX f ys x xs = mapc (fun y ys -> zipXY f x y xs ys) ys
   and zipY f xs y ys = mapc (fun x xs -> zipXY f x y xs ys) xs
   and zipWithJob f xs ys = mapc (zipX f ys) xs <|>* mapc (zipY f xs) ys
@@ -289,3 +289,7 @@ module Streams =
   let single xs =
     mapcnm (fun x xs -> xs |>> function Nil -> x | _ -> failwith "single") xs
   let last xs = mapcnm (foldFun (fun _ x -> x)) xs
+
+  let rec unfoldJob f s =
+    f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
+  let unfoldFun f s = unfoldJob (Job.lift f) s

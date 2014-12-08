@@ -52,6 +52,9 @@ module Streams =
   val foreverJob: Job<'x> -> Streams<'x>
   val onceJob: Job<'x> -> Streams<'x>
 
+  val unfoldJob: ('s -> #Job<option<'x * 's>>) -> 's -> Streams<'x>
+  val unfoldFun: ('s ->      option<'x * 's> ) -> 's -> Streams<'x>
+
   // Observable
 
   val subscribingTo: IObservable<'x> -> (Streams<'x> -> #Job<'y>) -> Job<'y>
@@ -91,7 +94,8 @@ module Streams =
   val append: Streams<'x> -> Streams<'x> -> Streams<'x>
   val switch: Streams<'x> -> Streams<'x> -> Streams<'x>
 
-  val joinWith: (Streams<'x> -> Streams<'y> -> Streams<'y>) -> Streams<Streams<'x>> -> Streams<'y>
+  val joinWith: (Streams<'x> -> Streams<'y> -> Streams<'y>)
+             -> Streams<Streams<'x>> -> Streams<'y>
 
   val mapJoin: (Streams<'y> -> Streams<'z> -> Streams<'z>)
             -> ('x -> Streams<'y>)
