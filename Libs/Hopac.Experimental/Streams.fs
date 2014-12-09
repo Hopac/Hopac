@@ -293,3 +293,12 @@ module Streams =
   let rec unfoldJob f s =
     f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
   let unfoldFun f s = unfoldJob (Job.lift f) s
+
+  let atDateTimeOffsets dtos =
+    dtos
+    |> mapJob (fun dto ->
+       let ts = dto - DateTimeOffset.Now
+       if ts.Ticks <= 0L then Job.result dto else Timer.Global.sleep ts >>% dto)
+  let atDateTimeOffset dto = atDateTimeOffsets (one dto)
+
+  let afterTimeSpan ts = onceJob (Timer.Global.sleep ts)

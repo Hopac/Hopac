@@ -132,6 +132,11 @@ module Streams =
 
   val delayEachBy: Job<_> -> Streams<'x> -> Streams<'x>
 
+  val atDateTimeOffsets: Streams<DateTimeOffset> -> Streams<DateTimeOffset>
+  val atDateTimeOffset: DateTimeOffset -> Streams<DateTimeOffset>
+
+  val afterTimeSpan: TimeSpan -> Streams<unit>
+
   // Eliminating streams
 
   val toSeq: Streams<'x> -> Job<ResizeArray<'x>>
