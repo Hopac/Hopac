@@ -595,8 +595,8 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Implements the try-in-unless exception handling construct for jobs.  Both
-  /// of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
+  /// Implements the `try-in-unless` exception handling construct for jobs.
+  /// Both of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
   /// Job<'y>`, for failure, are invoked from a tail position.
 #if DOC
   ///
@@ -1134,7 +1134,7 @@ module Alt =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Implements the try-in-unless exception handling construct for
+  /// Implements the `try-in-unless` exception handling construct for
   /// alternatives.  Both of the continuation jobs `'x -> Job<'y>`, for success,
   /// and `exn -> Job<'y>`, for failure, are invoked from a tail position.
   ///
@@ -1146,6 +1146,37 @@ module Alt =
   /// Note you can also use function or job level exception handling before the
   /// commit point within the user code in a `guard`, `delay`, or `withNack`.
   val tryIn: Alt<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Alt<'y>
+
+  /// Implements a variation of the `try-finally` exception handling construct
+  /// for alternatives.  The given action, specified as a function, is executed
+  /// after the alternative has been committed to, whether the alternative fails
+  /// or completes successfully.  Note that the action is not executed in case
+  /// the alternative is not committed to.  Use `withNack` to attach the action
+  /// to the non-committed case.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let tryFinallyFun xA u2u = tryFinallyJob xA (Job.thunk u2u)
+#endif
+  val tryFinallyFun: Alt<'x> -> (unit -> unit) -> Alt<'x>
+
+  /// Implements a variation of the `try-finally` exception handling construct
+  /// for alternatives.  The given action, specified as a job, is executed after
+  /// the alternative has been committed to, whether the alternative fails or
+  /// completes successfully.  Note that the action is not executed in case the
+  /// alternative is not committed to.  Use `withNack` to attach the action to
+  /// the non-committed case.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let tryFinallyJob xA uJ =
+  ///>   tryIn xA
+  ///>    <| fun x -> uJ >>% x
+  ///>    <| fun e -> uJ >>! e
+#endif
+  val tryFinallyJob: Alt<'x> -> Job<unit> -> Alt<'x>
 
   /////////////////////////////////////////////////////////////////////////////
 

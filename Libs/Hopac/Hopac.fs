@@ -60,6 +60,58 @@ module Util =
      wr.Handler <- yK
      (xK'.x2yJ x).DoJob (&wr, yK)
 
+  type TryFinallyFunCont<'x> =
+    inherit Cont<'x>
+    val u2u: unit -> unit
+    val mutable xK: Cont<'x>
+    new (u2u, xK) = {inherit Cont<'x> (); u2u=u2u; xK=xK}
+    override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.xK)
+    override xK'.DoHandle (wr, e) =
+      let xK = xK'.xK
+      wr.Handler <- xK
+      xK'.u2u ()
+      Handler.DoHandle (xK, &wr, e)
+    override xK'.DoWork (wr) =
+      let xK = xK'.xK
+      wr.Handler <- xK
+      xK'.u2u ()
+      xK.DoCont (&wr, xK'.Value)
+    override xK'.DoCont (wr, x) =
+      let xK = xK'.xK
+      wr.Handler <- xK
+      xK'.u2u ()
+      xK.DoCont (&wr, x)
+
+  type DropCont<'x, 'y> =
+    inherit Cont<'y>
+    val mutable xK: Cont<'x>
+    new (xK) = {inherit Cont<'y> (); xK=xK}
+    override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.xK)
+    override yK'.DoHandle (wr, e) = Handler.DoHandle (yK'.xK, &wr, e)
+    override yK'.DoWork (wr) = yK'.xK.DoWork (&wr)
+    override yK'.DoCont (wr, _) = yK'.xK.DoWork (&wr)
+
+  type TryFinallyJobCont<'x> =
+    inherit Cont<'x>
+    val uJ: Job<unit>
+    val mutable xK: Cont<'x>
+    new (uJ, xK) = {inherit Cont<'x> (); uJ=uJ; xK=xK}
+    override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.xK)
+    override xK'.DoHandle (wr, e) =
+      let xK = xK'.xK
+      wr.Handler <- xK
+      xK'.uJ.DoJob (&wr, FailCont<unit> (xK, e))
+    override xK'.DoWork (wr) =
+      let xK = xK'.xK
+      wr.Handler <- xK
+      xK.Value <- xK'.Value
+      xK'.uJ.DoJob (&wr, DropCont<'x, unit> (xK))
+    override xK'.DoCont (wr, x) =
+      let xK = xK'.xK
+      wr.Handler <- xK
+      xK.Value <- x
+      xK'.uJ.DoJob (&wr, DropCont<'x, unit> (xK))
+
   type BindCont<'x, 'y> =
     inherit Cont<'x>
     val x2yJ: 'x -> Job<'y>
@@ -79,15 +131,6 @@ module Util =
     override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.yK, &wr, e)
     override xK'.DoWork (wr) = xK'.yK.DoCont (&wr, xK'.x2y xK'.Value)
     override xK'.DoCont (wr, x) = xK'.yK.DoCont (&wr, xK'.x2y x)
-
-  type DropCont<'x, 'y> =
-    inherit Cont<'y>
-    val mutable xK: Cont<'x>
-    new (xK) = {inherit Cont<'y> (); xK=xK}
-    override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.xK)
-    override yK'.DoHandle (wr, e) = Handler.DoHandle (yK'.xK, &wr, e)
-    override yK'.DoWork (wr) = yK'.xK.DoWork (&wr)
-    override yK'.DoCont (wr, _) = yK'.xK.DoWork (&wr)
 
   type ValueCont<'x, 'y> (y: 'y, yK: Cont<'y>) =
     inherit Cont<'x> ()
@@ -406,6 +449,34 @@ module Alt =
         override xE'.TryElse (wr, i) =
          wr.Handler <- yK
          yE.TryElse (&wr, i)})}
+
+  let tryFinallyFun (xA: Alt<'x>) (u2u: unit -> unit) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       let xK' = TryFinallyFunCont (u2u, xK)
+       wr.Handler <- xK'
+       xA.DoJob (&wr, xK')
+      override xA'.TryAlt (wr, i, xK, xE) =
+       let xK' = TryFinallyFunCont (u2u, xK)
+       wr.Handler <- xK'
+       xA.TryAlt (&wr, i, xK', {new Else (xE.pk) with
+        override xE'.TryElse (wr, i) =
+         wr.Handler <- xK
+         xE.TryElse (&wr, i)})}
+
+  let tryFinallyJob (xA: Alt<'x>) (uJ: Job<unit>) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       let xK' = TryFinallyJobCont (uJ, xK)
+       wr.Handler <- xK'
+       xA.DoJob (&wr, xK')
+      override xA'.TryAlt (wr, i, xK, xE) =
+       let xK' = TryFinallyJobCont (uJ, xK)
+       wr.Handler <- xK'
+       xA.TryAlt (&wr, i, xK', {new Else (xE.pk) with
+        override xE'.TryElse (wr, i) =
+         wr.Handler <- xK
+         xE.TryElse (&wr, i)})}
 
   let paranoid (xA: Alt<'x>) =
     {new Alt<'x> () with
@@ -824,45 +895,14 @@ module Job =
   let tryFinallyFun (xJ: Job<'x>) (u2u: unit -> unit) =
     {new Job<'x> () with
       override xJ'.DoJob (wr, xK_) =
-       let xK' = {new Cont_State<'x, _> (xK_) with
-        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-        override xK'.DoHandle (wr, e) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         u2u ()
-         Handler.DoHandle (xK, &wr, e)
-        override xK'.DoWork (wr) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         u2u ()
-         xK.DoCont (&wr, xK'.Value)
-        override xK'.DoCont (wr, x) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         u2u ()
-         xK.DoCont (&wr, x)}
+       let xK' = TryFinallyFunCont (u2u, xK_)
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
 
   let tryFinallyJob (xJ: Job<'x>) (uJ: Job<unit>) =
     {new Job<'x> () with
       override xJ'.DoJob (wr, xK_) =
-       let xK' = {new Cont_State<'x, _> (xK_) with
-        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-        override xK'.DoHandle (wr, e) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         uJ.DoJob (&wr, FailCont<unit> (xK, e))
-        override xK'.DoWork (wr) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         xK.Value <- xK'.Value
-         uJ.DoJob (&wr, DropCont<'x, unit> (xK))
-        override xK'.DoCont (wr, x) =
-         let xK = xK'.State
-         wr.Handler <- xK
-         xK.Value <- x
-         uJ.DoJob (&wr, DropCont<'x, unit> (xK))}
+       let xK' = TryFinallyJobCont (uJ, xK_)
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
 
