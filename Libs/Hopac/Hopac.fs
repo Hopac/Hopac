@@ -1660,6 +1660,29 @@ module Extensions =
            override xJ'.DoJob (wr, xK) =
             startIn context wr.Scheduler xA xK}
 
+    let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
+      Alt.withNack <| fun nack ->
+      {new Job<Alt<'x>> () with
+        override xJ'.DoJob (wr, xAK) =
+         let sr = wr.Scheduler
+         let rI = IVar.Now.create ()
+         let ts = new CancellationTokenSource ()
+         let success = IVar.fill rI >> Scheduler.start sr
+         let failure = IVar.fillFailure rI >> Scheduler.start sr
+         let inline start () =
+            Async.StartWithContinuations
+             (xA, success, failure, failure, ts.Token)
+         match context with
+          | null ->
+            ThreadPool.QueueUserWorkItem (fun _ -> start ()) |> ignore
+          | _ -> context.Post ((fun _ -> start ()), null)
+         nack.DoJob (&wr, {new Handler<unit, unit> () with
+          override uK'.DoWork (_) = ts.Cancel () ; ts.Dispose ()
+          override uK'.DoCont (_, _) = ts.Cancel () ; ts.Dispose ()})
+         xAK.DoCont (&wr, Alt.tryFinallyFun rI ts.Dispose)}
+
+    let toAlt (xA: Async<'x>) = toAltOn null xA
+
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
       assert (null <> sr)
       Async.FromContinuations <| fun (x2u, e2u, c2u) ->

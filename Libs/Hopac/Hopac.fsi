@@ -1917,22 +1917,44 @@ module Extensions =
 #endif
   module Async =
     /// Creates a job that starts the given async operation and then waits until
-    /// the started async operation finishes.
+    /// the operation finishes.
 #if DOC
     ///
     /// The async operation will be started on a Hopac worker thread, which
     /// means that the async operation will continue on the thread pool.
     /// Consider whether you need to call `Async.SwitchToContext` or some other
     /// thread or synchronization context switching async operation in your
-    /// async operation.  See also: `toJobOn`.
+    /// async operation.  See also: `toJobOn`, `toAlt`, `toAltOn`.
 #endif
     val toJob: Async<'x> -> Job<'x>
 
     /// Creates a job that posts the given async operation to the specified
-    /// synchronization context for execution and then waits until the started
-    /// async operation finishes.  As a special case, `toJobOn null xA` is
-    /// equivalent to `toJob xA`.
+    /// synchronization context for execution and then waits until the operation
+    /// finishes.  As a special case, `toJobOn null xA` is equivalent to `toJob
+    /// xA`.  See also: `toAlt`, `toAltOn`.
     val toJobOn: SynchronizationContext -> Async<'x> -> Job<'x>
+
+    /// Creates an alternative that, when instantiated, starts the given async
+    /// operation and then becomes enabled once the operation finishes.
+    /// Furthermore, in case the alternative is not committed to, the async
+    /// operation is cancelled.
+#if DOC
+    ///
+    /// The async operation will be started on a Hopac worker thread, which
+    /// means that the async operation will continue on the thread pool.
+    /// Consider whether you need to call `Async.SwitchToContext` or some other
+    /// thread or synchronization context switching async operation in your
+    /// async operation.  See also: `toJob`, `toJobOn`, `toAltOn`.
+#endif
+    val toAlt: Async<'x> -> Alt<'x>
+
+    /// Creates an alternative that, when instantiated, posts the given async
+    /// operation to the specified synchronization context for execution and
+    /// then becomes enabled once the operation finishes.  Furthermore, in case
+    /// the alternative is not committed to, the async operation is cancelled.
+    /// As a special case, `toAltOn null xA` is equivalent to `toAlt xA`.  See
+    /// also: `toJob`, `toJobOn`.
+    val toAltOn: SynchronizationContext -> Async<'x> -> Alt<'x>
 
     /// Creates an async operation that starts the given job on the specified
     /// scheduler and then waits until the started job finishes.  See also:
