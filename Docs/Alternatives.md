@@ -43,6 +43,9 @@ open System.Threading
 let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNack <| fun nack ->
   let rI = ivar ()
   let tokenSource = new CancellationTokenSource ()
+  let dispose () =
+    tokenSource.Dispose ()
+    // printfn "Dispose"
   let op = async {
       try
         let! x = xA
@@ -57,8 +60,9 @@ let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNack <| fun nack ->
   |>> fun () ->
         tokenSource.Cancel ()
         // printfn "Cancel"
+        dispose ()
   |> Job.start >>%
-  upcast rI
+  Alt.tryFinallyFun rI dispose
 ```
 
 Let's then use it to wrap `fetchAsync`:
