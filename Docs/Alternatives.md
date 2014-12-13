@@ -4,10 +4,10 @@ The F# `async` mechanism supports *cancellation* in the form of having a
 cancellation token carried along and checked by the async monad.  Hopac jobs do
 not implicitly carry or check any form of cancellation token.  On the other
 hand, the
-[synchronous channels](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch)
+[synchronous channels](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch)
 of Hopac support *rendezvous* and the alternative mechanism provides *negative
 acknowledgments* via the
-`withNack`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+`withNack`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
 combinator.  The idea is that alternatives represent *selective synchronous
 operations*.  When synchronizing on a choice of multiple alternatives, only one
 alternative will be *committed to*.  Relying on *idempotency*, *rendezvous*, or
@@ -91,7 +91,7 @@ let runAll () =
 ```
 
 we can also use
-`Alt.select`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select),
+`Alt.select`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select),
 for example, to start multiple fetches in parallel and then cancel the rest when
 the fastest one is completed:
 

@@ -82,11 +82,11 @@ module BoundedMb =
 Looking at the above signature, you may be wondering where is the support for
 timeouts or operations like `AddToAny` of `BlockingCollection`.  The answer is
 simply that special case support for those is not needed.  Hopac's alternative
-mechanism[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
+mechanism[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 already provides for those.  Because the `put` and `take` operations are
 provided as alternatives, a client can selectively synchronize on any number of
 operations on bounded mailboxes,
-timeouts[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+timeouts[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
 and other synchronous operations:
 
 ```fsharp
@@ -128,9 +128,9 @@ client-server programming technique.  `put` and `take` requests use separate
 channels.  Depending on the state of the underlying queue, the server responds
 to either only `get`, only `take` or both kinds of requests.  In a simple case
 like this, cancellation is already taken care of by the synchronous nature of
-channels[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).
+channels[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).
 In a more complex scenario, we would make use of the
-`withNack`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+`withNack`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
 combinator.
 
 Here is a sample interactive session with `BoundedMb`:

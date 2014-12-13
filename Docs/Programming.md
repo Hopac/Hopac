@@ -11,16 +11,16 @@ In the future, this document might grow to a proper introduction to Hopac.
 Feedback is welcome!
 
 The
-[Hopac.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
+[Hopac.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
 signature contains documentation comments on the Hopac primitives used in this
 document.  There is also a
-[Hopac Library Reference](http://vesakarvonen.github.io/Hopac/Hopac.html)
+[Hopac Library Reference](http://hopac.github.io/Hopac/Hopac.html)
 manual generated from the signature file and this documents links to specific
 Hopac primitives descriptions in the reference manual.  It is recommended that
 you open the Hopac solution in Visual Studio and start the F# interactive shell
 so that you can look at the documentation comments and quickly try out examples
 from this document.  You can use the
-[Hopac.fsx](https://github.com/VesaKarvonen/Hopac/blob/master/Hopac.fsx) script
+[Hopac.fsx](https://github.com/Hopac/Hopac/blob/master/Hopac.fsx) script
 to prepare an environment in which you should be able to directly evaluate
 example code from this document.
 
@@ -31,7 +31,7 @@ There are two central aspects of Hopac that shape the programming model.
 
 The first aspect is that, threads, which are called *jobs*, represented by the
 type
-`Job<'x>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Job),
+`Job<'x>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Job),
 in Hopac are extremely lightweight.  On modern machines you can start tens of
 millions of new jobs in a second.  Because a job takes only a very small amount
 of memory, starting from tens of bytes, a program may have millions of jobs on a
@@ -44,9 +44,9 @@ threads.
 The other aspect is that Hopac provides first-class, higher-order, selective,
 synchronous, lightweight, message passing primitives in the form of *channels*,
 represented by the type
-`Ch<'x>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch),
+`Ch<'x>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch),
 and *alternatives*, represented by the type
-`Alt<'x>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt),
+`Alt<'x>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt),
 for coordinating and communicating between jobs.  That is a mouthful!  Let's
 open it up a bit.
 
@@ -54,19 +54,19 @@ open it up a bit.
   They can be bound to variables, passed to and returned from functions and can
   even be sent from one job to another.
 * **Higher-order** means that primitive alternatives can be combined and
-  extended[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
   with user defined procedures to
-  build[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+  build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
   more
-  complex[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+  complex[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
   alternatives that encapsulate concurrent client-server protocols.
 * **Selective** means that a form of
-  choice[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
+  choice[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
   or disjunction between alternatives is supported.  An alternative can be
   constructed that, for example, offers to
-  give[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.give)
+  give[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.give)
   a message to another job *or*
-  take[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
+  take[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
   a message from another job.  The choice of which operation is performed then
   depends on whichever alternative becomes available at run time.
 * **Synchronous** means that rather than building up a queue of messages for
@@ -131,7 +131,7 @@ val put: Cell<'a> -> 'a -> Job<unit>
 ```
 
 The `cell` function creates a
-job[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Job)
+job[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Job)
 that creates a new storage cell.  The `get` function creates a job that returns
 the contents of the cell and the `put` function creates a job that updates the
 contents of the cell.
@@ -149,7 +149,7 @@ type Request<'a> =
 To communicate with the outside world, the server presents two channels: one
 channel for requests and another channel for replies required by the get
 operation.  The `Cell` type is a record of those two
-channels[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch):
+channels[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch):
 
 ```fsharp
 type Cell<'a> = {
@@ -159,9 +159,9 @@ type Cell<'a> = {
 ```
 
 The `put` operation is a
-job[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.job)
+job[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.job)
 that simply
-gives[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
+gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
 the `Put` request to the server via the request channel:
 
 ```fsharp
@@ -172,7 +172,7 @@ let put (c: Cell<'a>) (x: 'a) : Job<unit> = job {
 
 The `get` operation gives the `Get` request to the server via the request
 channel and then
-takes[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
+takes[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
 the server's reply from the reply channel:
 
 ```fsharp
@@ -183,7 +183,7 @@ let get (c: Cell<'a>) : Job<'a> = job {
 ```
 
 Finally, the `cell` operation actually creates the channels and
-starts[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.start)
+starts[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.start)
 the concurrent server job:
 
 ```fsharp
@@ -290,12 +290,12 @@ synchronous channels.
 #### On Notation
 
 There are two ways to write jobs in Hopac.  One way is to use the
-`job`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.job)
+`job`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.job)
 workflow builder like we did in the previous section.  The other way is to
 directly use the monadic combinators,
-`result`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
+`result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and bind,
-`>>=`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=),
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=),
 that the workflow builder abstracts away.  I personally mostly prefer using the
 monadic combinators with an occasional excursion with the workflow notation.  I
 have a number of reasons for this:
@@ -304,13 +304,13 @@ have a number of reasons for this:
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
 * There are many very commonly used monadic combinators,
-  e.g. `|>>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
+  e.g. `|>>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
   and
-  `>>%`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E%),
+  `>>%`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E%),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary
-  `delay`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.delay)
+  `delay`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.delay)
   operations the workflow notation introduces for safety reasons.
 
 I'm afraid that to fully explain all of these issues would require quite a bit
@@ -343,7 +343,7 @@ let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
 ```
 
 As you can see above, I've used
-`delay`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.delay)
+`delay`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.delay)
 only once and if you count the number of words and lines, you'll find out that
 that the code is more concise.  I personally find the monadic code roughly as
 readable as the workflow notation.
@@ -403,7 +403,7 @@ The idea for this implementation is that the server loop of storage cells
 creates an alternative that either takes a new value on a channel for `put`
 operations or gives the current value on a channel for `get` operations.  The
 cell type just consists of these
-channels[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch):
+channels[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch):
 
 ```fsharp
 type Cell<'a> = {
@@ -413,7 +413,7 @@ type Cell<'a> = {
 ```
 
 The `get` operation then simply
-takes[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
+takes[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
 a value on the `getCh` channel from the server of a cell:
 
 ```fsharp
@@ -421,7 +421,7 @@ let get (c: Cell<'a>) : Job<'a> = Ch.take c.getCh
 ```
 
 And the `put` operations
-gives[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
+gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
 a value to the server on the `putCh` channel of the cell server:
 
 ```fsharp
@@ -440,21 +440,21 @@ let cell x = Job.delay <| fun () ->
 ```
 
 In the server loop, the above implementation uses
-selective[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
+selective[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
 communication.  It uses a
-choice[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
+choice[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
 of two primitive
-alternatives[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt):
+alternatives[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt):
 
 * The first alternative
-  takes[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
+  takes[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
   a value on the `putCh` channel from a client and
-  then[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
   loops.
 * The second alternative
-  gives[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
+  gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
   a value on the `getCh` channel to a client and
-  then[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
   loops.
 
 What this basically means is that the server makes an offer to perform the
@@ -463,7 +463,7 @@ available first will then be committed to.  The other offer will be withdrawn.
 
 This pattern of carrying some value from one iteration of a server loop to the
 next is common enough that there is a combinator
-`iterate`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.iterate)
+`iterate`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.iterate)
 for that purpose.  Using `iterate` we would write:
 
 ```fsharp
@@ -476,9 +476,9 @@ let cell x = Job.delay <| fun () ->
 ```
 
 The above also makes use of the function
-`Job.server`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.server)
+`Job.server`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.server)
 instead of
-`Job.start`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.start).
+`Job.start`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.start).
 `Job.server` takes advantage of the fact that the job it is given is known to
 never return normally and starts it in a little bit lighter-weight form.
 
@@ -487,7 +487,7 @@ in the F# interactive and verify that the alternative implementation of cells
 works the same way as the previous version.
 
 Inspired by these cell examples there is benchmark program, named
-[Cell](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Cell), that
+[Cell](https://github.com/Hopac/Hopac/tree/master/Benchmarks/Cell), that
 creates large numbers of cells and large numbers of jobs running in parallel
 that perform updates on randomly chosen cells.  While the benchmark program is
 not terribly exciting, it nicely substantiates the claims made in the first
@@ -551,7 +551,7 @@ let CompareBool (comparand: ref<bool>)
 ```
 
 The `CompareBool` function creates a job that first
-picks[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.pick)
+picks[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.pick)
 the `input` alternative and then performs either the `onTrue` or the `onFalse`
 action depending on the value of `comparand`.  As you can see, the above
 `CompareBool` job doesn't care about the type of the alternatives.  It just
@@ -579,13 +579,13 @@ let Delay (duration: ref<TimeSpan>)
 ```
 
 The `Delay` function creates a job that first
-picks[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.pick)
+picks[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.pick)
 the `start` alternative.  It then
-selects[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
+selects[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
 from two alternatives.  The first one is the given `stop` alternative and in
 case that is committed to, the value obtained from `stop` is given to the
 `aborted` action.  The second alternative starts a
-`timeOut`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+`timeOut`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
 alternative for the current value of `duration` and in case that is committed
 to, the value received from `start` is given to the `finished` action.
 Whichever of those alternatives becomes enabled first will then be committed to
@@ -671,11 +671,11 @@ Hello, from another job!
 
 One unfortunate thing in the above example is that the program returns
 immediately and the two jobs keep running in the background.  The
-`Job.start`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.start)
+`Job.start`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.start)
 primitive doesn't implicitly provide for any way to wait for the started job to
 finish.  This is intentional, because it is quite common to start jobs that
 don't need to return.  A
-`Promise`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Promise)
+`Promise`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Promise)
 allows a parent job to wait for a child job:
 
 ```fsharp
@@ -701,9 +701,9 @@ clearer.  There is one more unfortunate thing in the above program.  The two
 promises are read in a specific order.  In this program it doesn't really
 matter, but it is a good demonstration of the flexibility of Hopac to show that
 we can indeed avoid this order dependency by using
-selective[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
+selective[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
 communication offered by the
-alternative[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
+alternative[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 mechanism:
 
 ```fsharp
@@ -736,9 +736,9 @@ prints the inferred type.
 
 Working with many jobs at this level would be rather burdensome.  Hopac also
 provides functions such as
-`Job.conCollect`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.conCollect)
+`Job.conCollect`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.conCollect)
 and
-`Job.conIgnore`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.conIgnore)
+`Job.conIgnore`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.conIgnore)
 for starting and waiting for a sequence of jobs.  In this case we don't care
 about the results of the jobs, so `Job.conIgnore` is what we use:
 
@@ -796,13 +796,13 @@ let rec fib n = Job.delay <| fun () ->
 ```
 
 The above implementation makes use of the combinators
-`<&>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
 and
-`|>>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
+`|>>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
 whose meanings can be specified in terms of
-`result`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
+`result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and
-`>>=`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 as follows:
 
 ```fsharp
@@ -827,9 +827,9 @@ computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
 combinator
-`<&>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
 to the parallel pair combinator
-`<*>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C*%3E):
+`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C*%3E):
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
@@ -854,9 +854,9 @@ let notSafe = Job.delay <| fun () ->
 ```
 
 The problem in the above job is that both the
-`take`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
+`take`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
 and the
-`give`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
+`give`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
 operations are not guaranteed to be executed in two separate jobs and a single
 job cannot communicate with itself using `take` and `give` operations on
 channels.  Whichever operation happens to be executed first will block waiting
@@ -902,7 +902,7 @@ is employed by the `<*>` combinator.  The parallel Fibonacci function is also
 useful and instructive as a benchmark for measuring the overhead costs of
 starting, running and retrieving the results of parallel jobs.  Indeed, there is
 a
-[benchmark program](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks/Fibonacci)
+[benchmark program](https://github.com/Hopac/Hopac/tree/master/Benchmarks/Fibonacci)
 based on the parallel Fibonacci function.
 
 **Exercise:** Write a basic sequential Fibonacci function (not a job) and time
@@ -1055,10 +1055,10 @@ module Ch =
 ```
 
 The `Ch.Alt.give`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.give)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.give)
 alternative represents the possibility of giving a value on a channel to another
 concurrent job and the `Ch.Alt.take`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.Alt.take)
 alternative represents the possibility of taking a value from another concurrent
 job on a channel.
 
@@ -1070,7 +1070,7 @@ perform exactly one of those alternatives.
 ### Picking an Alternative
 
 To actually perform an operation made possible by an alternative, the `Alt.pick`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.pick)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.pick)
 operation is used:
 
 ```fsharp
@@ -1189,7 +1189,7 @@ val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
 ```
 
 The `Alt.choose`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
 operation forms a disjunction of the sequence of alternatives given to it.  When
 such a disjunction is picked, the alternatives involved in the disjunction are
 instantiated one-by-one.  Assuming no alternative is immediately available, the
@@ -1198,15 +1198,15 @@ When one of the alternatives in the disjunction becomes available, the
 alternative is picked and committed to and the other alternatives are canceled.
 
 The wrap `>>=?`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
 operation is similar to the bind `>>=`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 operation on jobs and allows one to extend an alternative so that further
 operations are performed after the alternative has been committed to.  Similarly
 to corresponding operations on jobs, several shortcut operators, such as `|>>?`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.|%3E%3E?)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.|%3E%3E?)
 and `>>%?`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E%?),
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E%?),
 are provided in addition to `>>=?` on alternatives.
 
 In this case we use the ability to simply map the button messages to a boolean
@@ -1230,9 +1230,9 @@ create new alternatives and those alternatives are first-class values just like
 the primitive `give` and `take` alternatives on channels.  For the common cases
 of simply picking from a choice of alternatives or combining just two
 alternatives the operations `Alt.select`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select)
 and `<|>`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E)
 are provided.  Their semantics can be described as follows:
 
 ```fsharp
@@ -1253,10 +1253,10 @@ set of events that is specified statically in the program text.
 ### Guards
 
 The wrap combinator `>>=?`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
 allows post-commit actions to be added to an alternative.  Hopac also provides
 the `guard`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
 combinator that allows an alternative to be computed at instantiation time.
 
 ```fsharp
@@ -1274,7 +1274,7 @@ reply in a form that can then be invoked an arbitrary number of times.
 Recall in the Kismet sketch it was mentioned that simulations like games often
 have their own notion of time and that the wall-clock time provided by
 `Timer.Global.timeOut`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
 probably doesn't provide the desired semantics.  A simple game might be designed
 to update the simulation of the game world 60 times per second to match with a
 60Hz display devices.  Rather than complicate all the calculations done in the
@@ -1336,7 +1336,7 @@ let atTime (atTime: Ticks) : Alt<unit> =
 ```
 
 A detail worth pointing out above is the use of the `Ch.send`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.send)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.send)
 operation to send requests to the server asynchronously.  We already have the
 client synchronously taking a reply from the server, so there is no need to have
 the client synchronously waiting for the time server to take the request.  Using
@@ -1413,7 +1413,7 @@ That concludes the implementation of the time server itself.
 ### Negative Acknowledgments
 
 In the previous section the `guard`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
 combinator was used to encapsulate the protocol for interacting with the custom
 timer server.  This worked because the service provided by the time server is
 idempotent.  If a client makes a request to the time server and later aborts the
@@ -1421,7 +1421,7 @@ request, that is, doesn't wait for the server's reply, it causes no harm.
 Sometimes things are not that simple and a server needs to know whether client
 actually committed to a transaction.  Hopac, like CML, supports this via the
 `withNack`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
 combinator:
 
 ```fsharp
@@ -1480,7 +1480,7 @@ that otherwise couldn't be properly encapsulated as alternatives.
 #### Example: Lock Server
 
 An example that illustrates how `withNack`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
 can be used to encapsulate a non-idempotent request as an alternative is the
 implementation of a *lock server*.  Here is a signature of a lock server:
 
@@ -1578,7 +1578,7 @@ let acquire s (Lock lock) = Alt.withNack <| fun abortAlt ->
 Using `withNack` a negative acknowledgment alternative, `abortAlt`, is created
 and then a reply channel, `replyCh`, is allocated and a request is created and
 sent to the lock server `s`.  An asynchronous `send`
-[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.send)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.send)
 operation is used as there is no point in waiting for the server at this point.
 Finally the alternative of taking the server's reply is returned.
 
@@ -1716,11 +1716,11 @@ Channels, Mailboxes, IVars, MVars, ...
 
 In this document we have mostly used channels in our examples.  The Hopac
 library, like CML, also directly provides other communication primitives such as
-`Mailbox`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Mailbox),
-`IVar`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar),
-`MVar`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.MVar)
+`Mailbox`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Mailbox),
+`IVar`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar),
+`MVar`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.MVar)
 and
-`Lock`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Lock).
+`Lock`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Lock).
 These other primitives are optimized for the particular communication patterns
 they support, but most of them could be implemented using only jobs and channels
 as shown in the book
@@ -1729,7 +1729,7 @@ for example.  When programming with Hopac, it, of course, makes sense to use the
 optimized primitives where possible.  So, for example, rather than allocating a
 channel and starting a job for a one-shot communication, it makes sense to use
 an
-`IVar`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar),
+`IVar`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar),
 which implements the desired semantics more efficiently.  On the other hand, it
 is reassuring that these optimized primitives, and many others, can be
 implemented using only jobs and channels.  This means that there is no need for
@@ -1743,5 +1743,5 @@ For learning more about Concurrent ML style programming, I highly recommend
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).
 
 The wiki also has the page
-[Questions and Answers](https://github.com/VesaKarvonen/Hopac/wiki/Questions-and-Answers).
+[Questions and Answers](https://github.com/Hopac/Hopac/wiki/Questions-and-Answers).
 Feel free to add questions there.

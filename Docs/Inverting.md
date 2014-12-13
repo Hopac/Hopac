@@ -95,7 +95,7 @@ All the combinators that an event stream combinator library like Rx supports can
 easily be implemented for lazy streams&mdash;except for the fact that lazy
 streams have no concept of time or choice.  Fortunately, to recover a concept of
 time or choice, we can simply replace the `Lazy<_>` type constructor with the
-`Alt<_>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
+`Alt<_>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 type constructor:
 
 ```fsharp
@@ -146,9 +146,9 @@ let rec append (ls: Streams<'x>) (rs: Streams<'x>) : Streams<'x> =
 
 However, what is really important is that time is a part of the representation
 of choice streams and using combinators such as
-`Alt.choose`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
+`Alt.choose`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
 and
-`<|>?`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E?)
+`<|>?`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E?)
 it is possible to construct streams that may include timed operations and make
 non-deterministic choices between multiple streams.
 
@@ -175,7 +175,7 @@ sure that streams always produce the same results and in this case we can
 
 To memoize choice streams, we introduce a couple of auxiliary memoizing
 combinators using the lazy
-`Promise.Now.delayAsAlt`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Promise.Now.delayAsAlt)
+`Promise.Now.delayAsAlt`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Promise.Now.delayAsAlt)
 combinator:
 
 ```fsharp
@@ -236,9 +236,9 @@ let ofSeq (xs: seq<_>) = memo << Job.delay <| fun () ->
 
 Another way is to represent the tail of a choice stream using a write once
 variable aka an
-`IVar<_>`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar)
+`IVar<_>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.IVar)
 and have the producer
-`fill`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.IVar.fill)
+`fill`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.IVar.fill)
 that write once variable with a new stream node (containing a new write once
 variable).  This way one can convert ordinary imperative event sources to choice
 streams.  For example, the following scoped `subscribingTo` function subscribes
@@ -267,7 +267,7 @@ garbage collected.
 
 Errors in choice streams are handled in the usual way.  The `memo` combinator we
 made above uses a
-`Promise`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.Promise)
+`Promise`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Promise)
 underneath.  If a choice stream producer raises an exception, it will be
 captured by a promise and ultimately reraised when the promise is examined by a
 choice stream consumer.
@@ -332,7 +332,7 @@ dedicated process for categorizing elements, we need to make it so that pull
 operations on the streams returned by `groupBy` co-operate.
 
 To make such co-operation possible, we put the source stream into a serialized
-variable[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:type%20Hopac.MVar)
+variable[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.MVar)
 to make it so that at most one process holds the reference to the original
 stream at any time.  When a pull operation on a returned stream is started, an
 attempt is made to take the source stream from the serialized variable or to
@@ -431,8 +431,8 @@ Consumers GC'ed    | Yes               | No, must unsubscribe
 
 There is an experimental library based on the above technique.  See:
 
-* [Streams.fsi](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac.Experimental/Streams.fsi)
-* [Streams.fs](https://github.com/VesaKarvonen/Hopac/blob/master/Libs/Hopac.Experimental/Streams.fs)
+* [Streams.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Experimental/Streams.fsi)
+* [Streams.fs](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Experimental/Streams.fs)
 
 ## Related work
 
