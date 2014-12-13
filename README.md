@@ -35,8 +35,8 @@ API
 
 API Reference:
 
-* [Hopac](http://vesakarvonen.github.io/Hopac/Hopac.html)
-* [Hopac.Extra](http://vesakarvonen.github.io/Hopac/Hopac.Extra.html)
+* [Hopac](http://hopac.github.io/Hopac/Hopac.html)
+* [Hopac.Extra](http://hopac.github.io/Hopac/Hopac.Extra.html)
 
 API manuals are generated from the library sources.
 
@@ -76,7 +76,7 @@ by the .Net framework made it difficult to meet performance goals.  So, how fast
 is Hopac?  How well does it scale to multicore machines?  How much memory do
 Hopac primitives take?  In order to measure and improve the performance of
 Hopac, several
-[benchmark programs](https://github.com/VesaKarvonen/Hopac/tree/master/Benchmarks)
+[benchmark programs](https://github.com/Hopac/Hopac/tree/master/Benchmarks)
 have been written and some of these programs also test similar algorithms
 written using the .Net thread pool, tasks and async.  Those benchmarks are
 readily available in this project and they should be very easy to compile and
@@ -86,9 +86,9 @@ write your own benchmark, on your multicore machine and see for yourself?
 Here are some ballpark figures:
 
 * Sequential monad operations
-  `>>=`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+  `>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
   and
-  `result`[*](http://vesakarvonen.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
+  `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
   or `let!` and `return` seem to run about **2x** as fast as the corresponding
   `Async` operations of F# 3.1.  This can be clearly seen in the
   [Fibonacci](Benchmarks/Fibonacci) benchmark that also runs sequential versions
