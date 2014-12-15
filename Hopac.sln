@@ -4,14 +4,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{0F31BE63-CB73-4207-94E8-158D3077F24A}"
-	ProjectSection(SolutionItems) = preProject
-		Benchmarks\README.md = Benchmarks\README.md
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{43B5134E-89E6-411E-A492-6FDA8BD441FB}"
-	ProjectSection(SolutionItems) = preProject
-		Libs\README.md = Libs\README.md
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{24B2ECA5-6A25-48E3-942E-D7559D4F8C3B}"
 EndProject
@@ -59,7 +53,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6B539F10-F
 		Docs\Internals.md = Docs\Internals.md
 		Docs\Performance.md = Docs\Performance.md
 		Docs\Programming.md = Docs\Programming.md
-		Docs\README.md = Docs\README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-FF76-4EA2-9A2F-594F387CEEC2}"
