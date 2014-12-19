@@ -17,7 +17,7 @@ open System.Runtime.InteropServices
 
 [<assembly: ComVisible(false)>]
 
-//[<assembly: Guid("fda93021-70a2-4fc1-a5a5-1ea0868449d7")>]
+[<assembly: Guid("3a80aa8b-4fc1-4ce5-9cb5-ca2dad0b3900")>]
 
 [<assembly: AssemblyVersion(Hopac.CommonAssemblyInfo.Version)>]
 [<assembly: AssemblyFileVersion(Hopac.CommonAssemblyInfo.FileVersion)>]
