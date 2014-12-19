@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Hopac.Extra</id>
-    <version>0.0.0.6</version>
+    <version>0.0.0.7</version>
     <title>Hopac.Extra</title>
     <summary>Additional utilities for programming with Hopac: A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.</summary>
     <authors>Housemarque Inc.</authors>
@@ -11,15 +11,16 @@
     <projectUrl>https://github.com/Hopac/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Additional utilities for programming with Hopac. Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
-    <releaseNotes>0.0.0.6: Switched to .Net framework 4.5 (was 4.5.1).</releaseNotes>
+    <releaseNotes>0.0.0.7: Turned into a PCL.
+0.0.0.6: Switched to .Net framework 4.5 (was 4.5.1).</releaseNotes>
     <copyright>© Housemarque Inc.</copyright>
     <tags>f# fsharp parallel async concurrent</tags>
     <dependencies>
-      <dependency id="Hopac" version="0.0.0.24" />
+      <dependency id="Hopac" version="0.0.0.34" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\Libs\Hopac.Extra\bin\Release\Hopac.Extra.dll" target="lib\net45" />
-    <file src="..\Libs\Hopac.Extra\bin\Release\Hopac.Extra.xml" target="lib\net45" />
+    <file target="lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1" src="../Libs/Hopac.Extra/bin/Release/Hopac.Extra.dll"/>
+    <file target="lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1" src="../Libs/Hopac.Extra/bin/Release/Hopac.Extra.xml"/>
   </files>
 </package>
