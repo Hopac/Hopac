@@ -486,12 +486,14 @@ module Alt =
 /////////////////////////////////////////////////////////////////////////
 
 module Scheduler =
+  open System.Reflection
+
   type Create =
     {Foreground: option<bool>
      IdleHandler: option<Job<int>>
      MaxStackSize: option<int>
      NumWorkers: option<int>
-     Priority: option<ThreadPriority>
+//     Priority: option<ThreadPriority>
      TopLevelHandler: option<exn -> Job<unit>>}
     static member Def: Create =
       StaticData.Init ()
@@ -499,7 +501,7 @@ module Scheduler =
        IdleHandler = None
        MaxStackSize = None
        NumWorkers = None
-       Priority = None
+//       Priority = None
        TopLevelHandler = None}
 
   module Global =
@@ -509,19 +511,20 @@ module Scheduler =
       create <- c
 
   let create (c: Create) =
-    Scheduler (Option.orDefaultOf c.Foreground,
-               Option.orDefaultOf c.IdleHandler,
-               Option.orDefaultOf c.MaxStackSize,
-               (match c.NumWorkers with
-                 | None -> Environment.ProcessorCount
-                 | Some n ->
-                   if n < 1 then
-                     failwithf "Invalid number of workers specified: %d" n
-                   n),
-               (match c.Priority with
-                 | None -> ThreadPriority.Normal
-                 | Some p -> p),
-               Option.orDefaultOf c.TopLevelHandler)
+    StaticData.createScheduler.Invoke
+     (Option.orDefaultOf c.Foreground,
+      Option.orDefaultOf c.IdleHandler,
+      Option.orDefaultOf c.MaxStackSize,
+      (match c.NumWorkers with
+        | None -> Environment.ProcessorCount
+        | Some n ->
+          if n < 1 then
+            failwithf "Invalid number of workers specified: %d" n
+          n),
+//      (match c.Priority with
+//        | None -> ThreadPriority.Normal
+//        | Some p -> p)
+      Option.orDefaultOf c.TopLevelHandler)
 
   let startWithActions (sr: Scheduler)
                        (eF: exn -> unit)
@@ -592,13 +595,14 @@ module Global =
      | null ->
        if StaticData.isMono then
          if System.GC.MaxGeneration = 0 then
-           Console.WriteLine "WARNING: You are using the Boehm GC, which means \
-            that parallel programs cannot scale.  Please configure your \
-            program to use the SGen GC."
+           StaticData.writeLine.Invoke "WARNING: You are using the Boehm GC, \
+            which means that parallel programs cannot scale.  Please configure \
+            your program to use the SGen GC."
        elif not System.Runtime.GCSettings.IsServerGC then
-         Console.WriteLine "WARNING: You are using single-threaded workstation \
-          garbage collection, which means that parallel programs cannot scale.  \
-          Please configure your program to use server garbage collection.  See \
+         StaticData.writeLine.Invoke "WARNING: You are using single-threaded \
+          workstation garbage collection, which means that parallel programs \
+          cannot scale.  Please configure your program to use server garbage \
+          collection.  See \
           http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
           for details.\n"
        let sr = Scheduler.create Scheduler.Global.create
@@ -1605,32 +1609,32 @@ module Extensions =
            Handler.Terminate (&wr, xK'.State)
            xTCS.TrySetResult x |> ignore})}
 
-  type ThreadPool with
-    static member queueAsJob (thunk: unit -> 'x) : Job<'x> =
-      Job.scheduler () >>= fun sr ->
-      let rV = IVar.Now.create ()
-      ThreadPool.QueueUserWorkItem (fun _ ->
-        Scheduler.start sr
-         (try IVar.fill rV (thunk ()) with e -> IVar.fillFailure rV e))
-      |> ignore
-      upcast rV
+//  type ThreadPool with
+//    static member queueAsJob (thunk: unit -> 'x) : Job<'x> =
+//      Job.scheduler () >>= fun sr ->
+//      let rV = IVar.Now.create ()
+//      ThreadPool.QueueUserWorkItem (fun _ ->
+//        Scheduler.start sr
+//         (try IVar.fill rV (thunk ()) with e -> IVar.fillFailure rV e))
+//      |> ignore
+//      upcast rV
 
-  type WaitHandle with
-    member wh.awaitAsJob (timeout: TimeSpan) : Job<bool> =
-      Job.scheduler () >>= fun sr ->
-      let rV = IVar.Now.create ()
-      ThreadPool.RegisterWaitForSingleObject
-       (wh, (fun _ r -> Scheduler.start sr (IVar.fill rV r)),
-        null, timeout, true) |> ignore
-      upcast rV
+//  type WaitHandle with
+//    member wh.awaitAsJob (timeout: TimeSpan) : Job<bool> =
+//      Job.scheduler () >>= fun sr ->
+//      let rV = IVar.Now.create ()
+//      ThreadPool.RegisterWaitForSingleObject
+//       (wh, (fun _ r -> Scheduler.start sr (IVar.fill rV r)),
+//        null, timeout, true) |> ignore
+//      upcast rV
 
-    member wh.awaitAsJob: Job<unit> =
-      Job.scheduler () >>= fun sr ->
-      let rV = IVar.Now.create ()
-      ThreadPool.RegisterWaitForSingleObject
-       (wh, (fun _ _ -> Scheduler.start sr (IVar.fill rV ())),
-        null, -1, true) |> ignore
-      upcast rV
+//    member wh.awaitAsJob: Job<unit> =
+//      Job.scheduler () >>= fun sr ->
+//      let rV = IVar.Now.create ()
+//      ThreadPool.RegisterWaitForSingleObject
+//       (wh, (fun _ _ -> Scheduler.start sr (IVar.fill rV ())),
+//        null, -1, true) |> ignore
+//      upcast rV
 
   module Async =
     let inline start sr xA (xK: Cont<_>) =
@@ -1674,7 +1678,7 @@ module Extensions =
              (xA, success, failure, failure, ts.Token)
          match context with
           | null ->
-            ThreadPool.QueueUserWorkItem (fun _ -> start ()) |> ignore
+            Task.Factory.StartNew (fun _ -> start ()) |> ignore
           | _ -> context.Post ((fun _ -> start ()), null)
          nack.DoJob (&wr, {new Handler<unit, unit> () with
           override uK'.DoWork (_) = ts.Cancel () ; ts.Dispose ()

@@ -21,30 +21,7 @@ namespace Hopac {
     internal FSharpFunc<Exception, Job<Unit>> TopLevelHandler;
     internal Job<int> IdleHandler;
 
-    internal Scheduler(bool foreground,
-                       Job<int> idleHandler,
-                       int maxStackSize,
-                       int numWorkers,
-                       ThreadPriority priority,
-                       FSharpFunc<Exception, Job<Unit>> topLevelHandler) {
-      StaticData.Init();
-      TopLevelHandler = topLevelHandler;
-      IdleHandler = idleHandler;
-      WaiterStack = -1;
-      NumActive = numWorkers;
-      Events = new WorkerEvent[numWorkers];
-      var threads = new Thread[numWorkers];
-      for (int i = 0; i < numWorkers; ++i) {
-        Events[i] = new WorkerEvent(i);
-        var index = i;
-        var thread = new Thread(() => Worker.Run(this, index), maxStackSize);
-        threads[i] = thread;
-        thread.Priority = priority;
-        thread.IsBackground = !foreground;
-      }
-      for (int i=0; i < numWorkers; ++i)
-        threads[i].Start();
-    }
+    internal Scheduler() { }
 
     /// <summary>Kills the worker threads of the scheduler one-by-one.  This
     /// should only be used with a local scheduler that is known to be

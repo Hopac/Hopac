@@ -2,6 +2,7 @@
 
 namespace Hopac.Core {
   using System;
+  using System.Reflection;
   using Microsoft.FSharp.Core;
 
   /// <summary>This class contains some special static data used by the Hopac
@@ -33,6 +34,12 @@ namespace Hopac.Core {
     /// <summary>Stores the single AsyncCallback delegate.</summary>
     public static AsyncCallback workAsyncCallback;
 
+    /// <summary>Stores an action for printing diagnostics.</summary>
+    public static Action<String> writeLine;
+
+    /// <summary>Function for creating a scheduler.</summary>
+    public static Func<bool, Job<int>, int, int, FSharpFunc<Exception, Job<Unit>>, Scheduler> createScheduler;
+
     /// <summary>This is normally called automatically by Hopac library code.
     /// This is safe to be called from multiple threads.</summary>
     public static void Init() {
@@ -44,6 +51,11 @@ namespace Hopac.Core {
           else
             unit = new AlwaysUnitNonTC();
         }
+
+        Assembly.Load(new AssemblyName("Hopac.Platform"))
+        .GetType("Hopac.Platform.Init").GetTypeInfo()
+        .GetDeclaredMethod("Do").Invoke(null, null);
+
         scheduler = new GetScheduler();
         proc = new GetProc();
         switchToWorker = new SwitchToWorker();

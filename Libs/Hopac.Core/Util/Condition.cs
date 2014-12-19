@@ -24,7 +24,7 @@ namespace Hopac.Core {
           if (0 == Interlocked.Exchange(ref v, ~w)) {
             if (!warned && Worker.IsWorkerThread) {
               warned = true;
-              System.Console.WriteLine(
+              StaticData.writeLine(
                 "WARNNG: You are making a blocking call from within a Hopac " +
                 "worker thread, which means that your program may deadlock.");
             }

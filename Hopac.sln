@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.30723.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{0F31BE63-CB73-4207-94E8-158D3077F24A}"
 EndProject
@@ -67,6 +67,10 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StartRing", "Benchmarks\StartRing\StartRing.fsproj", "{975A9D84-8D11-437C-B247-48AD3DD3B129}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Experimental", "Libs\Hopac.Experimental\Hopac.Experimental.fsproj", "{939C22FA-DFB0-491A-B080-F740F7FF2A8C}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Platform.Net", "Libs\Hopac.Platform\Hopac.Platform.Net.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Platform.Android", "Libs\Hopac.Platform\Hopac.Platform.Android.fsproj", "{2C34D565-A549-433A-8B53-EC0B86B711FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -146,6 +150,14 @@ Global
 		{939C22FA-DFB0-491A-B080-F740F7FF2A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{939C22FA-DFB0-491A-B080-F740F7FF2A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{939C22FA-DFB0-491A-B080-F740F7FF2A8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B285AEB6-FC96-4212-B7A2-6B73597CE607}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B285AEB6-FC96-4212-B7A2-6B73597CE607}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B285AEB6-FC96-4212-B7A2-6B73597CE607}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B285AEB6-FC96-4212-B7A2-6B73597CE607}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C34D565-A549-433A-8B53-EC0B86B711FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C34D565-A549-433A-8B53-EC0B86B711FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C34D565-A549-433A-8B53-EC0B86B711FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C34D565-A549-433A-8B53-EC0B86B711FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -169,5 +181,7 @@ Global
 		{68C52C21-42A4-445B-812D-1392515E2C6E} = {0F31BE63-CB73-4207-94E8-158D3077F24A}
 		{975A9D84-8D11-437C-B247-48AD3DD3B129} = {0F31BE63-CB73-4207-94E8-158D3077F24A}
 		{939C22FA-DFB0-491A-B080-F740F7FF2A8C} = {43B5134E-89E6-411E-A492-6FDA8BD441FB}
+		{B285AEB6-FC96-4212-B7A2-6B73597CE607} = {43B5134E-89E6-411E-A492-6FDA8BD441FB}
+		{2C34D565-A549-433A-8B53-EC0B86B711FA} = {43B5134E-89E6-411E-A492-6FDA8BD441FB}
 	EndGlobalSection
 EndGlobal

@@ -54,6 +54,11 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.Net.fsproj">
+      <Name>Hopac.Platform.Net</Name>
+      <Project>{b285aeb6-fc96-4212-b7a2-6b73597ce607}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
       <Name>Hopac</Name>
       <Project>{898d8fe3-c9be-4115-9a13-7615af27c048}</Project>

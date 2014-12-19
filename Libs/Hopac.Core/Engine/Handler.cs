@@ -52,7 +52,9 @@ namespace Hopac.Core {
     internal static void DoHandleNull(ref Worker wr, Exception e) {
       var tlh = wr.Scheduler.TopLevelHandler;
       if (null == tlh) {
+        /*
         Console.WriteLine("Unhandled exception: {0}", e);
+         */
       } else {
         var uK = new Cont();
         wr.Handler = uK;
@@ -65,7 +67,7 @@ namespace Hopac.Core {
         throw new NotImplementedException(); // XXX Top level handler has no process.
       }
       internal override void DoHandle(ref Worker wr, Exception e) {
-        Console.WriteLine("Top level handler raised: {0}", e);
+        StaticData.writeLine("Top level handler raised: " + e.ToString());
       }
       internal override void DoWork(ref Worker wr) { }
       internal override void DoCont(ref Worker wr, Unit value) { }

@@ -20,7 +20,7 @@ module internal AssemblyInfo =
 
 [<assembly: ComVisible(false)>]
 
-[<assembly: Guid("283dfc3e-4d39-404e-89f2-e45daf6b6890")>]
+//[<assembly: Guid("283dfc3e-4d39-404e-89f2-e45daf6b6890")>]
 
 [<assembly: AssemblyVersion(Version)>]
 [<assembly: AssemblyFileVersion(Version)>]

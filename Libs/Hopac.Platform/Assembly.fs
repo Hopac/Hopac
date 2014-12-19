@@ -1,16 +1,13 @@
-﻿namespace Hopac.Extra
+﻿// Copyright (C) by Vesa Karvonen
+
+namespace Hopac.Platform
 
 open System.Reflection
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
-[<AutoOpen>]
-module internal AssemblyInfo =
-  [<Literal>]
-  let Version = "0.0.0.6"
-
-[<assembly: AssemblyTitle("Hopac.Extra")>]
-[<assembly: AssemblyDescription("Provides additional utilities for programming with Hopac.")>]
+[<assembly: AssemblyTitle("Hopac.Platform")>]
+[<assembly: AssemblyDescription(Hopac.CommonAssemblyInfo.Description)>]
 [<assembly: AssemblyConfiguration(Hopac.CommonAssemblyInfo.Configuration)>]
 [<assembly: AssemblyCompany(Hopac.CommonAssemblyInfo.Company)>]
 [<assembly: AssemblyProduct(Hopac.CommonAssemblyInfo.Product)>]
@@ -20,9 +17,9 @@ module internal AssemblyInfo =
 
 [<assembly: ComVisible(false)>]
 
-//[<assembly: Guid("fe5d3c6d-66d0-41eb-bb18-897f8d495fd8")>]
+//[<assembly: Guid("fda93021-70a2-4fc1-a5a5-1ea0868449d7")>]
 
-[<assembly: AssemblyVersion(Version)>]
-[<assembly: AssemblyFileVersion(Version)>]
+[<assembly: AssemblyVersion(Hopac.CommonAssemblyInfo.Version)>]
+[<assembly: AssemblyFileVersion(Hopac.CommonAssemblyInfo.FileVersion)>]
 
-()
+() // F#

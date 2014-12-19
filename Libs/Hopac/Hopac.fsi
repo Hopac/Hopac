@@ -2068,22 +2068,22 @@ module Extensions =
     /// whose result can be obtained from the returned task.
     static member startJob: Job<'x> -> Job<Task<'x>>
 
-  /// Operations for interfacing the system `ThreadPool` with jobs.
-  type ThreadPool with
-    /// Creates a job that queues the given thunk to execute on the system
-    /// `ThreadPool` and then waits for the result of the thunk.
-    static member queueAsJob: (unit -> 'x) -> Job<'x>
+//  /// Operations for interfacing the system `ThreadPool` with jobs.
+//  type ThreadPool with
+//    /// Creates a job that queues the given thunk to execute on the system
+//    /// `ThreadPool` and then waits for the result of the thunk.
+//    static member queueAsJob: (unit -> 'x) -> Job<'x>
 
-  /// Operations for interfacing with `WaitHandle`s.
-  type WaitHandle with
-    /// Creates a job that awaits for the given wait handle with the specified
-    /// timeout using the `RegisterWaitForSingleObject` API of the system
-    /// `ThreadPool`.
-    member awaitAsJob: TimeSpan -> Job<bool>
+//  /// Operations for interfacing with `WaitHandle`s.
+//  type WaitHandle with
+//    /// Creates a job that awaits for the given wait handle with the specified
+//    /// timeout using the `RegisterWaitForSingleObject` API of the system
+//    /// `ThreadPool`.
+//    member awaitAsJob: TimeSpan -> Job<bool>
 
-    /// Creates a job that awaits for the given wait handle using the
-    /// `RegisterWaitForSingleObject` API of the system `ThreadPool`.
-    member awaitAsJob: Job<unit>
+//    /// Creates a job that awaits for the given wait handle using the
+//    /// `RegisterWaitForSingleObject` API of the system `ThreadPool`.
+//    member awaitAsJob: Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2128,9 +2128,9 @@ module Scheduler =
       /// `Environment.ProcessorCount`.
       NumWorkers: option<int>
 
-      /// Specifies the priority of the worker threads.  The default is to use
-      /// `Normal` priority.
-      Priority: option<Threading.ThreadPriority>
+//      /// Specifies the priority of the worker threads.  The default is to use
+//      /// `Normal` priority.
+//      Priority: option<Threading.ThreadPriority>
 
       /// Specifies the top level exception handler job constructor of the
       /// scheduler.  When a job fails with an otherwise unhandled exception,
