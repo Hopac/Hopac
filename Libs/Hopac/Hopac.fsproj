@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>898d8fe3-c9be-4115-9a13-7615af27c048</ProjectGuid>
+    <ProjectGuid>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Hopac</RootNamespace>
     <AssemblyName>Hopac</AssemblyName>
@@ -49,8 +48,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj">
       <Name>Hopac.Core</Name>
-      <Project>{92ac6198-fa63-4458-afec-2bfbb2b0d914}</Project>
-      <Private>True</Private>
+      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

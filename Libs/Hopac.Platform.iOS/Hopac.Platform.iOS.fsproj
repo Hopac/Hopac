@@ -45,4 +45,10 @@
     <Compile Include="Init.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.FSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj">
+      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
+      <Name>Hopac.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

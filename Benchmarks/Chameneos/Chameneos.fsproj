@@ -4,8 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>cbe8eb36-3f88-42d3-ab00-931c70eef81f</ProjectGuid>
+    <ProjectGuid>{CBE8EB36-3F88-42D3-AB00-931C70EEF81F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Chameneos</RootNamespace>
     <AssemblyName>Chameneos</AssemblyName>
@@ -37,7 +36,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\Chameneos.XML</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
+    <WarningsAsErrors>
+    </WarningsAsErrors>
     <NoWarn>
     </NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
@@ -54,26 +54,23 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj">
       <Name>Hopac.Platform.Net</Name>
-      <Project>{b285aeb6-fc96-4212-b7a2-6b73597ce607}</Project>
-      <Private>True</Private>
+      <Project>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
       <Name>Hopac</Name>
-      <Project>{898d8fe3-c9be-4115-9a13-7615af27c048}</Project>
-      <Private>True</Private>
+      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
     </ProjectReference>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj">
       <Name>Hopac.Core</Name>
-      <Project>{92ac6198-fa63-4458-afec-2bfbb2b0d914}</Project>
-      <Private>True</Private>
+      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
     </ProjectReference>
+    <Reference Include="FSharp.Core, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
