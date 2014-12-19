@@ -54,8 +54,8 @@
     <Compile Include="Assembly.fs" />
     <Compile Include="Alts.fsi" />
     <Compile Include="Alts.fs" />
-    <Compile Include="Streams.fsi" />
-    <Compile Include="Streams.fs" />
+    <Compile Include="EagerSeq.fsi" />
+    <Compile Include="EagerSeq.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">12</MinimumVisualStudioVersion>

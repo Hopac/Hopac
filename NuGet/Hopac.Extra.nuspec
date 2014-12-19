@@ -11,7 +11,9 @@
     <projectUrl>https://github.com/Hopac/Hopac</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Additional utilities for programming with Hopac. Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous and concurrent programs. Hopac is licensed under a MIT-style license. See project website for further information.</description>
-    <releaseNotes>0.0.0.7: Turned into a PCL.
+    <releaseNotes>0.0.0.7: Added Streams module.
+0.0.0.7: Moved EagerSeq module to the Hopac.Experimental library.
+0.0.0.7: Turned into a PCL.
 0.0.0.6: Switched to .Net framework 4.5 (was 4.5.1).</releaseNotes>
     <copyright>© Housemarque Inc.</copyright>
     <tags>f# fsharp parallel async concurrent</tags>

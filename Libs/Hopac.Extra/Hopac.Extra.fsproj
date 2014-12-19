@@ -66,8 +66,8 @@
     <Compile Include="SelectableQueue.fs" />
     <Compile Include="IMap.fsi" />
     <Compile Include="IMap.fs" />
-    <Compile Include="EagerSeq.fsi" />
-    <Compile Include="EagerSeq.fs" />
+    <Compile Include="Streams.fsi" />
+    <Compile Include="Streams.fs" />
     <Compile Include="BoundedMb.fsi" />
     <Compile Include="BoundedMb.fs" />
   </ItemGroup>
