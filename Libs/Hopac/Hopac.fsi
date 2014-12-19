@@ -1240,11 +1240,19 @@ module Timer =
 #endif
     val timeOut: TimeSpan -> Alt<unit>
 
+    /// `timeOutMillis n` is equivalent to `timeOut (TimeSpan.FromMilliseconds
+    /// (double n))`.
+    val timeOutMillis: int -> Alt<unit>
+
     /// Creates a job that sleeps for (about) the specified time.  Note that
     /// this is simply not intended for high precision timing and the resolution
     /// of the underlying timing mechanism is coarse (Windows system ticks).
     /// See also: `timeOut`.
     val sleep: TimeSpan -> Job<unit>
+
+    /// `sleepMillis n` is equivalent to `sleep (TimeSpan.FromMilliseconds
+    /// (double n))`.
+    val sleepMillis: int -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 

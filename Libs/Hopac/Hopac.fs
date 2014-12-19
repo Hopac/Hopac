@@ -1293,8 +1293,7 @@ module Timer =
     let outOfRange ticks =
       failwithf "Timeout out of range (ticks = %d)" ticks
 
-    let timeOut (span: System.TimeSpan) =
-      let ticks = span.Ticks
+    let timeOutTicks ticks =
       let ms = (ticks + 9999L) / 10000L // Rounds up.
       if ticks <= 0L then
         if -10000L = ticks then
@@ -1315,8 +1314,12 @@ module Timer =
            (initGlobalTimer ()).SynchronizedPushTimed
             (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
            uE.TryElse (&wr, i+1)}
+    
+    let timeOut (span: System.TimeSpan) = timeOutTicks span.Ticks
+    let timeOutMillis (ms: int) = timeOutTicks (int64 ms * 10000L)
 
-    let sleep (span: TimeSpan) = timeOut span :> Job<unit>
+    let sleep (span: TimeSpan) = timeOutTicks span.Ticks :> Job<unit>
+    let sleepMillis (ms: int) = timeOutTicks (int64 ms * 10000L) :> Job<unit>
 
 /////////////////////////////////////////////////////////////////////////
 
