@@ -52,9 +52,7 @@ namespace Hopac.Core {
     internal static void DoHandleNull(ref Worker wr, Exception e) {
       var tlh = wr.Scheduler.TopLevelHandler;
       if (null == tlh) {
-        /*
-        Console.WriteLine("Unhandled exception: {0}", e);
-         */
+        StaticData.writeLine("Unhandled exception: " + e.ToString());
       } else {
         var uK = new Cont();
         wr.Handler = uK;
