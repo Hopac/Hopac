@@ -36,3 +36,4 @@ type [<Class>] Init =
   static member Do () =
     StaticData.createScheduler <- Func<_, _, _, _, _, _>(Scheduler.create)
     StaticData.writeLine <- Action<String>(Console.WriteLine)
+    StaticData.Init ()

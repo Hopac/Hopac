@@ -40,27 +40,35 @@ namespace Hopac.Core {
     /// <summary>Function for creating a scheduler.</summary>
     public static Func<bool, Job<int>, int, int, FSharpFunc<Exception, Job<Unit>>, Scheduler> createScheduler;
 
+    /// <summary>The global scheduler (if it has been created).</summary>
+    public static Scheduler globalScheduler;
+
+    /// <summary>The global timer (if it has been created).</summary>
+    internal static Timer globalTimer;
+
     /// <summary>This is normally called automatically by Hopac library code.
     /// This is safe to be called from multiple threads.</summary>
     public static void Init() {
       if (null == zero) {
-        isMono = null != Type.GetType ("Mono.Runtime");
-        unsafe {
-          if (!isMono && sizeof(IntPtr) == 8)
-            unit = new AlwaysUnitTC();
-          else
-            unit = new AlwaysUnitNonTC();
+        if (null == createScheduler || null == writeLine) {
+          Assembly.Load(new AssemblyName("Hopac.Platform"))
+          .GetType("Hopac.Platform.Init").GetTypeInfo()
+          .GetDeclaredMethod("Do").Invoke(null, null);
+        } else {
+          isMono = null != Type.GetType ("Mono.Runtime");
+          unsafe {
+            if (!isMono && sizeof(IntPtr) == 8)
+              unit = new AlwaysUnitTC();
+            else
+              unit = new AlwaysUnitNonTC();
+          }
+
+          scheduler = new GetScheduler();
+          proc = new GetProc();
+          switchToWorker = new SwitchToWorker();
+          workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
+          zero = new Never<Unit>(); // Must be written last!
         }
-
-        Assembly.Load(new AssemblyName("Hopac.Platform"))
-        .GetType("Hopac.Platform.Init").GetTypeInfo()
-        .GetDeclaredMethod("Do").Invoke(null, null);
-
-        scheduler = new GetScheduler();
-        proc = new GetProc();
-        switchToWorker = new SwitchToWorker();
-        workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
-        zero = new Never<Unit>(); // Must be written last!
       }
     }
 

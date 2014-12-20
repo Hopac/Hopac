@@ -586,12 +586,10 @@ module Scheduler =
 [<AutoOpen>]
 module Global =
 
-  let mutable globalScheduler : Scheduler = null
-
   let reallyInitGlobalScheduler () =
     let t = typeof<Scheduler>
     Monitor.Enter t
-    match globalScheduler with
+    match StaticData.globalScheduler with
      | null ->
        if StaticData.isMono then
          if System.GC.MaxGeneration = 0 then
@@ -606,7 +604,7 @@ module Global =
           http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
           for details.\n"
        let sr = Scheduler.create Scheduler.Global.create
-       globalScheduler <- sr
+       StaticData.globalScheduler <- sr
        Monitor.Exit t
        sr
      | sr ->
@@ -614,20 +612,18 @@ module Global =
        sr
 
   let inline initGlobalScheduler () =
-    match globalScheduler with
+    match StaticData.globalScheduler with
      | null -> reallyInitGlobalScheduler ()
      | sr -> sr
-
-  let mutable globalTimer : Timer = null
 
   let reallyInitGlobalTimer () =
     let sr = initGlobalScheduler ()
     let t = typeof<Timer>
     Monitor.Enter t
-    match globalTimer with
+    match StaticData.globalTimer with
      | null ->
        let tr = Timer sr
-       globalTimer <- tr
+       StaticData.globalTimer <- tr
        Monitor.Exit t
        tr
      | tr ->
@@ -635,7 +631,7 @@ module Global =
        tr
 
   let inline initGlobalTimer () =
-    match globalTimer with
+    match StaticData.globalTimer with
      | null -> reallyInitGlobalTimer ()
      | tr -> tr
 
@@ -646,7 +642,8 @@ module Ch =
     let inline create () = Ch<'x> ()
   module Global =
     [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let send (xCh: Ch<'x>) (x: 'x) = Ch<'x>.Send (globalScheduler, xCh, x)
+    let send (xCh: Ch<'x>) (x: 'x) =
+      Ch<'x>.Send (StaticData.globalScheduler, xCh, x)
   let create () = ctor Now.create ()
   let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
@@ -666,7 +663,7 @@ module Mailbox =
   module Global =
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xMb: Mailbox<'x>) (x: 'x) =
-      Mailbox<'x>.Send (globalScheduler, xMb, x)
+      Mailbox<'x>.Send (StaticData.globalScheduler, xMb, x)
   let create () = ctor Now.create ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
@@ -1327,8 +1324,10 @@ module Lock =
   module Now =
     let inline create () = Lock ()
   let create () = ctor Now.create ()
-  let inline duringFun (l: Lock) (xF: unit -> 'x) = LockDuringFun<'x> (l, xF) :> Job<'x>
-  let inline duringJob (l: Lock) (xJ: Job<'x>) = LockDuringJob<'x> (l, xJ) :> Job<'x>
+  let inline duringFun (l: Lock) (xF: unit -> 'x) =
+    LockDuringFun<'x> (l, xF) :> Job<'x>
+  let inline duringJob (l: Lock) (xJ: Job<'x>) =
+    LockDuringJob<'x> (l, xJ) :> Job<'x>
 
 #if NOT_YET_IMPLEMENTED
 /// Operations on condition variables.
