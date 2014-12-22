@@ -1,6 +1,6 @@
 ﻿// Copyright (C) by Vesa Karvonen
 
-namespace Hopac.Experimental
+namespace Hopac.Extra
 
 open System
 open Hopac
