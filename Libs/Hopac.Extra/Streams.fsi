@@ -106,9 +106,7 @@ module Streams =
   val groupByFun: ('x -> 'k) -> Streams<'x> -> Streams<'k * Streams<'x>> when 'k: equality
 
   /// Preliminary and subject to change.
-  val zipWithJob: ('x -> 'y -> #Job<'z>) -> Streams<'x> -> Streams<'y> -> Streams<'z>
-  /// Preliminary and subject to change.
-  val zipWithFun: ('x -> 'y -> 'z) -> Streams<'x> -> Streams<'y> -> Streams<'z>
+  val zip: Streams<'x> -> Streams<'y> -> Streams<'x * 'y>
 
   /// Preliminary and subject to change.
   val scanJob: ('s -> 'x -> #Job<'s>) -> 's -> Streams<'x> -> Streams<'s>
@@ -185,9 +183,7 @@ module Streams =
   val throttle: timeout: Alt<_> -> Streams<'x> -> Streams<'x>
 
   /// Preliminary and subject to change.
-  val combineLatestWithJob: ('x -> 'y -> #Job<'z>) -> Streams<'x> -> Streams<'y> -> Streams<'z>
-  /// Preliminary and subject to change.
-  val combineLatestWithFun: ('x -> 'y -> 'z) -> Streams<'x> -> Streams<'y> -> Streams<'z>
+  val combineLatest: Streams<'x> -> Streams<'y> -> Streams<'x * 'y>
 
   /// Preliminary and subject to change.
   val delayEachBy: Job<_> -> Streams<'x> -> Streams<'x>
