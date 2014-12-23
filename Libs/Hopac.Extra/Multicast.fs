@@ -20,12 +20,12 @@ type MChan<'a> = {
   RepCh: Ch<MPort<'a>>
 }
 
-type Stream<'a> = {
-  Value: 'a
-  Next: IVar<Stream<'a>>
-}
-
 module Multicast =
+  type Stream<'a> = {
+    Value: 'a
+    Next: IVar<Stream<'a>>
+  }
+
   let create () : Job<MChan<'a>> = Job.delay <| fun () ->
     let mc = {ReqCh = ch (); RepCh = ch ()}
     let newPort v =
