@@ -40,9 +40,15 @@ module StreamVar =
   val create: 'x -> StreamVar<'x>
 
   /// Preliminary and subject to change.
+  val get: StreamVar<'x> -> Job<'x>
+
+  /// Preliminary and subject to change.
   val updateJob: StreamVar<'x> -> ('x -> #Job<'x>) -> Alt<unit>
   /// Preliminary and subject to change.
   val updateFun: StreamVar<'x> -> ('x -> 'x) -> Alt<unit>
+
+  /// Preliminary and subject to change.
+  val maybeUpdateFun: StreamVar<'x> -> ('x -> option<'x>) -> Alt<unit>
 
   /// Preliminary and subject to change.
   val tap: StreamVar<'x> -> Streams<'x>

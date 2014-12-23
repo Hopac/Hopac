@@ -58,12 +58,17 @@ type StreamVar<'x> = {state: MVar<'x * IVar<Stream<'x>>>}
 
 module StreamVar =
   let create x = {state = mvarFull (x, ivar ())}
-  let updateJob sv x2xJ =
-    sv.state >>=? fun (x, n) ->
-    x2xJ x >>= fun x' ->
+  let get sv = MVar.read sv.state |>> fst
+  let inline update sv n x' =
     let n' = ivar ()
     n <-= Cons (x', n') >>. (sv.state <<-= (x', n'))
-  let updateFun sv x2x = updateJob sv (x2x >> Job.result)
+  let updateJob sv x2xJ = sv.state >>=? fun (x, n) -> x2xJ x >>= update sv n
+  let updateFun sv x2x = sv.state >>=? fun (x, n) -> update sv n (x2x x)
+  let maybeUpdateFun sv x2xO =
+    sv.state >>=? fun (x, n) ->
+    match x2xO x with
+     | None -> sv.state <<-= (x, n)
+     | Some x' -> update sv n x'
   let tap sv = MVar.read sv.state |>> (fun (x, n) -> Cons (x, n)) |> memo
 
 module Streams =
