@@ -297,3 +297,12 @@ module Streams =
   let atDateTimeOffset dto = atDateTimeOffsets (one dto)
 
   let afterTimeSpan ts = onceJob (Timer.Global.sleep ts)
+
+  let values (xs: Streams<_>) = Job.delay <| fun () ->
+    let out = ch ()
+    Job.iterateServer xs (fun xs ->
+    Job.tryIn xs
+     <| function Nil -> Job.abort ()
+               | Cons (x, xs) -> out <-- Choice1Of2 x >>% xs
+     <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
+    (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)

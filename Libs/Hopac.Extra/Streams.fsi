@@ -202,6 +202,9 @@ module Streams =
   val toSeq: Streams<'x> -> Job<ResizeArray<'x>>
 
   /// Preliminary and subject to change.
+  val values: Streams<'x> -> Job<Alt<'x>>
+
+  /// Preliminary and subject to change.
   val foldJob: ('s -> 'x -> #Job<'s>) -> 's -> Streams<'x> -> Job<'s>
   /// Preliminary and subject to change.
   val foldFun: ('s -> 'x -> 's) -> 's -> Streams<'x> -> Job<'s>
