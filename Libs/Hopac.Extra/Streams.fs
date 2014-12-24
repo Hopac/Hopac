@@ -174,6 +174,11 @@ module Streams =
     (xs >>=? function Nil -> one x | Cons (x, xs) -> throttleGot1 timeout x xs)
   and throttle timeout xs = mapcm (throttleGot1 timeout) xs
 
+  let rec holdGot1 timeout timer x xs =
+    (timer |>>? fun _ -> Cons (x, hold timeout xs)) <|>
+    (mapc (holdGot1 timeout timer) xs)
+  and hold timeout xs = mapcm (holdGot1 timeout (memo timeout)) xs
+
   let rec clXY x xs y ys = cons (x, y) (clY xs y ys <|>* clX ys x xs)
   and clYX y ys x xs = cons (x, y) (clX ys x xs <|>* clY xs y ys)
   and clX ys x xs = mapc (clXY x xs) ys

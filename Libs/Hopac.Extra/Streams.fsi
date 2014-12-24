@@ -189,6 +189,9 @@ module Streams =
   val throttle: timeout: Alt<_> -> Streams<'x> -> Streams<'x>
 
   /// Preliminary and subject to change.
+  val hold: timeout: Job<_> -> Streams<'x> -> Streams<'x>
+
+  /// Preliminary and subject to change.
   val combineLatest: Streams<'x> -> Streams<'y> -> Streams<'x * 'y>
 
   /// Preliminary and subject to change.
