@@ -20,7 +20,7 @@ let allocate s = Alt.withNack <| fun nack ->
   Proc.self () >>= fun self ->
   let replyCh = ch ()
   s.allocCh <-+ (self, nack, replyCh) >>%
-  upcast replyCh
+  replyCh
 
 let deallocate s freq =
   Proc.self () >>= fun self ->
@@ -65,5 +65,5 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
   let someFree = alloc <|>? noneFree
 
   Job.iterateServer () (fun () ->
-    upcast (if 0 < free.Count then someFree else noneFree)) >>%
+    if 0 < free.Count then someFree else noneFree) >>%
   self

@@ -52,7 +52,7 @@ module SwapCh =
   let bench = Job.delay <| fun () ->
     let sCh = swapch ()
     Job.queue (swap sCh ()) >>= fun () ->
-    upcast swap sCh ()
+    swap sCh ()
 
   let run n =
     printf "SwapCh %8d: " n

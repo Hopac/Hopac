@@ -479,12 +479,12 @@ module Job =
   /// constructed job with `delay` and avoiding unnecessary `delay` operations
   /// can improve performance.
 #endif
-  val inline delay: (unit -> Job<'x>) -> Job<'x>
+  val inline delay: (unit -> #Job<'x>) -> Job<'x>
 
   /// Creates a job that calls the given function with the given value to build
   /// a job that will then be run.  `delayWith x2yJ x` is equivalent to `result
   /// x >>= x2yJ`.
-  val inline delayWith: ('x -> Job<'y>) -> 'x -> Job<'y>
+  val inline delayWith: ('x -> #Job<'y>) -> 'x -> Job<'y>
 
   /// Creates a job that calls the given function with the given value to
   /// compute the result of the job.  `lift x2y x` is equivalent to `result x
@@ -507,7 +507,7 @@ module Job =
   /// Creates a job that first runs the given job and then passes the result of
   /// that job to the given function to build another job which will then be
   /// run.  This is the same as `>>=` with the arguments flipped.
-  val inline bind: ('x -> Job<'y>) -> Job<'x> -> Job<'y>
+  val inline bind: ('x -> #Job<'y>) -> Job<'x> -> Job<'y>
 
   /// `join xJJ` is equivalent to `bind id xJJ`.
   val inline join: Job<#Job<'x>> -> Job<'x>
@@ -545,7 +545,7 @@ module Job =
     /// Creates a job that first runs the given job and then passes the result
     /// of that job to the given function to build another job which will then
     /// be run.  This is the same as `bind` with the arguments flipped.
-    val inline (>>=): Job<'x> -> ('x -> Job<'y>) -> Job<'y>
+    val inline (>>=): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
 
     /// Creates a job that runs the given two jobs and returns the result of the
     /// second job.  `xJ >>. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
@@ -604,7 +604,7 @@ module Job =
   /// only supports the `Job.tryWith` operation.  `Job.tryIn` makes it easier to
   /// write exception handling code that has the desired tail-call properties.
 #endif
-  val inline tryIn: Job<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Job<'y>
+  val inline tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
 #if DOC
@@ -613,7 +613,7 @@ module Job =
   ///
   ///> let tryWith xJ e2xJ = tryIn xJ result e2xJ
 #endif
-  val inline tryWith: Job<'x> -> (exn -> Job<'x>) -> Job<'x>
+  val inline tryWith: Job<'x> -> (exn -> #Job<'x>) -> Job<'x>
 
   /// Implements a variation of the `try-finally` exception handling construct
   /// for jobs.  The given action, specified as a function, is executed after
@@ -660,7 +660,7 @@ module Job =
   /// finalizers.  In cases where you need to ensure scoped disposal, make sure
   /// that the job does not abort before returning.
 #endif
-  val using: 'x -> ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
+  val using: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IDisposable
 
   /// Creates a job that runs the given job and results in either the ordinary
   /// result of the job or the exception raised by the job.
@@ -705,7 +705,7 @@ module Job =
   /// this construct work like a `for ... to ... do ...` loop of the base F#
   /// language.
 #endif
-  val forUpTo: int -> int -> (int -> Job<_>) -> Job<unit>
+  val forUpTo: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `forDownTo hi lo i2xJ` creates a job that sequentially iterates from `hi`
   /// to `lo` (inclusive) and calls the given function to construct jobs that
@@ -724,7 +724,7 @@ module Job =
   /// this construct work like a `for ... downto ... do ...` loop of the base F#
   /// language.
 #endif
-  val forDownTo: int -> int -> (int -> Job<_>) -> Job<unit>
+  val forDownTo: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `whileDo u2b xJ` creates a job that sequentially executes the `xJ` job as
   /// long as `u2b ()` returns `true`.  The results from the jobs are ignored.
@@ -779,7 +779,7 @@ module Job =
   ///> let rec iterate x x2xJ =
   ///>   x2xJ x >>= fun x -> iterate x x2xJ
 #endif
-  val inline iterate: 'x -> ('x -> Job<'x>) -> Job<_>
+  val inline iterate: 'x -> ('x -> #Job<'x>) -> Job<_>
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -790,7 +790,7 @@ module Job =
   /// Creates a job that starts a separate server job that indefinitely iterates
   /// the given job constructor starting with the given value.  `iterateServer x
   /// x2xJ` is equivalent to `iterate x x2xJ |> server`.
-  val inline iterateServer: 'x -> ('x -> Job<'x>) -> Job<unit>
+  val inline iterateServer: 'x -> ('x -> #Job<'x>) -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -808,7 +808,7 @@ module Job =
   ///>   xs
 
 #endif
-  val seqCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
+  val seqCollect: seq<#Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs in sequence.  The results of the
   /// jobs are ignored.  See also: `seqCollect`.
@@ -821,14 +821,14 @@ module Job =
   ///>   Job.whileDo xJs.MoveNext (Job.delay <| fun () ->
   ///>     xJs.Current)
 #endif
-  val seqIgnore: seq<Job<_>> -> Job<unit>
+  val seqIgnore: seq<#Job<_>> -> Job<unit>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// returns a list of the results.
   ///
   /// Note that when multiple jobs raise exceptions, then the created job raises
   /// an `AggregateException`.
-  val conCollect: seq<Job<'x>> -> Job<ResizeArray<'x>>
+  val conCollect: seq<#Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// then waits for all of the jobs to finish.  The results of the jobs are
@@ -838,7 +838,7 @@ module Job =
   /// Note that when multiple jobs raise exceptions, then the created job raises
   /// an `AggregateException`.
 #endif
-  val conIgnore: seq<Job<_>> -> Job<unit>
+  val conIgnore: seq<#Job<_>> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -978,7 +978,7 @@ module Alt =
   ///
   ///> let guard xAJ = withNack <| fun _ -> xAJ
 #endif
-  val guard: Job<Alt<'x>> -> Alt<'x>
+  val guard: Job<#Alt<'x>> -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given thunk.
@@ -992,7 +992,7 @@ module Alt =
   ///
   ///> let delay u2xA = guard (Job.thunk u2xA)
 #endif
-  val inline delay: (unit -> Alt<'x>) -> Alt<'x>
+  val inline delay: (unit -> #Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job constructed with a negative acknowledgment alternative.  See
@@ -1053,7 +1053,7 @@ module Alt =
   /// alternative of the form `always () <|>? withNack (...)` the `withNack`
   /// alternative is never instantiated.
 #endif
-  val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
+  val withNack: (Alt<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the
   /// given alternatives is.  See also: `<|>?`, `<|>`.
@@ -1071,7 +1071,7 @@ module Alt =
   /// define `xA1 <|>? xA2` to be equivalent to `choose [xA1; xA2]` and consider
   /// `choose` as primitive.
 #endif
-  val choose: seq<Alt<'x>> -> Alt<'x>
+  val choose: seq<#Alt<'x>> -> Alt<'x>
 
   /// Creates an alternative whose result is passed to the given job constructor
   /// and processed with the resulting job after the given alternative has been
@@ -1083,7 +1083,7 @@ module Alt =
   /// constructor).  So called Transactional Events do form a monad, but require
   /// a more complex synchronization protocol.
 #endif
-  val inline wrap: ('x -> Job<'y>) -> Alt<'x> -> Alt<'y>
+  val inline wrap: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
 
   /// `xA |> map x2y` is equivalent to `xA |> wrap (x2y >> result)`.  This is
   /// the same as `|>>?` with the arguments flipped.
@@ -1114,7 +1114,7 @@ module Alt =
     /// constructor and processed with the resulting job after the given
     /// alternative has been committed to.  This is the same as `wrap` with the
     /// arguments flipped.
-    val inline (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+    val inline (>>=?): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
 
     /// `xA >>.? yJ` is equivalent to `xA >>=? fun _ -> yJ`.
     val (>>.?): Alt<_> -> Job<'y> -> Alt<'y>
@@ -1145,7 +1145,7 @@ module Alt =
   ///
   /// Note you can also use function or job level exception handling before the
   /// commit point within the user code in a `guard`, `delay`, or `withNack`.
-  val tryIn: Alt<'x> -> ('x -> Job<'y>) -> (exn -> Job<'y>) -> Alt<'y>
+  val tryIn: Alt<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Alt<'y>
 
   /// Implements a variation of the `try-finally` exception handling construct
   /// for alternatives.  The given action, specified as a function, is executed
@@ -1192,7 +1192,7 @@ module Alt =
   /// is equivalent to `pick (choose xAs)`.
   ///
   /// Note that `select []` is equivalent to `abort ()`.
-  val inline select: seq<Alt<'x>> -> Job<'x>
+  val inline select: seq<#Alt<'x>> -> Job<'x>
 
   /// Given an alternative, creates a new alternative that behaves exactly like
   /// the given alternative, except that the new alternative obviously cannot be
@@ -1483,7 +1483,7 @@ module Latch =
 
   /// Creates a job that creates a new latch, passes it to the given function to
   /// create a new job to run and then awaits for the latch to open.
-  val within: (Latch -> Job<'x>) -> Job<'x>
+  val within: (Latch -> #Job<'x>) -> Job<'x>
 
   /// Creates a job that runs the given job holding the specified latch.  Note
   /// that the latch is only held while the given job is being run.  See also
@@ -1658,7 +1658,7 @@ module MVar =
   ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
   ///>   xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
 #endif
-  val inline modifyJob: ('x -> Job<'x * 'y>) -> MVar<'x> -> Job<'y>
+  val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Job<'y>
 
   /// Selective operations on serialized variables.
   module Alt =
@@ -1846,12 +1846,12 @@ module Extensions =
     /// Sequentially maps the given job constructor to the elements of the array
     /// and returns an array of the results.  `Array.mapJob x2yJ xs` is an
     /// optimized version of `Seq.mapJob x2yJ xs |>> fun ys -> ys.ToArray ()`.
-    val mapJob: ('x -> Job<'y>) -> array<'x> -> Job<array<'y>>
+    val mapJob: ('x -> #Job<'y>) -> array<'x> -> Job<array<'y>>
 
     /// Sequentially iterates the given job constructor over the given array.
     /// The results, if any, of the jobs are ignored.  `Array.iterJob x2yJ xs`
     /// is an optimized version of `Seq.iterJob x2yJ xs`.
-    val iterJob: ('x -> Job<_>) -> array<'x> -> Job<unit>
+    val iterJob: ('x -> #Job<_>) -> array<'x> -> Job<unit>
 
   /// Operations for processing sequences with jobs.
   module Seq =
@@ -1866,7 +1866,7 @@ module Extensions =
     ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
     ///>     x2yJ xs.Current)
 #endif
-    val iterJob: ('x -> Job<_>) -> seq<'x> -> Job<unit>
+    val iterJob: ('x -> #Job<_>) -> seq<'x> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
     /// sequence and returns a list of the results.
@@ -1881,7 +1881,7 @@ module Extensions =
     ///>     x2yJ xs.Current |>> ys.Add) >>%
     ///>   ys
 #endif
-    val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
+    val mapJob: ('x -> #Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
     /// Sequentially folds the job constructor over the given sequence and
     /// returns the result of the fold.
@@ -1898,19 +1898,19 @@ module Extensions =
     ///>       Job.result x
     ///>   loop x
 #endif
-    val foldJob: ('x -> 'y -> Job<'x>) -> 'x -> seq<'y> -> Job<'x>
+    val foldJob: ('x -> 'y -> #Job<'x>) -> 'x -> seq<'y> -> Job<'x>
 
     /// Operations for processing sequences using concurrent jobs.
     module Con =
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
       /// the jobs have finished.  The results of the created jobs are ignored.
-      val iterJob: ('x -> Job<_>) -> seq<'x> -> Job<unit>
+      val iterJob: ('x -> #Job<_>) -> seq<'x> -> Job<unit>
 
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
       /// the jobs have finished collecting the results into a list.
-      val mapJob: ('x -> Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
+      val mapJob: ('x -> #Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
   /// Operations for interfacing F# async operations with jobs.
 #if DOC
@@ -2067,10 +2067,10 @@ module Extensions =
     static member inline awaitJob: Task -> Job<unit>
 
     /// `bindJob (xT, x2yJ)` is equivalent to `awaitJob xT >>= x2yJ`.
-    static member inline bindJob: Task<'x> * ('x -> Job<'y>) -> Job<'y>
+    static member inline bindJob: Task<'x> * ('x -> #Job<'y>) -> Job<'y>
 
     /// `bindJob (uT, u2xJ)` is equivalent to `awaitJob uT >>= u2xJ`.
-    static member inline bindJob: Task * (unit -> Job<'x>) -> Job<'x>
+    static member inline bindJob: Task * (unit -> #Job<'x>) -> Job<'x>
 
     /// Creates a job that starts the given job as a separate concurrent job,
     /// whose result can be obtained from the returned task.

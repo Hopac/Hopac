@@ -29,7 +29,7 @@ module Alt =
   let acquire s (Lock lock) = Alt.withNack <| fun nack ->
     let replyCh = ch ()
     s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
-    upcast replyCh
+    replyCh
 
   let withLock s l xJ =
     acquire s l >>=? fun () ->

@@ -12,11 +12,6 @@ open Hopac.Extensions
 
 [<AutoOpen>]
 module internal Util =
-  module Job =
-    let inline tryIn t s f = Job.tryIn t (fun x -> upcast s x) (fun e -> upcast f e)
-    let inline delay f = Job.delay (fun () -> upcast f ())
-  let inline (>>=) xJ (x2yJ: _ -> #Job<_>) = xJ >>= fun x -> upcast x2yJ x
-  let inline (>>=?) xJ (x2yJ: _ -> #Job<_>) = xJ >>=? fun x -> upcast x2yJ x
   let inline memo x = Promise.Now.delayAsAlt x
   let inline (>>=*) x f = x >>= f |> memo
   let inline (|>>*) x f = x |>> f |> memo

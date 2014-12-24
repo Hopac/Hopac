@@ -27,9 +27,9 @@ module BoundedMb =
       let take () = self.takeCh <-? queue.Peek () |>>? (queue.Dequeue >> ignore)
       let proc = Job.delay <| fun () ->
         match queue.Count with
-         | 0 -> upcast put
-         | n when n = capacity -> upcast (take ())
-         | _ -> take () <|> put
+         | 0 -> put
+         | n when n = capacity -> take ()
+         | _ -> take () <|>? put
       Job.foreverServer proc >>% self
 
   module Alt =

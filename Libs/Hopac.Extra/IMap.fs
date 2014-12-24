@@ -65,11 +65,11 @@ module IMap =
              | null ->
                let vI = ivar ()
                k2vI.Add (k, vI)
-               upcast vI
+               vI :> Alt<_>
              | vA ->
                vA
           | (true, vI) ->
-            upcast vI
+            vI :> Alt<_>
        | vI ->
          match kvM.Map.TryGetValue k with
           | (false, _) -> vI
