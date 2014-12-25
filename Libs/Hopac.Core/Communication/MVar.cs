@@ -67,6 +67,8 @@ namespace Hopac {
       if (stSelf > 0) goto AlreadyPicked;
       if (stSelf < 0) goto TryPick;
 
+      Pick.SetNacks(ref wr, i, pkSelf);
+
       T value = this.Value;
       this.Value = default(T);
       this.State = Empty;
