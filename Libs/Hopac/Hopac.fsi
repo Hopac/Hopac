@@ -325,8 +325,8 @@ module Proc =
 #endif
   val inline self: unit -> Job<Proc>
 
-  /// Returns an alternative that becomes available for picking once the process
-  /// is known to have been terminated for any reason.
+  /// Returns an alternative that becomes available once the process is known to
+  /// have been terminated for any reason.
   val inline join: Proc -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -937,25 +937,25 @@ type Alt<'x> :> Job<'x>
 
 /// Operations on first-class synchronous operations or alternatives.
 module Alt =
-  /// Creates an alternative that is always available for picking and results in
-  /// the given value.
+  /// Creates an alternative that is always available and results in the given
+  /// value.
   ///
-  /// Note that when there are alternatives immediately available for picking in
-  /// a choice, the first such alternative will be committed to.
+  /// Note that when there are alternatives immediately available in a choice,
+  /// the first such alternative will be committed to.
   val inline always: 'x -> Alt<'x>
 
-  /// Returns an alternative that is always available for picking and results in
-  /// the unit value.  `unit ()` is an optimized version of `always ()`.
+  /// Returns an alternative that is always available and results in the unit
+  /// value.  `unit ()` is an optimized version of `always ()`.
   val inline unit: unit -> Alt<unit>
 
-  /// Creates an alternative that is never available for picking.
+  /// Creates an alternative that is never available.
   ///
   /// Note that synchronizing on `never ()`, without other alternatives, is
   /// equivalent to performing `abort ()`.
   val inline never: unit -> Alt<'x>
 
-  /// Return an alternative that is never available for picking.  `zero ()` is
-  /// an optimized version of `never ()`.
+  /// Return an alternative that is never available.  `zero ()` is an optimized
+  /// version of `never ()`.
   val inline zero: unit -> Alt<unit>
 
   /// Creates an alternative that is computed at instantiation time with the
@@ -996,15 +996,15 @@ module Alt =
   /// `withNack` allows client-server protocols that do require the server to be
   /// notified when the client aborts the transaction to be encapsulated as
   /// selective operations.  The negative acknowledgment alternative will be
-  /// available for picking in case some other instantiated alternative involved
-  /// in the choice is committed to instead.
+  /// available in case some other instantiated alternative involved in the
+  /// choice is committed to instead.
   ///
   /// Like `guard`, `withNack` is typically used to encapsulate the client side
   /// operation of a concurrent protocol.  The client side operation typically
   /// constructs a request, containing the negative acknowledgment alternative,
   /// sends it to a server and then returns an alternative that waits for a
   /// rendezvous with the server.  In case the client later commits to some
-  /// other alternative, the negative acknowledgment token becomes pickable and
+  /// other alternative, the negative acknowledgment token becomes available and
   /// the server can also abort the operation.
   ///
   /// Here is a simple example of an operation encapsulated using `withNack`.
@@ -1049,8 +1049,8 @@ module Alt =
 #endif
   val withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
-  /// Creates an alternative that is available for picking when any one of the
-  /// given alternatives is.  See also: `<|>?`.
+  /// Creates an alternative that is available when any one of the given
+  /// alternatives is.  See also: `<|>?`.
   ///
   /// Note that `choose []` is equivalent to `never ()`.
 #if DOC
@@ -1087,16 +1087,16 @@ module Alt =
   /// Infix operators on alternatives.  You can open this module to bring all
   /// of the infix operators into scope.
   module Infixes =
-    /// Creates an alternative that is available for picking when either of the
-    /// given alternatives is available.  `xA1 <|>? xA2` is an optimized version
-    /// of `choose [xA1; xA2]`.
+    /// Creates an alternative that is available when either of the given
+    /// alternatives is available.  `xA1 <|>? xA2` is an optimized version of
+    /// `choose [xA1; xA2]`.
 #if DOC
     ///
     /// The given alternatives are processed in a left-to-right order with
     /// short-cut evaluation.  In other words, given an alternative of the form
     /// `first <|>? second`, the `first` alternative is first instantiated and,
-    /// if it is pickable, is committed to and the `second` alternative will not
-    /// be instantiated at all.
+    /// if it is available, is committed to and the `second` alternative will
+    /// not be instantiated at all.
 #endif
     val (<|>?): Alt<'x> -> Alt<'x> -> Alt<'x>
 
@@ -1185,8 +1185,8 @@ module Timer =
   /// Operations on the global wall-clock timer.  The global timer is implicitly
   /// associated with the global scheduler.
   module Global =
-    /// Creates an alternative that, after instantiation, becomes pickable after
-    /// the specified time span.
+    /// Creates an alternative that, after instantiation, becomes available
+    /// after the specified time span.
     ///
     /// Note that this is simply not intended for high precision timing and the
     /// resolution of the underlying timing mechanism is very coarse (Windows
@@ -1263,13 +1263,13 @@ module Ch =
   val create: unit -> Job<Ch<'x>>
 
   /// Creates an alternative that, at instantiation time, offers to give the
-  /// given value on the given channel, and becomes available for picking when
-  /// another job offers to take the value.
+  /// given value on the given channel, and becomes available when another job
+  /// offers to take the value.
   val inline give: Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates an alternative that, at instantiation time, offers to take a value
-  /// from another job on the given channel, and becomes available for picking
-  /// when another job offers to give a value.
+  /// from another job on the given channel, and becomes available when another
+  /// job offers to give a value.
   val inline take: Ch<'x> -> Alt<'x>
 
   /// Creates a job that sends a value to another job on the given channel.  A
@@ -1409,8 +1409,8 @@ module IVar =
   /// usage leads to undefined behavior.  See also `fill`.
   val inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
-  /// Creates an alternative that becomes available for picking after the
-  /// write once variable has been written to.
+  /// Creates an alternative that becomes available after the write once
+  /// variable has been written to.
   val inline read: IVar<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1587,9 +1587,8 @@ module MVar =
 #endif
   val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Job<'y>
 
-  /// Creates an alternative that becomes available for picking when the
-  /// variable contains a value and, if committed to, read the value from the
-  /// variable.
+  /// Creates an alternative that becomes available when the variable contains a
+  /// value and, if committed to, read the value from the variable.
 #if DOC
   ///
   /// Reference implementation:
@@ -1598,9 +1597,8 @@ module MVar =
 #endif
   val inline read: MVar<'x> -> Alt<'x>
 
-  /// Creates an alternative that becomes available for picking when the
-  /// variable contains a value and, if committed to, takes the value from the
-  /// variable.
+  /// Creates an alternative that becomes available when the variable contains a
+  /// value and, if committed to, takes the value from the variable.
   val inline take: MVar<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1632,9 +1630,8 @@ module Mailbox =
   /// operation never blocks.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
 
-  /// Creates an alternative that becomes available for picking when the mailbox
-  /// contains at least one value and, if committed to, takes a value from the
-  /// mailbox.
+  /// Creates an alternative that becomes available when the mailbox contains at
+  /// least one value and, if committed to, takes a value from the mailbox.
   val inline take: Mailbox<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2104,9 +2101,9 @@ module Scheduler =
 /// infix operators into scope.
 module Infixes =
   /// Creates an alternative that, at instantiation time, offers to give the
-  /// given value on the given channel, and becomes available for picking when
-  /// another job offers to take the value.  `xCh <-? x` is equivalent to
-  /// `Ch.Alt.give xCh x`.
+  /// given value on the given channel, and becomes available when another job
+  /// offers to take the value.  `xCh <-? x` is equivalent to `Ch.Alt.give xCh
+  /// x`.
   val inline (<--): Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates a job that sends a value to another job on the given channel.  A
