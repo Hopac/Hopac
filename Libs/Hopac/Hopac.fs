@@ -1283,9 +1283,6 @@ module Timer =
     let timeOut (span: System.TimeSpan) = timeOutTicks span.Ticks
     let timeOutMillis (ms: int) = timeOutTicks (int64 ms * 10000L)
 
-    let sleep (span: TimeSpan) = timeOutTicks span.Ticks :> Job<unit>
-    let sleepMillis (ms: int) = timeOutTicks (int64 ms * 10000L) :> Job<unit>
-
 /////////////////////////////////////////////////////////////////////////
 
 module Lock =

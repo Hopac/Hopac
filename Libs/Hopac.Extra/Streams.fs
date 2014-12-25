@@ -298,10 +298,10 @@ module Streams =
     dtos
     |> mapJob (fun dto ->
        let ts = dto - DateTimeOffset.Now
-       if ts.Ticks <= 0L then Job.result dto else Timer.Global.sleep ts >>% dto)
+       if ts.Ticks <= 0L then Job.result dto else Timer.Global.timeOut ts >>% dto)
   let atDateTimeOffset dto = atDateTimeOffsets (one dto)
 
-  let afterTimeSpan ts = onceJob (Timer.Global.sleep ts)
+  let afterTimeSpan ts = onceJob (Timer.Global.timeOut ts)
 
   let values (xs: Streams<_>) = Job.delay <| fun () ->
     let out = ch ()
