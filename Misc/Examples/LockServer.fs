@@ -25,15 +25,14 @@ type Server = {
 
 let release s (Lock lock) = s.reqCh <-- Release lock
 
-module Alt =
-  let acquire s (Lock lock) = Alt.withNack <| fun nack ->
-    let replyCh = ch ()
-    s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
-    replyCh
+let acquire s (Lock lock) = Alt.withNack <| fun nack ->
+  let replyCh = ch ()
+  s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
+  replyCh
 
-  let withLock s l xJ =
-    acquire s l >>=? fun () ->
-    Job.tryFinallyJob xJ (release s l)
+let withLock s l xJ =
+  acquire s l >>=? fun () ->
+  Job.tryFinallyJob xJ (release s l)
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +53,7 @@ let start = Job.delay <| fun () ->
           pending.Enqueue (replyCh, abortAlt)
           Job.unit ()
         | _ ->
-          Alt.select [replyCh <-? () |>>? fun () ->
+          Alt.select [replyCh <-- () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->
@@ -66,7 +65,7 @@ let start = Job.delay <| fun () ->
               Job.unit ()
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
-              Alt.select [replyCh <-? ()
+              Alt.select [replyCh <-- ()
                           abortAlt >>=? assign]
           assign ()
         | _ ->

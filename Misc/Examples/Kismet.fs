@@ -22,7 +22,7 @@ module GameTime =
     Alt.guard << Job.delay <| fun () ->
     let replyI = ivar ()
     timerReqCh <-+ (atTime, replyI) >>%
-    IVar.Alt.read replyI
+    IVar.read replyI
 
   let timeOut (afterTicks: Ticks) : Alt<unit> =
     assert (0L <= afterTicks)
@@ -79,7 +79,7 @@ let setup () = job {
   // ...
   do! CompareBool bMoved
                   ch_1
-                  (Ch.give ch_2)
+                  (fun x -> ch_2 <-- x :> Job<_>)
                   (fun _ -> Job.unit ())
       |> Job.foreverServer
   do! Delay (ref 314L)

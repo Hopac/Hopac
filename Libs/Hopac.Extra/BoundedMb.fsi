@@ -13,20 +13,8 @@ module BoundedMb =
   /// capacity.
   val create: capacity: int -> Job<BoundedMb<'x>>
 
-  /// Puts a message to the bounded mailbox.  If the buffer of the bounded
-  /// mailbox is not full, the operation can be completed immediately.  If the
-  /// buffer is full, the operation will block.
-  val put: BoundedMb<'x> -> 'x -> Job<unit>
+  /// Alternative to put a message to a bounded mailbox.
+  val put: BoundedMb<'x> -> 'x -> Alt<unit>
 
-  /// Takes a message from the bounded mailbox.  If the buffer of the bounded
-  /// mailbox is not empty, the operation can be completed immediately.  If the
-  /// buffer is empty, the operation will block.
-  val take: BoundedMb<'x> -> Job<'x>
-
-  /// Selective operations on bounded mailboxes.
-  module Alt =
-    /// Alternative to put a message to a bounded mailbox.
-    val put: BoundedMb<'x> -> 'x -> Alt<unit>
-
-    /// Alternative to take a message from a bounded mailbox.
-    val take: BoundedMb<'x> -> Alt<'x>
+  /// Alternative to take a message from a bounded mailbox.
+  val take: BoundedMb<'x> -> Alt<'x>

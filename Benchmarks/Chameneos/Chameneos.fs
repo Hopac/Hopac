@@ -75,7 +75,7 @@ module HopacLock =
                 myMeets := !myMeets + 1
                 me.Color <- complement me.Color otherColor
               else
-                resultsMS <-- !myMeets
+                resultsMS <-- !myMeets :> Job<_>
             | other ->
               let otherColor = other.Color
               other.WakeUp <<-= me.Color |>> fun () ->
@@ -177,7 +177,7 @@ module HopacAlt =
          outCh <-+ None >>% None) <|>?
       (Alt.delay <| fun () ->
        let inCh = ch ()
-       (csch.Ch <-? (msgOut, inCh) >>=? fun () -> inCh :> Job<_>) <|>?
+       (csch.Ch <-- (msgOut, inCh) >>=? fun () -> inCh :> Job<_>) <|>?
        csch.Done)
 
   module Creature =

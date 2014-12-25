@@ -10,7 +10,7 @@ open Hopac.Job.Infixes
 
 type SelectableQueue<'a> = {
   SendCh: Ch<'a>
-  TakeCh: Ch<('a -> bool) * Alt<unit> * Ch<'a>>
+  TakeCh: Ch<('a -> bool) * Promise<unit> * Ch<'a>>
 }
 
 module SelectableQueue =
@@ -23,30 +23,26 @@ module SelectableQueue =
   let create () : Job<SelectableQueue<'a>> = Job.delay <| fun () ->
     let q = {SendCh = ch (); TakeCh = ch ()}
     let msgs = LinkedList<'a>()
-    let reqs = LinkedList<('a -> bool) * Alt<unit> * Ch<'a>>()
+    let reqs = LinkedList<('a -> bool) * Promise<unit> * Ch<'a>>()
     let sendAlt = q.SendCh |>>? fun m -> msgs.AddLast (LinkedListNode<_>(m))
     let takeAlt = q.TakeCh |>>? fun r -> reqs.AddLast (LinkedListNode<_>(r))
     let prepare (reqNode: LinkedListNode<_>) : Alt<unit> =
       let (pred, cancel, replyCh) = reqNode.Value
       let cancelAlt = cancel |>>? fun () -> reqs.Remove reqNode
       let giveAlt (msgNode: LinkedListNode<_>) =
-        replyCh <-? msgNode.Value |>>? fun () ->
+        replyCh <-- msgNode.Value |>>? fun () ->
         reqs.Remove reqNode
         msgs.Remove msgNode
       match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
        | None         -> cancelAlt
        | Some msgNode -> cancelAlt <|>? giveAlt msgNode
-    sendAlt <|>? takeAlt <|> Alt.choose (Seq.map prepare (nodes reqs))
+    sendAlt <|>? takeAlt <|>? Alt.choose (Seq.map prepare (nodes reqs))
     |> Job.foreverServer >>% q
 
-  module Alt =
-    let send (q: SelectableQueue<'a>) (x: 'a) : Alt<unit> =
-      q.SendCh <-? x
+  let send (q: SelectableQueue<'a>) (x: 'a) : Alt<unit> =
+    q.SendCh <-- x
 
-    let take (q: SelectableQueue<'a>) (p: 'a -> bool) : Alt<'a> =
-      Alt.withNack <| fun nack ->
-      let replyCh = ch ()
-      q.TakeCh <-- (p, nack, replyCh) >>% replyCh
-
-  let inline send q x = Alt.send q x :> Job<_>
-  let inline take q p = Alt.take q p :> Job<_>
+  let take (q: SelectableQueue<'a>) (p: 'a -> bool) : Alt<'a> =
+    Alt.withNack <| fun nack ->
+    let replyCh = ch ()
+    q.TakeCh <-- (p, nack, replyCh) >>% replyCh

@@ -36,7 +36,7 @@ module ChMsg =
     return CA inCh
   }
 
-  let add (CA inCh) (n: int64) : Job<unit> = inCh <-- Add n
+  let add (CA inCh) (n: int64) = inCh <-- Add n
   let getAndReset (CA inCh) : Job<int64> = Job.delay <| fun () ->
     let replyVar = ivar ()
     inCh <-+ GetAndReset replyVar >>.

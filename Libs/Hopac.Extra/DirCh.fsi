@@ -24,20 +24,10 @@ module DirCh =
   /// to be taken on the input channel.
   val create: unit -> Job<InCh<'a> * OutCh<'a>>
 
-  /// Waits until another job offers to give a value on the associated output
-  /// channel and then takes the value.
-  val take: InCh<'a> -> Job<'a>
+  /// An alternative to take a value to be given on the associated output
+  /// channel.
+  val take: InCh<'a> -> Alt<'a>
 
-  /// Waits until another job offers to take a value on the associated input
-  /// channel and then gives the value.
-  val give: OutCh<'a> -> 'a -> Job<unit>
-
-  /// Selective operations on directional channels.
-  module Alt =
-    /// An alternative to take a value to be given on the associated output
-    /// channel.
-    val take: InCh<'a> -> Alt<'a>
-
-    /// An alternative to give a value to be taken on the associated input
-    /// channel.
-    val give: OutCh<'a> -> 'a -> Alt<unit>
+  /// An alternative to give a value to be taken on the associated input
+  /// channel.
+  val give: OutCh<'a> -> 'a -> Alt<unit>

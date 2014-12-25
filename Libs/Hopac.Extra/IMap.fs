@@ -53,24 +53,23 @@ module IMap =
          failwithf "Tried to fill item %A twice." k
        vI <-= Some v
 
-  module Alt =
-    let query kvM k =
-      match kvM.Closed with
-       | null -> Alt.delay <| fun () ->
-         let k2vI = kvM.Map
-         lock k2vI <| fun () ->
-         match k2vI.TryGetValue k with
-          | (false, _) ->
-            match kvM.Closed with
-             | null ->
-               let vI = ivar ()
-               k2vI.Add (k, vI)
-               vI :> Alt<_>
-             | vA ->
-               vA
-          | (true, vI) ->
-            vI :> Alt<_>
-       | vI ->
-         match kvM.Map.TryGetValue k with
-          | (false, _) -> vI
-          | (true, vI) -> upcast vI
+  let query kvM k =
+    match kvM.Closed with
+     | null -> Alt.delay <| fun () ->
+       let k2vI = kvM.Map
+       lock k2vI <| fun () ->
+       match k2vI.TryGetValue k with
+        | (false, _) ->
+          match kvM.Closed with
+           | null ->
+             let vI = ivar ()
+             k2vI.Add (k, vI)
+             vI :> Alt<_>
+           | vA ->
+             vA
+        | (true, vI) ->
+          vI :> Alt<_>
+     | vI ->
+       match kvM.Map.TryGetValue k with
+        | (false, _) -> vI
+        | (true, vI) -> upcast vI

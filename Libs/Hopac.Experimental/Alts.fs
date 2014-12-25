@@ -34,14 +34,14 @@ module Alts =
 
   let inline start f =
     Alt.withNack <| fun nack ->
-    Promise.startAsAlt (f (nack >>=? Job.abort))
+    Promise.start (f (nack >>=? Job.abort))
 
   let rec mergeAbort yO1 yO2 abort =
     let inline case yO1 yO2 =
       yO1 >>=? function
-        | Done -> yO2 <|> abort
+        | Done -> yO2 <|>? abort :> Job<_>
         | Next (y, yO1) -> Next' (y, mergeOut yO1 yO2)
-    case yO1 yO2 <|>? case yO2 yO1 <|> abort
+    case yO1 yO2 <|>? case yO2 yO1 <|>? abort
 
   and mergeOut xO1 xO2 =
     start <| mergeAbort xO1 xO2
@@ -56,7 +56,7 @@ module Alts =
         | Done -> Done' ()
         | Next (x, xO) ->
           x2yOJ x >>= fun (In yO) ->
-          mergeAbort yO (loop xO) abort) <|> abort
+          mergeAbort yO (loop xO) abort) <|>? abort
     In <| loop xO
 
   let processJob ( x2syOJ:       'x -> Job<'s * option<'y>>)
@@ -69,12 +69,12 @@ module Alts =
      (xO >>=? function
        | Done -> Done' ()
        | Next (x, xO) ->
-         sx2syOJ s x >>= choose xO abort) <|> abort
+         sx2syOJ s x >>= choose xO abort) <|>? abort :> Job<_>
    let initial abort =
      (xO >>=? function
        | Done -> Done' ()
        | Next (x, xO) ->
-         x2syOJ x >>= choose xO abort) <|> abort
+         x2syOJ x >>= choose xO abort) <|>? abort
    In <| start initial
 
   let throttle (timeOut: Alt<unit>) (In xO: Alts<'x>) : Alts<'x> =
@@ -82,7 +82,7 @@ module Alts =
       (xO >>=? function
         | Done -> Job.result Done
         | Next (x, xO) -> stabilize x xO abort) <|>?
-      (timeOut |>>? fun () -> Next (x, initial xO)) <|> abort
+      (timeOut |>>? fun () -> Next (x, initial xO)) <|>? abort :> Job<_>
     and initial xO =
       start <| fun abort ->
       xO >>= function

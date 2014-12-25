@@ -12,7 +12,7 @@ open Hopac.Alt.Infixes
 
 type Frequency = int
 type FrequencyServer = {
-    allocCh: Ch<Proc * Alt<unit> * Ch<Frequency>>
+    allocCh: Ch<Proc * Promise<unit> * Ch<Frequency>>
     deallocCh: Ch<Proc * Frequency>
   }
 
@@ -38,10 +38,10 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
     if e.MoveNext () then
       let freq = e.Current
       e.Dispose ()
-      (replyCh <-? freq |>>? fun () ->
+      (replyCh <-- freq |>>? fun () ->
        free.Remove freq |> ignore
-       allocated.Add (proc, freq) |> ignore) <|>
-      nack
+       allocated.Add (proc, freq) |> ignore) <|>?
+      nack :> Job<_>
     else
       e.Dispose ()
       Job.unit ()

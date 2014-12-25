@@ -44,10 +44,8 @@ module IMap =
   /// the same key.  It is also considered an error if the map has been closed.
   val fill: IMap<'k, 'v> -> 'k -> 'v -> Job<unit>
 
-  /// Selective operations on write once maps.
-  module Alt =
-    /// Returns an alternative that tries to read the value associated with the
-    /// given key.  The alternative becomes enabled once there is some value
-    /// associated with the key in the map or after the map has been closed, in
-    /// which case the result will be none.
-    val query: IMap<'k, 'v> -> 'k -> Alt<option<'v>>
+  /// Returns an alternative that tries to read the value associated with the
+  /// given key.  The alternative becomes enabled once there is some value
+  /// associated with the key in the map or after the map has been closed, in
+  /// which case the result will be none.
+  val query: IMap<'k, 'v> -> 'k -> Alt<option<'v>>

@@ -19,7 +19,7 @@ namespace Hopac.Core {
     public static Alt<Unit> unit;
 
     /// <summary>Stores the single shared zero alternative.</summary>
-    public static volatile Alt<Unit> zero;
+    public static volatile Promise<Unit> zero;
 
     /// <summary>Stores the single shared scheduler job.</summary>
     public static Job<Scheduler> scheduler;

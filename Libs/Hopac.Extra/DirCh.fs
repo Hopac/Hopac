@@ -15,8 +15,5 @@ module DirCh =
       let xCh = ch ()
       (InCh xCh, OutCh xCh)
   let create () = Job.thunk Now.create
-  let take (InCh ch) = asJob ch
+  let take (InCh ch) = asAlt ch
   let give (OutCh ch) x = ch <-- x
-  module Alt =
-    let take (InCh ch) = asAlt ch
-    let give (OutCh ch) x = ch <-? x

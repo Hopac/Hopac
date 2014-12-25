@@ -20,7 +20,7 @@ module Stream =
 
   /// Creates a new channel and passes it as the output action to the given
   /// partially applied stream.
-  val inline imp: (Out<'x> -> Job<unit>) -> Job<In<'x>>
+  val inline imp: (Out<'x> -> #Job<unit>) -> Job<In<'x>>
 
   /// Creates a server that forwards those messages from the given input to the
   /// output that satisfy the given predicate.
@@ -28,7 +28,7 @@ module Stream =
   
   /// Creates a server that forwards those messages from the given input to the
   /// output that satisfy the given predicate.
-  val filterJob: ('x -> Job<bool>) -> In<'x> -> Out<'x> -> Job<unit>
+  val filterJob: ('x -> #Job<bool>) -> In<'x> -> Out<'x> -> Job<unit>
 
   /// Creates a server that iterates the given operation to create a stream of
   /// messages.
@@ -36,7 +36,7 @@ module Stream =
 
   /// Creates a server that iterates the given operation to create a stream of
   /// messages.
-  val iterateJob: 'x -> ('x -> Job<'x>) -> Out<'x> -> Job<unit>
+  val iterateJob: 'x -> ('x -> #Job<'x>) -> Out<'x> -> Job<unit>
 
   /// Creates a server that maps messages from the given input to the given
   /// output with the given operation.
@@ -44,7 +44,7 @@ module Stream =
   
   /// Creates a server that maps messages from the given input to the given
   /// output with the given operation.
-  val mapJob: ('x -> Job<'y>) -> In<'x> -> Out<'y> -> Job<unit>
+  val mapJob: ('x -> #Job<'y>) -> In<'x> -> Out<'y> -> Job<unit>
 
   /// Creates a server that maps messages from the given pair of inputs to the
   /// given output with the given operation.
@@ -52,4 +52,4 @@ module Stream =
 
   /// Creates a server that maps messages from the given pair of inputs to the
   /// given output with the given operation.
-  val sumWithJob: ('x -> 'y -> Job<'z>) -> In<'x> -> In<'y> -> Out<'z> -> Job<unit>
+  val sumWithJob: ('x -> 'y -> #Job<'z>) -> In<'x> -> In<'y> -> Out<'z> -> Job<unit>

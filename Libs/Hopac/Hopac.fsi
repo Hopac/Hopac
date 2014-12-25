@@ -50,10 +50,6 @@
 /// and it is preferable to construct longer sequences of concurrent operations
 /// to run.
 ///
-/// Many modules also contain a module named `Alt`, which contains primitive
-/// selective operations to be used with other selective communication
-/// operations.
-///
 /// For some infix operators there are both `Job` and `Alt` level versions.  The
 /// `Alt` level versions end with a question mark `?` that indicates the
 /// selective nature of the operation.
@@ -329,11 +325,9 @@ module Proc =
 #endif
   val inline self: unit -> Job<Proc>
 
-  /// Selective operations on processes.
-  module Alt =
-    /// Returns an alternative that becomes available for picking once the
-    /// process is known to have been terminated for any reason.
-    val inline join: Proc -> Alt<unit>
+  /// Returns an alternative that becomes available for picking once the process
+  /// is known to have been terminated for any reason.
+  val inline join: Proc -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1027,7 +1021,7 @@ module Alt =
   ///>   server << Job.iterate 0 <| fun oldCounter ->
   ///>     reqCh >>= fun (n, nack, replyCh) ->
   ///>     let newCounter = oldCounter + n
-  ///>     (replyCh <-? newCounter >>%? newCounter) <|>
+  ///>     (replyCh <-? newCounter >>%? newCounter) <|>?
   ///>     (nack                   >>%? oldCounter)
   ///>   reqCh
   ///
@@ -1053,10 +1047,10 @@ module Alt =
   /// alternative of the form `always () <|>? withNack (...)` the `withNack`
   /// alternative is never instantiated.
 #endif
-  val withNack: (Alt<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
+  val withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
   /// Creates an alternative that is available for picking when any one of the
-  /// given alternatives is.  See also: `<|>?`, `<|>`.
+  /// given alternatives is.  See also: `<|>?`.
   ///
   /// Note that `choose []` is equivalent to `never ()` and `pick (choose [])`
   /// is equivalent to `abort ()`.
@@ -1096,19 +1090,16 @@ module Alt =
   module Infixes =
     /// Creates an alternative that is available for picking when either of the
     /// given alternatives is available.  `xA1 <|>? xA2` is an optimized version
-    /// of `choose [xA1; xA2]`.  See also: `<|>`.
+    /// of `choose [xA1; xA2]`.
 #if DOC
     ///
     /// The given alternatives are processed in a left-to-right order with
     /// short-cut evaluation.  In other words, given an alternative of the form
-    /// `first <|> second`, the `first` alternative is first instantiated and,
+    /// `first <|>? second`, the `first` alternative is first instantiated and,
     /// if it is pickable, is committed to and the `second` alternative will not
     /// be instantiated at all.
 #endif
     val (<|>?): Alt<'x> -> Alt<'x> -> Alt<'x>
-
-    /// `xA1 <|> xA2` is equivalent to `Alt.pick (xA1 <|>? xA2)`.
-    val inline (<|>): Alt<'x> -> Alt<'x> -> Job<'x>
 
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given
@@ -1296,10 +1287,15 @@ module Ch =
   /// Creates a job that creates a new channel.
   val create: unit -> Job<Ch<'x>>
 
-  /// Creates a job that offers to give the given value to another job on the
-  /// given channel.  A give operation is synchronous.  In other words, a give
-  /// operation waits until another job takes the value.
-  val inline give: Ch<'x> -> 'x -> Job<unit>
+  /// Creates an alternative that, at instantiation time, offers to give the
+  /// given value on the given channel, and becomes available for picking when
+  /// another job offers to take the value.
+  val inline give: Ch<'x> -> 'x -> Alt<unit>
+
+  /// Creates an alternative that, at instantiation time, offers to take a value
+  /// from another job on the given channel, and becomes available for picking
+  /// when another job offers to give a value.
+  val inline take: Ch<'x> -> Alt<'x>
 
   /// Creates a job that sends a value to another job on the given channel.  A
   /// send operation is asynchronous.  In other words, a send operation does not
@@ -1312,11 +1308,6 @@ module Ch =
   /// buffering.
 #endif
   val inline send: Ch<'x> -> 'x -> Job<unit>
-
-  /// Creates a job that offers to take a value from another job on the given
-  /// channel.  In other words, a take operation waits until another job gives
-  /// (or sends) a value.
-  val inline take: Ch<'x> -> Job<'x>
 
   /// Polling, or non-blocking, operations on synchronous channels.
 #if DOC
@@ -1344,18 +1335,6 @@ module Ch =
     /// the given channel.  Note that the other side of the communication must
     /// be blocked on the channel for communication to happen.
     val inline take: Ch<'x> -> Job<option<'x>>
-
-  /// Selective operations on synchronous channels.
-  module Alt =
-    /// Creates an alternative that, at instantiation time, offers to give the
-    /// given value on the given channel, and becomes available for picking when
-    /// another job offers to take the value.
-    val inline give: Ch<'x> -> 'x -> Alt<unit>
-
-    /// Creates an alternative that, at instantiation time, offers to take a
-    /// value from another job on the given channel, and becomes available for
-    /// picking when another job offers to give a value.
-    val inline take: Ch<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1455,16 +1434,9 @@ module IVar =
   /// usage leads to undefined behavior.  See also `fill`.
   val inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
-  /// Creates a job that, if necessary, waits until the given write once
-  /// variable is written to and then returns the written value or fails with
-  /// the exception written to the variable.
-  val inline read: IVar<'x> -> Job<'x>
-
-  /// Selective operations on write once variables.
-  module Alt =
-    /// Creates an alternative that becomes available for picking after the
-    /// write once variable has been written to.
-    val inline read: IVar<'x> -> Alt<'x>
+  /// Creates an alternative that becomes available for picking after the
+  /// write once variable has been written to.
+  val inline read: IVar<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1498,9 +1470,9 @@ module Latch =
 
   /// Creates a job that queues the given job to run as a separate concurrent
   /// job and holds the latch until the queued job either returns or fails with
-  /// an exception.  An alternative is returned for observing the result or
-  /// failure of the queued job.
-  val queueAsAlt: Latch -> Job<'x> -> Job<Alt<'x>>
+  /// an exception.  A promise is returned for observing the result or failure
+  /// of the queued job.
+  val queueAsPromise: Latch -> Job<'x> -> Job<Promise<'x>>
 
   // First-order interface -----------------------------------------------------
 
@@ -1519,13 +1491,8 @@ module Latch =
 
   // Await interface -----------------------------------------------------------
 
-  /// Returns a job that awaits for the latch to open.
-  val inline await: Latch -> Job<unit>
-
-  /// Selective operations on counter latches.
-  module Alt =
-    /// Returns an alternative that becomes available once the latch opens.
-    val inline await: Latch -> Alt<unit>
+  /// Returns an alternative that becomes available once the latch opens.
+  val inline await: Latch -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1576,7 +1543,7 @@ module Latch =
 ///> type AutoResetEvent (init: bool) =
 ///>   let set = if init then mvarFull () else mvar ()
 ///>   let unset = if init then mvar () else mvarFull ()
-///>   member this.Set = unset <|> set >>= MVar.fill set
+///>   member this.Set = unset <|>? set >>= MVar.fill set
 ///>   member this.Wait = set >>=? MVar.fill unset
 ///
 /// The idea is to use two serialized variables to represent the state of the
@@ -1613,21 +1580,6 @@ module MVar =
   /// behavior.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that waits until the serialized variable contains a value
-  /// and then read the value contained by the variable.
-#if DOC
-  ///
-  /// Reference implementation:
-  ///
-  ///> let read xM = take xM >>= fun x -> fill xM x >>% x
-#endif
-  val inline read: MVar<'x> -> Job<'x>
-
-  /// Creates a job that waits until the serialized variable contains a value
-  /// and then takes the value contained by the variable leaving the variable
-  /// empty.
-  val inline take: MVar<'x> -> Job<'x>
-
   /// Creates a job that takes the value of the serialized variable and then
   /// fills the variable with the result of performing the given function.
   ///
@@ -1660,23 +1612,21 @@ module MVar =
 #endif
   val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Job<'y>
 
-  /// Selective operations on serialized variables.
-  module Alt =
-    /// Creates an alternative that becomes available for picking when the
-    /// variable contains a value and, if committed to, read the value from the
-    /// variable.
+  /// Creates an alternative that becomes available for picking when the
+  /// variable contains a value and, if committed to, read the value from the
+  /// variable.
 #if DOC
-    ///
-    /// Reference implementation:
-    ///
-    ///> let read xM = take xM >>=? fun x -> fill xM x >>% x
+  ///
+  /// Reference implementation:
+  ///
+  ///> let read xM = take xM >>=? fun x -> fill xM x >>% x
 #endif
-    val inline read: MVar<'x> -> Alt<'x>
+  val inline read: MVar<'x> -> Alt<'x>
 
-    /// Creates an alternative that becomes available for picking when the
-    /// variable contains a value and, if committed to, takes the value from the
-    /// variable.
-    val inline take: MVar<'x> -> Alt<'x>
+  /// Creates an alternative that becomes available for picking when the
+  /// variable contains a value and, if committed to, takes the value from the
+  /// variable.
+  val inline take: MVar<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1707,17 +1657,10 @@ module Mailbox =
   /// operation never blocks.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that waits until the specified mailbox contains at least one
-  /// value and then takes a value from the mailbox and returns it.  Values are
-  /// taken in FIFO order.
-  val inline take: Mailbox<'x> -> Job<'x>
-
-  /// Selective operations on buffered mailboxes.
-  module Alt =
-    /// Creates an alternative that becomes available for picking when the
-    /// mailbox contains at least one value and, if committed to, takes a value
-    /// from the mailbox.
-    val inline take: Mailbox<'x> -> Alt<'x>
+  /// Creates an alternative that becomes available for picking when the mailbox
+  /// contains at least one value and, if committed to, takes a value from the
+  /// mailbox.
+  val inline take: Mailbox<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1742,12 +1685,6 @@ module Promise =
     /// separate job, which means it is possible to communicate with it as long
     /// the delayed job is started before trying to communicate with it.
     val inline delay: Job<'x> -> Promise<'x>
-
-    /// Same as `delay`, but returns the promise as a `Job<'x>`.
-    val inline delayAsJob: Job<'x> -> Job<'x>
-
-    /// Same as `delay`, but returns the promise as an `Alt<'x>`.
-    val inline delayAsAlt: Job<'x> -> Alt<'x>
 
     /// Creates a promise with the given value.
     val inline withValue: 'x -> Promise<'x>
@@ -1782,22 +1719,9 @@ module Promise =
   /// also: `start`, `Job.queue`.
   val queue: Job<'x> -> Job<Promise<'x>>
 
-  /// Same as `Promise.start`, but returns the promise as an `Alt<'x>`.
-  val startAsAlt: Job<'x> -> Job<Alt<'x>>
-
-  /// Same as `Promise.queue`, but returns the promise as an `Alt<'x>`.
-  val queueAsAlt: Job<'x> -> Job<Alt<'x>>
-
-  /// Creates a job that waits for the promise to be computed and then returns
-  /// its value (or fails with exception).  If the promise was delayed, it is
-  /// started as a separate job.
-  val inline read: Promise<'x> -> Job<'x>
-
-  /// Selective operations on promises.
-  module Alt =
-    /// Creates an alternative for reading the promise.  If the promise was
-    /// delayed, it is started as a separate job.
-    val inline read: Promise<'x> -> Alt<'x>
+  /// Creates an alternative for reading the promise.  If the promise was
+  /// delayed, it is started as a separate job.
+  val inline read: Promise<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2208,13 +2132,7 @@ module Infixes =
   /// given value on the given channel, and becomes available for picking when
   /// another job offers to take the value.  `xCh <-? x` is equivalent to
   /// `Ch.Alt.give xCh x`.
-  val inline (<-?): Ch<'x> -> 'x -> Alt<unit>
-
-  /// Creates a job that offers to give the given value to another job on the
-  /// given channel.  A give operation is synchronous.  In other words, a give
-  /// operation waits until another job takes the value.  `xCh <-- x` is
-  /// equivalent to `Ch.give xCh x`.
-  val inline (<--): Ch<'x> -> 'x -> Job<unit>
+  val inline (<--): Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates a job that sends a value to another job on the given channel.  A
   /// send operation is asynchronous.  In other words, a send operation does not

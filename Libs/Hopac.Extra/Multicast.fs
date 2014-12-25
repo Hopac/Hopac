@@ -7,7 +7,7 @@ open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 
-//(*
+
 type MPort<'a> =
  | MPort of Ch<'a>
 
@@ -46,16 +46,12 @@ module Multicast =
     mc.ReqCh <-+ NewPort >>.
     asJob mc.RepCh
 
-  let multicast (mc: MChan<'a>) (x: 'a) : Job<unit> =
+  let multicast (mc: MChan<'a>) (x: 'a) : Alt<unit> =
     mc.ReqCh <-- Multicast x
 
   let recv (MPort port) =
-    asJob port
+    asAlt port
 
-  module Alt =
-    let recv (MPort port) =
-      asAlt port
-//*)
 (*
 type Stream<'x> = {
   Value: 'x

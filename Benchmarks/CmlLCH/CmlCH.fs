@@ -23,12 +23,12 @@ module EgPaper =
     let x = ch ()
     let y = ch ()
     let z = ch ()
-    Job.queue (make "+" "x" (x <-? ()) <|>
-               make "+" "y" (y <-? ())) >>= fun () ->
-    Job.queue (make "-" "y" y <|>
+    Job.queue (make "+" "x" (x <-- ()) <|>?
+               make "+" "y" (y <-- ())) >>= fun () ->
+    Job.queue (make "-" "y" y <|>?
                make "-" "z" z) >>= fun () ->
     Job.queue (make "-" "x" x) >>= fun () ->
-    Job.queue (make "+" "z" (z <-? ()))
+    Job.queue (make "+" "z" (z <-- ()))
 
   let run n =
     printf "EgPaper %8d: " n
@@ -44,10 +44,10 @@ module SwapCh =
 
   let swap sCh outMsg =
     (sCh >>=? fun (inMsg, outCh) ->
-     outCh <-- outMsg >>% inMsg) <|>
+     outCh <-- outMsg >>% inMsg) <|>?
     (Alt.delay <| fun () ->
      let inCh = ch ()
-     sCh <-? (outMsg, inCh) >>.? inCh)
+     sCh <-- (outMsg, inCh) >>.? inCh)
 
   let bench = Job.delay <| fun () ->
     let sCh = swapch ()
@@ -72,8 +72,8 @@ module BufferedCh =
        | ([], []) ->
          inCh |>> fun x -> ([x], [])
        | ((x::xs) as xxs, ys) ->
-         (inCh |>>? fun y -> (xxs, y::ys)) <|>
-         (outCh <-? x >>%? (xs, ys))
+         (inCh |>>? fun y -> (xxs, y::ys)) <|>?
+         (outCh <-- x >>%? (xs, ys)) :> Job<_>
        | ([], ys) ->
          Job.result (List.rev ys, [])) >>%
     (inCh, outCh)

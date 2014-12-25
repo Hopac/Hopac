@@ -13,7 +13,7 @@ module ActorModel =
   let result (x: 'x) : ActorThread<'a, 'x> =
     AT (fun aCh -> Job.result x)
   let receive : ActorThread<'a, 'a> =
-    AT (fun aCh -> Ch.take aCh)
+    AT (fun aCh -> aCh :> Job<_>)
   type Actor<'a> = A of Ch<'a>
   let unA (A aCh) = aCh
   let self : ActorThread<'a, Actor<'a>> =

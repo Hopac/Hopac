@@ -24,7 +24,7 @@ module BoundedMb =
       let self = {putCh = ch (); takeCh = ch ()}
       let queue = Queue<_>()
       let put = self.putCh |>>? queue.Enqueue
-      let take () = self.takeCh <-? queue.Peek () |>>? (queue.Dequeue >> ignore)
+      let take () = self.takeCh <-- queue.Peek () |>>? (queue.Dequeue >> ignore)
       let proc = Job.delay <| fun () ->
         match queue.Count with
          | 0 -> put
@@ -32,9 +32,5 @@ module BoundedMb =
          | _ -> take () <|>? put
       Job.foreverServer proc >>% self
 
-  module Alt =
-    let put xB x = xB.putCh <-? x
-    let take xB = xB.takeCh :> Alt<_>
-
-  let put xB x = Alt.put xB x :> Job<_>
-  let take xB = Alt.take xB :> Job<_>
+  let put xB x = xB.putCh <-- x
+  let take xB = xB.takeCh :> Alt<_>

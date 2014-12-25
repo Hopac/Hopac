@@ -2,7 +2,7 @@
 
 namespace Hopac.Core {
   ///
-  public sealed class Never<X> : Alt<X> {
+  public sealed class Never<X> : Promise<X> {
     internal override void DoJob(ref Worker wr, Cont<X> aK) { }
 
     internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {

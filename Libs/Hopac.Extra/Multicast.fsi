@@ -19,12 +19,7 @@ module Multicast =
   val port: MChan<'a> -> Job<MPort<'a>>
 
   /// Sends a message to all of the ports listening to the multicast channel.
-  val multicast: MChan<'a> -> 'a -> Job<unit>
+  val multicast: MChan<'a> -> 'a -> Alt<unit>
 
-  /// Receives a message from the given port.
-  val recv: MPort<'a> -> Job<'a>
-
-  /// Selective operations on multicast channels.
-  module Alt =
-    /// Alternative to receive a message from the given port.
-    val recv: MPort<'a> -> Alt<'a>
+  /// Alternative to receive a message from the given port.
+  val recv: MPort<'a> -> Alt<'a>

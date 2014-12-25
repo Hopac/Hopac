@@ -106,7 +106,7 @@ module ChSend =
       if n <> 0 then
         outCh <-+ n-1
       else
-        finishCh <-- name)
+        finishCh <-- name :> Job<_>)
 
   let mkChain n finishCh = Job.delay <| fun () ->
     let ch0 = ch ()
@@ -146,7 +146,7 @@ module MbSend =
       if n <> 0 then
         outMS <<-+ n-1
       else
-        finishCh <-- name)
+        finishCh <-- name :> Job<_>)
 
   let mkChain n finishCh = Job.delay <| fun () ->
     let ms0 = mb ()

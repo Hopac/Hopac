@@ -18,10 +18,5 @@ module SwapCh =
   /// Creates a new swap channel.
   val create: unit -> Job<SwapCh<'a>>
 
-  /// Swap values with another job.
-  val inline swap: SwapCh<'a> -> 'a -> Job<'a>
-
-  /// Selective operations on swap channels.
-  module Alt =
-    /// Alternative to swap values with another job.
-    val swap: SwapCh<'a> -> 'a -> Alt<'a>
+  /// Alternative to swap values with another job.
+  val swap: SwapCh<'a> -> 'a -> Alt<'a>

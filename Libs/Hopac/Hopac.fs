@@ -197,9 +197,7 @@ module IVar =
   let inline tryFill (xI: IVar<'x>) (x: 'x) = IVar<'x>.TryFill (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
     IVar<'x>.FillFailure (xI, e) :> Job<unit>
-  let inline read (xI: IVar<'x>) = xI :> Job<'x>
-  module Alt =
-    let inline read (xI: IVar<'x>) = xI :> Alt<'x>
+  let inline read (xI: IVar<'x>) = xI :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -221,34 +219,13 @@ module Promise =
          wr.Handler <- prc
          xJ.DoJob (&wr, prc)})
        Cont.Do (xPrK, &wr, pr)}
-  let startAsAlt (xJ: Job<'x>) =
-    {new Job<Alt<'x>> () with
-      override self.DoJob (wr, xPrK) =
-       let pr = Promise<'x> ()
-       xPrK.Value <- pr
-       Worker.Push (&wr, xPrK)
-       Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
-  let queueAsAlt (xJ: Job<'x>) =
-    {new Job<Alt<'x>> () with
-      override self.DoJob (wr, xPrK) =
-       let pr = Promise<'x> ()
-       Worker.PushNew (&wr, {new WorkHandler () with
-        override w'.DoWork (wr) =
-         let prc = Promise<'x>.Fulfill (pr)
-         wr.Handler <- prc
-         xJ.DoJob (&wr, prc)})
-       Cont.Do (xPrK, &wr, upcast pr)}
   module Now =
     let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
-    let inline delayAsJob (xJ: Job<'x>) = Promise<'x> (xJ) :> Job<_>
-    let inline delayAsAlt (xJ: Job<'x>) = Promise<'x> (xJ) :> Alt<_>
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
     let inline isFulfilled (xP: Promise<'x>) = xP.Full
     let get (xP: Promise<'x>) = xP.Get ()
-  let inline read (xPr: Promise<'x>) = xPr :> Job<'x>
-  module Alt =
-    let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
+  let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -259,7 +236,7 @@ module Alt =
 
   let inline never () = Never<_>() :> Alt<_>
 
-  let inline zero () = StaticData.zero
+  let inline zero () = StaticData.zero :> Alt<_>
 
   type GuardJobCont<'x, 'xA> when 'xA :> Alt<'x> =
     inherit Cont<'xA>
@@ -332,7 +309,7 @@ module Alt =
      Pick.Unclaim pk
      xA.TryAlt (&wr, nk.I0, xAK'.xK, WithNackElse (nk, xE))
 
-  let withNack (nack2xAJ: Alt<unit> -> #Job<#Alt<'x>>) =
+  let withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        (nack2xAJ StaticData.zero).DoJob (&wr, GuardJobCont xK)
@@ -365,9 +342,6 @@ module Alt =
          xA1.TryAlt (&wr, i, xK, {new Else (xE.pk) with
           override xE'.TryElse (wr, i) =
            xA2.TryAlt (&wr, i, xK, xE)})}
-
-    let inline (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) : Job<'x> =
-      xA1 <|>? xA2 :> Job<_>
 
     let inline (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new AltMap<'x, 'y> (xA) with
@@ -645,15 +619,12 @@ module Ch =
     let send (xCh: Ch<'x>) (x: 'x) =
       Ch<'x>.Send (StaticData.globalScheduler, xCh, x)
   let create () = ctor Now.create ()
-  let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
-  let inline take (xCh: Ch<'x>) = xCh :> Job<'x>
   module Try =
     let inline give (xCh: Ch<'x>) (x: 'x) = ChTryGive<'x> (xCh, x) :> Job<bool>
     let inline take (xCh: Ch<'x>) = ChTryTake<'x> (xCh) :> Job<option<'x>>
-  module Alt =
-    let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
-    let inline take (xCh: Ch<'x>) = xCh :> Alt<'x>
+  let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
+  let inline take (xCh: Ch<'x>) = xCh :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -667,9 +638,7 @@ module Mailbox =
   let create () = ctor Now.create ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
-  let inline take (xMb: Mailbox<'x>) = xMb :> Job<'x>
-  module Alt =
-    let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>
+  let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -1272,8 +1241,7 @@ module Proc =
 
   let inline self () = StaticData.proc
 
-  module Alt =
-    let inline join (p: Proc) = p :> Alt<unit>
+  let inline join (p: Proc) = p :> Alt<unit>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -1294,7 +1262,7 @@ module Timer =
       let ms = (ticks + 9999L) / 10000L // Rounds up.
       if ticks <= 0L then
         if -10000L = ticks then
-          StaticData.zero
+          StaticData.zero :> Alt<_>
         elif 0L = ticks then
           StaticData.unit
         else
@@ -1350,15 +1318,12 @@ module MVar =
   let create () = ctor Now.create ()
   let createFull x = ctor Now.createFull x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
-  let inline read (xM: MVar<'x>) = xM >>= fun x -> fill xM x >>% x
-  let inline take (xM: MVar<'x>) = xM :> Job<'x>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
     xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
   let inline modifyJob (x2xyJ: 'x -> #Job<'x * 'y>) (xM: MVar<'x>) =
     xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
-  module Alt =
-    let inline read (xM: MVar<'x>) = xM >>=? fun x -> fill xM x >>% x
-    let inline take (xM: MVar<'x>) = xM :> Alt<'x>
+  let inline read (xM: MVar<'x>) = xM >>=? fun x -> fill xM x >>% x
+  let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -1856,8 +1821,7 @@ module TopLevel =
 /////////////////////////////////////////////////////////////////////////
 
 module Infixes =
-  let inline (<-?) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
-  let inline (<--) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Job<unit>
+  let inline (<--) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
   let inline (<-+) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   let inline (<-=) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline (<-=!) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
@@ -1871,9 +1835,7 @@ module Latch =
     let inline create initial = Latch (initial)
     let inline increment (l: Latch) = l.Increment ()
   let inline decrement (l: Latch) = l.Decrement ()
-  let inline await (l: Latch) = l :> Job<_>
-  module Alt =
-    let inline await (l: Latch) = l :> Alt<_>
+  let inline await (l: Latch) = l :> Alt<_>
   let within (l2xJ: Latch -> #Job<'x>) = Job.delay <| fun () ->
     let l = Now.create 1
     Job.tryFinallyJob
@@ -1885,6 +1847,6 @@ module Latch =
   let queue (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
     Now.increment l
     Job.queue (Job.tryFinallyJob xJ (decrement l))
-  let queueAsAlt (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+  let queueAsPromise (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
     Now.increment l
-    Promise.queueAsAlt (Job.tryFinallyJob xJ (decrement l))
+    Promise.queue (Job.tryFinallyJob xJ (decrement l))

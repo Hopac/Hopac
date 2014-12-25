@@ -18,7 +18,7 @@ module HopacReq =
     replyCh: Ch<'a>
   }
 
-  let put (c: Cell<'a>) (x: 'a) : Job<unit> =
+  let put (c: Cell<'a>) (x: 'a) =
     c.reqCh <-- Put x
 
   let get (c: Cell<'a>) : Job<'a> = c.reqCh <-+ Get >>. c.replyCh
@@ -64,7 +64,7 @@ module HopacDyn =
     reqCh: Ch<Request<'a>>
   }
 
-  let put (c: Cell<'a>) (x: 'a) : Job<unit> =
+  let put (c: Cell<'a>) (x: 'a) =
     c.reqCh <-- Put x
 
   let get (c: Cell<'a>) : Job<'a> = Job.delay <| fun () ->
@@ -110,13 +110,13 @@ module HopacAlt =
     putCh: Ch<'a>
   }
 
-  let get (c: Cell<'a>) = c.getCh :> Job<_>
+  let get (c: Cell<'a>) = c.getCh :> Alt<_>
   let put (c: Cell<'a>) (x: 'a) = c.putCh <-- x
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {getCh = ch (); putCh = ch ()}
     Job.iterateServer x (fun x ->
-      c.putCh <|> (c.getCh <-? x >>%? x)) >>% c
+      c.putCh <|>? (c.getCh <-- x >>%? x)) >>% c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "

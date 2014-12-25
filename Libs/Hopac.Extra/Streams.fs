@@ -12,10 +12,10 @@ open Hopac.Extensions
 
 [<AutoOpen>]
 module internal Util =
-  let inline memo x = Promise.Now.delayAsAlt x
+  let inline memo x = Promise.Now.delay x :> Alt<_>
   let inline (>>=*) x f = x >>= f |> memo
   let inline (|>>*) x f = x |>> f |> memo
-  let inline (<|>*) x y = x <|> y |> memo
+  let inline (<|>*) x y = x <|>? y |> memo
 
   let inline tryIn u2v vK eK =
     let mutable e = null
@@ -170,7 +170,7 @@ module Streams =
   and throttle timeout xs = mapcm (throttleGot1 timeout) xs
 
   let rec holdGot1 timeout timer x xs =
-    (timer |>>? fun _ -> Cons (x, hold timeout xs)) <|>
+    (timer |>>? fun _ -> Cons (x, hold timeout xs)) <|>?
     (mapc (holdGot1 timeout timer) xs)
   and hold timeout xs = mapcm (holdGot1 timeout (memo timeout)) xs
 
@@ -269,9 +269,9 @@ module Streams =
   let groupByFun keyOf ss = groupByJob (keyOf >> Job.result) ss
 
   let rec sampleGot0 ts xs =
-    mapc (fun _ ts -> sampleGot0 ts xs) ts <|> mapc (sampleGot1 ts) xs
+    mapc (fun _ ts -> sampleGot0 ts xs) ts <|>? mapc (sampleGot1 ts) xs
   and sampleGot1 ts x xs =
-    mapc (fun _ ts -> cons x (sample ts xs)) ts <|> mapc (sampleGot1 ts) xs
+    mapc (fun _ ts -> cons x (sample ts xs)) ts <|>? mapc (sampleGot1 ts) xs
   and sample ts xs = sampleGot0 ts xs |> memo
 
   let rec skip' n xs = if 0 < n then mapc (fun _ -> skip' (n-1)) xs else xs
