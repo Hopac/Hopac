@@ -85,10 +85,8 @@ namespace Hopac {
 
     TryPick:
       var st = Pick.TryPick(pk);
-      if (st > 0)
-        goto TryNextTaker;
-      if (st < 0)
-        goto TryPick;
+      if (st > 0) goto TryNextTaker;
+      if (st < 0) goto TryPick;
 
       Pick.SetNacks(ref wr, taker.Me, pk);
     GotTaker:
