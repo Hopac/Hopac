@@ -931,8 +931,7 @@ module Job =
 /// `withNack` for an illustrative toy example.
 ///
 /// Note that `Alt` is a subtype of `Job`.  You can use an alternative in any
-/// context that requires a job and `xA >>= fun x -> ...` is equivalent to `pick
-/// xA >>= fun x -> ...`.
+/// context that requires a job.
 type Alt<'x> :> Job<'x>
 #endif
 
@@ -951,7 +950,8 @@ module Alt =
 
   /// Creates an alternative that is never available for picking.
   ///
-  /// Note that `pick (never ())` is equivalent to `abort ()`.
+  /// Note that synchronizing on `never ()`, without other alternatives, is
+  /// equivalent to performing `abort ()`.
   val inline never: unit -> Alt<'x>
 
   /// Return an alternative that is never available for picking.  `zero ()` is
@@ -1052,8 +1052,7 @@ module Alt =
   /// Creates an alternative that is available for picking when any one of the
   /// given alternatives is.  See also: `<|>?`.
   ///
-  /// Note that `choose []` is equivalent to `never ()` and `pick (choose [])`
-  /// is equivalent to `abort ()`.
+  /// Note that `choose []` is equivalent to `never ()`.
 #if DOC
   ///
   /// Reference implementation:
@@ -1171,20 +1170,6 @@ module Alt =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Creates a job that instantiates the alternative, waits until it becomes
-  /// available for picking and then commits to the alternative and results in
-  /// its value.  This function is a NOP and is provided as a kind of syntactic
-  /// alternative to using a type ascription or an `upcast`.
-  val inline pick: Alt<'x> -> Job<'x>
-
-  /// Creates a job that instantiates the given sequence of alternatives
-  /// one-by-one, waits until at least one of them becomes available for picking
-  /// and then commits to the alternative resulting in its value.  `select xAs`
-  /// is equivalent to `pick (choose xAs)`.
-  ///
-  /// Note that `select []` is equivalent to `abort ()`.
-  val inline select: seq<#Alt<'x>> -> Job<'x>
-
   /// Given an alternative, creates a new alternative that behaves exactly like
   /// the given alternative, except that the new alternative obviously cannot be
   /// directly downcast to the underlying type of the given alternative.  This
@@ -1217,7 +1202,7 @@ module Timer =
     ///
     /// and then use that timeout many times
     ///
-    ///> select [
+    ///> choose [
     ///>   makeRequest >>=? fun rp -> ...
     ///>   after1s     >>=? fun () -> ...
     ///> ]

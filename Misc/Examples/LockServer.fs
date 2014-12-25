@@ -51,9 +51,9 @@ let start = Job.delay <| fun () ->
        match locks.TryGetValue lock with
         | (true, pending) ->
           pending.Enqueue (replyCh, abortAlt)
-          Job.unit ()
+          Alt.unit ()
         | _ ->
-          Alt.select [replyCh <-- () |>>? fun () ->
+          Alt.choose [replyCh <-- () |>>? fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->
@@ -62,12 +62,12 @@ let start = Job.delay <| fun () ->
           let rec assign () =
             if 0 = pending.Count then
               locks.Remove lock |> ignore
-              Job.unit ()
+              Alt.unit ()
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
-              Alt.select [replyCh <-- ()
+              Alt.choose [replyCh <-- ()
                           abortAlt >>=? assign]
           assign ()
         | _ ->
           // We just ignore the erroneous release request
-          Job.unit ()) >>% s
+          Alt.unit ()) >>% s

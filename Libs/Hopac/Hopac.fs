@@ -278,8 +278,6 @@ module Alt =
     {new AltDelay<'x> () with
       override xA'.Do () = upcast u2xA ()} :> Alt<_>
 
-  let inline pick (xA: Alt<'x>) = xA :> Job<'x>
-
   type WithNackElse (nk: Nack, xE: Else) =
     inherit Else (xE.pk)
     override xE'.TryElse (wr, i) =
@@ -407,8 +405,6 @@ module Alt =
        else
          xAs.Dispose ()
          xE.TryElse (&wr, i)}
-
-  let inline select xAs = choose xAs :> Job<'x>
 
   let tryIn (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =
     {new Alt<'y> () with

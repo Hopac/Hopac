@@ -62,7 +62,7 @@ let CompareBool comparand input onTrue onFalse =
 
 let Delay duration start stop finished aborted =
   start >>= fun x ->
-  select [stop                         >>=? aborted
+  choose [stop                         >>=? aborted
           GameTime.timeOut (!duration) >>=? fun () -> finished x]
 
 let Set value target input output =
