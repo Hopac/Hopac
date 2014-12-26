@@ -188,11 +188,11 @@ type JobBuilder =
 /// annotate bind expressions to resolve the ambiguity.
 ///
 /// The types of the operations in the `MonadBuilder` may, at first glance, seem
-/// complicated.  Essentially the covariant positions in signature are wrapped
-/// with the `Job<_>` type constructor to make it possible to use lightweight
-/// threads.  In a language with built-in lightweight threads this would be
-/// unnecessary.  Reading the signature by mentally replacing every `Job<'x>`
-/// with just `'x`, the signature should become clear.
+/// complicated.  Essentially the covariant positions in the signature are
+/// wrapped with the `Job<_>` type constructor to make it possible to use
+/// lightweight threads.  In a language with built-in lightweight threads this
+/// would be unnecessary.  Reading the signature by mentally replacing every
+/// `Job<'x>` with just `'x`, the signature should become clear.
 #endif
 type EmbeddedJob<'x> = struct
     val Job: Job<'x>
@@ -893,8 +893,8 @@ module Job =
 /// example, the occam language has an `alt` statement, the Go language has a
 /// `select` statement and Clojure's core.async has an `alt` function.  In Hopac
 /// and Concurrent ML, selective synchronous operations are not limited to
-/// primitive message passing operations (see `Ch.Alt.give` and `Ch.Alt.take`),
-/// but are instead first-class values (see `choose`) and can be extended with
+/// primitive message passing operations (see `Ch.give` and `Ch.take`), but are
+/// instead first-class values (see `choose`) and can be extended with
 /// user-defined code (see `wrap` and `withNack`) allowing the encapsulation of
 /// concurrent protocols as selective synchronous operations.
 ///
@@ -1016,12 +1016,12 @@ module Alt =
   ///
   /// Here is the server communication channel and the server loop:
   ///
-  ///> let counterServer : Ch<int * Alt<unit> * Ch<int>> =
+  ///> let counterServer : Ch<int * Promise<unit> * Ch<int>> =
   ///>   let reqCh = ch ()
   ///>   server << Job.iterate 0 <| fun oldCounter ->
   ///>     reqCh >>= fun (n, nack, replyCh) ->
   ///>     let newCounter = oldCounter + n
-  ///>     (replyCh <-? newCounter >>%? newCounter) <|>?
+  ///>     (replyCh <-- newCounter >>%? newCounter) <|>?
   ///>     (nack                   >>%? oldCounter)
   ///>   reqCh
   ///
@@ -1240,7 +1240,7 @@ module Timer =
 /// passing mechanism is likely to perform better.
 ///
 /// Note that `Ch` is a subtype of `Alt` and `xCh :> Alt<'x>` is equivalent to
-/// `Ch.Alt.take xCh`.
+/// `Ch.take xCh`.
 type Ch<'x> :> Alt<'x>
 #endif
 
@@ -1334,8 +1334,8 @@ module Ch =
 /// like channels do.  When simple rendezvous is necessary, a channel should be
 /// used instead.
 ///
-/// Note that `IVar` is a subtype of `Promise` and `IVar.Alt.read xI` is
-/// equivalent to `xI :> Alt<'x>`.
+/// Note that `IVar` is a subtype of `Promise` and `IVar.read xI` is equivalent
+/// to `xI :> Alt<'x>`.
 type IVar<'x> :> Promise<'x>
 #endif
 
@@ -1526,7 +1526,7 @@ module Latch =
 /// state of the synchronization object, is full at any time.
 ///
 /// Note that `MVar` is a subtype of `Alt` and `xM :> Alt<'x>` is equivalent to
-/// `MVar.Alt.take xM`.
+/// `MVar.take xM`.
 type MVar<'x> :> Alt<'x>
 #endif
 
@@ -2102,8 +2102,7 @@ module Scheduler =
 module Infixes =
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
-  /// offers to take the value.  `xCh <-? x` is equivalent to `Ch.Alt.give xCh
-  /// x`.
+  /// offers to take the value.  `xCh <-- x` is equivalent to `Ch.give xCh x`.
   val inline (<--): Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates a job that sends a value to another job on the given channel.  A
