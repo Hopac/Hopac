@@ -40,7 +40,10 @@ module StreamVar =
   val create: 'x -> StreamVar<'x>
 
   /// Preliminary and subject to change.
-  val get: StreamVar<'x> -> Job<'x>
+  val get: StreamVar<'x> -> Alt<'x>
+
+  /// Preliminary and subject to change.
+  val set: StreamVar<'x> -> 'x -> Alt<unit>
 
   /// Preliminary and subject to change.
   val updateJob: StreamVar<'x> -> ('x -> #Job<'x>) -> Alt<unit>
