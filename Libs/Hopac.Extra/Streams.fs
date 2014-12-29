@@ -113,6 +113,8 @@ module Streams =
 
   let rec foreverJob xJ = xJ |>>* fun x -> Cons (x, foreverJob xJ)
 
+  let repeatJobs xJ uJ = xJ |>>* fun x -> Cons (x, foreverJob (uJ >>. xJ))
+
   let onceJob xJ = xJ |>>* fun x -> Cons (x, nil)
 
   let inline mapnc n (c: _ -> _ -> #Job<_>) xs =

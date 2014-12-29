@@ -83,6 +83,9 @@ module Streams =
   val onceJob: Job<'x> -> Streams<'x>
 
   /// Preliminary and subject to change.
+  val repeatJobs: Job<'x> -> Job<_> -> Streams<'x>
+
+  /// Preliminary and subject to change.
   val unfoldJob: ('s -> #Job<option<'x * 's>>) -> 's -> Streams<'x>
   /// Preliminary and subject to change.
   val unfoldFun: ('s -> option<'x * 's>) -> 's -> Streams<'x>
