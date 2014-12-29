@@ -1650,11 +1650,16 @@ module Extensions =
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
       assert (null <> sr)
       Async.FromContinuations <| fun (x2u, e2u, c2u) ->
+        let ctx = SynchronizationContext.Current
+        let inline apply f x =
+          match ctx with
+           | null -> f x
+           | ctx -> ctx.Post ((fun _ -> f x) , null)
         Worker.RunOnThisThread (sr, xJ, {new Cont_State<'x, Cont<unit>>() with
          override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-         override xK'.DoHandle (wr, e) = e2u e
-         override xK'.DoWork (wr) = x2u xK'.Value
-         override xK'.DoCont (wr, x) = x2u x})
+         override xK'.DoHandle (wr, e) = apply e2u e
+         override xK'.DoWork (wr) = apply x2u xK'.Value
+         override xK'.DoCont (wr, x) = apply x2u x})
 
     module Global =
       let ofJob (xJ: Job<'x>) =
