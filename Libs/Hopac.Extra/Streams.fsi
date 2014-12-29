@@ -46,6 +46,9 @@ module StreamVar =
   val set: StreamVar<'x> -> 'x -> Alt<unit>
 
   /// Preliminary and subject to change.
+  val setIfNotEq: StreamVar<'x> -> 'x -> Alt<unit> when 'x: equality
+
+  /// Preliminary and subject to change.
   val updateJob: StreamVar<'x> -> ('x -> #Job<'x>) -> Alt<unit>
   /// Preliminary and subject to change.
   val updateFun: StreamVar<'x> -> ('x -> 'x) -> Alt<unit>

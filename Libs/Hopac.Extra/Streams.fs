@@ -66,6 +66,8 @@ module StreamVar =
      | None -> sv.state <<-= (x, n)
      | Some x' -> update sv n x'
   let tap sv = MVar.read sv.state |>> (fun (x, n) -> Cons (x, n)) |> memo
+  let setIfNotEq sv n =
+    maybeUpdateFun sv (fun o -> if n <> o then Some n else None)
 
 module Streams =
   let inline nil<'x> = Alt.always Nil :> Streams<'x>
