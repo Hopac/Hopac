@@ -191,11 +191,15 @@ module Streams =
   let rec scanJob f s xs =
     cons s (mapcm (fun x xs -> f s x >>= fun s -> scanJob f s xs) xs)
   let scanFun f s xs = scanJob (fun s x -> f s x |> Job.result) s xs
+  let scanFromJob s f xs = scanJob f s xs
+  let scanFromFun s f xs = scanFun f s xs
 
   let rec foldJob f s xs =
     xs >>= function Nil -> Job.result s
                   | Cons (x, xs) -> f s x >>= fun s -> foldJob f s xs
   let foldFun f s xs = foldJob (fun s x -> f s x |> Job.result) s xs
+  let foldFromJob s f xs = foldJob f s xs
+  let foldFromFun s f xs = foldFun f s xs
 
   let count xs = foldFun (fun s _ -> s+1) 0 xs |> memo
 

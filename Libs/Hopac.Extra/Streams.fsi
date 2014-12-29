@@ -126,6 +126,11 @@ module Streams =
   val scanFun: ('s -> 'x -> 's) -> 's -> Streams<'x> -> Streams<'s>
 
   /// Preliminary and subject to change.
+  val scanFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Streams<'x> -> Streams<'s>
+  /// Preliminary and subject to change.
+  val scanFromFun: 's -> ('s -> 'x -> 's) -> Streams<'x> -> Streams<'s>
+
+  /// Preliminary and subject to change.
   val distinctByJob: ('x -> #Job<'k>) -> Streams<'x> -> Streams<'x> when 'k: equality
   /// Preliminary and subject to change.
   val distinctByFun: ('x -> 'k) -> Streams<'x> -> Streams<'x> when 'k: equality
@@ -223,6 +228,11 @@ module Streams =
   val foldJob: ('s -> 'x -> #Job<'s>) -> 's -> Streams<'x> -> Job<'s>
   /// Preliminary and subject to change.
   val foldFun: ('s -> 'x -> 's) -> 's -> Streams<'x> -> Job<'s>
+
+  /// Preliminary and subject to change.
+  val foldFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Streams<'x> -> Job<'s>
+  /// Preliminary and subject to change.
+  val foldFromFun: 's -> ('s -> 'x -> 's) -> Streams<'x> -> Job<'s>
 
   /// Preliminary and subject to change.
   val iterJob: ('x -> #Job<_>) -> Streams<'x> -> Job<unit>
