@@ -144,7 +144,7 @@ module Streams =
 
   let rec append ls rs = mapnc rs (fun l ls -> cons l (append ls rs)) ls
 
-  let rec switch ls rs = rs <|>* mapc (fun l ls -> cons l (switch ls rs)) ls
+  let rec switch ls rs = rs <|>* mapnc rs (fun l ls -> cons l (switch ls rs)) ls
 
   let rec joinWith (join: Streams<'x> -> Streams<'y> -> Streams<'y>)
                    (xxs: Streams<Streams<'x>>) =
