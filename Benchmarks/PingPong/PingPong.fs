@@ -26,7 +26,7 @@ module ChGive =
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
          chPing <-- msgPong) >>.
-       chPong >>% ())
+       Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -52,7 +52,7 @@ module ChGiSe =
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
          chPing <-+ msgPong) >>.
-       chPong)
+       Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -78,7 +78,7 @@ module ChSeGi =
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
          chPing <-- msgPong) >>.
-       chPong)
+       Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -104,7 +104,7 @@ module ChSend =
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
          chPing <-+ msgPong) >>.
-       chPong)
+       Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2
@@ -130,7 +130,7 @@ module MbSend =
        Job.forN (numPingPongsPerPair-1)
         (mbPong >>= fun (Msg mbPing) ->
          mbPing <<-+ msgPong) >>.
-       mbPong)
+       Job.Ignore mbPong)
     |> run
     let d = timer.Elapsed
     let total = numPairs * numPingPongsPerPair * 2

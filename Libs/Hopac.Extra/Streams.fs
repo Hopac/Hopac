@@ -205,7 +205,7 @@ module Streams =
 
   let count xs = foldFun (fun s _ -> s+1) 0 xs |> memo
 
-  let rec iterJob x2uJ xs =
+  let rec iterJob (x2uJ: _ -> #Job<unit>) xs =
     mapnc (Job.unit ()) (fun x xs -> x2uJ x >>. iterJob x2uJ xs) xs :> Job<_>
   let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
 

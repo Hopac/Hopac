@@ -349,7 +349,7 @@ module Alt =
       {new AltBind<'x, 'y> (xA) with
         override yA'.Do (x) = upcast x2yJ x} :> Alt<_>
 
-    let (>>%?) (xA: Alt<'x>) (y: 'y) =
+    let (>>%?) (xA: Alt<_>) (y: 'y) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          yK.Value <- y
@@ -357,21 +357,21 @@ module Alt =
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, ValueCont (y, yK), yE)}
 
-    let (>>!?) (xA: Alt<'x>) (e: exn) =
+    let (>>!?) (xA: Alt<_>) (e: exn) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, FailCont (yK, e))
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, FailCont (yK, e), yE)}
 
-    let (>>.?) (xA: Alt<'x>) (yJ: Job<'y>) =
+    let (>>.?) (xA: Alt<_>) (yJ: Job<'y>) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, SeqCont (yJ, yK))
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, SeqCont (yJ, yK), yE)}
 
-    let (.>>?) (xA: Alt<'x>) (yJ: Job<'y>) =
+    let (.>>?) (xA: Alt<'x>) (yJ: Job<_>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
          xA.DoJob (&wr, SkipCont (xK, yJ))
@@ -512,8 +512,11 @@ module Scheduler =
       Handler.Terminate (&wr, xK'.State)
       xF x})
 
-  let start (sr: Scheduler) (xJ: Job<'x>) =
+  let startIgnore (sr: Scheduler) (xJ: Job<'x>) =
     Worker.RunOnThisThread (sr, xJ, Handler<'x, unit> ())
+
+  let inline start (sr: Scheduler) (uJ: Job<unit>) =
+    startIgnore sr uJ
 
   let server (sr: Scheduler) (vJ: Job<Void>) =
     Worker.RunOnThisThread (sr, vJ, null)
@@ -642,7 +645,8 @@ module Job =
   module Global =
     let startWithActions eF xF xJ =
       Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ
-    let start xJ = Scheduler.start (initGlobalScheduler ()) xJ
+    let startIgnore xJ = Scheduler.startIgnore (initGlobalScheduler ()) xJ
+    let inline start (uJ: Job<unit>) = startIgnore uJ
     let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
     let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
 
@@ -666,7 +670,16 @@ module Job =
     {new JobThunk<'x> () with
       override xJ'.Do () = u2x ()} :> Job<_>
 
-  let forN (n: int) (xJ: Job<'x>) =
+  let Ignore (xJ: Job<_>) =
+    {new Job<unit>() with
+      override uJ.DoJob (wr, uK) =
+       xJ.DoJob (&wr, {new Cont<_>() with
+        override xK'.GetProc (wr) = uK.GetProc (&wr)
+        override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
+        override xK'.DoWork (wr) = uK.DoWork (&wr)
+        override xK'.DoCont (wr, _) = uK.DoWork (&wr)})}
+  
+  let forN (n: int) (xJ: Job<unit>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        {new Cont_State<_, _> (n) with
@@ -688,7 +701,7 @@ module Job =
             uK.DoWork (&wr)}.DoWork (&wr)}
 
   module Internal =
-    let inline mkFor more next i0 i1 (i2xJ: _ -> #Job<'x>) =
+    let inline mkFor more next i0 i1 (i2xJ: _ -> #Job<unit>) =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          {new Cont_State<_, _> (i0) with
@@ -709,10 +722,10 @@ module Job =
             else
               uK.DoWork (&wr)}.DoWork (&wr)}
 
-  let forUpTo (i0: int) (i1: int) (i2xJ: int -> #Job<'x>) =
+  let forUpTo (i0: int) (i1: int) (i2xJ: int -> #Job<unit>) =
     Internal.mkFor (fun i i1 -> i <= i1) (fun i -> i + 1) i0 i1 i2xJ
 
-  let forDownTo (i0: int) (i1: int) (i2xJ: int -> #Job<'x>) =
+  let forDownTo (i0: int) (i1: int) (i2xJ: int -> #Job<unit>) =
     Internal.mkFor (fun i i1 -> i1 <= i) (fun i -> i - 1) i0 i1 i2xJ
 
   type ForeverCont<'x, 'y> =
@@ -722,9 +735,9 @@ module Job =
     override xK'.DoWork (wr) = xK'.xJ.DoJob (&wr, xK')
     override xK'.DoCont (wr, _) = xK'.xJ.DoJob (&wr, xK')
 
-  let forever (xJ: Job<'x>) =
+  let forever (xJ: Job<unit>) =
     {new Job<'y> () with
-      override yJ'.DoJob (wr, yK_) = {new ForeverCont<'x, 'y> (xJ, yK_) with
+      override yJ'.DoJob (wr, yK_) = {new ForeverCont<_, _> (xJ, yK_) with
        override xK'.DoHandle (wr, e) =
         Handler.DoHandle (xK'.yK, &wr, e)}.DoWork (&wr)}
 
@@ -734,9 +747,9 @@ module Job =
         {new ContIterate<'x, 'y> (x, yK) with
           override xK'.Do (x) = upcast x2xJ x} :> Work} :> Job<_>
 
-  let whileDo (cond: unit -> bool) (xJ: Job<'x>) =
+  let whileDo (cond: unit -> bool) (xJ: Job<unit>) =
     {new Job<unit> () with
-      override uJ'.DoJob (wr, uK) = {new Cont<'x> () with
+      override uJ'.DoJob (wr, uK) = {new Cont<_> () with
        override xK'.GetProc (wr) = uK.GetProc (&wr)
        override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
        override xK'.DoCont (wr, _) =
@@ -783,12 +796,12 @@ module Job =
       {new JobBind<'x, 'y> (xJ) with
         override yJ'.Do (x) = upcast x2yJ x} :> Job<_>
 
-    let (>>.) (xJ: Job<'x>) (yJ: Job<'y>) =
+    let (>>.) (xJ: Job<_>) (yJ: Job<'y>) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
          xJ.DoJob (&wr, SeqCont (yJ, yK))}
 
-    let (.>>) (xJ: Job<'x>) (yJ: Job<'y>) =
+    let (.>>) (xJ: Job<'x>) (yJ: Job<_>) =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
          xJ.DoJob (&wr, SkipCont (xK, yJ))}
@@ -797,16 +810,16 @@ module Job =
       {new JobMap<'x, 'y> (xJ) with
         override yJ'.Do (x) = x2y x} :> Job<_>
 
-    let (>>%) (xJ: Job<'x>) (y: 'y) =
+    let (>>%) (xJ: Job<_>) (y: 'y) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
          yK.Value <- y
          xJ.DoJob (&wr, DropCont yK)}
 
-    let (>>!) (xJ: Job<'x>) (e: exn) =
+    let (>>!) (xJ: Job<_>) (e: exn) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK_) =
-         xJ.DoJob (&wr, {new Cont_State<'x, _> (yK_) with
+         xJ.DoJob (&wr, {new Cont_State<_, _> (yK_) with
           override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
           override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.State, &wr, e)
           override xK'.DoWork (wr) = Handler.DoHandle (xK'.State, &wr, e)
@@ -911,19 +924,23 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  let start (xJ: Job<'x>) =
+  let startIgnore (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        Worker.Push (&wr, uK)
-       Job.Do (xJ, &wr, Handler<'x, unit> ())}
+       Job.Do (xJ, &wr, Handler<_, _> ())}
+  let inline start (uJ: Job<unit>) =
+    startIgnore uJ
 
-  let queue (xJ: Job<'x>) =
+  let queueIgnore (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        Worker.PushNew (&wr, {new WorkHandler () with
         override w'.DoWork (wr) =
-         xJ.DoJob (&wr, Handler<'x, unit> ())})
+         xJ.DoJob (&wr, Handler<_, _> ())})
        Work.Do (uK, &wr)}
+  let inline queue (uJ: Job<unit>) =
+    queueIgnore uJ
 
   let server (vJ: Job<Void>) =
     {new Job<unit> () with
@@ -957,18 +974,20 @@ module Job =
     override xK'.DoWork (wr) = xK'.Term (&wr)
     override xK'.DoCont (wr, _) = xK'.Term (&wr)
 
-  let startWithFinalizer (uJ: Job<unit>) (xJ: Job<'x>) =
+  let startWithFinalizerIgnore (fJ: Job<unit>) (xJ: Job<_>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        Worker.Push (&wr, uK)
-       Job.Do (xJ, &wr, Finalizer<'x> (wr.Scheduler, uJ))}
+       Job.Do (xJ, &wr, Finalizer<_> (wr.Scheduler, fJ))}
+  let inline startWithFinalizer fJ (uJ: Job<unit>) =
+    startWithFinalizerIgnore fJ uJ
 
   ///////////////////////////////////////////////////////////////////////
 
-  let foreverServer (xJ: Job<'x>) =
+  let foreverServer (xJ: Job<unit>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
-       Worker.PushNew (&wr, ForeverCont<'x, unit> (xJ, null))
+       Worker.PushNew (&wr, ForeverCont<_, _> (xJ, null))
        Work.Do (uK, &wr)}
 
   let inline iterateServer (x: 'x) (x2xJ: 'x -> #Job<'x>) =
@@ -1010,12 +1029,12 @@ module Job =
          xJs.Dispose ()
          Work.Do (xsK, &wr)}
 
-  let seqIgnore (xJs: seq<#Job<'x>>) =
+  let seqIgnore (xJs: seq<#Job<_>>) =
     {new Job<unit> () with
       override self.DoJob (wr, uK) =
        let xJs = xJs.GetEnumerator ()
        if xJs.MoveNext () then
-         let xK' = {new Cont<'x> () with
+         let xK' = {new Cont<_> () with
           override xK'.GetProc (wr) = uK.GetProc (&wr)
           override xK'.DoHandle (wr, e) =
            xJs.Dispose ()
@@ -1159,7 +1178,7 @@ module Job =
      ConIgnore<'x>.AddExn (self, e)
      ConIgnore<'x>.Done (self, &wr)
 
-  let conIgnore (xJs: seq<#Job<'x>>) =
+  let conIgnore (xJs: seq<#Job<_>>) =
     {new Job<unit> () with
       override uJ.DoJob (wr, uK) =
        let xJs = xJs.GetEnumerator ()
@@ -1214,7 +1233,7 @@ module Job =
 /////////////////////////////////////////////////////////////////////////
 
 module Proc =
-  let start (xJ: Job<_>) =
+  let startIgnore (xJ: Job<_>) =
     {new Job<Proc> () with
       override pJ'.DoJob (wr, pK) =
        let proc = Proc ()
@@ -1223,8 +1242,10 @@ module Proc =
        let pf = ProcFinalizer<_> (wr.Scheduler, proc)
        wr.Handler <- pf
        Job.Do (xJ, &wr, pf)}
+  let inline start (uJ: Job<unit>) =
+    startIgnore uJ
 
-  let queue (xJ: Job<_>) =
+  let queueIgnore (xJ: Job<_>) =
     {new Job<Proc> () with
       override pJ'.DoJob (wr, pK) =
        let proc = Proc ()
@@ -1234,6 +1255,8 @@ module Proc =
          wr.Handler <- pf
          xJ.DoJob (&wr, pf)})
        Cont.Do (pK, &wr, proc)}
+  let inline queue (uJ: Job<unit>) =
+    queueIgnore uJ
 
   let inline self () = StaticData.proc
 
@@ -1353,7 +1376,7 @@ module Extensions =
          else
            Cont.Do (ysK, &wr, [||])}
 
-    let iterJob (x2yJ: 'x -> #Job<'y>) (xs: array<'x>) =
+    let iterJob (x2yJ: 'x -> #Job<unit>) (xs: array<'x>) =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          Work.Do ({new Cont_State<_,_> (0) with
@@ -1377,11 +1400,11 @@ module Extensions =
              uK.DoWork (&wr)}, &wr)}
 
   module Seq =
-    let iterJob (x2yJ: 'x -> #Job<'y>) (xs: seq<'x>) =
+    let iterJob (x2yJ: 'x -> #Job<unit>) (xs: seq<'x>) =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          let xs = xs.GetEnumerator ()
-         let yK' = {new Cont<'y> () with
+         let yK' = {new Cont<_> () with
           override yK'.GetProc (wr) = uK.GetProc (&wr)
           override yK'.DoHandle (wr, e) =
            xs.Dispose ()
@@ -1462,7 +1485,7 @@ module Extensions =
            Cont.Do (xK, &wr, x)}
 
     module Con =
-      let iterJob (x2yJ: 'x -> #Job<'y>) (xs: seq<'x>) =
+      let iterJob (x2yJ: 'x -> #Job<unit>) (xs: seq<'x>) =
         {new Job<unit> () with
           override uJ'.DoJob (wr, uK) =
            let xs = xs.GetEnumerator ()
@@ -1803,6 +1826,7 @@ module TopLevel =
   let job = JobBuilder ()
 
   let inline run x = Job.Global.run x
+  let inline startIgnore x = Job.Global.startIgnore x
   let inline start x = Job.Global.start x
   let inline server x = Job.Global.server x
 
@@ -1842,7 +1866,7 @@ module Latch =
   let holding (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
     Now.increment l
     Job.tryFinallyJob xJ (decrement l)
-  let queue (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+  let queue (l: Latch) (xJ: Job<unit>) = Job.delay <| fun () ->
     Now.increment l
     Job.queue (Job.tryFinallyJob xJ (decrement l))
   let queueAsPromise (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->

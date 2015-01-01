@@ -238,7 +238,7 @@ module Streams =
   val foldFromFun: 's -> ('s -> 'x -> 's) -> Streams<'x> -> Job<'s>
 
   /// Preliminary and subject to change.
-  val iterJob: ('x -> #Job<_>) -> Streams<'x> -> Job<unit>
+  val iterJob: ('x -> #Job<unit>) -> Streams<'x> -> Job<unit>
   /// Preliminary and subject to change.
   val iterFun: ('x -> unit) -> Streams<'x> -> Job<unit>
 

@@ -85,8 +85,8 @@ module BufferedCh =
     buff () >>= fun buf ->
     Job.queue (send buf 1) >>= fun () ->
     Job.queue (send buf 2) >>= fun () ->
-    Job.queue (recv buf) >>= fun () ->
-    recv buf
+    Job.queue (Job.Ignore (recv buf)) >>= fun () ->
+    Job.Ignore (recv buf)
 
   let run n =
     printf "BufferedCh %8d: " n
