@@ -1785,7 +1785,11 @@ module Extensions =
     /// Sequentially iterates the given job constructor over the given array.
     /// `Array.iterJob x2uJ xs` is an optimized version of `Seq.iterJob x2uJ
     /// xs`.
-    val iterJob: ('x -> #Job<unit>) -> array<'x> -> Job<unit>
+    val inline iterJob: ('x -> #Job<unit>) -> array<'x> -> Job<unit>
+
+    /// `iterJobIgnore x2yJ xs` is equivalent to `iterJob (x2yJ >> Job.Ignore)
+    /// xs`.
+    val iterJobIgnore: ('x -> #Job<_>) -> array<'x> -> Job<unit>
 
   /// Operations for processing sequences with jobs.
   module Seq =
@@ -1799,7 +1803,11 @@ module Extensions =
     ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
     ///>     x2uJ xs.Current)
 #endif
-    val iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
+    val inline iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
+
+    /// `iterJobIgnore x2yJ xs` is equivalent to `iterJob (x2yJ >> Job.Ignore)
+    /// xs`.
+    val iterJobIgnore: ('x -> #Job<_>) -> seq<'x> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
     /// sequence and returns a list of the results.
@@ -1838,7 +1846,11 @@ module Extensions =
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
       /// the jobs have finished.
-      val iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
+      val inline iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
+
+      /// `iterJobIgnore x2yJ xs` is equivalent to `iterJob (x2yJ >> Job.Ignore)
+      /// xs`.
+      val iterJobIgnore: ('x -> #Job<_>) -> seq<'x> -> Job<unit>
 
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of

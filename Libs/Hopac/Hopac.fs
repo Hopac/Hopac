@@ -1386,7 +1386,7 @@ module Extensions =
          else
            Cont.Do (ysK, &wr, [||])}
 
-    let iterJob (x2yJ: 'x -> #Job<unit>) (xs: array<'x>) =
+    let iterJobIgnore (x2yJ: 'x -> #Job<_>) (xs: array<'x>) =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          Work.Do ({new Cont_State<_,_> (0) with
@@ -1408,9 +1408,11 @@ module Extensions =
              (x2yJ x).DoJob (&wr, yK')
            else
              uK.DoWork (&wr)}, &wr)}
+    let inline iterJob (x2uJ: 'x -> #Job<unit>) xs =
+      iterJobIgnore x2uJ xs
 
   module Seq =
-    let iterJob (x2yJ: 'x -> #Job<unit>) (xs: seq<'x>) =
+    let iterJobIgnore (x2yJ: 'x -> #Job<_>) (xs: seq<'x>) =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          let xs = xs.GetEnumerator ()
@@ -1433,6 +1435,8 @@ module Extensions =
              wr.Handler <- uK ; uK.DoWork (&wr)}
          wr.Handler <- yK'
          Work.Do (yK', &wr)}
+    let inline iterJob (x2uJ: 'x -> #Job<unit>) xs =
+      iterJobIgnore x2uJ xs
 
     let mapJob (x2yJ: 'x -> #Job<'y>) (xs: seq<'x>) =
       {new Job<ResizeArray<'y>> () with
@@ -1495,7 +1499,7 @@ module Extensions =
            Cont.Do (xK, &wr, x)}
 
     module Con =
-      let iterJob (x2yJ: 'x -> #Job<unit>) (xs: seq<'x>) =
+      let iterJobIgnore (x2yJ: 'x -> #Job<_>) (xs: seq<'x>) =
         {new Job<unit> () with
           override uJ'.DoJob (wr, uK) =
            let xs = xs.GetEnumerator ()
@@ -1521,6 +1525,8 @@ module Extensions =
            xs.Dispose ()
            join.xs <- null
            ConIgnore.Done (join, &wr)}
+      let inline iterJob (x2uJ: 'x -> #Job<unit>) xs =
+        iterJobIgnore x2uJ xs
 
       let mapJob (x2yJ: 'x -> #Job<'y>) (xs: seq<'x>) =
         {new Job<ResizeArray<'y>> () with
