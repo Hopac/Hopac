@@ -71,7 +71,8 @@ module StreamVar =
 
 module Streams =
   let inline nil<'x> = Alt.always Nil :> Streams<'x>
-  let cons x xs = Alt.always (Cons (x, xs))
+  let inline consf x xs = Cons (x, xs)
+  let cons x xs = Alt.always (consf x xs)
 
   let one x = cons x nil
 
@@ -117,6 +118,10 @@ module Streams =
 
   let onceJob xJ = xJ |>>* fun x -> Cons (x, nil)
 
+  let inline mapfC c = function Nil -> Nil | Cons (x, xs) -> c x xs
+  let inline mapfc c xs = xs |>>? mapfC c
+  let inline mapfcm c xs = mapfc c xs |> memo
+
   let inline mapnc n (c: _ -> _ -> #Job<_>) xs =
     xs >>=? function Nil -> n | Cons (x, xs) -> c x xs
   let inline mapC (c: _ -> _ -> #Job<_>) =
@@ -135,9 +140,9 @@ module Streams =
   let filterFun x2b xs = filterJob (x2b >> Job.result) xs
 
   let mapJob x2yJ xs = chooseJob (x2yJ >> Job.map Some) xs
-  let mapFun x2y xs = mapJob (x2y >> Job.result) xs
+  let rec mapFun x2y xs = mapfcm (fun x xs -> Cons (x2y x, mapFun x2y xs)) xs
 
-  let amb ls rs = mapc cons ls <|>* mapc cons rs
+  let amb ls rs = mapfc consf ls <|>* mapfc consf rs
 
   let rec mergeSwap ls rs = mapnc rs (fun l ls -> cons l (merge rs ls)) ls
   and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
@@ -179,15 +184,15 @@ module Streams =
     (mapc (holdGot1 timeout timer) xs)
   and hold timeout xs = mapcm (holdGot1 timeout (memo timeout)) xs
 
-  let rec clXY x xs y ys = cons (x, y) (clY xs y ys <|>* clX ys x xs)
-  and clYX y ys x xs = cons (x, y) (clX ys x xs <|>* clY xs y ys)
-  and clX ys x xs = mapc (clXY x xs) ys
-  and clY xs y ys = mapc (clYX y ys) xs
+  let rec clXY x xs y ys = Cons ((x, y), clY xs y ys <|>* clX ys x xs)
+  and clYX y ys x xs = Cons ((x, y), clX ys x xs <|>* clY xs y ys)
+  and clX ys x xs = mapfc (clXY x xs) ys
+  and clY xs y ys = mapfc (clYX y ys) xs
   let combineLatest xs ys = mapc (clX ys) xs <|>* mapc (clY xs) ys
 
-  let rec zipXY x y xs ys = cons (x, y) (zip xs ys)
-  and zipX ys x xs = mapc (fun y ys -> zipXY x y xs ys) ys
-  and zipY xs y ys = mapc (fun x xs -> zipXY x y xs ys) xs
+  let rec zipXY x y xs ys = Cons ((x, y), zip xs ys)
+  and zipX ys x xs = mapfc (fun y ys -> zipXY x y xs ys) ys
+  and zipY xs y ys = mapfc (fun x xs -> zipXY x y xs ys) xs
   and zip xs ys = mapc (zipX ys) xs <|>* mapc (zipY xs) ys
 
   let rec scanJob f s xs =
@@ -235,7 +240,7 @@ module Streams =
     let raised e =
       key2br.Values |> Seq.iterJob (fun i -> i <-=! e) >>. (!main <-=! e) >>! e
     let rec wrap self xs newK oldK =
-      (mapc (fun x xs -> cons x (self xs)) xs) <|>*
+      (mapfc (fun x xs -> Cons (x, self xs)) xs) <|>*
       (let rec serve ss =
          Job.tryIn ss
           <| function
@@ -280,14 +285,14 @@ module Streams =
   let rec sampleGot0 ts xs =
     mapc (fun _ ts -> sampleGot0 ts xs) ts <|>? mapc (sampleGot1 ts) xs
   and sampleGot1 ts x xs =
-    mapc (fun _ ts -> cons x (sample ts xs)) ts <|>? mapc (sampleGot1 ts) xs
+    mapfc (fun _ ts -> Cons (x, sample ts xs)) ts <|>? mapc (sampleGot1 ts) xs
   and sample ts xs = sampleGot0 ts xs |> memo
 
   let rec skip' n xs = if 0 < n then mapc (fun _ -> skip' (n-1)) xs else xs
   let skip n xs = if n < 0 then failwith "skip: n < 0" else skip' n xs |> memo
 
   let rec take' n xs =
-    if 0 < n then mapcm (fun x -> cons x << take' (n-1)) xs else nil
+    if 0 < n then mapfcm (fun x xs -> Cons (x, take' (n-1) xs)) xs else nil
   let take n xs = if n < 0 then failwith "take: n < 0" else take' n xs
 
   let inline mapcnm f (xs: Streams<_>) =
