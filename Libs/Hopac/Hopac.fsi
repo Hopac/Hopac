@@ -703,7 +703,10 @@ module Job =
   ///>   else
   ///>     Job.unit ()
 #endif
-  val forN: int -> Job<unit> -> Job<unit>
+  val inline forN: int -> Job<unit> -> Job<unit>
+
+  /// `forNIgnore n xJ` is equivalent to `Job.Ignore xJ |> forN n`.
+  val forNIgnore: int -> Job<_> -> Job<unit>
 
   /// `forUpTo lo hi i2uJ` creates a job that sequentially iterates from `lo` to
   /// `hi` (inclusive) and calls the given function to construct jobs that will
@@ -722,7 +725,11 @@ module Job =
   /// this construct work like a `for ... to ... do ...` loop of the base F#
   /// language.
 #endif
-  val forUpTo: int -> int -> (int -> #Job<unit>) -> Job<unit>
+  val inline forUpTo: int -> int -> (int -> #Job<unit>) -> Job<unit>
+
+  /// `forUpToIgnore lo hi i2xJ` is equivalent to `forUpTo lo hi (i2xJ >>
+  /// Job.Ignore)`.
+  val forUpToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `forDownTo hi lo i2uJ` creates a job that sequentially iterates from `hi`
   /// to `lo` (inclusive) and calls the given function to construct jobs that
@@ -741,7 +748,11 @@ module Job =
   /// this construct work like a `for ... downto ... do ...` loop of the base F#
   /// language.
 #endif
-  val forDownTo: int -> int -> (int -> #Job<unit>) -> Job<unit>
+  val inline forDownTo: int -> int -> (int -> #Job<unit>) -> Job<unit>
+
+  /// `forDownToIgnore hi lo i2xJ` is equivalent to `forDownTo hi lo (i2xJ >>
+  /// Job.Ignore)`.
+  val forDownToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `whileDo u2b uJ` creates a job that sequentially executes the `uJ` job as
   /// long as `u2b ()` returns `true`.
@@ -757,7 +768,10 @@ module Job =
   ///>       Job.unit ()
   ///>   loop ()
 #endif
-  val whileDo: (unit -> bool) -> Job<unit> -> Job<unit>
+  val inline whileDo: (unit -> bool) -> Job<unit> -> Job<unit>
+
+  /// `whileDoIgnore u2b xJ` is equivalent to `Job.Ignore xJ |> whileDo u2b`.
+  val whileDoIgnore: (unit -> bool) -> Job<_> -> Job<unit>
 
   /// `whenDo b uJ` is equivalent to `if b then uJ else Job.unit ()`.
   val inline whenDo: bool -> Job<unit> -> Job<unit>
@@ -778,7 +792,10 @@ module Job =
   ///
   ///> let rec forever uJ = uJ >>= fun () -> forever uJ
 #endif
-  val forever: Job<unit> -> Job<_>
+  val inline forever: Job<unit> -> Job<_>
+
+  /// `foreverIgnore xJ` is equivalent to `Job.Ignore xJ |> forever`.
+  val foreverIgnore: Job<_> -> Job<_>
 
   /// Creates a job that indefinitely iterates the given job constructor
   /// starting with the given value.  See also: `iterateServer`, `forever`.

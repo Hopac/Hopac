@@ -679,7 +679,7 @@ module Job =
         override xK'.DoWork (wr) = uK.DoWork (&wr)
         override xK'.DoCont (wr, _) = uK.DoWork (&wr)})}
   
-  let forN (n: int) (xJ: Job<unit>) =
+  let forNIgnore (n: int) (xJ: Job<_>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        {new Cont_State<_, _> (n) with
@@ -699,9 +699,11 @@ module Job =
             xJ.DoJob (&wr, xK')
           else
             uK.DoWork (&wr)}.DoWork (&wr)}
+  let inline forN n (uJ: Job<unit>) =
+    forNIgnore n uJ
 
   module Internal =
-    let inline mkFor more next i0 i1 (i2xJ: _ -> #Job<unit>) =
+    let inline mkFor more next i0 i1 (i2xJ: _ -> #Job<_>) =
       {new Job<unit> () with
         override uJ'.DoJob (wr, uK) =
          {new Cont_State<_, _> (i0) with
@@ -722,11 +724,15 @@ module Job =
             else
               uK.DoWork (&wr)}.DoWork (&wr)}
 
-  let forUpTo (i0: int) (i1: int) (i2xJ: int -> #Job<unit>) =
+  let forUpToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
     Internal.mkFor (fun i i1 -> i <= i1) (fun i -> i + 1) i0 i1 i2xJ
+  let inline forUpTo i0 i1 (i2uJ: int -> #Job<unit>) =
+    forUpToIgnore i0 i1 i2uJ
 
-  let forDownTo (i0: int) (i1: int) (i2xJ: int -> #Job<unit>) =
+  let forDownToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
     Internal.mkFor (fun i i1 -> i1 <= i) (fun i -> i - 1) i0 i1 i2xJ
+  let inline forDownTo i0 i1 (i2uJ: int -> #Job<unit>) =
+    forDownToIgnore i0 i1 i2uJ
 
   type ForeverCont<'x, 'y> =
     inherit Handler<'x, 'y>
@@ -735,11 +741,13 @@ module Job =
     override xK'.DoWork (wr) = xK'.xJ.DoJob (&wr, xK')
     override xK'.DoCont (wr, _) = xK'.xJ.DoJob (&wr, xK')
 
-  let forever (xJ: Job<unit>) =
+  let foreverIgnore (xJ: Job<_>) =
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK_) = {new ForeverCont<_, _> (xJ, yK_) with
        override xK'.DoHandle (wr, e) =
         Handler.DoHandle (xK'.yK, &wr, e)}.DoWork (&wr)}
+  let inline forever (uJ: Job<unit>) =
+    foreverIgnore uJ
 
   let inline iterate (x: 'x) (x2xJ: 'x -> #Job<'x>) =
     {new JobRun<'y> () with
@@ -747,7 +755,7 @@ module Job =
         {new ContIterate<'x, 'y> (x, yK) with
           override xK'.Do (x) = upcast x2xJ x} :> Work} :> Job<_>
 
-  let whileDo (cond: unit -> bool) (xJ: Job<unit>) =
+  let whileDoIgnore (cond: unit -> bool) (xJ: Job<_>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) = {new Cont<_> () with
        override xK'.GetProc (wr) = uK.GetProc (&wr)
@@ -756,6 +764,8 @@ module Job =
         if cond () then xJ.DoJob (&wr, xK') else uK.DoWork (&wr)
        override xK'.DoWork (wr) =
         if cond () then xJ.DoJob (&wr, xK') else uK.DoWork (&wr)}.DoWork (&wr)}
+  let inline whileDo cond (uJ: Job<unit>) =
+    whileDoIgnore cond uJ
 
   let result (x: 'x) =
     // XXX Does this speed things up?
