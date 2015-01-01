@@ -302,6 +302,9 @@ module Streams =
   let rec unfoldJob f s =
     f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
   let unfoldFun f s = unfoldJob (Job.lift f) s
+  let rec iterateJob' x2xJ x = Cons (x, x2xJ x |>>* iterateJob' x2xJ)
+  let iterateJob x2xJ x = cons x (x2xJ x |>>* iterateJob' x2xJ)
+  let iterateFun x2x x = iterateJob (x2x >> Job.result) x
 
   let atDateTimeOffsets dtos =
     dtos

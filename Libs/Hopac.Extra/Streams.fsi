@@ -90,6 +90,11 @@ module Streams =
   /// Preliminary and subject to change.
   val unfoldFun: ('s -> option<'x * 's>) -> 's -> Streams<'x>
 
+  /// Preliminary and subject to change.
+  val iterateJob: ('x -> #Job<'x>) -> 'x -> Streams<'x>
+  /// Preliminary and subject to change.
+  val iterateFun: ('x -> 'x) -> 'x -> Streams<'x>
+
   // Observable
 
   /// Preliminary and subject to change.
