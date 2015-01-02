@@ -161,7 +161,9 @@ module Streams =
                    (xxs: Streams<Streams<'x>>) =
     mapcm (fun xs xxs -> join xs (joinWith join xxs)) xxs
 
-  let mapJoin join x2ys xs = xs |> mapFun x2ys |> joinWith join
+  let rec mapJoin (join: Streams<'y> -> Streams<'z> -> Streams<'z>)
+                  (x2ys: 'x -> Streams<'y>) (xs: Streams<'x>) : Streams<'z> =
+    mapcm (fun x xs -> join (x2ys x) (mapJoin join x2ys xs)) xs
 
   let ambMap x2ys xs = mapJoin amb x2ys xs
   let mergeMap x2ys xs = mapJoin merge x2ys xs
