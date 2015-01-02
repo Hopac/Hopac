@@ -109,6 +109,8 @@ module Streams =
   val chooseJob: ('x -> #Job<option<'y>>) -> Streams<'x> -> Streams<'y>
   /// Preliminary and subject to change.
   val chooseFun: ('x -> option<'y>) -> Streams<'x> -> Streams<'y>
+  /// Preliminary and subject to change.
+  val choose: Streams<option<'x>> -> Streams<'x>
 
   /// Preliminary and subject to change.
   val filterJob: ('x -> #Job<bool>) -> Streams<'x> -> Streams<'x>

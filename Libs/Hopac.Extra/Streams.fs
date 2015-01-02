@@ -129,11 +129,17 @@ module Streams =
   let inline mapc c xs = xs >>=? mapC c
   let inline mapcm c xs = mapc c xs |> memo
 
-  let rec chooseJob x2yOJ xs =
-    mapcm (fun x xs ->
-             let n = chooseJob x2yOJ xs
-             x2yOJ x >>= function None -> n | Some y -> cons y n) xs
-  let chooseFun x2yO xs = chooseJob (x2yO >> Job.result) xs
+  let rec chooseJob' x2yOJ x xs =
+    x2yOJ x >>= function None -> mapc (chooseJob' x2yOJ) xs
+                       | Some y -> cons y (chooseJob x2yOJ xs)
+  and chooseJob x2yOJ xs = mapcm (chooseJob' x2yOJ) xs
+  let rec chooseFun' x2yO x xs =
+    match x2yO x with None -> mapc (chooseFun' x2yO) xs
+                    | Some y -> cons y (chooseFun x2yO xs)
+  and chooseFun x2yO xs = mapcm (chooseFun' x2yO) xs
+  let rec choose' xO xOs =
+    match xO with None -> mapc choose' xOs | Some x -> cons x (choose xOs)
+  and choose xOs = mapcm choose' xOs
 
   let filterJob x2bJ xs =
     chooseJob (fun x -> x2bJ x |>> fun b -> if b then Some x else None) xs
