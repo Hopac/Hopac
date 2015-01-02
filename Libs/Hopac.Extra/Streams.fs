@@ -203,9 +203,11 @@ module Streams =
   and zipY xs y ys = mapfc (fun x xs -> zipXY x y xs ys) xs
   and zip xs ys = mapc (zipX ys) xs <|>* mapc (zipY xs) ys
 
-  let rec scanJob f s xs =
-    cons s (mapcm (fun x xs -> f s x >>= fun s -> scanJob f s xs) xs)
-  let scanFun f s xs = scanJob (fun s x -> f s x |> Job.result) s xs
+  let rec scanJob' f s x xs =
+    f s x |>> fun s -> Cons (s, mapcm (scanJob' f s) xs)
+  let scanJob f s xs = cons s (mapcm (scanJob' f s) xs)
+  let rec scanFun' f s x xs = Cons (f s x, mapfcm (scanFun' f s) xs)
+  let scanFun f s xs = cons s (mapfcm (scanFun' f s) xs)
   let scanFromJob s f xs = scanJob f s xs
   let scanFromFun s f xs = scanFun f s xs
 
@@ -218,8 +220,8 @@ module Streams =
 
   let count xs = foldFun (fun s _ -> s+1) 0 xs |> memo
 
-  let rec iterJob (x2uJ: _ -> #Job<unit>) xs =
-    mapnc (Job.unit ()) (fun x xs -> x2uJ x >>. iterJob x2uJ xs) xs :> Job<_>
+  let rec iterJob (f: _ -> #Job<unit>) xs =
+    xs >>= function Nil -> Job.unit () | Cons (x, xs) -> f x >>. iterJob f xs
   let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
 
   let toSeq xs = Job.delay <| fun () ->
