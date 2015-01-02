@@ -250,6 +250,17 @@ module TopLevel =
   /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
   val inline startIgnore: Job<_> -> unit
 
+  /// Queues the given job for execution on the global scheduler.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.queue` instead.
+  ///
+  /// This is the same function as `Job.Global.queue`.
+  val inline queue: Job<unit> -> unit
+
+  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  val inline queueIgnore: Job<_> -> unit
+
   /// Like `start`, but the given job is known never to return normally, so the
   /// job can be spawned in an even more lightweight manner.
   ///
@@ -394,6 +405,15 @@ module Job =
 
     /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
     val startIgnore: Job<_> -> unit
+
+    /// Queues the job for execution on the global scheduler.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Job.queue` instead.
+    val inline queue: Job<unit> -> unit
+
+    /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+    val queueIgnore: Job<_> -> unit
 
     /// Like `Job.Global.start`, but the given job is known never to return
     /// normally, so the job can be spawned in an even more lightweight manner.
@@ -2131,6 +2151,15 @@ module Scheduler =
 
   /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
   val startIgnore: Scheduler -> Job<_> -> unit
+
+  /// Queues the given job for execution on the scheduler.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.queue` instead.
+  val inline queue: Scheduler -> Job<unit> -> unit
+
+  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  val queueIgnore: Scheduler -> Job<_> -> unit
 
   /// Like `Scheduler.start`, but the given job is known never to return
   /// normally, so the job can be spawned in an even more lightweight manner.

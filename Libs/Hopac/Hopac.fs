@@ -518,6 +518,14 @@ module Scheduler =
   let inline start (sr: Scheduler) (uJ: Job<unit>) =
     startIgnore sr uJ
 
+  let queueIgnore (sr: Scheduler) (xJ: Job<'x>) =
+    Scheduler.PushNew(sr, {new WorkHandler () with
+     override w'.DoWork (wr) =
+      xJ.DoJob (&wr, Handler<_, _> ())})
+
+  let inline queue sr (uJ: Job<unit>) =
+    queueIgnore sr uJ
+
   let server (sr: Scheduler) (vJ: Job<Void>) =
     Worker.RunOnThisThread (sr, vJ, null)
 
@@ -647,6 +655,8 @@ module Job =
       Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ
     let startIgnore xJ = Scheduler.startIgnore (initGlobalScheduler ()) xJ
     let inline start (uJ: Job<unit>) = startIgnore uJ
+    let queueIgnore xJ = Scheduler.queueIgnore (initGlobalScheduler ()) xJ
+    let inline queue (uJ: Job<unit>) = queueIgnore uJ
     let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
     let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
 
@@ -1844,6 +1854,8 @@ module TopLevel =
   let inline run x = Job.Global.run x
   let inline startIgnore x = Job.Global.startIgnore x
   let inline start x = Job.Global.start x
+  let inline queueIgnore x = Job.Global.queueIgnore x
+  let inline queue x = Job.Global.queue x
   let inline server x = Job.Global.server x
 
   let inline asAlt (xA: Alt<'x>) = xA

@@ -97,6 +97,11 @@ namespace Hopac {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal static void PushNew(Scheduler sr, Work work) {
+      Push(sr, work, work, 1);
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal static void Push(Scheduler sr, Work work, Work last, int n) {
       Enter(sr);
       last.Next = sr.WorkStack;
