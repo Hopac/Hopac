@@ -325,21 +325,36 @@ module Alt =
       override yA'.Do (x) = upcast x2yJ x} :> Alt<_>
 
   module Infixes =
+    let inline either (wr: byref<Worker>) xK (xA1: Alt<_>) (xA2: Alt<_>) =
+      let pk = Pick ()
+      xA1.TryAlt (&wr, 0, xK, {new Else_State<_> (pk, xA2) with
+       override xE'.TryElse (wr, i) =
+        match xE'.State with
+         | null -> ()
+         | xA2 ->
+           xE'.State <- null
+           xA2.TryAlt (&wr, i, xK, xE')})
+
+    let inline eitherOr (wr: byref<Worker>) i xK (xE: Else) (xA1: Alt<_>) (xA2: Alt<_>) =
+      xA1.TryAlt (&wr, i, xK, {new Else (xE.pk) with
+       override xE'.TryElse (wr, i) =
+        xA2.TryAlt (&wr, i, xK, xE)})
+
     let (<|>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
+        override xA'.DoJob (wr, xK) = either &wr xK xA1 xA2
+        override xA'.TryAlt (wr, i, xK, xE) = eitherOr &wr i xK xE xA1 xA2}
+
+    let (<~>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
+      {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
-         let pk = Pick ()
-         xA1.TryAlt (&wr, 0, xK, {new Else_State<_> (pk, xA2) with
-          override xE'.TryElse (wr, i) =
-           match xE'.State with
-            | null -> ()
-            | xA2 ->
-              xE'.State <- null
-              xA2.TryAlt (&wr, i, xK, xE')})
+         if int (Randomizer.Next (&wr.Random)) < 0
+         then either &wr xK xA1 xA2
+         else either &wr xK xA2 xA1
         override xA'.TryAlt (wr, i, xK, xE) =
-         xA1.TryAlt (&wr, i, xK, {new Else (xE.pk) with
-          override xE'.TryElse (wr, i) =
-           xA2.TryAlt (&wr, i, xK, xE)})}
+         if int (Randomizer.Next (&wr.Random)) < 0
+         then eitherOr &wr i xK xE xA1 xA2
+         else eitherOr &wr i xK xE xA2 xA1}
 
     let inline (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new AltMap<'x, 'y> (xA) with
@@ -404,6 +419,38 @@ module Alt =
              xE.TryElse (&wr, i)})
        else
          xAs.Dispose ()
+         xE.TryElse (&wr, i)}
+
+  let inline shuffle (wr: byref<Worker>) (xAs: array<_>) j =
+    let j' = Randomizer.NextInRange (&wr.Random, j, xAs.Length)
+    let xA = xAs.[j']
+    xAs.[j'] <- xAs.[j]
+    xA
+
+  let chooser (xAs: seq<#Alt<'x>>) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       let xAs = Seq.toArray xAs
+       if 0 < xAs.Length then
+         let pk = Pick ()
+         (shuffle &wr xAs 0).TryAlt (&wr, 0, xK, {new Else_State<_> (pk, 1) with
+          override xE'.TryElse (wr, i) =
+           let j = xE'.State
+           if j < xAs.Length then
+             xE'.State <- j+1
+             (shuffle &wr xAs j).TryAlt (&wr, i, xK, xE')})
+      override xA'.TryAlt (wr, i, xK, xE) =
+       let xAs = Seq.toArray xAs
+       if 0 < xAs.Length then
+         (shuffle &wr xAs 0).TryAlt (&wr, i, xK, {new Else_State<_> (xE.pk, 1) with
+           override xE'.TryElse (wr, i) =
+            let j = xE'.State
+            if j < xAs.Length then
+              xE'.State <- j+1
+              (shuffle &wr xAs j).TryAlt (&wr, i, xK, xE')
+            else
+              xE.TryElse (&wr, i)})
+       else
          xE.TryElse (&wr, i)}
 
   let tryIn (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =

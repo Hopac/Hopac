@@ -1125,6 +1125,11 @@ module Alt =
 #endif
   val choose: seq<#Alt<'x>> -> Alt<'x>
 
+  /// `chooser xAs` is like `choose xAs` except that the order in which the
+  /// alternatives from the sequence are considered will be determined at random
+  /// each time the alternative is used.  See also: `<~>?`.
+  val chooser: seq<#Alt<'x>> -> Alt<'x>
+
   /// Creates an alternative whose result is passed to the given job constructor
   /// and processed with the resulting job after the given alternative has been
   /// committed to.  This is the same as `>>=?` with the arguments flipped.
@@ -1158,6 +1163,18 @@ module Alt =
     /// not be instantiated at all.
 #endif
     val (<|>?): Alt<'x> -> Alt<'x> -> Alt<'x>
+
+    /// `xA1 <~>? xA2` is like `xA1 <|>? xA2` except that the order in which
+    /// `xA1` and `xA2` are considered is determined at random every time the
+    /// alternative is used.  See also: `chooser`.
+#if DOC
+    ///
+    /// WARNING: Chained uses of `<~>?` do not lead to a uniform distributions.
+    /// Consider the expression `xA1 <~>? xA2 <~>? xA3`.  It parenhesizes as
+    /// `(xA1 <~>? xA2) <~>? xA3`.  This means that `xA3` has a 50% and both
+    /// `xA1` and `xA2` have 25% probability of being considered first.
+#endif
+    val (<~>?): Alt<'x> -> Alt<'x> -> Alt<'x>
 
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given

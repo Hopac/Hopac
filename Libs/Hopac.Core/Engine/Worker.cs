@@ -24,15 +24,18 @@ namespace Hopac.Core {
 #endif
     internal Scheduler Scheduler;
     internal WorkerEvent Event;
+    internal uint Random;
 
     [ThreadStatic]
     internal static bool IsWorkerThread;
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal void Init(Scheduler sr, int bytes) {
+      var sp = Unsafe.GetStackPtr();
 #if TRAMPOLINE
-      this.StackLimit = Unsafe.GetStackPtr() - bytes;
+      this.StackLimit = sp - bytes;
 #endif
+      this.Random = (uint)sp ^ (uint)((ulong)sp >> 32); // Quick and dirty
       this.Scheduler = sr;
     }
 
