@@ -1169,7 +1169,7 @@ module Alt =
     /// alternative is used.  See also: `chooser`.
 #if DOC
     ///
-    /// WARNING: Chained uses of `<~>?` do not lead to a uniform distributions.
+    /// WARNING: Chained uses of `<~>?` do not lead to uniform distributions.
     /// Consider the expression `xA1 <~>? xA2 <~>? xA3`.  It parenhesizes as
     /// `(xA1 <~>? xA2) <~>? xA3`.  This means that `xA3` has a 50% and both
     /// `xA1` and `xA2` have 25% probability of being considered first.
