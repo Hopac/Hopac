@@ -268,18 +268,18 @@ namespace Hopac {
     ///
     public abstract class JobRandomBind<X> : Job<X> {
       ///
-      public abstract Job<X> Do(uint random);
+      public abstract Job<X> Do(ulong random);
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
-        Do(Randomizer.Next(ref wr.Random)).DoJob(ref wr, xK);
+        Do(Randomizer.Next(ref wr.RandomLo, ref wr.RandomHi)).DoJob(ref wr, xK);
       }
     }
 
     ///
     public abstract class JobRandomMap<X> : Job<X> {
       ///
-      public abstract X Do(uint random);
+      public abstract X Do(ulong random);
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
-        Cont.Do(xK, ref wr, Do(Randomizer.Next(ref wr.Random)));
+        Cont.Do(xK, ref wr, Do(Randomizer.Next(ref wr.RandomLo, ref wr.RandomHi)));
       }
     }
   }

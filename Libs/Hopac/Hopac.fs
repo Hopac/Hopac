@@ -278,7 +278,7 @@ module Alt =
     {new AltDelay<'x> () with
       override xA'.Do () = upcast u2xA ()} :> Alt<_>
 
-  let inline random (u2xA: uint32 -> #Alt<'x>) =
+  let inline random (u2xA: uint64 -> #Alt<'x>) =
     {new AltRandom<'x> () with
       override xA'.Do (random) = upcast u2xA random} :> Alt<_>
 
@@ -352,11 +352,11 @@ module Alt =
     let (<~>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
-         if int (Randomizer.Next (&wr.Random)) < 0
+         if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
          then either &wr xK xA1 xA2
          else either &wr xK xA2 xA1
         override xA'.TryAlt (wr, i, xK, xE) =
-         if int (Randomizer.Next (&wr.Random)) < 0
+         if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
          then eitherOr &wr i xK xE xA1 xA2
          else eitherOr &wr i xK xE xA2 xA1}
 
@@ -426,7 +426,7 @@ module Alt =
          xE.TryElse (&wr, i)}
 
   let inline shuffle (wr: byref<Worker>) (xAs: array<_>) j =
-    let j' = Randomizer.NextInRange (&wr.Random, j, xAs.Length)
+    let j' = Randomizer.NextInRange (&wr.RandomLo, &wr.RandomHi, j, xAs.Length)
     let xA = xAs.[j']
     xAs.[j'] <- xAs.[j]
     xA
@@ -863,11 +863,11 @@ module Job =
   ///////////////////////////////////////////////////////////////////////
 
   module Random =
-    let inline bind (u2xJ: uint32 -> #Job<'x>) =
+    let inline bind (u2xJ: uint64 -> #Job<'x>) =
       {new JobRandomBind<_> () with
         override xJ'.Do (random) = upcast u2xJ random} :> Job<'x>
 
-    let inline map (u2x: uint32 -> 'x) =
+    let inline map (u2x: uint64 -> 'x) =
       {new JobRandomMap<_> () with
         override xJ'.Do (random) = u2x random} :> Job<'x>
 

@@ -24,7 +24,8 @@ namespace Hopac.Core {
 #endif
     internal Scheduler Scheduler;
     internal WorkerEvent Event;
-    internal uint Random;
+    internal ulong RandomLo;
+    internal ulong RandomHi;
 
     [ThreadStatic]
     internal static bool IsWorkerThread;
@@ -35,7 +36,7 @@ namespace Hopac.Core {
 #if TRAMPOLINE
       this.StackLimit = sp - bytes;
 #endif
-      this.Random = (uint)sp ^ (uint)((ulong)sp >> 32); // Quick and dirty
+      this.RandomLo = (ulong)sp; // Quick and dirty (also never zero)
       this.Scheduler = sr;
     }
 
@@ -110,6 +111,7 @@ namespace Hopac.Core {
 
       var wr = new Worker();
       wr.Init(sr, 4000);
+      wr.RandomHi = (ulong)DateTime.UtcNow.Ticks;
 
       var iK = new IdleCont();
 

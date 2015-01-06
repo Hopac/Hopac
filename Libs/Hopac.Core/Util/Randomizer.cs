@@ -2,17 +2,26 @@
 
 namespace Hopac.Core {
   using System;
+  using System.Runtime.CompilerServices;
 
-  internal static class Randomizer {
-    internal static uint Next(ref uint state) {
-      var was = state;
-      state = was * 1664525 + 1013904223; // Numerical Recipes
-      return was;
+  internal class Randomizer {
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static ulong Next(ref ulong slo, ref ulong shi) {
+      // xorshift128+
+      var s1 = slo;
+      var s0 = shi;
+      var s1_23 = s1 << 23;
+      var s0_26 = s0 >> 26;
+      s1 ^= s1_23; // a
+      slo = s0;
+      var s1_17 = s1 >> 17;
+      return (shi = ((s1 ^ s0) ^ (s1_17 ^ s0_26))) + s0; // b, c
     }
 
-    internal static int NextInRange(ref uint state, int lo, int hi) {
-      var r = Next(ref state);
-      return (int)(((long)r * (long)(hi - lo)) >> 32) + lo;
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static int NextInRange(ref ulong slo, ref ulong shi, int lo, int hi) {
+      var s = (uint)Next(ref slo, ref shi);
+      return (int)(((long)s * (long)(hi - lo)) >> 32) + lo;
     }
   }
 }

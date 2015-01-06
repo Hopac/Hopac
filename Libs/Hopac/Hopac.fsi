@@ -941,16 +941,22 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Operations on the built-in quick and dirty pseudo random number generator
-  /// (PRNG) of Hopac.  Note that the built-in PRNG is not a high-quality PRNG.
-  /// Avoid using only the low bits of the returned 32-bit unsigned integers.
+  /// Operations on the built-in pseudo random number generator (PRNG) of Hopac.
+#if DOC
+  ///
+  /// Note that every actual Hopac worker thread has its own PRNG state and is
+  /// initialized with a distinct seed.  However, when you `start` or `run` jobs
+  /// from some non worker thread, it is possible that successive executions
+  /// generate the same sequence of numbers.  In the extremely rare case that
+  /// could be a problem, use `queue` or `switchToWorker`.
+#endif 
   module Random =
     /// `bind u2xJ` creates a job that calls the given job constructor with a
-    /// pseudo random 32-bit unsigned integer.
-    val inline bind: (uint32 -> #Job<'x>) -> Job<'x>
+    /// pseudo random 64-bit unsigned integer.
+    val inline bind: (uint64 -> #Job<'x>) -> Job<'x>
 
     /// `map r2x` is equivalent to `bind result`.
-    val inline map: (uint32 -> 'x) -> Job<'x>
+    val inline map: (uint64 -> 'x) -> Job<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1061,9 +1067,9 @@ module Alt =
   val inline delay: (unit -> #Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// the given function, which will be called with a pseudo random 32-bit
+  /// the given function, which will be called with a pseudo random 64-bit
   /// unsigned integer.  See also: `Random.bind`.
-  val inline random: (uint32 -> #Alt<'x>) -> Alt<'x>
+  val inline random: (uint64 -> #Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job constructed with a negative acknowledgment alternative.  See

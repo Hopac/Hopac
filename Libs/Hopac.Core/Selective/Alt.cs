@@ -140,16 +140,16 @@ namespace Hopac {
     ///
     public abstract class AltRandom<X> : Alt<X> {
       ///
-      public abstract Alt<X> Do(uint random);
+      public abstract Alt<X> Do(ulong random);
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
-        Do(Randomizer.Next(ref wr.Random)).DoJob(ref wr, xK);
+        Do(Randomizer.Next(ref wr.RandomLo, ref wr.RandomHi)).DoJob(ref wr, xK);
       }
       internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
         var pk = xE.pk;
         if (0 == Pick.Claim(pk)) {
           Alt<X> xA;
           try {
-            xA = Do(Randomizer.Next(ref wr.Random));
+            xA = Do(Randomizer.Next(ref wr.RandomLo, ref wr.RandomHi));
             Pick.Unclaim(pk);
           } catch (Exception e) {
             Pick.PickClaimedAndSetNacks(ref wr, i, pk);
