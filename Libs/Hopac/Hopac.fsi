@@ -939,6 +939,19 @@ module Job =
   /// See also: `Alt.paranoid`.
   val paranoid: Job<'x> -> Job<'x>
 
+  /////////////////////////////////////////////////////////////////////////////
+
+  /// Operations on the built-in quick and dirty pseudo random number generator
+  /// (PRNG) of Hopac.  Note that the built-in PRNG is not a high-quality PRNG.
+  /// Avoid using only the low bits of the returned 32-bit unsigned integers.
+  module Random =
+    /// `bind u2xJ` creates a job that calls the given job constructor with a
+    /// pseudo random 32-bit unsigned integer.
+    val inline bind: (uint32 -> #Job<'x>) -> Job<'x>
+
+    /// `map r2x` is equivalent to `bind result`.
+    val inline map: (uint32 -> 'x) -> Job<'x>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
@@ -1046,6 +1059,11 @@ module Alt =
   ///> let delay u2xA = guard (Job.thunk u2xA)
 #endif
   val inline delay: (unit -> #Alt<'x>) -> Alt<'x>
+
+  /// Creates an alternative that is computed at instantiation time with the
+  /// the given function, which will be called with a pseudo random 32-bit
+  /// unsigned integer.  See also: `Random.bind`.
+  val inline random: (uint32 -> #Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job constructed with a negative acknowledgment alternative.  See

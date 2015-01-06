@@ -278,6 +278,10 @@ module Alt =
     {new AltDelay<'x> () with
       override xA'.Do () = upcast u2xA ()} :> Alt<_>
 
+  let inline random (u2xA: uint32 -> #Alt<'x>) =
+    {new AltRandom<'x> () with
+      override xA'.Do (random) = upcast u2xA random} :> Alt<_>
+
   type WithNackElse (nk: Nack, xE: Else) =
     inherit Else (xE.pk)
     override xE'.TryElse (wr, i) =
@@ -855,6 +859,17 @@ module Job =
 
   let inline whenDo (b: bool) (uJ: Job<unit>) =
     if b then uJ else StaticData.unit :> Job<_>
+
+  ///////////////////////////////////////////////////////////////////////
+
+  module Random =
+    let inline bind (u2xJ: uint32 -> #Job<'x>) =
+      {new JobRandomBind<_> () with
+        override xJ'.Do (random) = upcast u2xJ random} :> Job<'x>
+
+    let inline map (u2x: uint32 -> 'x) =
+      {new JobRandomMap<_> () with
+        override xJ'.Do (random) = u2x random} :> Job<'x>
 
   ///////////////////////////////////////////////////////////////////////
 

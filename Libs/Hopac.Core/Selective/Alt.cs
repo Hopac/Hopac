@@ -136,5 +136,28 @@ namespace Hopac {
         Handler.DoHandle(xK, ref wr, e);
       }
     }
+
+    ///
+    public abstract class AltRandom<X> : Alt<X> {
+      ///
+      public abstract Alt<X> Do(uint random);
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Do(Randomizer.Next(ref wr.Random)).DoJob(ref wr, xK);
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
+        var pk = xE.pk;
+        if (0 == Pick.Claim(pk)) {
+          Alt<X> xA;
+          try {
+            xA = Do(Randomizer.Next(ref wr.Random));
+            Pick.Unclaim(pk);
+          } catch (Exception e) {
+            Pick.PickClaimedAndSetNacks(ref wr, i, pk);
+            xA = new AltFail<X>(e);
+          }
+          xA.TryAlt(ref wr, i, xK, xE);
+        }
+      }
+    }
   }
 }
