@@ -282,5 +282,13 @@ namespace Hopac {
         Cont.Do(xK, ref wr, Do(Randomizer.Next(ref wr.RandomLo, ref wr.RandomHi)));
       }
     }
+
+    ///
+    public sealed class JobRandomGet : Job<ulong> {
+      ///
+      internal override void DoJob(ref Worker wr, Cont<ulong> rK) {
+        Cont.Do(rK, ref wr, Randomizer.Next(ref wr.RandomLo, ref wr.RandomHi));
+      }
+    }
   }
 }

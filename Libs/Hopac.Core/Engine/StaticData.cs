@@ -31,6 +31,10 @@ namespace Hopac.Core {
     /// worker thread.</summary>
     public static Job<Unit> switchToWorker;
 
+    /// <summary>Stores the single shared proc that generates a random
+    /// number.</summary>
+    public static Job<ulong> random;
+
     /// <summary>Stores the single AsyncCallback delegate.</summary>
     public static AsyncCallback workAsyncCallback;
 
@@ -66,6 +70,7 @@ namespace Hopac.Core {
           scheduler = new GetScheduler();
           proc = new GetProc();
           switchToWorker = new SwitchToWorker();
+          random = new JobRandomGet();
           workAsyncCallback = (iar) => (iar.AsyncState as WorkAsyncCallback).Ready(iar);
           zero = new Never<Unit>(); // Must be written last!
         }

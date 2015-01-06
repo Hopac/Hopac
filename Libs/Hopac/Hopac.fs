@@ -871,6 +871,8 @@ module Job =
       {new JobRandomMap<_> () with
         override xJ'.Do (random) = u2x random} :> Job<'x>
 
+    let inline get () = StaticData.random
+
   ///////////////////////////////////////////////////////////////////////
 
   module Infixes =

@@ -945,18 +945,22 @@ module Job =
 #if DOC
   ///
   /// Note that every actual Hopac worker thread has its own PRNG state and is
-  /// initialized with a distinct seed.  However, when you `start` or `run` jobs
-  /// from some non worker thread, it is possible that successive executions
-  /// generate the same sequence of numbers.  In the extremely rare case that
-  /// could be a problem, use `queue` or `switchToWorker`.
+  /// initialized with a distinct seed.  However, when you `TopLevel.start` or
+  /// `TopLevel.run` jobs from some non worker thread, it is possible that
+  /// successive executions generate the same sequence of numbers.  In the
+  /// extremely rare case that could be a problem, use `TopLevel.queue` or
+  /// `switchToWorker`.
 #endif 
   module Random =
-    /// `bind u2xJ` creates a job that calls the given job constructor with a
+    /// `bind r2xJ` creates a job that calls the given job constructor with a
     /// pseudo random 64-bit unsigned integer.
     val inline bind: (uint64 -> #Job<'x>) -> Job<'x>
 
-    /// `map r2x` is equivalent to `bind result`.
+    /// `map r2x` is equivalent to `bind (r2x >> result)`.
     val inline map: (uint64 -> 'x) -> Job<'x>
+
+    /// Returns a job that generates a pseudo random 64-bit unsigned integer.
+    val inline get: unit -> Job<uint64>
 
 ////////////////////////////////////////////////////////////////////////////////
 
