@@ -235,6 +235,17 @@ module Streams =
     let ks = HashSet<_>() in filterJob (x2kJ >> Job.map ks.Add) xs
   let distinctByFun x2k xs = distinctByJob (Job.lift x2k) xs
 
+  let rec ducwj eqJ x' x xs =
+    eqJ x' x >>= function true -> mapc (ducwj eqJ x) xs
+                        | false -> cons x (mapcm (ducwj eqJ x) xs)
+  let distinctUntilChangedWithJob eqJ xs =
+    mapcm (fun x xs -> cons x (mapcm (ducwj eqJ x) xs)) xs
+
+  let rec ducwf eq x' x xs =
+    if eq x' x then mapc (ducwf eq x) xs else cons x (mapcm (ducwf eq x) xs)
+  let distinctUntilChangedWithFun eq xs =
+    mapcm (fun x xs -> cons x (mapcm (ducwf eq x) xs)) xs
+
   let rec ducbj x2kJ k' x xs =
     x2kJ x >>= fun k ->
     if k = k' then mapc (ducbj x2kJ k) xs else cons x (mapcm (ducbj x2kJ k) xs)

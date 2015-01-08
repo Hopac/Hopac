@@ -146,6 +146,11 @@ module Streams =
   val distinctByFun: ('x -> 'k) -> Streams<'x> -> Streams<'x> when 'k: equality
 
   /// Preliminary and subject to change.
+  val distinctUntilChangedWithJob: ('x -> 'x -> #Job<bool>) -> Streams<'x> -> Streams<'x>
+  /// Preliminary and subject to change.
+  val distinctUntilChangedWithFun: ('x -> 'x -> bool) -> Streams<'x> -> Streams<'x>
+
+  /// Preliminary and subject to change.
   val distinctUntilChangedByJob: ('x -> #Job<'k>) -> Streams<'x> -> Streams<'x> when 'k: equality
   /// Preliminary and subject to change.
   val distinctUntilChangedByFun: ('x -> 'k) -> Streams<'x> -> Streams<'x> when 'k: equality
