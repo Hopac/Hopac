@@ -32,41 +32,41 @@ type Stream<'x> =
 
 type Streams<'x> = Alt<Stream<'x>>
 
-type StreamSrc<'x> = {tail: MVar<IVar<Stream<'x>>>}
+type StreamSrc<'x> = {src: MVar<IVar<Stream<'x>>>}
 
 module StreamSrc =
-  let create () = {tail = mvarFull (ivar ())}
+  let create () = {src = mvarFull (ivar ())}
   let inline doTail ss op =
-    ss.tail >>=? fun tail ->
+    ss.src >>=? fun tail ->
     if IVar.Now.isFull tail
-    then ss.tail <<-= tail >>! Exception ("StreamSrc: closed")
+    then ss.src <<-= tail >>! Exception ("StreamSrc: closed")
     else op tail
   let value ss x =
     doTail ss <| fun tail ->
     let next = ivar ()
-    ss.tail <<-= next >>. (tail <-= Cons (x, next))
-  let error ss e = doTail ss <| fun tail -> tail <-=! e >>. (ss.tail <<-= tail)
-  let close ss = doTail ss <| fun tail -> tail <-= Nil >>. (ss.tail <<-= tail)
-  let tap ss = MVar.read ss.tail >>= IVar.read |> memo
+    ss.src <<-= next >>. (tail <-= Cons (x, next))
+  let error ss e = doTail ss <| fun tail -> tail <-=! e >>. (ss.src <<-= tail)
+  let close ss = doTail ss <| fun tail -> tail <-= Nil >>. (ss.src <<-= tail)
+  let tap ss = MVar.read ss.src >>= IVar.read |> memo
 
-type StreamVar<'x> = {state: MVar<Stream<'x>>}
+type StreamVar<'x> = {var: MVar<Stream<'x>>}
 
 module StreamVar =
-  let create x = {state = mvarFull (Cons (x, ivar ()))}
-  let inline mapc f = function Nil -> raise <| Exception ("StreamVar: closed")
-                             | Cons (x, n) -> f x n
-  let get sv = MVar.read sv.state |>>? mapc (fun x _ -> x)
-  let inline update sv (n: Alt<_>) x' =
-    let c = Cons (x', ivar ()) in (n :?> IVar<_>) <-= c >>. (sv.state <<-= c)
-  let set sv x = sv.state >>=? mapc (fun _ n -> update sv n x)
-  let updateJob sv x2xJ = sv.state >>=? mapc (fun x n -> x2xJ x >>= update sv n)
-  let updateFun sv x2x = sv.state >>=? mapc (fun x n -> update sv n (x2x x))
+  let create x = {var = mvarFull (Cons (x, ivar ()))}
+  let inline op sv f =
+    sv.var >>=? function
+     | Cons (x, n) as c -> f c x n
+     | Nil as c -> sv.var <<-= c >>! Exception ("StreamVar: closed") // XXX
+  let get sv = op sv <| fun c x _ -> sv.var <<-= c >>% x
+  let inline value sv (n: Alt<_>) x' =
+    let c = Cons (x', ivar ()) in (n :?> IVar<_>) <-= c >>. (sv.var <<-= c)
+  let set sv x = op sv <| fun _ _ n -> value sv n x
+  let updateJob sv x2xJ = op sv <| fun _ x n -> x2xJ x >>= value sv n
+  let updateFun sv x2x = op sv <| fun _ x n -> value sv n (x2x x)
   let maybeUpdateFun sv x2xO =
-    sv.state >>=? fun c -> c |> mapc (fun x n ->
-    match x2xO x with
-     | None -> sv.state <<-= c
-     | Some x' -> update sv n x')
-  let tap sv = MVar.read sv.state |> memo
+    op sv <| fun c x n -> match x2xO x with None -> sv.var <<-= c
+                                          | Some x' -> value sv n x'
+  let tap sv = MVar.read sv.var |> memo
   let setIfNotEq sv n =
     maybeUpdateFun sv (fun o -> if n <> o then Some n else None)
 
