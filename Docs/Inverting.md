@@ -442,10 +442,10 @@ choice streams:
 
 ```fsharp
 let rec joinWith (join: Streams<'x> -> Streams<'y> -> Streams<'y>)
-                 (xxs: Streams<Streams<'x>>) =
-  xxs |>>* function
+                 (xss: Streams<Streams<'x>>) =
+  xss |>>* function
       | Nil -> nil
-      | Cons (xs, xxs) -> join xs (joinWith join xxs)
+      | Cons (xs, xss) -> join xs (joinWith join xss)
 ```
 
 As you can see, the binary `join` operation is applied recursively to the
