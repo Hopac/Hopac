@@ -415,6 +415,54 @@ functionality comparable to Rx in the number of lines in
 [SelectMany.cs](https://github.com/mono/rx/blob/master/Rx/NET/Source/System.Reactive.Linq/Reactive/Linq/Observable/SelectMany.cs)
 that contain only curly braces.
 
+## GC'ing operations for composability
+
+One interesting difference between Rx -style streams and choice streams is that
+certain choice stream operations are garbage collected, like with traditional
+purely functional streams, while their Rx equivalents aren't.
+
+Consider a stream of the following kind:
+
+```fsharp
+append finiteStream otherStream
+```
+
+What happens when you consume the above stream and the `finiteStream` ends,
+leaving only the `otherStream` to consume?
+
+With choice streams the `append` operation simply returns the `otherStream` and
+the append operation itself vanishes.  With Rx, operations on the equivalent
+event stream will continue being passed through the `Concat` operation even
+though it does nothing.
+
+This means that with Rx you cannot directly create new combinators by means of
+recursively applying an operation to a stream.  Such a combinator would create a
+space leak.  On the other hand, here is an example of such a combinator on
+choice streams:
+
+```fsharp
+let rec joinWith (join: Streams<'x> -> Streams<'y> -> Streams<'y>)
+                 (xxs: Streams<Streams<'x>>) =
+  xxs |>>* function
+      | Nil -> nil
+      | Cons (xs, xxs) -> join xs (joinWith join xxs)
+```
+
+As you can see, the binary `join` operation is applied recursively to the
+stream.
+
+This particular combinator makes it easy to generalize various binary
+combinators on streams to work over streams of streams.  In particular, given
+binary `amb`, `merge`, `append` and `switch` operations, we can generalize them
+to work over streams of streams:
+
+```fsharp
+let ambMap x2ys xs = mapJoin amb x2ys xs
+let mergeMap x2ys xs = mapJoin merge x2ys xs
+let appendMap x2ys xs = mapJoin append x2ys xs
+let switchMap x2ys xs = mapJoin switch x2ys xs
+```
+
 ## Summary
 
 Feature            | Choice Streams    | Reactive Extensions
@@ -426,7 +474,7 @@ Consistent Streams | Yes               | [No](http://nullzzz.blogspot.fi/2012/01
 Compositions       | Declarative       | Declarative
 Consumers          | Functional        | Imperative
 Consumers GC'ed    | Yes               | No, must unsubscribe
-Combinators GC'ed  | Yes               | Only partially
+Operations GC'ed   | Yes               | Only partially
 
 ## Let's see some more code!
 
