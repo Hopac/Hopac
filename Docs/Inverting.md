@@ -426,7 +426,7 @@ Consistent Streams | Yes               | [No](http://nullzzz.blogspot.fi/2012/01
 Compositions       | Declarative       | Declarative
 Consumers          | Functional        | Imperative
 Consumers GC'ed    | Yes               | No, must unsubscribe
-Combinators GC'ed  | Yes               | No (impossible?)
+Combinators GC'ed  | Yes               | Only partially
 
 ## Let's see some more code!
 
