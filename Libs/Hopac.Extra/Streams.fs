@@ -49,23 +49,24 @@ module StreamSrc =
   let close ss = doTail ss <| fun tail -> tail <-= Nil >>. (ss.tail <<-= tail)
   let tap ss = MVar.read ss.tail >>= IVar.read |> memo
 
-type StreamVar<'x> = {state: MVar<'x * IVar<Stream<'x>>>}
+type StreamVar<'x> = {state: MVar<Stream<'x>>}
 
 module StreamVar =
-  let create x = {state = mvarFull (x, ivar ())}
-  let get sv = MVar.read sv.state |>>? fst
-  let inline update sv n x' =
-    let n' = ivar ()
-    n <-= Cons (x', n') >>. (sv.state <<-= (x', n'))
-  let set sv x = sv.state >>=? fun (_, n) -> update sv n x
-  let updateJob sv x2xJ = sv.state >>=? fun (x, n) -> x2xJ x >>= update sv n
-  let updateFun sv x2x = sv.state >>=? fun (x, n) -> update sv n (x2x x)
+  let create x = {state = mvarFull (Cons (x, ivar ()))}
+  let inline mapc f = function Nil -> raise <| Exception ("StreamVar: closed")
+                             | Cons (x, n) -> f x n
+  let get sv = MVar.read sv.state |>>? mapc (fun x _ -> x)
+  let inline update sv (n: Alt<_>) x' =
+    let c = Cons (x', ivar ()) in (n :?> IVar<_>) <-= c >>. (sv.state <<-= c)
+  let set sv x = sv.state >>=? mapc (fun _ n -> update sv n x)
+  let updateJob sv x2xJ = sv.state >>=? mapc (fun x n -> x2xJ x >>= update sv n)
+  let updateFun sv x2x = sv.state >>=? mapc (fun x n -> update sv n (x2x x))
   let maybeUpdateFun sv x2xO =
-    sv.state >>=? fun (x, n) ->
+    sv.state >>=? fun c -> c |> mapc (fun x n ->
     match x2xO x with
-     | None -> sv.state <<-= (x, n)
-     | Some x' -> update sv n x'
-  let tap sv = MVar.read sv.state |>> (fun (x, n) -> Cons (x, n)) |> memo
+     | None -> sv.state <<-= c
+     | Some x' -> update sv n x')
+  let tap sv = MVar.read sv.state |> memo
   let setIfNotEq sv n =
     maybeUpdateFun sv (fun o -> if n <> o then Some n else None)
 
