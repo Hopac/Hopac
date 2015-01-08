@@ -429,10 +429,10 @@ Consumers GC'ed    | Yes               | No, must unsubscribe
 
 ## Let's see some more code!
 
-There is an experimental library based on the above technique.  See:
+There is a library based on the above technique.  See:
 
-* [Streams.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Experimental/Streams.fsi)
-* [Streams.fs](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Experimental/Streams.fs)
+* [Streams.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Extra/Streams.fsi)
+* [Streams.fs](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Extra/Streams.fs)
 
 ## Related work
 
