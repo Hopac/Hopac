@@ -404,7 +404,7 @@ let groupBy (keyOf: 'x -> 'k) (ss: Streams<'x>) : Streams<'k * Streams<'x>> =
     wrap wrapMain xs
      <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
      <| fun serve ss _ _ _ -> serve ss
-   // Return the main branch:
+  // Return the main branch:
   !main |> wrapMain
 ```
 
@@ -426,6 +426,7 @@ Consistent Streams | Yes               | [No](http://nullzzz.blogspot.fi/2012/01
 Compositions       | Declarative       | Declarative
 Consumers          | Functional        | Imperative
 Consumers GC'ed    | Yes               | No, must unsubscribe
+Combinators GC'ed  | Yes               | No (impossible?)
 
 ## Let's see some more code!
 
