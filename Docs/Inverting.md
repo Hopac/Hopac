@@ -431,9 +431,8 @@ What happens when you consume the above stream and the `finiteStream` ends,
 leaving only the `otherStream` to consume?
 
 With choice streams the `append` operation simply returns the `otherStream` and
-the append operation itself vanishes.  With Rx, operations on the equivalent
-event stream will continue being passed through the `Concat` operation even
-though it does nothing.
+the append operation itself vanishes.  With Rx, events will continue being
+passed through the `Concat` operation even though it does nothing.
 
 This means that with Rx you cannot directly create new combinators by means of
 recursively applying an operation to a stream.  Such a combinator would create a
