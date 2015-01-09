@@ -486,19 +486,18 @@ Consider the following:
 ```fsharp
 notifications
 |> Streams.iterJob (fun n -> job {
-   // show
-   do! timeOutMillis 3000
-   // hide
+     // show
+     do! timeOutMillis 3000
+     // hide
    })
 ```
 
 The above choice stream snippet is a simplified version from an actual
-application.  Its purpose is to display notification to the user for 3 seconds
+application.  Its purpose is to display notifications to the user for 3 seconds
 per notification.  These usually come at a very slow rate, but it might
 occasionally happen that a few notifications would be posted less than 3 seconds
-apart.  In such a case we still wish to display each notification for 3 seconds.
-Furthermore we don't want to delay the display of notifications beyond the 3
-seconds.
+apart.  In such a case we still wish to display each notification for 3 seconds,
+but we don't want to delay the display of notifications any further.
 
 An attempt to convert it directly to Rx does not work:
 
@@ -534,8 +533,8 @@ notifications
 });
 ```
 
-It produces a stream with the actual notifications and explicit `null` values to
-signal when to hide the previous notifications.
+It produces a stream with both the actual notifications and explicit `null`
+values to signal when to hide the previous notifications.
 
 ## Summary
 
