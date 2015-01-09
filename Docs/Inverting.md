@@ -515,7 +515,7 @@ really couldn't, because that would mean blocking the underlying thread and
 stream.  With Rx, a more complicated stream needs to be used.  Here is one
 potential stream:
 
-```fsharp
+```csharp
 notifications
 .Select(n =>
   Observable.Concat(
