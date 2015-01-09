@@ -456,10 +456,17 @@ to work over streams of streams:
 
 ```fsharp
 let ambMap x2ys xs = mapJoin amb x2ys xs
-let mergeMap x2ys xs = mapJoin merge x2ys xs
+let mergeMap x2ys xs = mapJoin merge x2ys xs // SelectMany in Rx
 let appendMap x2ys xs = mapJoin append x2ys xs
 let switchMap x2ys xs = mapJoin switch x2ys xs
 ```
+
+You may recall that in Rx, `s.SelectMany(f)` is sometimes defined to be
+equivalent to `s.Select(f).Merge()`.  While this may seem just as nice, one
+should understand that in Rx, the `Amb`, `Merge`, `Concat` and `Switch`
+operations are primitively implemented to operate on a stream of streams (except
+for `Amb`, which is only implemented to operation on a sequence of streams),
+while with choice streams the much simpler binary versions will suffice.
 
 ## Summary
 
