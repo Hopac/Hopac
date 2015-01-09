@@ -469,18 +469,87 @@ operations are primitively implemented to operate on streams of streams (except
 for `Amb`, which is only implemented to operate on sequences of streams), while
 with choice streams the much simpler binary versions will suffice.
 
+## No wrapping locks over user code
+
+One troublesome aspect of the Rx push approach is that Rx often needs to wrap
+locks over user code, namely, the implementation of `OnNext`, `OnCompleted` and
+`OnError` methods.  This is necessary to ensure that events are processed one at
+a time.  Take a look at the `lock` statements in `SelectMany.cs`
+e.g. [at line 229](https://github.com/mono/rx/blob/master/Rx/NET/Source/System.Reactive.Linq/Reactive/Linq/Observable/SelectMany.cs#L229).
+
+This kind of locking is simply not necessary with pull based choice streams,
+because the consumer is in control of requesting elements from the streams being
+consumed.
+
+Consider the following:
+
+```fsharp
+notifications
+|> Streams.iterJob (fun n -> job {
+   // show
+   do! timeOutMillis 3000
+   // hide
+   })
+```
+
+The above choice stream snippet is a simplified version from an actual
+application.  Its purpose is to display notification to the user for 3 seconds
+per notification.  These usually come at a very slow rate, but it might
+occasionally happen that a few notifications would be posted less than 3 seconds
+apart.  In such a case we still wish to display each notification for 3 seconds.
+Furthermore we don't want to delay the display of notifications beyond the 3
+seconds.
+
+An attempt to convert it directly to Rx does not work:
+
+```csharp
+notifications
+.Subscribe(async n => {
+  // show
+  await Task.Delay(3000);
+  // hide
+});
+```
+
+The problem is that Rx does not wait for the async callback to finish.  And it
+really couldn't, because that would mean blocking the underlying thread and
+stream.  With Rx, a more complicated stream needs to be used.  Here is one
+potential stream:
+
+```fsharp
+notifications
+.Select(n =>
+  Observable.Concat(
+    Observable.Return(n),
+    Observable.Delay(
+      Observable.Return<Notification>(null),
+      TimeSpan.FromSeconds(3))))
+.Concat()
+.Subscribe(n => {
+  if (null == n) {
+    // hide
+  } else {
+    // show
+  }
+});
+```
+
+It produces a stream with the actual notifications and explicit `null` values to
+signal when to hide the previous notifications.
+
 ## Summary
 
-Feature            | Choice Streams    | Reactive Extensions
-------------------:|:----------------- |:-------------------
-Approach           | Lazy Pull         | Eager Push
-Merge              | Yes               | Yes
-GroupBy            | Yes               | Yes
-Consistent Streams | Yes               | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html)
-Compositions       | Declarative       | Declarative
-Consumers          | Functional        | Imperative
-Consumers GC'ed    | Yes               | No, must unsubscribe
-Operations GC'ed   | Yes               | Only partially
+Feature                    | Choice Streams    | Reactive Extensions
+--------------------------:|:----------------- |:-------------------
+Approach                   | Lazy Pull         | Eager Push
+Merge                      | Yes               | Yes
+GroupBy                    | Yes               | Yes
+Consistent Streams         | Yes               | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html)
+Compositions               | Declarative       | Declarative
+Consumers                  | Functional        | Imperative
+Consumers GC'ed            | Yes               | No, must unsubscribe
+Operations GC'ed           | Yes               | Only partially
+Wraps locks over user code | No                | Yes
 
 ## Let's see some more code!
 
