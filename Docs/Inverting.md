@@ -464,7 +464,7 @@ let switchMap x2ys xs = mapJoin switch x2ys xs
 You may recall that in Rx, `s.SelectMany(f)` is sometimes defined to be
 equivalent to `s.Select(f).Merge()`.  While this may seem just as nice, one
 should understand that in Rx, the `Amb`, `Merge`, `Concat` and `Switch`
-operations are primitively implemented to operate on a stream of streams (except
+operations are primitively implemented to operate on streams of streams (except
 for `Amb`, which is only implemented to operation on a sequence of streams),
 while with choice streams the much simpler binary versions will suffice.
 
