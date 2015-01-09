@@ -440,10 +440,11 @@ space leak.  On the other hand, here is an example of such a combinator on
 choice streams:
 
 ```fsharp
-let rec joinWith (join: Streams<'x> -> Streams<'y> -> Streams<'y>)
-                 (xss: Streams<Streams<'x>>) =
-  xss >>=* function Nil -> nil
-                  | Cons (xs, xss) -> join xs (joinWith join xss)
+let rec mapJoin (join: Streams<'y> -> Streams<'z> -> Streams<'z>)
+                (x2ys: 'x -> Streams<'y>)
+                (xs: Streams<'x>) : Streams<'z> =
+  xs >>=* function Nil -> nil
+                 | Cons (x, xs) -> join (x2ys x) (mapJoin join x2ys xs)
 ```
 
 As you can see, the binary `join` operation is applied recursively to the
