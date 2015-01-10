@@ -4,6 +4,7 @@ namespace Hopac.Extra
 
 open System
 open System.Collections.Generic
+open System.Threading
 open Hopac
 open Hopac.Infixes
 open Hopac.Job.Infixes
@@ -32,43 +33,33 @@ type Stream<'x> =
 
 type Streams<'x> = Alt<Stream<'x>>
 
-type StreamSrc<'x> = {src: MVar<IVar<Stream<'x>>>}
+type StreamSrc<'x> = {mutable src: IVar<Stream<'x>>}
 
 module StreamSrc =
-  let create () = {src = mvarFull (ivar ())}
-  let inline doTail ss op =
-    ss.src >>=? fun tail ->
-    if IVar.Now.isFull tail
-    then ss.src <<-= tail >>! Exception ("StreamSrc: closed")
-    else op tail
-  let value ss x =
-    doTail ss <| fun tail ->
-    let next = ivar ()
-    ss.src <<-= next >>. (tail <-= Cons (x, next))
-  let error ss e = doTail ss <| fun tail -> tail <-=! e >>. (ss.src <<-= tail)
-  let close ss = doTail ss <| fun tail -> tail <-= Nil >>. (ss.src <<-= tail)
-  let tap ss = MVar.read ss.src >>= IVar.read |> memo
+  let create () = {src = ivar ()}
+  let rec value s x = Job.delay <| fun () ->
+    let w = ivar ()
+    let v = s.src
+    if IVar.Now.isFull v then raise <| Exception ("StreamSrc closed")
+    let v' = Interlocked.CompareExchange (&s.src, w, v)
+    if LanguagePrimitives.PhysicalEquality v' v
+    then v <-= Cons (x, w)
+    else value s x
+  let error s e = Job.delay <| fun () -> s.src <-=! e // delay required
+  let close s = Job.delay <| fun () -> s.src <-= Nil // delay required
+  let tap s = s.src :> Alt<_>
 
-type StreamVar<'x> = {var: MVar<Stream<'x>>}
+type StreamVar<'x> = {mutable var: Stream<'x>}
 
 module StreamVar =
-  let create x = {var = mvarFull (Cons (x, ivar ()))}
-  let inline op sv f =
-    sv.var >>=? function
-     | Cons (x, n) as c -> f c x n
-     | Nil as c -> sv.var <<-= c >>! Exception ("StreamVar: closed") // XXX
-  let get sv = op sv <| fun c x _ -> sv.var <<-= c >>% x
-  let inline value sv (n: Alt<_>) x' =
-    let c = Cons (x', ivar ()) in (n :?> IVar<_>) <-= c >>. (sv.var <<-= c)
-  let set sv x = op sv <| fun _ _ n -> value sv n x
-  let updateJob sv x2xJ = op sv <| fun _ x n -> x2xJ x >>= value sv n
-  let updateFun sv x2x = op sv <| fun _ x n -> value sv n (x2x x)
-  let maybeUpdateFun sv x2xO =
-    op sv <| fun c x n -> match x2xO x with None -> sv.var <<-= c
-                                          | Some x' -> value sv n x'
-  let tap sv = MVar.read sv.var |> memo
-  let setIfNotEq sv n =
-    maybeUpdateFun sv (fun o -> if n <> o then Some n else None)
+  let create x = {var = Cons (x, ivar ())}
+  let get v = match v.var with Cons (x, _) -> x | Nil -> failwith "Impossible"
+  let set v x = Job.delay <| fun () ->
+    let c = Cons (x, ivar ())
+    match Interlocked.Exchange (&v.var, c) with
+     | Cons (_, i) -> (i :?> IVar<_>) <-= c
+     | Nil -> failwith "Impossible"
+  let tap v = Alt.always v.var
 
 module Streams =
   let inline nil<'x> = Alt.always Nil :> Streams<'x>

@@ -22,11 +22,11 @@ module StreamSrc =
   val create: unit -> StreamSrc<'x>
 
   /// Preliminary and subject to change.
-  val value: StreamSrc<'x> -> 'x -> Alt<unit>
+  val value: StreamSrc<'x> -> 'x -> Job<unit>
   /// Preliminary and subject to change.
-  val error: StreamSrc<'x> -> exn -> Alt<unit>
+  val error: StreamSrc<'x> -> exn -> Job<unit>
   /// Preliminary and subject to change.
-  val close: StreamSrc<'x> -> Alt<unit>
+  val close: StreamSrc<'x> -> Job<unit>
 
   /// Preliminary and subject to change.
   val tap: StreamSrc<'x> -> Streams<'x>
@@ -40,21 +40,10 @@ module StreamVar =
   val create: 'x -> StreamVar<'x>
 
   /// Preliminary and subject to change.
-  val get: StreamVar<'x> -> Alt<'x>
+  val get: StreamVar<'x> -> 'x
 
   /// Preliminary and subject to change.
-  val set: StreamVar<'x> -> 'x -> Alt<unit>
-
-  /// Preliminary and subject to change.
-  val setIfNotEq: StreamVar<'x> -> 'x -> Alt<unit> when 'x: equality
-
-  /// Preliminary and subject to change.
-  val updateJob: StreamVar<'x> -> ('x -> #Job<'x>) -> Alt<unit>
-  /// Preliminary and subject to change.
-  val updateFun: StreamVar<'x> -> ('x -> 'x) -> Alt<unit>
-
-  /// Preliminary and subject to change.
-  val maybeUpdateFun: StreamVar<'x> -> ('x -> option<'x>) -> Alt<unit>
+  val set: StreamVar<'x> -> 'x -> Job<unit>
 
   /// Preliminary and subject to change.
   val tap: StreamVar<'x> -> Streams<'x>
