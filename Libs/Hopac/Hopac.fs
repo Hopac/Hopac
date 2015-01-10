@@ -619,6 +619,7 @@ module Scheduler =
 module Global =
 
   let reallyInitGlobalScheduler () =
+    StaticData.Init ()
     let t = typeof<Scheduler>
     Monitor.Enter t
     match StaticData.globalScheduler with
