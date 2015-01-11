@@ -5,62 +5,80 @@ namespace Hopac.Extra
 open System
 open Hopac
 
-/// Preliminary and subject to change.
+/// Represents a point in a non-deterministic stream of values.
 type Stream<'x> =
   | Nil
   | Cons of Value: 'x * Next: Alt<Stream<'x>>
 
-/// Preliminary and subject to change.
+/// Represents a non-deterministic stream of values called a choice stream.
 type Streams<'x> = Alt<Stream<'x>>
 
-/// Preliminary and subject to change.
+/// Represents an imperative source of a stream of values called a stream source.
 type StreamSrc<'x>
 
-/// Preliminary and subject to change.
+/// Operations on stream sources.
 module StreamSrc =
-  /// Preliminary and subject to change.
+  /// Creates a new stream source.
   val create: unit -> StreamSrc<'x>
 
-  /// Preliminary and subject to change.
+  /// Appends a new value to the end of the generated stream.  This operation is
+  /// atomic and can be safely used from multiple parallel jobs.
   val value: StreamSrc<'x> -> 'x -> Job<unit>
-  /// Preliminary and subject to change.
+
+  /// Terminates the stream with an error.  The given exception is raised in the
+  /// consumers of the stream if and when they reach the end of the stream.
   val error: StreamSrc<'x> -> exn -> Job<unit>
-  /// Preliminary and subject to change.
+
+  /// Terminates the stream.
   val close: StreamSrc<'x> -> Job<unit>
 
-  /// Preliminary and subject to change.
+  /// Returns the remainder of the generated stream after the point in time when
+  /// `tap` is called.
   val tap: StreamSrc<'x> -> Streams<'x>
 
-/// Preliminary and subject to change.
+/// Represents a mutable variable, called a stream variable, that generates a
+/// stream of values as a side-effect.
 type StreamVar<'x>
 
-/// Preliminary and subject to change.
+/// Operations on stream variables.
 module StreamVar =
-  /// Preliminary and subject to change.
+  /// Creates a new stream variable.
   val create: 'x -> StreamVar<'x>
 
-  /// Preliminary and subject to change.
+  /// Gets the value of the variable.
   val get: StreamVar<'x> -> 'x
 
-  /// Preliminary and subject to change.
+  /// Sets the value of the variable and appends the value to the end of the
+  /// generated stream.  Note that while this operation is atomic, and can be
+  /// safely used from multiple parallel jobs, a combination of `get` and `set`
+  /// is not atomic.
   val set: StreamVar<'x> -> 'x -> Job<unit>
 
-  /// Preliminary and subject to change.
+  /// Returns the generated stream, including the current value of the variable,
+  /// from the point in time when `tap` is called.
   val tap: StreamVar<'x> -> Streams<'x>
 
-/// Preliminary and subject to change.
+/// Operations on choice streams.
 module Streams =
   // Introducing streams
 
-  /// Preliminary and subject to change.
+  /// A choice stream that never produces any values and never closes.
   val inline never<'x> : Streams<'x>
 
-  /// Preliminary and subject to change.
+  /// An empty or closed choice stream.
   val inline nil<'x> : Streams<'x>
-  /// Preliminary and subject to change.
+
+  /// `cons x xs` constructs a choice stream whose first value is `x` and the
+  /// rest of the stream is like `xs`.
+#if DOC
+  ///
+  /// Node that `cons` and `nil` directly correspond to the ordinary list
+  /// constructors `::` and `[]` and you can construct choice streams just like
+  /// you would create ordinary lists.
+#endif
   val cons: 'x -> Streams<'x> -> Streams<'x>
 
-  /// Preliminary and subject to change.
+  /// `one x` is equivalent to `cons x nil`.
   val one: 'x -> Streams<'x>
 
   /// Preliminary and subject to change.
