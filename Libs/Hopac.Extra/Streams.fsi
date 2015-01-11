@@ -65,6 +65,9 @@ module Streams =
   /// A choice stream that never produces any values and never closes.
   val inline never<'x> : Streams<'x>
 
+  /// Constructs a choice stream that is closed with an error.
+  val inline error: exn -> Streams<'x>
+
   /// An empty or closed choice stream.
   val inline nil<'x> : Streams<'x>
 

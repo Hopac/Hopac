@@ -1040,6 +1040,10 @@ module Alt =
   /// version of `never ()`.
   val inline zero: unit -> Alt<unit>
 
+  /// Creates an alternative that has the effect of raising the specified
+  /// exception.  `raises e` is equivalent to `delay <| fun () -> raise e`.
+  val raises: exn -> Alt<_>
+
   /// Creates an alternative that is computed at instantiation time with the
   /// given job.  See also: `withNack`.
 #if DOC

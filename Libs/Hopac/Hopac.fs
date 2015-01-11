@@ -181,6 +181,13 @@ module Util =
     override xK'.DoWork (wr) = Handler.Terminate (&wr, xK'.yK)
     override xK'.DoCont (wr, _) = Handler.Terminate (&wr, xK'.yK)
 
+  type Raises<'x> (e) =
+    inherit Alt<'x> ()
+    override xA'.DoJob (wr, xK) = Handler.DoHandle (xK, &wr, e)
+    override xA'.TryAlt (wr, i, xK, xE) =
+      if 0 = Pick.PickAndSetNacks (xE.pk, &wr, i) then
+        Handler.DoHandle (xK, &wr, e)
+
 /////////////////////////////////////////////////////////////////////////
 
 module IVar =
@@ -237,6 +244,8 @@ module Alt =
   let inline never () = Never<_>() :> Alt<_>
 
   let inline zero () = StaticData.zero :> Alt<_>
+
+  let raises e = Raises (e) :> Alt<_>
 
   type GuardJobCont<'x, 'xA> when 'xA :> Alt<'x> =
     inherit Cont<'xA>
@@ -854,9 +863,7 @@ module Job =
 
   let abort () = Never<_>() :> Job<_>
 
-  let raises (e: exn) =
-    {new Job<_> () with
-      override xJ.DoJob (wr, xK) = Handler.DoHandle (xK, &wr, e)}
+  let raises (e: exn) = Raises (e) :> Job<_>
 
   let inline whenDo (b: bool) (uJ: Job<unit>) =
     if b then uJ else StaticData.unit :> Job<_>

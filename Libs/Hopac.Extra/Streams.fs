@@ -63,8 +63,11 @@ module StreamVar =
 
 module Streams =
   let inline nil<'x> = Alt.always Nil :> Streams<'x>
+
   let inline consf x xs = Cons (x, xs)
   let cons x xs = Alt.always (consf x xs)
+
+  let inline error e = Alt.raises e :> Streams<_>
 
   let one x = cons x nil
 

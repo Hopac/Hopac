@@ -81,5 +81,17 @@ namespace Hopac.Core {
         nk = nk.Next;
       } while (null != nk);
     }
+
+    internal static int PickAndSetNacks(Pick pk, ref Worker wr, int i) {
+    TryPick:
+      var state = Pick.TryPick(pk);
+      if (state > 0) goto AlreadyPicked;
+      if (state < 0) goto TryPick;
+
+      SetNacks(ref wr, i, pk);
+
+    AlreadyPicked:
+      return state;
+    }
   }
 }
