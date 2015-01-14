@@ -56,6 +56,8 @@
     <Compile Include="Alts.fs" />
     <Compile Include="EagerSeq.fsi" />
     <Compile Include="EagerSeq.fs" />
+    <Compile Include="Discrete.fsi" />
+    <Compile Include="Discrete.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">12</MinimumVisualStudioVersion>
