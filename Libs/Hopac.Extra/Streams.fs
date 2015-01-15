@@ -198,11 +198,10 @@ module Streams =
   and zipY xs y ys = mapfc (fun x xs -> zipXY x y xs ys) xs
   and zip xs ys = mapc (zipX ys) xs <|>* mapc (zipY xs) ys
 
-  let rec scanJob' f s x xs =
-    f s x |>> fun s -> Cons (s, mapcm (scanJob' f s) xs)
-  let scanJob f s xs = cons s (mapcm (scanJob' f s) xs)
-  let rec scanFun' f s x xs = Cons (f s x, mapfcm (scanFun' f s) xs)
-  let scanFun f s xs = cons s (mapfcm (scanFun' f s) xs)
+  let rec sj f s x xs = f s x |>> fun s -> Cons (s, mapcm (sj f s) xs)
+  let scanJob f s xs = cons s (mapcm (sj f s) xs)
+  let rec sf f s x xs = let s = f s x in Cons (s, mapfcm (sf f s) xs)
+  let scanFun f s xs = cons s (mapfcm (sf f s) xs)
   let scanFromJob s f xs = scanJob f s xs
   let scanFromFun s f xs = scanFun f s xs
 
