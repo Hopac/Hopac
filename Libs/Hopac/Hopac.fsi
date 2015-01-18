@@ -74,7 +74,8 @@ type Void
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/// An experimental interface for asynchronously disposable resources.
+/// An experimental interface for asynchronously disposable resources.  See
+/// also: `usingAsync`.
 #if DOC
 ///
 /// The point of this interface is that resources using jobs may not be easily
