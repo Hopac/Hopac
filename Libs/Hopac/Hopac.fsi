@@ -1036,9 +1036,22 @@ module Alt =
   /// equivalent to performing `abort ()`.
   val inline never: unit -> Alt<'x>
 
-  /// Return an alternative that is never available.  `zero ()` is an optimized
+  /// Returns an alternative that is never available.  `zero ()` is an optimized
   /// version of `never ()`.
   val inline zero: unit -> Alt<unit>
+
+  /// Returns an alternative that can be committed to once and that produces the
+  /// given value.
+#if DOC
+  ///
+  /// `once` is basically an optimized version of
+  ///
+  ///> let once x =
+  ///>   let xCh = ch ()
+  ///>   run (xCh <-+ x)
+  ///>   paranoid xCh
+#endif
+  val inline once: 'x -> Alt<'x>
 
   /// Creates an alternative that has the effect of raising the specified
   /// exception.  `raises e` is equivalent to `delay <| fun () -> raise e`.

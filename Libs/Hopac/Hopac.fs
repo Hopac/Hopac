@@ -245,6 +245,8 @@ module Alt =
 
   let inline zero () = StaticData.zero :> Alt<_>
 
+  let inline once x = Once<'x> (x) :> Alt<'x>
+
   let raises e = Raises (e) :> Alt<_>
 
   type GuardJobCont<'x, 'xA> when 'xA :> Alt<'x> =

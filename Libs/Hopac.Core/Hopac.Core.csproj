@@ -60,6 +60,7 @@
     <Compile Include="Communication\Lock.cs" />
     <Compile Include="Communication\Mailbox.cs" />
     <Compile Include="Communication\MVar.cs" />
+    <Compile Include="Communication\Once.cs" />
     <Compile Include="Communication\Promise.cs" />
     <Compile Include="Communication\WaitQueue.cs" />
     <Compile Include="Engine\Scheduler.cs" />
