@@ -16,6 +16,11 @@ type Void = Void
 
 /////////////////////////////////////////////////////////////////////////
 
+type IAsyncDisposable =
+  abstract DisposeAsync: unit -> Job<unit>
+
+/////////////////////////////////////////////////////////////////////////
+
 [<AutoOpen>]
 module Util =
   let inline inc (i: byref<int>) : int =
@@ -978,6 +983,13 @@ module Job =
        let xK' = TryFinallyJobCont (uJ, xK_)
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
+
+  let usingAsync (x: 'x when 'x :> IAsyncDisposable) (x2yJ: 'x -> #Job<'y>) =
+    {new Job<'y> () with
+      override yJ'.DoJob (wr, yK_) =
+       let yK' = TryFinallyJobCont (x.DisposeAsync (), yK_)
+       wr.Handler <- yK'
+       (x2yJ x).DoJob (&wr, yK')}
 
   let using (x: 'x when 'x :> IDisposable) (x2yJ: 'x -> #Job<'y>) =
     // REMINDER: Dispose() of managed resources is an optimization.  Do not

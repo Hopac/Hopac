@@ -74,6 +74,30 @@ type Void
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// An experimental interface for asynchronously disposable resources.
+#if DOC
+///
+/// The point of this interface is that resources using jobs may not be easily
+/// synchronously disposable.  Expressing the dispose operation as a job allows
+/// the operation to wait for parallel, asynchronous and concurrent operations
+/// to complete.
+///
+/// Note that simply calling `run (x.DisposeAsync ())` defeats the purpose of
+/// this interface, unless it is known that the call is not made from a Hopac
+/// worker thread and no communication is needed between that thread and the
+/// dispose job.
+#endif
+type IAsyncDisposable =
+  /// Returns a job that needs to be executed to dispose the resource.
+#if DOC
+  ///
+  /// Note that simply calling this function must not immediately dispose the
+  /// resource.
+#endif
+  abstract DisposeAsync: unit -> Job<unit>
+
+////////////////////////////////////////////////////////////////////////////////
+
 /// Expression builder type for jobs.
 #if DOC
 ///
@@ -682,7 +706,7 @@ module Job =
 
   /// Implements the `use` construct for jobs.  The `Dispose` method of the
   /// given disposable object is called after running the job constructed with
-  /// the disposable object.  See also: `abort`.
+  /// the disposable object.  See also: `abort`, `usingAsync`.
 #if DOC
   ///
   /// Reference implementation:
@@ -698,6 +722,20 @@ module Job =
   /// that the job does not abort before returning.
 #endif
   val using: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IDisposable
+
+  /// Implements an experimental `use` like construct for asynchronously
+  /// disposable resources.  The `DisposeAsync` method of the asynchronously
+  /// disposable resource is called to construct a job that is later used to
+  /// dispose the resource after the constructed job returns.  See also:
+  /// `abort`, `using`.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let usingAsync (x: 'x when 'x :> IAsyncDisposable) x2yJ =
+  ///>   tryFinallyJob (delayWith x2yJ x) (x.DisposeAsync ())
+#endif
+  val usingAsync: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IAsyncDisposable
 
   /// Creates a job that runs the given job and results in either the ordinary
   /// result of the job or the exception raised by the job.
