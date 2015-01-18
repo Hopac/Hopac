@@ -1070,6 +1070,9 @@ module Alt =
   /// Reference implementation:
   ///
   ///> let guard xAJ = withNack <| fun _ -> xAJ
+  ///
+  /// Note that, like with `withNack`, it is essential to avoid blocking inside
+  /// `guard`.
 #endif
   val guard: Job<#Alt<'x>> -> Alt<'x>
 
@@ -1142,7 +1145,7 @@ module Alt =
   /// The client side operation just sends the negative acknowledgment to the
   /// server as a part of the request.  It is essential that a synchronous
   /// rendezvous via a channel, rather than e.g. a write once variable, is used
-  /// for the reply.  It is also important to avoid blocking inside `withNack`,
+  /// for the reply.  It is also essential to avoid blocking inside `withNack`,
   /// which is why an asynchronous send is used inside the client side
   /// operation.
   ///
