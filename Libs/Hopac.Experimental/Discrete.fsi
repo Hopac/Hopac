@@ -6,13 +6,18 @@ open Hopac
 
 module Alt =
   /// Operations for treating alternatives as a kind of discrete event sources
-  /// allowing combinators for event throttling, mapping and filtering.
+  /// allowing combinators for limited froms of event throttling, mapping and
+  /// filtering.
 #if DOC
   ///
   /// The essence of this module is that a subset of alternatives forms a monad
   /// with plus where `once` is return, `switchMap` is bind, `never` is zero and
   /// `merge` is plus.  Note that many forms of alternatives, like `always`, do
   /// not combine in useful ways under this interpretation.
+  ///
+  /// The limitation of technique is the one-shot or no-memory nature of the
+  /// discrete event sources, which seems to make many useful combinators that
+  /// can be expressed by choice streams, for example, impossible.
 #endif
   module Discrete =
     /// Given two event sources, creates an event source that produces events
@@ -29,6 +34,10 @@ module Alt =
     /// produces only the events of `xE` after which there is a period of
     /// timeout without any events from `xE`.
     val throttle: timeout: Alt<_> -> Alt<'x> -> Alt<'x>
+
+    /// Given a pair of event sources, creates an event source that produces
+    /// pairs of the latest events from the sources.
+    val combineLatest: Alt<'x> -> Alt<'y> -> Alt<'x * 'y>
 
     /// Given a partial function and an event source, creates an event source
     /// that produces the partially mapped events.

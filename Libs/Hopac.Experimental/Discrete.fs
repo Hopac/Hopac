@@ -28,6 +28,11 @@ module Alt =
       let rec lp abort yA = yA <|>? (xA >>=? (x2yA >> lp abort)) <|>? abort
       start <| fun abort -> lp abort abort
 
+    let combineLatest (xE: Alt<'x>) (yE: Alt<'y>) : Alt<'x * 'y> =
+      let rec gotX a x = (yE |>>? fun y -> (x, y)) <|>? (xE >>=? gotX a) <|>? a
+      let rec gotY a y = (xE |>>? fun x -> (x, y)) <|>? (yE >>=? gotY a) <|>? a
+      start <| fun a -> (xE >>=? gotX a) <|>? (yE >>=? gotY a) <|>? a
+
     // The following do not need to be primitive operations.
 
     let choose (x2yO: 'x -> option<'y>) (xA: Alt<'x>) =
