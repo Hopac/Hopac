@@ -9,6 +9,10 @@ open Hopac.Infixes
 
 module Alt =
   module Discrete =
+    // The following are "primitive" operations of the discrete event source
+    // subset of alternatives.  Alt.once and Alt.never are also primitives, but
+    // they are defined elsewhere.
+
     let start (abort2xJ: Alt<'x> -> #Job<'x>) : Alt<'x> =
       Alt.withNack <| fun nack ->
       Promise.queue (abort2xJ (nack >>=? Job.abort))
@@ -16,21 +20,28 @@ module Alt =
     let merge (lhs: Alt<'x>) (rhs: Alt<'x>) =
       start <| fun abort -> lhs <|>? rhs <|>? abort
 
-    let mergeMap (x2yA: 'x -> Alt<'y>) (xA: Alt<'x>) =
-      let rec loop yA = (xA >>=? fun x -> loop (x2yA x <|>? yA)) <|>? yA
-      start loop
+    let throttle (timeout: Alt<_>) (xA: Alt<'x>) =
+      let rec lp abort x = (xA >>=? lp abort) <|>? (timeout >>%? x) <|>? abort
+      start <| fun abort -> xA >>=? lp abort <|>? abort
+
+    let switchMap (x2yA: 'x -> Alt<'y>) (xA: Alt<'x>) =
+      let rec lp abort yA = yA <|>? (xA >>=? (x2yA >> lp abort)) <|>? abort
+      start <| fun abort -> lp abort abort
+
+    // The following do not need to be primitive operations.
 
     let choose (x2yO: 'x -> option<'y>) (xA: Alt<'x>) =
       xA
-      |> mergeMap (fun x ->
+      |> switchMap (fun x ->
          match x2yO x with
           | None -> Alt.never ()
-          | Some y -> Alt.always y)
+          | Some y -> Alt.once y)
 
-    let filter x2b xA = choose (fun x -> if x2b x then Some x else None) xA
+    let filter x2b xA =
+      xA
+      |> choose (fun x ->
+         if x2b x then Some x else None)
 
-    let map x2y xA = choose (x2y >> Some) xA
-
-    let throttle (timeout: Alt<_>) (xA: Alt<'x>) =
-      let rec loop abort x = (xA >>=? loop abort) <|>? (timeout >>%? x)
-      start <| fun abort -> xA >>=? loop abort <|>? abort
+    let map x2y xA =
+      xA
+      |> choose (x2y >> Some)
