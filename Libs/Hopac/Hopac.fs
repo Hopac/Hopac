@@ -988,14 +988,14 @@ module Job =
        let yK' = {new Cont_State<'y, _> (yK_) with
         override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
         override yK'.DoHandle (wr, e) =
-         x.Dispose ()
-         let yK = yK'.State in wr.Handler <- yK ; Handler.DoHandle (yK, &wr, e)
+         let yK = yK'.State
+         wr.Handler <- yK ; x.Dispose () ; Handler.DoHandle (yK, &wr, e)
         override yK'.DoWork (wr) =
-         x.Dispose ()
-         let yK = yK'.State in wr.Handler <- yK ; yK.DoCont (&wr, yK'.Value)
+         let yK = yK'.State
+         wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, yK'.Value)
         override yK'.DoCont (wr, y) =
-         x.Dispose ()
-         let yK = yK'.State in wr.Handler <- yK ; yK.DoCont (&wr, y)}
+         let yK = yK'.State
+         wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, y)}
        wr.Handler <- yK'
        (x2yJ x).DoJob (&wr, yK')}
 
