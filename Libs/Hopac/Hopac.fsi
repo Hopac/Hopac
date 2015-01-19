@@ -1233,6 +1233,9 @@ module Alt =
   /// the same as `|>>?` with the arguments flipped.
   val inline map: ('x -> 'y) -> Alt<'x> -> Alt<'y>
 
+  /// `Ignore xA` is equivalent to `xA |>>? fun _ -> ()`.
+  val Ignore: Alt<_> -> Alt<unit>
+
   /////////////////////////////////////////////////////////////////////////////
 
   /// Infix operators on alternatives.  You can open this module to bring all

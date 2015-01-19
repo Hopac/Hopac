@@ -413,6 +413,13 @@ module Alt =
         override xA'.TryAlt (wr, i, xK, xE) =
          xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
 
+  let Ignore (xA: Alt<_>) =
+    {new Alt<unit> () with
+      override uA'.DoJob (wr, uK) =
+       xA.DoJob (&wr, DropCont uK)
+      override uA'.TryAlt (wr, i, uK, uE) =
+       xA.TryAlt (&wr, i, DropCont uK, uE)}
+
   let choose (xAs: seq<#Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
@@ -752,7 +759,7 @@ module Job =
     {new Job<unit>() with
       override uJ.DoJob (wr, uK) =
        xJ.DoJob (&wr, DropCont (uK))}
-  
+
   let forNIgnore (n: int) (xJ: Job<_>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
@@ -1400,7 +1407,7 @@ module Timer =
            (initGlobalTimer ()).SynchronizedPushTimed
             (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
            uE.TryElse (&wr, i+1)}
-    
+
     let timeOut (span: System.TimeSpan) = timeOutTicks span.Ticks
     let timeOutMillis (ms: int) = timeOutTicks (int64 ms * 10000L)
 
