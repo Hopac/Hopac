@@ -273,6 +273,9 @@ module Streams =
   val tail: Streams<'x> -> Streams<'x>
 
   /// Preliminary and subject to change.
+  val tails: Streams<'x> -> Streams<Streams<'x>>
+
+  /// Preliminary and subject to change.
   val last: Streams<'x> -> Alt<'x>
 
   /// Preliminary and subject to change.

@@ -322,6 +322,9 @@ module Streams =
     mapcnm (fun x xs -> xs |>> function Nil -> x | _ -> failwith "single") xs
   let last xs = mapcnm (foldFun (fun _ x -> x)) xs
 
+  let rec ts' = function Nil -> Nil | Cons (_, xs) -> Cons (xs, xs |>>* ts')
+  let tails xs = cons xs (xs |>>* ts')
+
   let rec unfoldJob f s =
     f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
   let unfoldFun f s = unfoldJob (Job.lift f) s
