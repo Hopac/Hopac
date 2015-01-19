@@ -105,17 +105,17 @@ module Util =
     override xK'.DoHandle (wr, e) =
       let xK = xK'.xK
       wr.Handler <- xK
-      xK'.uJ.DoJob (&wr, FailCont<unit> (xK, e))
+      xK'.uJ.DoJob (&wr, FailCont (xK, e))
     override xK'.DoWork (wr) =
       let xK = xK'.xK
       wr.Handler <- xK
       xK.Value <- xK'.Value
-      xK'.uJ.DoJob (&wr, DropCont<'x, unit> (xK))
+      xK'.uJ.DoJob (&wr, DropCont (xK))
     override xK'.DoCont (wr, x) =
       let xK = xK'.xK
       wr.Handler <- xK
       xK.Value <- x
-      xK'.uJ.DoJob (&wr, DropCont<'x, unit> (xK))
+      xK'.uJ.DoJob (&wr, DropCont (xK))
 
   type BindCont<'x, 'y> =
     inherit Cont<'x>
@@ -751,11 +751,7 @@ module Job =
   let Ignore (xJ: Job<_>) =
     {new Job<unit>() with
       override uJ.DoJob (wr, uK) =
-       xJ.DoJob (&wr, {new Cont<_>() with
-        override xK'.GetProc (wr) = uK.GetProc (&wr)
-        override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
-        override xK'.DoWork (wr) = uK.DoWork (&wr)
-        override xK'.DoCont (wr, _) = uK.DoWork (&wr)})}
+       xJ.DoJob (&wr, DropCont (uK))}
   
   let forNIgnore (n: int) (xJ: Job<_>) =
     {new Job<unit> () with
