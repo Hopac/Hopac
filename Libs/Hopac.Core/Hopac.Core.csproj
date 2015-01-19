@@ -75,6 +75,7 @@
     <Compile Include="Flow\Job.cs" />
     <Compile Include="Flow\Combinators\ParTuple.cs" />
     <Compile Include="Engine\Proc.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Selective\Alt.cs" />
     <Compile Include="Selective\Always.cs" />
     <Compile Include="Selective\Else.cs" />

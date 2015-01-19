@@ -8,3 +8,5 @@ bin
 gh-pages
 obj
 packages
+nuget
+build_PRIVATE.cmd
