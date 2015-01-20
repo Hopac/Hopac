@@ -78,14 +78,21 @@ module Streams =
 
   let ofSeq (xs: seq<_>) = memo <| Job.delay (ofEnum << xs.GetEnumerator)
 
+  type Subscribe<'x> (src: IVar<Stream<'x>>) =
+    let mutable src = src
+    interface IObserver<'x> with
+     override t.OnCompleted () = src <-= Nil |> start
+     override t.OnError (e) = src <-=! e |> start
+     override t.OnNext (x) =
+       let nxt = ivar ()
+       src <-= Cons (x, nxt) |> start
+       src <- nxt
+
   let subscribe (xs: IObservable<'x>) =
     memo << Job.delay <| fun () ->
-    let ss = StreamSrc.create ()
-    xs.Subscribe {new IObserver<_> with
-     override t.OnCompleted () = StreamSrc.close ss |> start
-     override t.OnError (e) = StreamSrc.error ss e |> start
-     override t.OnNext (v) = StreamSrc.value ss v |> start} |> ignore
-    StreamSrc.tap ss
+    let src = ivar ()
+    xs.Subscribe (Subscribe (src)) |> ignore
+    src
 
   let subscribingTo (xs: IObservable<'x>) xs2yJ = Job.delay <| fun () ->
     let ss = StreamSrc.create ()
