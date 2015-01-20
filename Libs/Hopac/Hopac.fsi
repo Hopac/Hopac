@@ -1720,8 +1720,8 @@ module MVar =
   /// behavior.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
-  /// Creates a job that takes the value of the serialized variable and then
-  /// fills the variable with the result of performing the given function.
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given function.
   ///
   /// Note that this operation is not atomic as such.  However, it is a common
   /// programming pattern to make it so that only the job that has emptied an
@@ -1732,12 +1732,12 @@ module MVar =
   /// Reference implementation:
   ///
   ///> let modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-  ///>   xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
+  ///>   xM >>=? (x2xy >> fun (x, y) -> fill xM x >>% y)
 #endif
-  val inline modifyFun: ('x -> 'x * 'y) -> MVar<'x> -> Job<'y>
+  val inline modifyFun: ('x -> 'x * 'y) -> MVar<'x> -> Alt<'y>
 
-  /// Creates a job that takes the value of the serialized variable and then
-  /// fills the variable with the result of performing the given job.
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given job.
   ///
   /// Note that this operation is not atomic as such.  However, it is a common
   /// programming pattern to make it so that only the job that has emptied an
@@ -1748,9 +1748,9 @@ module MVar =
   /// Reference implementation:
   ///
   ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
-  ///>   xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
+  ///>   xM >>=? fun x -> x2xyJ x >>= fun (x, y) -> fill xM x >>% y
 #endif
-  val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Job<'y>
+  val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Alt<'y>
 
   /// Creates an alternative that becomes available when the variable contains a
   /// value and, if committed to, read the value from the variable.

@@ -1444,9 +1444,9 @@ module MVar =
   let createFull x = ctor Now.createFull x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-    xM >>= (x2xy >> fun (x, y) -> fill xM x >>% y)
+    xM >>=? (x2xy >> fun (x, y) -> fill xM x >>% y)
   let inline modifyJob (x2xyJ: 'x -> #Job<'x * 'y>) (xM: MVar<'x>) =
-    xM >>= x2xyJ >>= fun (x, y) -> fill xM x >>% y
+    xM >>=? fun x -> x2xyJ x >>= fun (x, y) -> fill xM x >>% y
   let inline read (xM: MVar<'x>) = xM >>=? fun x -> fill xM x >>% x
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
