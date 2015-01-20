@@ -88,7 +88,7 @@ module Streams =
        src <-= Cons (x, nxt) |> start
        src <- nxt
 
-  let subscribe (xs: IObservable<'x>) =
+  let subscribeOnFirst (xs: IObservable<'x>) =
     memo << Job.delay <| fun () ->
     let src = ivar ()
     xs.Subscribe (Subscribe (src)) |> ignore

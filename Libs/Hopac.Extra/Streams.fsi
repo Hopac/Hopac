@@ -112,7 +112,7 @@ module Streams =
   /// all the elements from the stream to unsubscribe.  Note that to limit the
   /// subscription, you should compose the observable in such a way that it is
   /// closed at the point when it needs to be unsubscribed.
-  val subscribe: IObservable<'x> -> Streams<'x>
+  val subscribeOnFirst: IObservable<'x> -> Streams<'x>
 
   /// Preliminary and subject to change.
   val subscribingTo: IObservable<'x> -> (Streams<'x> -> #Job<'y>) -> Job<'y>
