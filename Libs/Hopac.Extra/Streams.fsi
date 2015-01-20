@@ -112,12 +112,27 @@ module Streams =
   /// the returned stream, no subscribe action is performed.  There is no way to
   /// explicitly unsubscribe.  To limit the subscription, you need to compose
   /// the observable in such a way that it is closed at the point when it needs
-  /// to be unsubscribed.
+  /// to be unsubscribed.  See also: `subscribeDuring`.
+#if DOC
+  ///
+  /// Note that to subscribe immediately, you can start the evaluation of the
+  /// returned stream.  You can write, for example,
+  ///
+  ///> xObs
+  ///> |> subscribeOnFirst
+  ///> |>! startIgnore
+  ///> |> ...
+  ///
+  /// where `|>!` is the function
+  ///
+  ///> let (|>!) x f = f x ; x
+#endif
   val subscribeOnFirst: IObservable<'x> -> Streams<'x>
 
   /// Creates a stream, using the given function, that subscribes to the
   /// observable when the first element of the stream is requested and
-  /// unsubscribes from the observable when the returned stream closes.
+  /// unsubscribes from the observable when the returned stream closes.  See
+  /// also: `subscribeOnFirst`.
 #if DOC
   ///
   /// For example,
