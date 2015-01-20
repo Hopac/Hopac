@@ -115,6 +115,24 @@ module Streams =
   /// to be unsubscribed.
   val subscribeOnFirst: IObservable<'x> -> Streams<'x>
 
+  /// Creates a stream, using the given function, that subscribes to the
+  /// observable when the first element of the stream is requested and
+  /// unsubscribes from the observable when the returned stream closes.
+#if DOC
+  ///
+  /// For example,
+  ///
+  ///> xObs
+  ///> |> subscribeDuring (fun xs ->
+  ///>    xs
+  ///>    |> take 1)
+  ///
+  /// creates a stream that subscribes to the observable, takes (and produces)
+  /// at most element from the observable, and then unsubscribes from the
+  /// observable and closes.
+#endif
+  val subscribeDuring: (Streams<'x> -> Streams<'y>) -> IObservable<'x> -> Streams<'y>
+
   /// Preliminary and subject to change.
   val subscribingTo: IObservable<'x> -> (Streams<'x> -> #Job<'y>) -> Job<'y>
 
