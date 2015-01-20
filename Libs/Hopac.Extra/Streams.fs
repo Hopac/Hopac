@@ -92,29 +92,20 @@ module Streams =
      override t.OnCompleted () = src <-= Nil |> start
      override t.OnError (e) = src <-=! e |> start
      override t.OnNext (x) =
-       let nxt = ivar ()
-       src <-= Cons (x, nxt) |> start
-       src <- nxt
+       let nxt = ivar () in src <-= Cons (x, nxt) |> start ; src <- nxt
 
   let subscribeDuring (xs2ys: Streams<'x> -> Streams<'y>) (xs: IObservable<'x>) =
     memo << Job.delay <| fun () ->
     let src = ivar ()
-    let disposable = xs.Subscribe (Subscribe (src))
-    xs2ys src |> finallyFun disposable.Dispose
+    xs2ys src |> finallyFun (xs.Subscribe (Subscribe (src))).Dispose
 
-  let subscribeOnFirst (xs: IObservable<'x>) =
-    memo << Job.delay <| fun () ->
+  let subscribeOnFirst (xs: IObservable<'x>) = memo << Job.delay <| fun () ->
+    let src = ivar () in xs.Subscribe (Subscribe (src)) |> ignore ; src
+
+  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) =
+    Job.delay <| fun () ->
     let src = ivar ()
-    xs.Subscribe (Subscribe (src)) |> ignore
-    src
-
-  let subscribingTo (xs: IObservable<'x>) xs2yJ = Job.delay <| fun () ->
-    let ss = StreamSrc.create ()
-    Job.using (xs.Subscribe {new IObserver<_> with
-      override t.OnCompleted () = StreamSrc.close ss |> start
-      override t.OnError (e) = StreamSrc.error ss e |> start
-      override t.OnNext (v) = StreamSrc.value ss v |> start}) <| fun _ ->
-    StreamSrc.tap ss |> xs2yJ :> Job<_>
+    Job.using (xs.Subscribe (Subscribe (src))) <| fun _ -> xs2yJ src :> Job<_>
 
   let toObservable xs =
     // XXX Use a better approach than naive locking.
