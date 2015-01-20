@@ -223,6 +223,13 @@ module Streams =
   /// Preliminary and subject to change.
   val catch: (exn -> Streams<'x>) -> Streams<'x> -> Streams<'x>
 
+  /// Returns a stream that is just like the given stream except that just
+  /// before the returned stream is closed, due to the given stream being
+  /// closed, whether with an error or without, the given job is executed.  In
+  /// case the job raises an exception, that exception closes the returned
+  /// stream.
+  val finallyJob: Job<unit> -> Streams<'x> -> Streams<'x>
+
   // Timing
 
   /// Preliminary and subject to change.

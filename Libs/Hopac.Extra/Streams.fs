@@ -365,3 +365,10 @@ module Streams =
                | Cons (x, xs) -> out <-- Choice1Of2 x >>% xs
      <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
     (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)
+
+  let rec finallyJob (uJ: Job<unit>) xs =
+    Job.tryIn xs
+       <| function Nil -> uJ >>% Nil
+                 | Cons (x, xs) -> upcast cons x (finallyJob uJ xs)
+       <| fun e -> uJ >>! e
+    |> memo
