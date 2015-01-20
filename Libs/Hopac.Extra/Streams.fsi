@@ -108,10 +108,11 @@ module Streams =
   // Observable
 
   /// Creates a stream that subscribes to the observable when the first element
-  /// of the stream is requested.  The consumer of the stream must then consume
-  /// all the elements from the stream to unsubscribe.  Note that to limit the
-  /// subscription, you should compose the observable in such a way that it is
-  /// closed at the point when it needs to be unsubscribed.
+  /// of the stream is requested.  Conversely, if no elements are requested from
+  /// the returned stream, no subscribe action is performed.  There is no way to
+  /// explicitly unsubscribe.  To limit the subscription, you need to compose
+  /// the observable in such a way that it is closed at the point when it needs
+  /// to be unsubscribed.
   val subscribeOnFirst: IObservable<'x> -> Streams<'x>
 
   /// Preliminary and subject to change.
