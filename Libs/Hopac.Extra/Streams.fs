@@ -372,3 +372,4 @@ module Streams =
                  | Cons (x, xs) -> upcast cons x (finallyJob uJ xs)
        <| fun e -> uJ >>! e
     |> memo
+  let finallyFun u2u xs = finallyJob (Job.thunk u2u) xs

@@ -230,6 +230,10 @@ module Streams =
   /// stream.
   val finallyJob: Job<unit> -> Streams<'x> -> Streams<'x>
 
+  /// `xs |> finallyFun u2u` is equivalent to `xs |> finallyJob (Job.thunk
+  /// u2u)`.
+  val finallyFun: (unit -> unit) -> Streams<'x> -> Streams<'x>
+
   // Timing
 
   /// Preliminary and subject to change.
