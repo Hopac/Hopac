@@ -60,7 +60,7 @@ let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/Hopac"
 // --------------------------------------------------------------------------------------
 
 let buildDir = "bin"
-let nugetDir = "./.nuget/bin/"
+let nugetDir = "./nuget/"
 
 
 // Read additional information from the release notes document
