@@ -536,19 +536,47 @@ notifications
 It produces a stream with both the actual notifications and explicit `null`
 values to signal when to hide the previous notifications.
 
+## No direct support for disposables
+
+There is a downside to the lack of an explicit unsubscribe protocol.  It means
+that a choice stream combinator or producer gets no notification on when the
+client is no longer going to request any more elements from the stream.
+Operations such as `Finally` and `Using` cannot be expressed with the same
+interface and semantics as with observables.
+
+In some cases, the `onCloseJob` combinator may be sufficient:
+
+```fsharp
+let rec onCloseJob (uJ: Job<unit>) (xs: Streams<'x>) : Streams<'x> =
+  Job.tryIn xs
+     <| function Nil -> uJ >>% Nil
+               | Cons (x, xs) -> upcast cons x (onCloseJob uJ xs)
+     <| fun e -> uJ >>! e
+  |> memo
+```
+
+It is similar to the Rx `Finally` in that once the stream is closed, the given
+action is executed.  However, unlike with the Rx `Finally`, if the clients
+consuming a stream returned by `onCloseJob` do not consume the stream until it
+is closed, the action will not be performed.
+
+Of course, it is also possible to implement an explicit notification interface
+between a particular choice stream combinator or producer and its clients, but
+such functionality is not built into the mechanism.
+
 ## Summary
 
-Feature                    | Choice Streams    | Reactive Extensions
---------------------------:|:----------------- |:-------------------
-Approach                   | Lazy Pull         | Eager Push
-Merge                      | Yes               | Yes
-GroupBy                    | Yes               | Yes
-Consistent Streams         | Yes               | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html)
-Compositions               | Declarative       | Declarative
-Consumers                  | Functional        | Imperative
-Consumers GC'ed            | Yes               | No, must unsubscribe
-Operations GC'ed           | Yes               | Only partially
-Wraps locks over user code | No                | Yes
+Feature                    | Choice Streams    | Reactive Extensions  | Arguably better?
+--------------------------:|:----------------- |:--------------------:|:-----------------
+Approach                   | Lazy Pull         | Eager Push           | -
+Merge                      | Yes               | Yes                  | -
+GroupBy                    | Yes               | Yes                  | -
+Compositions               | Declarative       | Declarative          | -
+Consistent Streams         | Yes               | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html) | Choice streams
+Consumers                  | Can be functional | Always imperative    | Choice streams
+Fully GC'd                 | Yes               | No                   | Choice streams
+Wraps locks over user code | No                | Yes                  | Choice streams
+Directly supports dispose  | No                | Yes                  | Reactive Extensions
 
 ## Let's see some more code!
 
