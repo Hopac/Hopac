@@ -567,7 +567,7 @@ such functionality is not built into the mechanism.
 ## Summary
 
 Feature                    | Choice Streams    | Reactive Extensions  | Arguably better?
---------------------------:|:----------------- |:--------------------:|:-----------------
+--------------------------:|:-----------------:|:--------------------:|:-----------------:
 Approach                   | Lazy Pull         | Eager Push           | -
 Merge                      | Yes               | Yes                  | -
 GroupBy                    | Yes               | Yes                  | -
