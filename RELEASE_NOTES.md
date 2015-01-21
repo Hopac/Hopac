@@ -1,3 +1,11 @@
+#### 0.0.0.37 - 21.01.2015
+* Merge Hopac.Extra package.
+* Renamed `Streams.finallyFun` to `Streams.onCloseFun` to emphasize semantic differences.  
+* Added `Streams.subscribeDuring`.
+* Added `Streams.subscribe` to easily convert observables to streams.
+* Added `Streams.finallyJob`.
+* Added `Job.finallyFun`.
+
 #### 0.0.0.36 - 20.01.2015
 * Added `sleepMillis` and `timeOutMillis`.
 * Flexible typing.

@@ -75,7 +75,7 @@ type Project =
       ProjectFile: string }
 
 let projects = 
-    ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
+    ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"; "Hopac.Extra"]
     |> List.map (fun projectName ->
         let folder = "Libs" @@ projectName
         let projectType, projectFile = 
@@ -129,15 +129,12 @@ Target "Build" (fun _ ->
     |> ignore)
 
 // --------------------------------------------------------------------------------------
-// Build a NuGet package
+// Build NuGet packages
 
 Target "NuGet" (fun _ ->
     let nugetlibDir = nugetDir @@ "lib/net45"
-
     CleanDir nugetlibDir
-
     CopyDir nugetlibDir "bin" (fun file -> file.Contains "FSharp.Core." |> not)
-    //CopyDir nugetDocsDir "./docs/output" allFiles
 
     NuGet (fun p ->
         { p with
