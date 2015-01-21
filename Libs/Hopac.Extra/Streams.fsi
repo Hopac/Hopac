@@ -262,11 +262,11 @@ module Streams =
   /// closed, whether with an error or without, the given job is executed.  In
   /// case the job raises an exception, that exception closes the returned
   /// stream.
-  val finallyJob: Job<unit> -> Streams<'x> -> Streams<'x>
+  val onCloseJob: Job<unit> -> Streams<'x> -> Streams<'x>
 
-  /// `xs |> finallyFun u2u` is equivalent to `xs |> finallyJob (Job.thunk
+  /// `xs |> onCloseFun u2u` is equivalent to `xs |> onCloseJob (Job.thunk
   /// u2u)`.
-  val finallyFun: (unit -> unit) -> Streams<'x> -> Streams<'x>
+  val onCloseFun: (unit -> unit) -> Streams<'x> -> Streams<'x>
 
   // Timing
 

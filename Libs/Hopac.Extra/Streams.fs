@@ -78,13 +78,13 @@ module Streams =
 
   let ofSeq (xs: seq<_>) = memo <| Job.delay (ofEnum << xs.GetEnumerator)
 
-  let rec finallyJob (uJ: Job<unit>) xs =
+  let rec onCloseJob (uJ: Job<unit>) xs =
     Job.tryIn xs
        <| function Nil -> uJ >>% Nil
-                 | Cons (x, xs) -> upcast cons x (finallyJob uJ xs)
+                 | Cons (x, xs) -> upcast cons x (onCloseJob uJ xs)
        <| fun e -> uJ >>! e
     |> memo
-  let finallyFun u2u xs = finallyJob (Job.thunk u2u) xs
+  let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
 
   type Subscribe<'x> (src: IVar<Stream<'x>>) =
     let mutable src = src
@@ -97,7 +97,7 @@ module Streams =
   let subscribeDuring (xs2ys: Streams<'x> -> Streams<'y>) (xs: IObservable<'x>) =
     memo << Job.delay <| fun () ->
     let src = ivar ()
-    xs2ys src |> finallyFun (xs.Subscribe (Subscribe (src))).Dispose
+    xs2ys src |> onCloseFun (xs.Subscribe (Subscribe (src))).Dispose
 
   let subscribeOnFirst (xs: IObservable<'x>) = memo << Job.delay <| fun () ->
     let src = ivar () in xs.Subscribe (Subscribe (src)) |> ignore ; src
