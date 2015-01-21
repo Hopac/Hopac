@@ -332,3 +332,22 @@ module Streams =
 
   /// Preliminary and subject to change.
   val single: Streams<'x> -> Alt<'x>
+
+/// Preliminary and subject to change.
+type StreamsBuilder =
+  new: unit -> StreamsBuilder
+  member Bind: Streams<'x> * ('x -> Streams<'y>) -> Streams<'y>
+  member Combine: Streams<'x> * Streams<'x> -> Streams<'x>
+  member Delay: (unit -> Streams<'x>) -> Streams<'x>
+  member Zero: unit -> Streams<'x>
+  member For: seq<'x> * ('x -> Streams<'y>) -> Streams<'y>
+  member TryWith: Streams<'x> * (exn -> Streams<'x>) -> Streams<'x>
+  member While: (unit -> bool) * Streams<'x> -> Streams<'x>
+  member Yield: 'x -> Streams<'x>
+  member YieldFrom: Streams<'x> -> Streams<'x>
+
+/// Preliminary and subject to change.
+[<AutoOpen>]
+module StreamsBuilders =
+  /// Preliminary and subject to change.
+  val streams: StreamsBuilder

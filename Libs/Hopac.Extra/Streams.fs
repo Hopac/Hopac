@@ -370,3 +370,22 @@ module Streams =
                | Cons (x, xs) -> out <-- Choice1Of2 x >>% xs
      <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
     (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)
+
+  let rec appendWhileFun u2b xs =
+    memo << Job.delay <| fun () ->
+    if u2b () then append xs (appendWhileFun u2b xs) else nil
+
+type StreamsBuilder () =
+  member this.Bind (xs, x2ys) = Streams.appendMap x2ys xs
+  member this.Combine (xs1, xs2) = Streams.append xs1 xs2
+  member this.Delay (u2xs: unit -> Streams<'x>) = memo (Job.delay u2xs)
+  member this.Zero () = Streams.nil
+  member this.For (xs, x2ys) = Streams.appendMap x2ys (Streams.ofSeq xs)
+  member this.TryWith (xs, e2xs) = Streams.catchOnce e2xs xs
+  member this.While (u2b, xs) = Streams.appendWhileFun u2b xs
+  member this.Yield (x) = Streams.one x
+  member this.YieldFrom (xs: Streams<_>) = xs
+
+[<AutoOpen>]
+module StreamsBuilders =
+  let streams = StreamsBuilder ()
