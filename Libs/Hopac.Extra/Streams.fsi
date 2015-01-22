@@ -141,9 +141,10 @@ module Streams =
   ///> |> subscribeDuring (fun xs ->
   ///>    xs
   ///>    |> take 1)
+  ///> |> ...
   ///
   /// creates a stream that subscribes to the observable, takes (and produces)
-  /// at most element from the observable, and then unsubscribes from the
+  /// at most one element from the observable, and then unsubscribes from the
   /// observable and closes.
 #endif
   val subscribeDuring: (Streams<'x> -> Streams<'y>) -> IObservable<'x> -> Streams<'y>
