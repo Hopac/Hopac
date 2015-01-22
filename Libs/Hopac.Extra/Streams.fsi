@@ -82,7 +82,7 @@ module Streams =
   val cons: 'x -> Streams<'x> -> Streams<'x>
 
   /// `one x` is equivalent to `cons x nil`.
-  val one: 'x -> Streams<'x>
+  val inline one: 'x -> Streams<'x>
 
   /// Preliminary and subject to change.
   val ofSeq: seq<'x> -> Streams<'x>
@@ -337,15 +337,15 @@ module Streams =
 /// Preliminary and subject to change.
 type StreamsBuilder =
   new: unit -> StreamsBuilder
-  member Bind: Streams<'x> * ('x -> Streams<'y>) -> Streams<'y>
-  member Combine: Streams<'x> * Streams<'x> -> Streams<'x>
-  member Delay: (unit -> Streams<'x>) -> Streams<'x>
-  member Zero: unit -> Streams<'x>
-  member For: seq<'x> * ('x -> Streams<'y>) -> Streams<'y>
-  member TryWith: Streams<'x> * (exn -> Streams<'x>) -> Streams<'x>
+  member inline Bind: Streams<'x> * ('x -> Streams<'y>) -> Streams<'y>
+  member inline Combine: Streams<'x> * Streams<'x> -> Streams<'x>
+  member inline Delay: (unit -> Streams<'x>) -> Streams<'x>
+  member inline Zero: unit -> Streams<'x>
+  member inline For: seq<'x> * ('x -> Streams<'y>) -> Streams<'y>
+  member inline TryWith: Streams<'x> * (exn -> Streams<'x>) -> Streams<'x>
   member While: (unit -> bool) * Streams<'x> -> Streams<'x>
-  member Yield: 'x -> Streams<'x>
-  member YieldFrom: Streams<'x> -> Streams<'x>
+  member inline Yield: 'x -> Streams<'x>
+  member inline YieldFrom: Streams<'x> -> Streams<'x>
 
 /// Preliminary and subject to change.
 [<AutoOpen>]

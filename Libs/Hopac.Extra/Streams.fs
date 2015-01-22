@@ -69,7 +69,7 @@ module Streams =
 
   let inline error e = Alt.raises e :> Streams<_>
 
-  let one x = cons x nil
+  let inline one x = cons x nil
 
   let inline never<'x> = Alt.never () :> Streams<'x>
 
@@ -139,7 +139,7 @@ module Streams =
   let inline mapfcm c xs = mapfc c xs |> memo
 
   let inline mapnc n (c: _ -> _ -> #Job<_>) xs =
-    xs >>=? function Nil -> n | Cons (x, xs) -> c x xs
+    xs >>=? function Cons (x, xs) -> c x xs | _ -> n
   let inline mapC (c: _ -> _ -> #Job<_>) =
     function Nil -> nil :> Job<_> | Cons (x, xs) -> upcast c x xs
   let inline mapc c xs = xs >>=? mapC c
@@ -376,15 +376,15 @@ module Streams =
     if u2b () then append xs (appendWhileFun u2b xs) else nil
 
 type StreamsBuilder () =
-  member this.Bind (xs, x2ys) = Streams.appendMap x2ys xs
-  member this.Combine (xs1, xs2) = Streams.append xs1 xs2
-  member this.Delay (u2xs: unit -> Streams<'x>) = memo (Job.delay u2xs)
-  member this.Zero () = Streams.nil
-  member this.For (xs, x2ys) = Streams.appendMap x2ys (Streams.ofSeq xs)
-  member this.TryWith (xs, e2xs) = Streams.catchOnce e2xs xs
+  member inline this.Bind (xs, x2ys) = Streams.appendMap x2ys xs
+  member inline this.Combine (xs1, xs2) = Streams.append xs1 xs2
+  member inline this.Delay (u2xs: unit -> Streams<'x>) = memo (Job.delay u2xs)
+  member inline this.Zero () = Streams.nil
+  member inline this.For (xs, x2ys) = Streams.appendMap x2ys (Streams.ofSeq xs)
+  member inline this.TryWith (xs, e2xs) = Streams.catchOnce e2xs xs
   member this.While (u2b, xs) = Streams.appendWhileFun u2b xs
-  member this.Yield (x) = Streams.one x
-  member this.YieldFrom (xs: Streams<_>) = xs
+  member inline this.Yield (x) = Streams.one x
+  member inline this.YieldFrom (xs: Streams<_>) = xs
 
 [<AutoOpen>]
 module StreamsBuilders =
