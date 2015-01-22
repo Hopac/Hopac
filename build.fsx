@@ -39,7 +39,7 @@ let company = "Housemarque Inc."
 let copyright = "© Housemarque Inc."
 
 // Tags for your project (for NuGet package)
-let tags = "f#, fsharp, parallel, async, concurrent"
+let tags = "f#, fsharp, parallel, async, concurrent, reactive"
 
 // Pattern specifying assemblies to be tested using NUnit
 let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
