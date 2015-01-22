@@ -336,6 +336,39 @@ module Alt =
         | null -> ()
         | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (xK, xE))}
 
+  type WrapAbort =
+    inherit Cont<unit>
+    val mutable uK: Cont<unit>
+    val mutable nk: Promise<unit>
+    val mutable uJ: Job<unit>
+    new (nk, uJ) = {uK=null; nk=nk; uJ=uJ}
+    override wa'.GetProc (wr) = Handler.GetProc (&wr, &wa'.uK)
+    override wa'.DoHandle (wr, e) = Handler.DoHandle (wa'.uK, &wr, e)
+    override wa'.DoCont (wr, _) =
+     match wa'.uJ with
+      | null -> Handler.Terminate (&wr, wa'.uK)
+      | uJ ->
+        wa'.uJ <- null
+        uJ.DoJob (&wr, wa')
+    override wa'.DoWork (wr) =
+     match wa'.nk with
+      | null -> wa'.DoCont (&wr, ())
+      | nk ->
+        wa'.nk <- null
+        nk.DoJob (&wr, wa')
+
+  let wrapAbort (uJ: Job<unit>) (xA: Alt<'x>) : Alt<'x> =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       xA.DoJob (&wr, xK)
+      override xA'.TryAlt (wr, i, xK, xE) =
+       match Pick.AddNack (xE.pk, i) with
+        | null -> ()
+        | nk ->
+          Pick.Unclaim xE.pk
+          Worker.Push (&wr, WrapAbort (nk, uJ))
+          xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
+
   let inline map (x2y: 'x -> 'y) (xA: Alt<'x>) =
     {new AltMap<'x, 'y> (xA) with
       override yA'.Do (x) = x2y x} :> Alt<_>
@@ -412,6 +445,10 @@ module Alt =
          xA.DoJob (&wr, SkipCont (xK, yJ))
         override xA'.TryAlt (wr, i, xK, xE) =
          xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
+
+    let (<+>?) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
+      (xA >>=? fun x -> yA |>>? fun y -> (x, y)) <|>?
+      (yA >>=? fun y -> xA |>>? fun x -> (x, y))
 
   let Ignore (xA: Alt<_>) =
     {new Alt<unit> () with
@@ -1935,27 +1972,6 @@ type EmbeddedJob<'x> = struct
 type EmbeddedJobBuilder () =
   inherit JobBuilder ()
   member this.Run (xJ: Job<'x>) : EmbeddedJob<'x> = EmbeddedJob<'x> (xJ)
-
-[<AutoOpen>]
-module TopLevel =
-  let job = JobBuilder ()
-
-  let inline run x = Job.Global.run x
-  let inline startIgnore x = Job.Global.startIgnore x
-  let inline start x = Job.Global.start x
-  let inline queueIgnore x = Job.Global.queueIgnore x
-  let inline queue x = Job.Global.queue x
-  let inline server x = Job.Global.server x
-
-  let inline asAlt (xA: Alt<'x>) = xA
-  let inline asJob (xJ: Job<'x>) = xJ
-
-  let inline ch () = Ch<'x> ()
-  let inline mb () = Mailbox<'x> ()
-  let inline ivar () = IVar<'x> ()
-  let inline ivarFull x = IVar.Now.createFull x
-  let inline mvar () = MVar<'x> ()
-  let inline mvarFull x = MVar.Now.createFull x
 
 /////////////////////////////////////////////////////////////////////////
 

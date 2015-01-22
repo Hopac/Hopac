@@ -1,77 +1,76 @@
 ﻿// Copyright (C) by Vesa Karvonen
 
-namespace Hopac.Extra
+namespace Hopac
 
 open System
 open System.Collections.Generic
 open System.Threading
-open Hopac
 open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Extensions
 
-[<AutoOpen>]
-module internal Util =
-  let inline memo x = Promise.Now.delay x :> Alt<_>
-  let inline (>>=*) x f = x >>= f |> memo
-  let inline (|>>*) x f = x |>> f |> memo
-  let inline (<|>*) x y = x <|>? y |> memo
+module Stream =
+  [<AutoOpen>]
+  module internal Util =
+    let inline memo x = Promise.Now.delay x :> Alt<_>
+    let inline (>>=*) x f = x >>= f |> memo
+    let inline (|>>*) x f = x |>> f |> memo
+    let inline (<|>*) x y = x <|>? y |> memo
 
-  let inline tryIn u2v vK eK =
-    let mutable e = null
-    let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
-    match e with
-     | null -> vK v
-     | e -> eK e
+    let inline tryIn u2v vK eK =
+      let mutable e = null
+      let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
+      match e with
+       | null -> vK v
+       | e -> eK e
 
-  let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
+    let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
-type Stream<'x> =
-  | Nil
-  | Cons of Value: 'x * Next: Alt<Stream<'x>>
+  type Cons<'x> =
+    | Nil
+    | Cons of Value: 'x * Next: Alt<Cons<'x>>
 
-type Streams<'x> = Alt<Stream<'x>>
+  type Stream<'x> = Alt<Cons<'x>>
 
-type StreamSrc<'x> = {mutable src: IVar<Stream<'x>>}
+  type Src<'x> = {mutable src: IVar<Cons<'x>>}
 
-module StreamSrc =
-  let create () = {src = ivar ()}
-  let rec value s x = Job.delay <| fun () ->
-    let w = ivar ()
-    let v = s.src
-    if IVar.Now.isFull v then raise <| Exception ("StreamSrc closed")
-    let v' = Interlocked.CompareExchange (&s.src, w, v)
-    if LanguagePrimitives.PhysicalEquality v' v
-    then v <-= Cons (x, w)
-    else value s x
-  let error s e = Job.delay <| fun () -> s.src <-=! e // delay required
-  let close s = Job.delay <| fun () -> s.src <-= Nil // delay required
-  let tap s = s.src :> Alt<_>
+  module Src =
+    let create () = {src = IVar<_> ()}
+    let rec value s x = Job.delay <| fun () ->
+      let w = IVar<_> ()
+      let v = s.src
+      if IVar.Now.isFull v then raise <| Exception ("Src closed")
+      let v' = Interlocked.CompareExchange (&s.src, w, v)
+      if LanguagePrimitives.PhysicalEquality v' v
+      then v <-= Cons (x, w)
+      else value s x
+    let error s e = Job.delay <| fun () -> s.src <-=! e // delay required
+    let close s = Job.delay <| fun () -> s.src <-= Nil // delay required
+    let tap s = s.src :> Alt<_>
 
-type StreamVar<'x> = {mutable var: Stream<'x>}
+  type Var<'x> = {mutable var: Cons<'x>}
 
-module StreamVar =
-  let create x = {var = Cons (x, ivar ())}
-  let get v = match v.var with Cons (x, _) -> x | Nil -> failwith "Impossible"
-  let set v x = Job.delay <| fun () ->
-    let c = Cons (x, ivar ())
-    match Interlocked.Exchange (&v.var, c) with
-     | Cons (_, i) -> (i :?> IVar<_>) <-= c
-     | Nil -> failwith "Impossible"
-  let tap v = Alt.always v.var
+  module Var =
+    let create x = {var = Cons (x, IVar<_> ())}
+    let get v = match v.var with Cons (x, _) -> x | Nil -> failwith "Impossible"
+    let set v x = Job.delay <| fun () ->
+      let c = Cons (x, IVar<_> ())
+      match Interlocked.Exchange (&v.var, c) with
+       | Cons (_, i) -> (i :?> IVar<_>) <-= c
+       | Nil -> failwith "Impossible"
+    let tap v = Alt.always v.var
 
-module Streams =
-  let inline nil<'x> = Alt.always Nil :> Streams<'x>
+  let inline nil<'x> = Alt.always Nil :> Stream<'x>
 
   let inline consf x xs = Cons (x, xs)
   let cons x xs = Alt.always (consf x xs)
 
-  let inline error e = Alt.raises e :> Streams<_>
+  let inline error e = Alt.raises e :> Stream<_>
 
   let inline one x = cons x nil
 
-  let inline never<'x> = Alt.never () :> Streams<'x>
+  let inline never<'x> = Alt.never () :> Stream<'x>
 
   let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
     if xs.MoveNext () then Cons (xs.Current, ofEnum xs) else xs.Dispose () ; Nil
@@ -86,25 +85,27 @@ module Streams =
     |> memo
   let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
 
-  type Subscribe<'x> (src: IVar<Stream<'x>>) =
+  type Subscribe<'x> (src: IVar<Cons<'x>>) =
     let mutable src = src
     interface IObserver<'x> with
-     override t.OnCompleted () = src <-= Nil |> start
-     override t.OnError (e) = src <-=! e |> start
+     override t.OnCompleted () = src <-= Nil |> Job.Global.start
+     override t.OnError (e) = src <-=! e |> Job.Global.start
      override t.OnNext (x) =
-       let nxt = ivar () in src <-= Cons (x, nxt) |> start ; src <- nxt
+       let nxt = IVar<_> ()
+       src <-= Cons (x, nxt) |> Job.Global.start
+       src <- nxt
 
-  let subscribeDuring (xs2ys: Streams<'x> -> Streams<'y>) (xs: IObservable<'x>) =
+  let subscribeDuring (xs2ys: Stream<'x> -> Stream<'y>) (xs: IObservable<'x>) =
     memo << Job.delay <| fun () ->
-    let src = ivar ()
+    let src = IVar<_> ()
     xs2ys src |> onCloseFun (xs.Subscribe (Subscribe (src))).Dispose
 
   let subscribeOnFirst (xs: IObservable<'x>) = memo << Job.delay <| fun () ->
-    let src = ivar () in xs.Subscribe (Subscribe (src)) |> ignore ; src
+    let src = IVar<_> () in xs.Subscribe (Subscribe (src)) |> ignore ; src
 
-  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Streams<'x> -> #Job<'y>) =
+  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Stream<'x> -> #Job<'y>) =
     Job.delay <| fun () ->
-    let src = ivar ()
+    let src = IVar<_> ()
     Job.using (xs.Subscribe (Subscribe (src))) <| fun _ -> xs2yJ src :> Job<_>
 
   let toObservable xs =
@@ -120,7 +121,7 @@ module Streams =
        <| function Nil -> Job.unit << iter <| fun xS -> xS.OnCompleted ()
                  | Cons (x, xs) -> iter (fun xS -> xS.OnNext x); loop xs
        <| fun e -> Job.unit << iter <| fun xS -> xS.OnError e
-    loop xs |> start
+    loop xs |> Job.Global.start
     {new IObservable<'x> with
       override this.Subscribe xS =
        lock subs <| fun () -> subs.Add xS |> ignore
@@ -173,12 +174,12 @@ module Streams =
 
   let rec switch ls rs = rs <|>* mapnc rs (fun l ls -> cons l (switch ls rs)) ls
 
-  let rec joinWith (join: Streams<'x> -> Streams<'y> -> Streams<'y>)
-                   (xxs: Streams<Streams<'x>>) =
+  let rec joinWith (join: Stream<'x> -> Stream<'y> -> Stream<'y>)
+                   (xxs: Stream<Stream<'x>>) =
     mapcm (fun xs xxs -> join xs (joinWith join xxs)) xxs
 
-  let rec mapJoin (join: Streams<'y> -> Streams<'z> -> Streams<'z>)
-                  (x2ys: 'x -> Streams<'y>) (xs: Streams<'x>) : Streams<'z> =
+  let rec mapJoin (join: Stream<'y> -> Stream<'z> -> Stream<'z>)
+                  (x2ys: 'x -> Stream<'y>) (xs: Stream<'x>) : Stream<'z> =
     mapcm (fun x xs -> join (x2ys x) (mapJoin join x2ys xs)) xs
 
   let ambMap x2ys xs = mapJoin amb x2ys xs
@@ -192,10 +193,10 @@ module Streams =
   let switchOn rs ls = switch ls rs
   let takeUntil evt xs = switch xs (evt >>%? Nil)
 
-  let rec catchOnce (e2xs: _ -> Streams<_>) xs =
+  let rec catchOnce (e2xs: _ -> Stream<_>) xs =
     Job.tryIn xs (mapC (fun x xs -> cons x (catchOnce e2xs xs))) e2xs |> memo
 
-  let rec catch (e2xs: _ -> Streams<_>) xs =
+  let rec catch (e2xs: _ -> Stream<_>) xs =
     catchOnce (fun e -> catch e2xs (e2xs e)) xs
 
   let rec throttleGot1 timeout x xs =
@@ -273,9 +274,9 @@ module Streams =
     mapfcm (fun x xs -> Cons (x, mapcm (ducbf x2k (x2k x)) xs)) xs
 
   let groupByJob (keyOf: 'x -> #Job<'k>) ss =
-    let key2br = Dictionary<'k, IVar<Stream<'x>>>()
-    let main = ref (ivar ())
-    let baton = mvarFull ss
+    let key2br = Dictionary<'k, IVar<Cons<'x>>>()
+    let main = ref (IVar<_> ())
+    let baton = MVar<_>(ss)
     let raised e =
       key2br.Values |> Seq.iterJob (fun i -> i <-=! e) >>. (!main <-=! e) >>! e
     let rec wrap self xs newK oldK =
@@ -292,17 +293,17 @@ module Streams =
                  <| fun k ->
                       match key2br.TryGetValue k with
                        | Just i ->
-                         let i' = ivar ()
+                         let i' = IVar<_> ()
                          key2br.[k] <- i'
                          i <-= Cons (s, i') >>. oldK serve ss k s i'
                        | Nothing ->
-                         let i' = ivar ()
-                         let i = ivarFull (Cons (s, i'))
+                         let i' = IVar<_> ()
+                         let i = IVar<_> (Cons (s, i'))
                          key2br.Add (k, i')
-                         let i' = ivar ()
+                         let i' = IVar<_> ()
                          let m = !main
                          main := i'
-                         let ki = (k, wrapBranch k (i :> Streams<_>))
+                         let ki = (k, wrapBranch k (i :> Stream<_>))
                          m <-= Cons (ki, i') >>. newK serve ss ki i'
                  <| raised
           <| raised
@@ -334,7 +335,7 @@ module Streams =
     if 0 < n then mapfcm (fun x xs -> Cons (x, take' (n-1) xs)) xs else nil
   let take n xs = if n < 0 then failwith "take: n < 0" else take' n xs
 
-  let inline mapcnm f (xs: Streams<_>) =
+  let inline mapcnm f (xs: Stream<_>) =
     xs >>=* function Nil -> failwith "empty" | Cons (x, xs) -> f x xs
 
   let head xs = mapcnm (fun x _ -> Job.result x) xs
@@ -362,8 +363,8 @@ module Streams =
 
   let afterTimeSpan ts = onceJob (Timer.Global.timeOut ts)
 
-  let values (xs: Streams<_>) = Job.delay <| fun () ->
-    let out = ch ()
+  let values (xs: Stream<_>) = Job.delay <| fun () ->
+    let out = Ch<_> ()
     Job.iterateServer xs (fun xs ->
     Job.tryIn xs
      <| function Nil -> Job.abort ()
@@ -375,17 +376,13 @@ module Streams =
     memo << Job.delay <| fun () ->
     if u2b () then append xs (appendWhileFun u2b xs) else nil
 
-type StreamsBuilder () =
-  member inline this.Bind (xs, x2ys) = Streams.appendMap x2ys xs
-  member inline this.Combine (xs1, xs2) = Streams.append xs1 xs2
-  member inline this.Delay (u2xs: unit -> Streams<'x>) = memo (Job.delay u2xs)
-  member inline this.Zero () = Streams.nil
-  member inline this.For (xs, x2ys) = Streams.appendMap x2ys (Streams.ofSeq xs)
-  member inline this.TryWith (xs, e2xs) = Streams.catchOnce e2xs xs
-  member this.While (u2b, xs) = Streams.appendWhileFun u2b xs
-  member inline this.Yield (x) = Streams.one x
-  member inline this.YieldFrom (xs: Streams<_>) = xs
-
-[<AutoOpen>]
-module StreamsBuilders =
-  let streams = StreamsBuilder ()
+  type Builder () =
+    member inline this.Bind (xs, x2ys) = appendMap x2ys xs
+    member inline this.Combine (xs1, xs2) = append xs1 xs2
+    member inline this.Delay (u2xs: unit -> Stream<'x>) = memo (Job.delay u2xs)
+    member inline this.Zero () = nil
+    member inline this.For (xs, x2ys) = appendMap x2ys (ofSeq xs)
+    member inline this.TryWith (xs, e2xs) = catchOnce e2xs xs
+    member this.While (u2b, xs) = appendWhileFun u2b xs
+    member inline this.Yield (x) = one x
+    member inline this.YieldFrom (xs: Stream<_>) = xs

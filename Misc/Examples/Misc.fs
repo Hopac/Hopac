@@ -4,7 +4,6 @@ namespace Misc
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Extra.Alt.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 
@@ -12,7 +11,7 @@ module Alts =
   let sumWith (xy2z: 'x -> 'y -> Job<'z>)
               (xAlt: Alt<'x>)
               (yAlt: Alt<'y>) : Alt<'z> =
-    xAlt <+> yAlt >>=? fun (x, y) -> xy2z x y
+    xAlt <+>? yAlt >>=? fun (x, y) -> xy2z x y
 
 module BufferedChViaPick =
   type Buffer<'a> =

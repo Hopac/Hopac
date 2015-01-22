@@ -1,13 +1,15 @@
 // Copyright (C) by Housemarque, Inc.
 
 /// Hopac is a library for F# with the aim of making it easier to write correct,
-/// modular and efficient parallel, asynchronous and concurrent programs.  The
-/// design of Hopac draws inspiration from languages such as Concurrent ML and
-/// Cilk.  Similar to Concurrent ML, Hopac provides message passing primitives
-/// and supports the construction of first-class synchronous abstractions.
-/// Parallel jobs (lightweight threads) in Hopac are created using techniques
-/// similar to the F# Async framework.  Hopac runs parallel jobs using a work
-/// distributing scheduler in a non-preemptive fashion.
+/// modular and efficient parallel, asynchronous, concurrent and reactive
+/// programs.  The design of Hopac draws inspiration from languages such as
+/// Concurrent ML and Cilk.  Similar to Concurrent ML, Hopac provides message
+/// passing primitives and supports the construction of first-class synchronous
+/// abstractions.  Parallel jobs (lightweight threads) in Hopac are created
+/// using techniques similar to the F# Async framework.  Hopac runs parallel
+/// jobs using a work distributing scheduler in a non-preemptive fashion.  Hopac
+/// also includes an implementation of choice streams, see `Stream`, that offers
+/// a simple alternative to reactive programming.
 ///
 /// Before you begin using Hopac, make sure that you have configured your F#
 /// interactive and your application to use server garbage collection.  By
@@ -229,102 +231,6 @@ type EmbeddedJobBuilder =
   inherit JobBuilder
   new: unit -> EmbeddedJobBuilder
   member Run: Job<'x> -> EmbeddedJob<'x>
-
-////////////////////////////////////////////////////////////////////////////////
-
-/// Convenience bindings for programming with Hopac.
-[<AutoOpen>]
-module TopLevel =
-  /// Default expression builder for jobs.
-  val job: JobBuilder
-
-  /// Starts running the given job on the global scheduler and then blocks the
-  /// current thread waiting for the job to either return successfully or fail.
-#if DOC
-  ///
-  /// WARNING: Use of `run` should be considered carefully, because calling
-  /// `run` from an arbitrary thread can cause deadlock.
-  ///
-  /// `run` is mainly provided for conveniently running Hopac code from F#
-  /// Interactive and can also be used as an entry point to the Hopac runtime in
-  /// console applications.  In Windows applications, for example, `run` should
-  /// not be called from the GUI thread.
-  ///
-  /// A call of `run xJ` is safe when the call is not made from within a Hopac
-  /// worker thread and the job `xJ` does not perform operations that might
-  /// block or that might directly, or indirectly, need to communicate with the
-  /// thread from which `run` is being called.
-  ///
-  /// Note that using this function from within a job workflow should never be
-  /// needed, because within a workflow the result of a job can be obtained by
-  /// binding.
-  ///
-  /// This is the same function as `Job.Global.run`.  See also: `abort`.
-#endif
-  val inline run: Job<'x> -> 'x
-
-  /// Starts running the given job on the global scheduler, but does not wait
-  /// for the job to finish.
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should use `Job.start` instead.
-  ///
-  /// This is the same function as `Job.Global.start`.
-  val inline start: Job<unit> -> unit
-
-  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
-  val inline startIgnore: Job<_> -> unit
-
-  /// Queues the given job for execution on the global scheduler.
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should use `Job.queue` instead.
-  ///
-  /// This is the same function as `Job.Global.queue`.
-  val inline queue: Job<unit> -> unit
-
-  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
-  val inline queueIgnore: Job<_> -> unit
-
-  /// Like `start`, but the given job is known never to return normally, so the
-  /// job can be spawned in an even more lightweight manner.
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should use `Job.server` instead.
-  ///
-  /// This is the same function as `Job.Global.server`.
-  val inline server: Job<Void> -> unit
-
-  /// Use object as alternative.  This function is a NOP and is provided as a
-  /// kind of syntactic alternative to using a type ascription or an `upcast`.
-  val inline asAlt: Alt<'x> -> Alt<'x>
-
-  /// Use object as job.  This function is a NOP and is provided as a kind of
-  /// syntactic alternative to using a type ascription or an `upcast`.
-  val inline asJob: Job<'x> -> Job<'x>
-
-  /// Creates a new channel.  This is the same function as `Ch.Now.create`.
-  val inline ch: unit -> Ch<'x>
-
-  /// Creates a new mailbox.  This is the same function as
-  /// `Mailbox.Now.create`.
-  val inline mb: unit -> Mailbox<'x>
-
-  /// Creates a new write once variable.  This is the same function as
-  /// `IVar.Now.create`.
-  val inline ivar: unit -> IVar<'x>
-
-  /// Creates a new write once variable with the given value.  This is the same
-  /// function as `IVar.Now.createFull`.
-  val inline ivarFull: 'x -> IVar<'x>
-
-  /// Creates a serialized variable that is initially empty.  This is the same
-  /// function as `MVar.Now.create`.
-  val inline mvar: unit -> MVar<'x>
-
-  /// Creates a new serialized variable that initially contains the given value.
-  /// This is the same function as `MVar.Now.createFull`.
-  val inline mvarFull: 'x -> MVar<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1195,6 +1101,19 @@ module Alt =
 #endif
   val withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
+  /// Returns a new alternative that upon picking time makes it so that the
+  /// given job will be started if the given alternative isn't the one being
+  /// picked.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let wrapAbort (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
+  ///>   Alt.withNack <| fun abortAlt ->
+  ///>   Job.start (abortAlt >>. abortAct) >>% evt
+#endif
+  val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
+
   /// Creates an alternative that is available when any one of the given
   /// alternatives is.  See also: `<|>?`.
   ///
@@ -1287,6 +1206,13 @@ module Alt =
 
     /// `xA >>!? e` is equivalent to `xA >>=? fun _ -> raise e`.
     val (>>!?): Alt<_> -> exn -> Alt<_>
+
+    /// An alternative that is equivalent to first picking either one of the
+    /// given alternatives and then picking the other alternative.  Note that
+    /// this is not the same as picking the alternatives in a single
+    /// transaction.  Such an operation would require a more complex
+    /// synchronization protocol like with the so called Transactional Events.
+    val (<+>?): Alt<'a> -> Alt<'b> -> Alt<'a * 'b>
 
   /////////////////////////////////////////////////////////////////////////////
 

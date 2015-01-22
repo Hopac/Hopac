@@ -1,0 +1,31 @@
+// Copyright (C) by Vesa Karvonen
+
+namespace Hopac
+
+/// Represents a non-deterministic stream of values called a choice stream.
+type Stream<'x> = Stream.Stream<'x>
+
+[<AutoOpen>]
+module TopLevel =
+  let job = JobBuilder ()
+  let stream = Stream.Builder ()
+
+  let inline run x = Job.Global.run x
+  let inline startIgnore x = Job.Global.startIgnore x
+  let inline start x = Job.Global.start x
+  let inline queueIgnore x = Job.Global.queueIgnore x
+  let inline queue x = Job.Global.queue x
+  let inline server x = Job.Global.server x
+
+  let inline asAlt (xA: Alt<'x>) = xA
+  let inline asJob (xJ: Job<'x>) = xJ
+
+  let inline ch () = Ch<'x> ()
+  let inline mb () = Mailbox<'x> ()
+  let inline ivar () = IVar<'x> ()
+  let inline ivarFull x = IVar.Now.createFull x
+  let inline mvar () = MVar<'x> ()
+  let inline mvarFull x = MVar.Now.createFull x
+
+  let inline timeOut x = Timer.Global.timeOut x
+  let inline timeOutMillis x = Timer.Global.timeOutMillis x

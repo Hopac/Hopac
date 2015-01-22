@@ -4,7 +4,6 @@ namespace Hopac.Extra
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Extra.Alt.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 
@@ -39,7 +38,7 @@ module Stream =
     Job.foreverServer (xIn >>= fun x -> x2yJ x >>= yOut)
 
   let sumWithFun xy2z (xIn: In<_>) (yIn: In<_>) (zOut: Out<_>) =
-    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> zOut (xy2z x y))
+    Job.foreverServer (xIn <+>? yIn >>= fun (x, y) -> zOut (xy2z x y))
 
   let sumWithJob (xy2zJ: _ -> _ -> #Job<_>) xIn yIn (zOut: Out<_>) =
-    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> xy2zJ x y >>= zOut)
+    Job.foreverServer (xIn <+>? yIn >>= fun (x, y) -> xy2zJ x y >>= zOut)

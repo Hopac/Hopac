@@ -1,9 +1,8 @@
 // Copyright (C) by Vesa Karvonen
 
-namespace Hopac.Extra
+namespace Hopac
 
 open System.Collections.Generic
-open Hopac
 open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
