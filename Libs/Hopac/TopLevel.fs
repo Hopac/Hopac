@@ -2,7 +2,6 @@
 
 namespace Hopac
 
-/// Represents a non-deterministic stream of values called a choice stream.
 type Stream<'x> = Stream.Stream<'x>
 
 [<AutoOpen>]
