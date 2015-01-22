@@ -2,10 +2,10 @@
 
 namespace Hopac
 
-type Stream<'x> = Stream.Stream<'x>
-
 [<AutoOpen>]
 module TopLevel =
+  type Stream<'x> = Stream.Stream<'x>
+
   let job = JobBuilder ()
   let stream = Stream.Builder ()
 

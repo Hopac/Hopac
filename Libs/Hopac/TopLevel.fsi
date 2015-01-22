@@ -5,12 +5,12 @@ namespace Hopac
 open System
 open Hopac
 
-/// Represents a non-deterministic stream of values called a choice stream.
-type Stream<'x> = Stream.Stream<'x>
-
 /// Convenience bindings for programming with Hopac.
 [<AutoOpen>]
 module TopLevel =
+  /// Represents a non-deterministic stream of values called a choice stream.
+  type Stream<'x> = Stream.Stream<'x>
+
   /// Default expression builder for jobs.
   val job: JobBuilder
 
