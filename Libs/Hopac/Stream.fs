@@ -17,7 +17,7 @@ module Stream =
     let inline (>>=*) x f = x >>= f |> memo
     let inline (|>>*) x f = x |>> f |> memo
     let inline (<|>*) x y = x <|>? y |> memo
-
+    let inline start x = Job.Global.start x
     let inline tryIn u2v vK eK =
       let mutable e = null
       let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
@@ -70,12 +70,20 @@ module Stream =
 
   let inline one x = cons x nil
 
+  let inline delay (u2xs: unit -> #Stream<'x>) =
+    memo << Job.delay <| fun () -> u2xs ()
+
+  let fix (xs2xs: Stream<'x> -> #Stream<'x>) =
+    let xs = Promise<_> () // XXX publish interface for this?
+    xs.Readers <- Promise<_>.Fulfill (Job.delay <| fun () -> xs2xs xs)
+    xs :> Stream<_>
+
   let inline never<'x> = Alt.never () :> Stream<'x>
 
   let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
     if xs.MoveNext () then Cons (xs.Current, ofEnum xs) else xs.Dispose () ; Nil
 
-  let ofSeq (xs: seq<_>) = memo <| Job.delay (ofEnum << xs.GetEnumerator)
+  let ofSeq (xs: seq<_>) = delay (ofEnum << xs.GetEnumerator)
 
   let rec onCloseJob (uJ: Job<unit>) xs =
     Job.tryIn xs
@@ -88,19 +96,19 @@ module Stream =
   type Subscribe<'x> (src: IVar<Cons<'x>>) =
     let mutable src = src
     interface IObserver<'x> with
-     override t.OnCompleted () = src <-= Nil |> Job.Global.start
-     override t.OnError (e) = src <-=! e |> Job.Global.start
+     override t.OnCompleted () = src <-= Nil |> start
+     override t.OnError (e) = src <-=! e |> start
      override t.OnNext (x) =
        let nxt = IVar<_> ()
-       src <-= Cons (x, nxt) |> Job.Global.start
+       src <-= Cons (x, nxt) |> start
        src <- nxt
 
-  let subscribeDuring (xs2ys: Stream<'x> -> Stream<'y>) (xs: IObservable<'x>) =
-    memo << Job.delay <| fun () ->
+  let subscribeDuring (xs2ys: Stream<'x> -> #Stream<'y>) (xs: IObservable<'x>) =
+    delay <| fun () ->
     let src = IVar<_> ()
     xs2ys src |> onCloseFun (xs.Subscribe (Subscribe (src))).Dispose
 
-  let subscribeOnFirst (xs: IObservable<'x>) = memo << Job.delay <| fun () ->
+  let subscribeOnFirst (xs: IObservable<'x>) = delay <| fun () ->
     let src = IVar<_> () in xs.Subscribe (Subscribe (src)) |> ignore ; src
 
   let subscribingTo (xs: IObservable<'x>) (xs2yJ: Stream<'x> -> #Job<'y>) =
@@ -121,7 +129,7 @@ module Stream =
        <| function Nil -> Job.unit << iter <| fun xS -> xS.OnCompleted ()
                  | Cons (x, xs) -> iter (fun xS -> xS.OnNext x); loop xs
        <| fun e -> Job.unit << iter <| fun xS -> xS.OnError e
-    loop xs |> Job.Global.start
+    loop xs |> start
     {new IObservable<'x> with
       override this.Subscribe xS =
        lock subs <| fun () -> subs.Add xS |> ignore
@@ -172,12 +180,12 @@ module Stream =
 
   let rec switch ls rs = rs <|>* mapnc rs (fun l ls -> cons l (switch ls rs)) ls
 
-  let rec joinWith (join: Stream<'x> -> Stream<'y> -> Stream<'y>)
-                   (xxs: Stream<Stream<'x>>) =
+  let rec joinWith (join: Stream<'x> -> Stream<'y> -> #Stream<'y>)
+                   (xxs: Stream<#Stream<'x>>) =
     mapcm (fun xs xxs -> join xs (joinWith join xxs)) xxs
 
-  let rec mapJoin (join: Stream<'y> -> Stream<'z> -> Stream<'z>)
-                  (x2ys: 'x -> Stream<'y>) (xs: Stream<'x>) : Stream<'z> =
+  let rec mapJoin (join: Stream<'y> -> Stream<'z> -> #Stream<'z>)
+                  (x2ys: 'x -> #Stream<'y>) (xs: Stream<'x>) : Stream<'z> =
     mapcm (fun x xs -> join (x2ys x) (mapJoin join x2ys xs)) xs
 
   let ambMap x2ys xs = mapJoin amb x2ys xs
@@ -191,11 +199,8 @@ module Stream =
   let switchOn rs ls = switch ls rs
   let takeUntil evt xs = switch xs (evt >>%? Nil)
 
-  let rec catchOnce (e2xs: _ -> Stream<_>) xs =
-    Job.tryIn xs (mapC (fun x xs -> cons x (catchOnce e2xs xs))) e2xs |> memo
-
-  let rec catch (e2xs: _ -> Stream<_>) xs =
-    catchOnce (fun e -> catch e2xs (e2xs e)) xs
+  let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =
+    Job.tryIn xs (mapC (fun x xs -> cons x (catch e2xs xs))) e2xs |> memo
 
   let rec throttleGot1 timeout x xs =
     (timeout |>>? fun _ -> Cons (x, throttle timeout xs)) <|>?
@@ -249,7 +254,7 @@ module Stream =
   let beforeEachExceptFirst job xs =
     mapfc (fun x xs -> Cons (x, beforeEach job xs)) xs
 
-  let distinctByJob x2kJ xs = memo << Job.delay <| fun () ->
+  let distinctByJob x2kJ xs = delay <| fun () ->
     let ks = HashSet<_>() in filterJob (x2kJ >> Job.map ks.Add) xs
   let distinctByFun x2k xs = distinctByJob (Job.lift x2k) xs
 
@@ -357,6 +362,9 @@ module Stream =
   let iterateJob x2xJ x = cons x (x2xJ x |>>* iterateJob' x2xJ)
   let iterateFun x2x x = iterateJob (x2x >> Job.result) x
 
+  let repeat x = fix (cons x)
+  let cycle xs = fix (append xs)
+
   let atDateTimeOffsets dtos =
     dtos
     |> mapJob (fun dto ->
@@ -375,17 +383,16 @@ module Stream =
      <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
     (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)
 
-  let rec appendWhileFun u2b xs =
-    memo << Job.delay <| fun () ->
+  let rec appendWhileFun u2b xs = delay <| fun () ->
     if u2b () then append xs (appendWhileFun u2b xs) else nil
 
   type Builder () =
-    member inline this.Bind (xs, x2ys) = appendMap x2ys xs
+    member inline this.Bind (xs, x2ys: _ -> Stream<_>) = appendMap x2ys xs
     member inline this.Combine (xs1, xs2) = append xs1 xs2
-    member inline this.Delay (u2xs: unit -> Stream<'x>) = memo (Job.delay u2xs)
+    member inline this.Delay (u2xs: unit -> Stream<'x>) = delay u2xs
     member inline this.Zero () = nil
-    member inline this.For (xs, x2ys) = appendMap x2ys (ofSeq xs)
-    member inline this.TryWith (xs, e2xs) = catchOnce e2xs xs
+    member inline this.For (xs, x2ys: _ -> Stream<_>) = appendMap x2ys (ofSeq xs)
+    member inline this.TryWith (xs, e2xs: _ -> Stream<_>) = catch e2xs xs
     member this.While (u2b, xs) = appendWhileFun u2b xs
     member inline this.Yield (x) = one x
     member inline this.YieldFrom (xs: Stream<_>) = xs

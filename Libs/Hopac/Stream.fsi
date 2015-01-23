@@ -128,16 +128,20 @@ module Stream =
   /// `one x` is equivalent to `cons x nil`.
   val inline one: 'x -> Stream<'x>
 
+  /// `delay` creates a stream that is constructed lazily.  Use `delay` to avoid
+  /// unbounded eager recursion.
+  val inline delay: (unit -> #Stream<'x>) -> Stream<'x>
+
   /// Converts the given sequence to a lazy stream.
   val ofSeq: seq<'x> -> Stream<'x>
 
   /// Generates a stream by repeating the given job indefinitely.  For example,
-  /// given a channel, `xCh`, a stream can be created, `forever xCh`, through
-  /// which all the values given on the channel can be observed.  See also:
-  /// `values`.
+  /// given a channel, `xCh`, a stream can be created, `indefinitely xCh`,
+  /// through which all the values given on the channel can be observed.  See
+  /// also: `values`.
   val indefinitely: Job<'x> -> Stream<'x>
 
-  /// `once xJ` is equivalent to `forever xJ |> take 1`.
+  /// `once xJ` is equivalent to `indefinitely xJ |> take 1`.
   val once: Job<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
@@ -149,6 +153,13 @@ module Stream =
   val iterateJob: ('x -> #Job<'x>) -> 'x -> Stream<'x>
   /// Preliminary and subject to change.
   val iterateFun: ('x -> 'x) -> 'x -> Stream<'x>
+
+  /// Creates an infinite stream of the given value.
+  val repeat: 'x -> Stream<'x>
+
+  /// Creates an infinite repetition of the given stream.  For infinite streams
+  /// `cycle` is the identity function.
+  val cycle: Stream<'x> -> Stream<'x>
 
   // Observable
 
@@ -192,7 +203,7 @@ module Stream =
   /// at most one element from the observable, and then unsubscribes from the
   /// observable and closes.
 #endif
-  val subscribeDuring: (Stream<'x> -> Stream<'y>) -> IObservable<'x> -> Stream<'y>
+  val subscribeDuring: (Stream<'x> -> #Stream<'y>) -> IObservable<'x> -> Stream<'y>
 
   /// Preliminary and subject to change.
   val subscribingTo: IObservable<'x> -> (Stream<'x> -> #Job<'y>) -> Job<'y>
@@ -264,19 +275,19 @@ module Stream =
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
-  val joinWith: (Stream<'x> -> Stream<'y> -> Stream<'y>) -> Stream<Stream<'x>> -> Stream<'y>
+  val joinWith: (Stream<'x> -> Stream<'y> -> #Stream<'y>) -> Stream<#Stream<'x>> -> Stream<'y>
 
   /// Preliminary and subject to change.
-  val mapJoin: (Stream<'y> -> Stream<'z> -> Stream<'z>) -> ('x -> Stream<'y>) -> Stream<'x> -> Stream<'z>
+  val mapJoin: (Stream<'y> -> Stream<'z> -> #Stream<'z>) -> ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'z>
 
   /// Preliminary and subject to change.
-  val ambMap: ('x -> Stream<'y>) -> Stream<'x> -> Stream<'y>
+  val ambMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
   /// Preliminary and subject to change.
-  val mergeMap: ('x -> Stream<'y>) -> Stream<'x> -> Stream<'y>
+  val mergeMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
   /// Preliminary and subject to change.
-  val appendMap: ('x -> Stream<'y>) -> Stream<'x> -> Stream<'y>
+  val appendMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
   /// Preliminary and subject to change.
-  val switchMap: ('x -> Stream<'y>) -> Stream<'x> -> Stream<'y>
+  val switchMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
 
   // Skipping and taking
 
@@ -296,9 +307,7 @@ module Stream =
   // Exceptions
 
   /// Preliminary and subject to change.
-  val catchOnce: (exn -> Stream<'x>) -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
-  val catch: (exn -> Stream<'x>) -> Stream<'x> -> Stream<'x>
+  val catch: (exn -> #Stream<'x>) -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that is just like the given stream except that just
   /// before the returned stream is closed, due to the given stream being
