@@ -14,6 +14,7 @@ namespace Hopac.Core {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal Nack(Nack next, int i0) {
+      this.State = Running;
       this.Next = next;
       this.I0 = i0;
       this.I1 = Int32.MaxValue;

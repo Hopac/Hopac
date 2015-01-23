@@ -10,7 +10,7 @@ namespace Hopac {
   /// <summary>Represents a write once variable.</summary>
   public class IVar<T> : Promise<T> {
     /// Internal implementation detail.
-    public IVar() { }
+    public IVar() { this.State = Running; }
     /// Internal implementation detail.
     public IVar(T t) : base(t) { }
     /// Internal implementation detail.
