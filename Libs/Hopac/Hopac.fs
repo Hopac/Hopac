@@ -218,6 +218,7 @@ module Promise =
     {new Job<Promise<'x>> () with
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
+       pr.State <- Promise<'x>.Running
        xPrK.Value <- pr
        Worker.Push (&wr, xPrK)
        Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
@@ -225,6 +226,7 @@ module Promise =
     {new Job<Promise<'x>> () with
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
+       pr.State <- Promise<'x>.Running
        Worker.PushNew (&wr, {new WorkHandler () with
         override w'.DoWork (wr) =
          let prc = Promise<'x>.Fulfill (pr)
