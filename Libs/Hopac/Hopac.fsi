@@ -9,7 +9,7 @@
 /// are created using techniques similar to the F# Async framework, see
 /// `Job<_>`.  Hopac runs parallel jobs using a work distributing scheduler in a
 /// non-preemptive fashion.  Hopac also includes an implementation of choice
-/// streams, see `Stream<_>`, that offers a simple approach to reactive
+/// streams, see `Stream.Stream<_>`, that offers a simple approach to reactive
 /// programming.
 ///
 /// Before you begin using Hopac, make sure that you have configured your F#

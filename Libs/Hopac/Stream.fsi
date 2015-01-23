@@ -329,7 +329,7 @@ module Stream =
   val afterEach: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that runs the given job each time a value is requested
-  /// before requesting the next value from the given streams.
+  /// before requesting the next value from the given stream.
   val beforeEach: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
