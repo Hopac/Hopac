@@ -14,6 +14,46 @@ module Stream =
     | Cons of Value: 'x * Next: Alt<Cons<'x>>
 
   /// Represents a non-deterministic stream of values called a choice stream.
+#if DOC
+  ///
+  /// Choice streams can be used in ways similar to Rx observable sequences.
+  /// However, the underlying implementations of choice streams and observable
+  /// sequences are almost polar opposites: choice streams are pull based while
+  /// obserable sequences are push based.  Probably the most notable advantage
+  /// of observable sequences over choice streams is that observables support
+  /// disposables via their subscription protocol.  Choice streams do not have a
+  /// subscription protocol and cannot support disposables in the same manner.
+  /// On the other hand, choice streams offer several advantages over observable
+  /// sequences:
+  ///
+  /// - Choice streams are simple.  The implementation of choice streams is two
+  /// orders of magnitude shorter than the implementation of .Net Rx.
+  ///
+  /// - Choice streams generate the same sequence of values for every consumer.
+  /// There are no hot and cold streams like with observable sequences.  Many
+  /// trivial choice stream combinators, such as `tails`, can be very
+  /// challenging, if not impossible, to specify and implement meaningfully for
+  /// observable sequences.
+  ///
+  /// - Choice streams allow the use of asynchronous programming at any point.
+  /// For example, `iterJob` waits for the asynchronous job to finish before
+  /// consuming the next value from the stream.  The `Subscribe` operation of
+  /// observables cannot support such behaviour, because `OnNext` calls are
+  /// synchronous.
+  ///
+  /// - Choice streams allow consumers and producers to be written using simple
+  /// programming techniques such as lexical binding, recursion and immutable
+  /// data structures.  Observable sequences can only be subscribed to by
+  /// imperative callbacks.
+  ///
+  /// - Choice streams allow values to be generated both lazily in response to
+  /// consumers and eagerly in response to producers.  Observable sequences can
+  /// only be generated eagerly in response to producers.  For example, the
+  /// `beforeEach` combinator cannot be implemented for observable sequences.
+  ///
+  /// All of the above advantages are strongly related and result from the pull
+  /// based nature of choice streams.
+#endif
   type Stream<'x> = Alt<Cons<'x>>
 
   /// Represents an imperative source of a stream of values called a stream
@@ -78,25 +118,27 @@ module Stream =
   /// rest of the stream is like `xs`.
 #if DOC
   ///
-  /// Node that `cons` and `nil` directly correspond to the ordinary list
-  /// constructors `::` and `[]` and you can construct choice streams just like
-  /// you would create ordinary lists.
+  /// Note that `cons` and `nil` directly correspond to the ordinary list
+  /// constructors `::` and `[]` and, aside from the obvious notational
+  /// differences, you can construct choice streams just like you would create
+  /// ordinary lists.
 #endif
   val cons: 'x -> Stream<'x> -> Stream<'x>
 
   /// `one x` is equivalent to `cons x nil`.
   val inline one: 'x -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Converts the given sequence to a lazy stream.
   val ofSeq: seq<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
-  val foreverJob: Job<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
-  val onceJob: Job<'x> -> Stream<'x>
+  /// Generates a stream by repeating the given job indefinitely.  For example,
+  /// given a channel, `xCh`, a stream can be created, `forever xCh`, through
+  /// which all the values given on the channel can be observed.  See also:
+  /// `values`.
+  val indefinitely: Job<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
-  val repeatJobs: Job<'x> -> Job<_> -> Stream<'x>
+  /// `once xJ` is equivalent to `forever xJ |> take 1`.
+  val once: Job<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
   val unfoldJob: ('s -> #Job<option<'x * 's>>) -> 's -> Stream<'x>
@@ -155,7 +197,7 @@ module Stream =
   /// Preliminary and subject to change.
   val subscribingTo: IObservable<'x> -> (Stream<'x> -> #Job<'y>) -> Job<'y>
 
-  /// Preliminary and subject to change.
+  /// Returns observable that eagerly consumes the stream
   val toObservable: Stream<'x> -> IObservable<'x>
 
   // Sequence combinators
@@ -164,7 +206,7 @@ module Stream =
   val chooseJob: ('x -> #Job<option<'y>>) -> Stream<'x> -> Stream<'y>
   /// Preliminary and subject to change.
   val chooseFun: ('x -> option<'y>) -> Stream<'x> -> Stream<'y>
-  /// Preliminary and subject to change.
+  /// `xs |> choose` is equivalent to `xs |> chooseFun id`.
   val choose: Stream<option<'x>> -> Stream<'x>
 
   /// Preliminary and subject to change.
@@ -284,7 +326,14 @@ module Stream =
   val combineLatest: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
   /// Preliminary and subject to change.
-  val delayEachBy: Job<_> -> Stream<'x> -> Stream<'x>
+  val afterEach: Job<_> -> Stream<'x> -> Stream<'x>
+
+  /// Returns a stream that runs the given job each time a value is requested
+  /// before requesting the next value from the given streams.
+  val beforeEach: Job<_> -> Stream<'x> -> Stream<'x>
+
+  /// Preliminary and subject to change.
+  val beforeEachExceptFirst: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
   val atDateTimeOffsets: Stream<DateTimeOffset> -> Stream<DateTimeOffset>
@@ -299,7 +348,9 @@ module Stream =
   /// Preliminary and subject to change.
   val toSeq: Stream<'x> -> Job<ResizeArray<'x>>
 
-  /// Preliminary and subject to change.
+  /// Returns a job that creates an alternative through which all the values of
+  /// the stream generated after the point at which the alternative has been
+  /// created can be read.  See also: `foreverJob`.
   val values: Stream<'x> -> Job<Alt<'x>>
 
   /// Preliminary and subject to change.
@@ -312,7 +363,16 @@ module Stream =
   /// Preliminary and subject to change.
   val foldFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Job<'s>
 
-  /// Preliminary and subject to change.
+  /// Returns a job that sequentially iterates the given job constructor over
+  /// the given stream.
+#if DOC
+  ///
+  /// The implementation of `iterJob` can be illuminating:
+  ///
+  ///> let rec iterJob x2uJ xs =
+  ///>   xs >>= function Nil          -> Job.unit ()
+  ///>                 | Cons (x, xs) -> x2uJ x >>. iterJob x2uJ xs
+#endif
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>
   /// Preliminary and subject to change.
   val iterFun: ('x -> unit) -> Stream<'x> -> Job<unit>
@@ -325,7 +385,8 @@ module Stream =
   /// Preliminary and subject to change.
   val tail: Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream of all final segments of the given stream from longest to
+  /// shortest.
   val tails: Stream<'x> -> Stream<Stream<'x>>
 
   /// Preliminary and subject to change.

@@ -129,11 +129,9 @@ module Stream =
          override this.Dispose () =
           lock subs <| fun () -> subs.Remove xS |> ignore}}
 
-  let rec foreverJob xJ = xJ |>>* fun x -> Cons (x, foreverJob xJ)
+  let rec indefinitely xJ = xJ |>>* fun x -> Cons (x, indefinitely xJ)
 
-  let repeatJobs xJ uJ = xJ |>>* fun x -> Cons (x, foreverJob (uJ >>. xJ))
-
-  let onceJob xJ = xJ |>>* fun x -> Cons (x, nil)
+  let once xJ = xJ |>>* fun x -> Cons (x, nil)
 
   let inline mapfC c = function Nil -> Nil | Cons (x, xs) -> c x xs
   let inline mapfc c xs = xs |>>? mapfC c
@@ -244,7 +242,12 @@ module Stream =
     let ys = ResizeArray<_>()
     iterFun ys.Add xs >>% ys
 
-  let delayEachBy evt xs = mapJob (fun x -> evt >>% x) xs
+  let afterEach job xs = mapJob (fun x -> job >>% x) xs
+
+  let rec beforeEach job xs =
+    memo (job >>. mapfc (fun x xs -> Cons (x, beforeEach job xs)) xs)
+  let beforeEachExceptFirst job xs =
+    mapfc (fun x xs -> Cons (x, beforeEach job xs)) xs
 
   let distinctByJob x2kJ xs = memo << Job.delay <| fun () ->
     let ks = HashSet<_>() in filterJob (x2kJ >> Job.map ks.Add) xs
@@ -361,7 +364,7 @@ module Stream =
        if ts.Ticks <= 0L then Job.result dto else Timer.Global.timeOut ts >>% dto)
   let atDateTimeOffset dto = atDateTimeOffsets (one dto)
 
-  let afterTimeSpan ts = onceJob (Timer.Global.timeOut ts)
+  let afterTimeSpan ts = once (Timer.Global.timeOut ts)
 
   let values (xs: Stream<_>) = Job.delay <| fun () ->
     let out = Ch<_> ()

@@ -5,11 +5,12 @@
 /// programs.  The design of Hopac draws inspiration from languages such as
 /// Concurrent ML and Cilk.  Similar to Concurrent ML, Hopac provides message
 /// passing primitives and supports the construction of first-class synchronous
-/// abstractions.  Parallel jobs (lightweight threads) in Hopac are created
-/// using techniques similar to the F# Async framework.  Hopac runs parallel
-/// jobs using a work distributing scheduler in a non-preemptive fashion.  Hopac
-/// also includes an implementation of choice streams, see `Stream`, that offers
-/// a simple alternative to reactive programming.
+/// abstractions, see `Alt<_>`.  Parallel jobs (lightweight threads) in Hopac
+/// are created using techniques similar to the F# Async framework, see
+/// `Job<_>`.  Hopac runs parallel jobs using a work distributing scheduler in a
+/// non-preemptive fashion.  Hopac also includes an implementation of choice
+/// streams, see `Stream<_>`, that offers a simple approach to reactive
+/// programming.
 ///
 /// Before you begin using Hopac, make sure that you have configured your F#
 /// interactive and your application to use server garbage collection.  By
