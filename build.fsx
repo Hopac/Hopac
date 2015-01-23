@@ -75,7 +75,7 @@ type Project =
       ProjectFile: string }
 
 let projects = 
-    ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"; "Hopac.Extra"]
+    ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
     |> List.map (fun projectName ->
         let folder = "Libs" @@ projectName
         let projectType, projectFile = 
