@@ -262,7 +262,17 @@ module Stream =
   /// Preliminary and subject to change.
   val groupByFun: ('x -> 'k) -> Stream<'x> -> Stream<'k * Stream<'x>> when 'k: equality
 
-  /// Preliminary and subject to change.
+  /// Returns a stream of pairs of elements from the given pair of streams.  No
+  /// elements from either stream are skipped and each element is used only
+  /// once.  See also: `combineLatest`.
+#if DOC
+  ///
+  /// For example,
+  ///
+  ///> zip xs (skip 1 xs)
+  ///
+  /// is a stream of consecutive pairs from the stream `xs`.
+#endif
   val zip: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
   /// Preliminary and subject to change.
@@ -295,11 +305,13 @@ module Stream =
 
   // Joining streams
 
-  /// Preliminary and subject to change.
+  /// Of the two given streams, returns the stream that first produces an
+  /// element.  See also: `ambMap`.
   val amb: Stream<'x> -> Stream<'x> -> Stream<'x>
+
   /// Returns a stream that produces elements from both of the given streams so
   /// that elements from the streams are interleaved non-deterministically in
-  /// the returned stream.
+  /// the returned stream.  See also: `mergeMap`.
 #if DOC
   ///
   /// Reference implementation:
@@ -310,31 +322,57 @@ module Stream =
   ///> and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
 #endif
   val merge: Stream<'x> -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
+
+  /// Concatenates the given two streams.  In other words, returns a stream that
+  /// first produces all the elements from first stream and then all the
+  /// elements from the second stream.  If the first stream is infinite, no
+  /// elements are produced from the second stream.  See also: `appendMap`.
   val append: Stream<'x> -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
+
+  /// Returns a stream that produces elements from the first stream as long as
+  /// the second stream produces no elements.  As soon as the second stream
+  /// produces an element, the returned stream only produces elements from the
+  /// second stream.  See also: `switchMap`.
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Joins all the streams in the given stream of streams together with the
+  /// given binary join combinator.
   val joinWith: (Stream<'x> -> Stream<'y> -> #Stream<'y>) -> Stream<#Stream<'x>> -> Stream<'y>
 
-  /// Preliminary and subject to change.
+  /// `mapJoin j f xs` is equivalent to `joinWith j (mapFun f xs)`.
   val mapJoin: (Stream<'y> -> Stream<'z> -> #Stream<'z>) -> ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'z>
 
-  /// Preliminary and subject to change.
+  /// Maps and joins all the streams together with `amb`.  This corresponds to
+  /// the idea of starting several alternative streams in parallel and then only
+  /// using the one that produces the first result.
   val ambMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
-  /// Preliminary and subject to change.
+
+  /// Maps and joins all the streams together with `merge`.  This corresponds to
+  /// interleaving results based on all sources of information.  While this is a
+  /// theoretically important combinator, `mergeMap` is probably not the most
+  /// useful binding form on choice streams.
   val mergeMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
-  /// Preliminary and subject to change.
+
+  /// Maps and joins all the streams together with `append`.  This is roughly
+  /// the same function as `Seq.collect`, but is probably less frequently used
+  /// with choice streams.
   val appendMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
-  /// Preliminary and subject to change.
+
+  /// Maps and joins all the streams together with `switch`.  This is perhaps
+  /// the most useful binding form with choice streams as this correspond to the
+  /// idea of producing results based only on the latest source of information.
   val switchMap: ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'y>
 
   // Skipping and taking
 
-  /// Preliminary and subject to change.
+  /// `skip n xs` returns a stream without the first `n` elements of the given
+  /// stream.  If the given stream is shorter than `n`, then the returned stream
+  /// will be empty.
   val skip: int -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
+
+  /// `take n` returns a stream that has the first `n` elements of the given
+  /// stream.  If the given stream is shorter than `n`, then `take n` is the
+  /// identity function.
   val take: int -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
@@ -387,7 +425,7 @@ module Stream =
   /// Returns a stream that produces a new pair of elements whenever either one
   /// of the given pair of streams produces an element.  If one of the streams
   /// produces multiple elements before any elements are produced by the other
-  /// stream, then those elements are skipped.
+  /// stream, then those elements are skipped.  See also: `zip`.
   val combineLatest: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
   /// Returns a stream that produces the same elements as the given stream, but
