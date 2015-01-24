@@ -107,12 +107,6 @@ module Stream =
 
   // Introducing streams
 
-  /// A choice stream that never produces any values and never closes.
-  val inline never<'x> : Stream<'x>
-
-  /// Constructs a choice stream that is closed with an error.
-  val inline error: exn -> Stream<'x>
-
   /// An empty or closed choice stream.
   val inline nil<'x> : Stream<'x>
 
@@ -127,12 +121,29 @@ module Stream =
 #endif
   val cons: 'x -> Stream<'x> -> Stream<'x>
 
-  /// `one x` is equivalent to `cons x nil`.
-  val inline one: 'x -> Stream<'x>
-
   /// `delay` creates a stream that is constructed lazily.  Use `delay` to avoid
   /// unbounded eager recursion.
+#if DOC
+  ///
+  /// Note that with `delay`, `cons` and `nil`, you can express arbitrary lazy
+  /// streams.  For example,
+  ///
+  ///> let fibs: Stream<BigInteger> =
+  ///>   let rec lp fib0 fib1 = cons fib0 << delay <| fun () -> lp fib1 (fib0+fib1)
+  ///>   lp 0I 1I
+  ///
+  /// is the stream of all fibonacci numbers.
+#endif
   val inline delay: (unit -> #Stream<'x>) -> Stream<'x>
+
+  /// A choice stream that never produces any values and never closes.
+  val inline never<'x> : Stream<'x>
+
+  /// Constructs a choice stream that is closed with an error.
+  val inline error: exn -> Stream<'x>
+
+  /// `one x` is equivalent to `cons x nil`.
+  val inline one: 'x -> Stream<'x>
 
   /// Converts the given sequence to a lazy stream.
   val ofSeq: seq<'x> -> Stream<'x>
