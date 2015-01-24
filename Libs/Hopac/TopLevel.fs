@@ -7,7 +7,6 @@ module TopLevel =
   type Stream<'x> = Stream.Stream<'x>
 
   let job = JobBuilder ()
-  let stream = Stream.Builder ()
 
   let inline run x = Job.Global.run x
   let inline startIgnore x = Job.Global.startIgnore x

@@ -416,16 +416,24 @@ module Stream =
      <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
     (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)
 
-  let rec appendWhileFun u2b xs = delay <| fun () ->
-    if u2b () then append xs (appendWhileFun u2b xs) else nil
+  let rec joinWhileFun join u2b xs = delay <| fun () ->
+    if u2b () then join (xs, joinWhileFun join u2b xs) else nil
 
-  type Builder () =
-    member inline this.Bind (xs, x2ys: _ -> Stream<_>) = appendMap x2ys xs
-    member inline this.Combine (xs1, xs2) = append xs1 xs2
+  type [<AbstractClass>] Builder () =
+    member inline this.Bind (xs, x2ys: _ -> Stream<_>) =
+      mapJoin (fun x y -> this.Join (x, y)) x2ys xs
+    member inline this.Combine (xs1, xs2) = this.Join (xs1, xs2)
     member inline this.Delay (u2xs: unit -> Stream<'x>) = delay u2xs
     member inline this.Zero () = nil
-    member inline this.For (xs, x2ys: _ -> Stream<_>) = appendMap x2ys (ofSeq xs)
+    member inline this.For (xs, x2ys: _ -> Stream<_>) =
+      this.Bind (ofSeq xs, x2ys)
     member inline this.TryWith (xs, e2xs: _ -> Stream<_>) = catch e2xs xs
-    member this.While (u2b, xs) = appendWhileFun u2b xs
+    member this.While (u2b, xs) = joinWhileFun this.Join u2b xs
     member inline this.Yield (x) = one x
     member inline this.YieldFrom (xs: Stream<_>) = xs
+    abstract Join: Stream<'x> * Stream<'x> -> Stream<'x>
+
+  let ambed = {new Builder () with member this.Join (xs, ys) = amb xs ys}
+  let appended = {new Builder () with member this.Join (xs, ys) = append xs ys}
+  let merged = {new Builder () with member this.Join (xs, ys) = merge xs ys}
+  let switched = {new Builder () with member this.Join (xs, ys) = switch xs ys}

@@ -14,9 +14,6 @@ module TopLevel =
   /// Default expression builder for jobs.
   val job: JobBuilder
 
-  /// Default expression builder for streams.
-  val stream: Stream.Builder
-
   /// Starts running the given job on the global scheduler and then blocks the
   /// current thread waiting for the job to either return successfully or fail.
 #if DOC

@@ -257,9 +257,11 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec mapJob x2yJ xs =
-  ///>   xs >>=* function Nil -> nil
-  ///>                  | Cons (x, xs) ->
-  ///>                    x2yJ x |>>? fun y -> Cons (y, mapJob x2yJ xs)
+  ///>   memo (xs >>= function Nil -> nil
+  ///>                       | Cons (x, xs) ->
+  ///>                         x2yJ x |>>? fun y -> Cons (y, mapJob x2yJ xs))
+  ///
+  /// Above, `memo` is `fun x -> Promise.Now.delay x :> Alt<_>`.
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
   /// Returns a stream that produces elements passed through the given function
@@ -619,9 +621,8 @@ module Stream =
   /// to longest.
   val inits: Stream<'x> -> Stream<Stream<'x>>
 
-  /// An experimental builder for streams with `append` semantics.  This is not
-  /// the only possible builder for choice streams.
-  type Builder =
+  /// An experimental generic builder for streams.
+  type [<AbstractClass>] Builder =
     new: unit -> Builder
     member inline Bind: Stream<'x> * ('x -> Stream<'y>) -> Stream<'y>
     member inline Combine: Stream<'x> * Stream<'x> -> Stream<'x>
@@ -632,3 +633,16 @@ module Stream =
     member While: (unit -> bool) * Stream<'x> -> Stream<'x>
     member inline Yield: 'x -> Stream<'x>
     member inline YieldFrom: Stream<'x> -> Stream<'x>
+    abstract Join: Stream<'x> * Stream<'x> -> Stream<'x>
+
+  /// This builder produces a stream with the first results.
+  val ambed: Builder
+
+  /// This builder produces a stream with all results in sequential order.
+  val appended: Builder
+
+  /// This builder produces a stream with all results in completion order.
+  val merged: Builder
+
+  /// This builder produces a stream will the latest results.
+  val switched: Builder
