@@ -26,30 +26,32 @@ module Stream =
   /// On the other hand, choice streams offer several advantages over observable
   /// sequences:
   ///
-  /// - Choice streams are simple.  The implementation of choice streams is two
-  /// orders of magnitude shorter than the implementation of .Net Rx.
+  /// - Choice streams are simple and allow consumers and producers to be
+  /// written using simple programming techniques such as lexical binding,
+  /// recursion and immutable data structures.  You can see many examples of
+  /// this in the reference implementations of various stream combinators.
+  /// Observable sequences can only be subscribed to by imperative callbacks.
+  /// The implementation of choice streams is two orders of magnitude shorter
+  /// than the implementation of .Net Rx.
   ///
-  /// - Choice streams generate the same sequence of values for every consumer.
-  /// There are no hot and cold streams like with observable sequences.  Many
-  /// trivial choice stream combinators, such as `tails`, can be very
-  /// challenging, if not impossible, to specify and implement meaningfully for
-  /// observable sequences.
+  /// - Choice streams are designed to be consistent in that they generate the
+  /// same sequence of values for every consumer.  There are no hot and cold
+  /// observables like with observable sequences.  Many trivial choice stream
+  /// combinators, such as `tails`, can be very challenging, if not impossible,
+  /// to specify and implement meaningfully for observable sequences.
   ///
   /// - Choice streams allow the use of asynchronous programming at any point.
   /// For example, `iterJob` waits for the asynchronous job to finish before
   /// consuming the next value from the stream.  The `Subscribe` operation of
-  /// observables cannot support such behaviour, because `OnNext` calls are
+  /// observables cannot support such behavior, because `OnNext` calls are
   /// synchronous.
-  ///
-  /// - Choice streams allow consumers and producers to be written using simple
-  /// programming techniques such as lexical binding, recursion and immutable
-  /// data structures.  Observable sequences can only be subscribed to by
-  /// imperative callbacks.
   ///
   /// - Choice streams allow values to be generated both lazily in response to
   /// consumers and eagerly in response to producers.  Observable sequences can
   /// only be generated eagerly in response to producers.  For example, the
-  /// `beforeEach` combinator cannot be implemented for observable sequences.
+  /// `afterEach` and `beforeEach` combinators cannot be implemented for
+  /// observable sequences, because observables do not have a protocol for
+  /// requesting elements one by one.
   ///
   /// All of the above advantages are strongly related and result from the pull
   /// based nature of choice streams.
@@ -250,9 +252,11 @@ module Stream =
   /// Preliminary and subject to change.
   val scanFun: ('s -> 'x -> 's) -> 's -> Stream<'x> -> Stream<'s>
 
-  /// Preliminary and subject to change.
+  /// `scanFromJob s sx2sJ xs` is equivalent to `scanJob sx2sJ s xs` and is
+  /// often syntactically more convenient to use.
   val scanFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Stream<'x> -> Stream<'s>
-  /// Preliminary and subject to change.
+  /// `scanFromFun s sx2sJ xs` is equivalent to `scanFun sx2sJ s xs` and is
+  /// often syntactically more convenient to use.
   val scanFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Stream<'s>
 
   /// Preliminary and subject to change.
@@ -341,11 +345,32 @@ module Stream =
   /// Preliminary and subject to change.
   val combineLatest: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces the same elements as the given stream, but
+  /// delays each returned element using the given job.  If the given job fails,
+  /// the returned stream also fails.
+  val delayEach: Job<_> -> Stream<'x> -> Stream<'x>
+
+  /// Returns a stream that produces the same elements as the given stream, but
+  /// after each element, the given job is used as a delay before a request is
+  /// made to the given stream for the next element.  If the given job fails,
+  /// the returned stream also fails.
+#if DOC
+  ///
+  /// Suppose that an application needs to poll for some information, e.g. by
+  /// making a http request, using a job named `poll`.  Using `indefinitely` and
+  /// `afterEach` we can specify a stream for polling:
+  ///
+  ///> indefinitely poll
+  ///> |> afterEach (timeOutMillis 10000)
+  ///
+  /// The above stream ensures that polls are at least 10 seconds apart.  Also
+  /// when polls are requested less frequently, there is no delay before a poll.
+#endif
   val afterEach: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that runs the given job each time a value is requested
-  /// before requesting the next value from the given stream.
+  /// before requesting the next value from the given stream.  If the given job
+  /// fails, the returned stream also fails.
 #if DOC
   ///
   /// Reference implementation:
@@ -355,9 +380,6 @@ module Stream =
   ///>                           | Cons (x, xs) -> cons x (beforeEach yJ xs)
 #endif
   val beforeEach: Job<_> -> Stream<'x> -> Stream<'x>
-
-  /// Preliminary and subject to change.
-  val beforeEachExceptFirst: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
   val atDateTimeOffsets: Stream<DateTimeOffset> -> Stream<DateTimeOffset>
@@ -382,9 +404,11 @@ module Stream =
   /// Preliminary and subject to change.
   val foldFun: ('s -> 'x -> 's) -> 's -> Stream<'x> -> Job<'s>
 
-  /// Preliminary and subject to change.
+  /// `foldFromJob s sx2sJ xs` is equivalent to `foldJob sx2sJ s xs` and is
+  /// often syntactically more convenient to use.
   val foldFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Stream<'x> -> Job<'s>
-  /// Preliminary and subject to change.
+  /// `foldFromFun s sx2s xs` is equivalent to `foldFun sx2s s xs` and is often
+  /// syntactically more convenient to use.
   val foldFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Job<'s>
 
   /// Returns a job that sequentially iterates the given job constructor over
@@ -394,7 +418,7 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec iterJob x2uJ xs =
-  ///>   xs >>= function Nil          -> Job.unit ()
+  ///>   xs >>= function Nil -> Job.unit ()
   ///>                 | Cons (x, xs) -> x2uJ x >>. iterJob x2uJ xs
 #endif
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>

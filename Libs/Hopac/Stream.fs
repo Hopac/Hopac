@@ -10,6 +10,7 @@ open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 open Hopac.Promise.Infixes
 open Hopac.Extensions
+open Timer.Global
 
 module Stream =
   let inline (<|>*) x y = x <|>* y :> Alt<_>
@@ -246,11 +247,13 @@ module Stream =
     let ys = ResizeArray<_>()
     iterFun ys.Add xs >>% ys
 
-  let afterEach job xs = mapJob (fun x -> job >>% x) xs
-  let rec beforeEach job xs =
-    memo (job >>. mapfc (fun x xs -> Cons (x, beforeEach job xs)) xs)
-  let beforeEachExceptFirst job xs =
-    mapfc (fun x xs -> Cons (x, beforeEach job xs)) xs
+  let delayEach job xs = mapJob (fun x -> job >>% x) xs
+
+  let rec afterEach' yJ x xs =
+    Promise.queue yJ |>> fun pre -> Cons (x, pre >>.* mapc (afterEach' yJ) xs)
+  let afterEach yJ xs = mapcm (afterEach' yJ) xs
+  let rec beforeEach yJ xs =
+    memo (yJ >>. mapfc (fun x xs -> Cons (x, beforeEach yJ xs)) xs)
 
   let distinctByJob x2kJ xs = delay <| fun () ->
     let ks = HashSet<_>() in filterJob (x2kJ >> Job.map ks.Add) xs
@@ -367,10 +370,10 @@ module Stream =
     dtos
     |> mapJob (fun dto ->
        let ts = dto - DateTimeOffset.Now
-       if ts.Ticks <= 0L then Job.result dto else Timer.Global.timeOut ts >>% dto)
+       if ts.Ticks <= 0L then Job.result dto else timeOut ts >>% dto)
   let atDateTimeOffset dto = atDateTimeOffsets (one dto)
 
-  let afterTimeSpan ts = once (Timer.Global.timeOut ts)
+  let afterTimeSpan ts = once (timeOut ts)
 
   let values (xs: Stream<_>) = Job.delay <| fun () ->
     let out = Ch<_> ()
