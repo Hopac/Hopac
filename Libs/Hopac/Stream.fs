@@ -8,24 +8,22 @@ open System.Threading
 open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
+open Hopac.Promise.Infixes
 open Hopac.Extensions
 
 module Stream =
-  [<AutoOpen>]
-  module internal Util =
-    let inline memo x = Promise.Now.delay x :> Alt<_>
-    let inline (>>=*) x f = x >>= f |> memo
-    let inline (|>>*) x f = x |>> f |> memo
-    let inline (<|>*) x y = x <|>? y |> memo
-    let inline start x = Job.Global.start x
-    let inline tryIn u2v vK eK =
-      let mutable e = null
-      let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
-      match e with
-       | null -> vK v
-       | e -> eK e
-
-    let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
+  let inline (<|>*) x y = x <|>* y :> Alt<_>
+  let inline (>>=*) x y = x >>=* y :> Alt<_>
+  let inline (|>>*) x y = x |>>* y :> Alt<_>
+  let inline memo x = Promise.Now.delay x :> Alt<_>
+  let inline start x = Job.Global.start x
+  let inline tryIn u2v vK eK =
+    let mutable e = null
+    let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
+    match e with
+     | null -> vK v
+     | e -> eK e
+  let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
   type Cons<'x> =
     | Nil
@@ -168,7 +166,8 @@ module Stream =
     chooseJob (fun x -> x2bJ x |>> fun b -> if b then Some x else None) xs
   let filterFun x2b xs = filterJob (x2b >> Job.result) xs
 
-  let mapJob x2yJ xs = chooseJob (x2yJ >> Job.map Some) xs
+  let rec mapJob x2yJ xs =
+    mapcm (fun x xs -> x2yJ x |>> fun y -> Cons (y, mapJob x2yJ xs)) xs
   let rec mapFun x2y xs = mapfcm (fun x xs -> Cons (x2y x, mapFun x2y xs)) xs
 
   let amb ls rs = mapfc consf ls <|>* mapfc consf rs
@@ -248,7 +247,6 @@ module Stream =
     iterFun ys.Add xs >>% ys
 
   let afterEach job xs = mapJob (fun x -> job >>% x) xs
-
   let rec beforeEach job xs =
     memo (job >>. mapfc (fun x xs -> Cons (x, beforeEach job xs)) xs)
   let beforeEachExceptFirst job xs =

@@ -226,6 +226,13 @@ module Stream =
   val filterFun: ('x -> bool) -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec mapJob x2yJ xs =
+  ///>   xs >>=* function Nil -> nil
+  ///>                  | Cons (x, xs) ->
+  ///>                    x2yJ x |>>? fun y -> Cons (y, mapJob x2yJ xs)
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
   /// Preliminary and subject to change.
   val mapFun: ('x -> 'y) -> Stream<'x> -> Stream<'y>
@@ -339,6 +346,14 @@ module Stream =
 
   /// Returns a stream that runs the given job each time a value is requested
   /// before requesting the next value from the given stream.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec beforeEach yJ xs =
+  ///>   (yJ >>. xs) >>=* function Nil -> nil
+  ///>                           | Cons (x, xs) -> cons x (beforeEach yJ xs)
+#endif
   val beforeEach: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
@@ -376,7 +391,7 @@ module Stream =
   /// the given stream.
 #if DOC
   ///
-  /// The implementation of `iterJob` can be illuminating:
+  /// Reference implementation:
   ///
   ///> let rec iterJob x2uJ xs =
   ///>   xs >>= function Nil          -> Job.unit ()
@@ -396,6 +411,14 @@ module Stream =
 
   /// Returns a stream of all final segments of the given stream from longest to
   /// shortest.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec tails xs =
+  ///>   cons xs (xs >>=* function Nil -> nil
+  ///>                           | Cons (_, xs) -> tails xs)
+#endif
   val tails: Stream<'x> -> Stream<Stream<'x>>
 
   /// Preliminary and subject to change.
