@@ -289,6 +289,14 @@ font-weight: bold;
     <b>val</b> <a id="dec:val Hopac.Promise.Now.withFailure" href="#def:val Hopac.Promise.Now.withFailure">withFailure</a><b>:</b> exn <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>val</b> <a id="dec:val Hopac.Promise.Now.isFulfilled" href="#def:val Hopac.Promise.Now.isFulfilled">isFulfilled</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> bool
     <b>val</b> <a id="dec:val Hopac.Promise.Now.get" href="#def:val Hopac.Promise.Now.get">get</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
+  <b>module</b> <a id="dec:module Hopac.Promise.Infixes" href="#def:module Hopac.Promise.Infixes">Infixes</a> <b>=</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes.&lt;|&gt;*" href="#def:val Hopac.Promise.Infixes.&lt;|&gt;*">&lt;|&gt;*</a>)<b>:</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes.&gt;&gt;=*" href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes.&gt;&gt;.*" href="#def:val Hopac.Promise.Infixes.&gt;&gt;.*">&gt;&gt;.*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes..&gt;&gt;*" href="#def:val Hopac.Promise.Infixes..&gt;&gt;*">.&gt;&gt;*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes.|&gt;&gt;*" href="#def:val Hopac.Promise.Infixes.|&gt;&gt;*">|&gt;&gt;*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes.&gt;&gt;%*" href="#def:val Hopac.Promise.Infixes.&gt;&gt;%*">&gt;&gt;%*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <i>'y</i> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+    <b>val</b> (<a id="dec:val Hopac.Promise.Infixes.&gt;&gt;!*" href="#def:val Hopac.Promise.Infixes.&gt;&gt;!*">&gt;&gt;!*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> exn <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b>_<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Promise.start" href="#def:val Hopac.Promise.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Promise.queue" href="#def:val Hopac.Promise.queue">queue</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Promise.read" href="#def:val Hopac.Promise.read">read</a><b>:</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -1273,6 +1281,30 @@ font-weight: bold;
 </pre>
 <div class="nested"><p> Returns the value or raises the failure exception that the promise has been fulfilled with.  It is considered an error if the promise has not yet been fulfilled.</p><p> This operation is mainly provided for advanced uses of promises such as when creating more complex data structures that make internal use of promises.  Using this to poll promises is not generally a good idea.</div>
 </div>
+<pre><b>module</b> <a id="def:module Hopac.Promise.Infixes" href="#dec:module Hopac.Promise.Infixes">Infixes</a> <b>=</b>
+</pre>
+<div class="nested"><p> Infix operators on promises.  You can open this module to bring all of the infix operators into scope.<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes.&lt;|&gt;*" href="#dec:val Hopac.Promise.Infixes.&lt;|&gt;*">&lt;|&gt;*</a>)<b>:</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> A memoizing version of <code><a href="#def:val Hopac.Alt.Infixes.&lt;|&gt;?">&lt;|&gt;?</a></code>.</div>
+<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes.&gt;&gt;=*" href="#dec:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> A lazy memoizing version of <code><a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a></code>.</div>
+<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes.&gt;&gt;.*" href="#dec:val Hopac.Promise.Infixes.&gt;&gt;.*">&gt;&gt;.*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> A lazy memoizing version of <code><a href="#def:val Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a></code>.</div>
+<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes..&gt;&gt;*" href="#dec:val Hopac.Promise.Infixes..&gt;&gt;*">.&gt;&gt;*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> A lazy memoizing version of <code><a href="#def:val Hopac.Job.Infixes..&gt;&gt;">.&gt;&gt;</a></code>.</div>
+<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes.|&gt;&gt;*" href="#dec:val Hopac.Promise.Infixes.|&gt;&gt;*">|&gt;&gt;*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> A lazy memoizing version of <code><a href="#def:val Hopac.Job.Infixes.|&gt;&gt;">|&gt;&gt;</a></code>.</div>
+<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes.&gt;&gt;%*" href="#dec:val Hopac.Promise.Infixes.&gt;&gt;%*">&gt;&gt;%*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <i>'y</i> <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> A lazy memoizing version of <code><a href="#def:val Hopac.Job.Infixes.&gt;&gt;%">&gt;&gt;%</a></code>.</div>
+<pre><b>val</b> (<a id="def:val Hopac.Promise.Infixes.&gt;&gt;!*" href="#dec:val Hopac.Promise.Infixes.&gt;&gt;!*">&gt;&gt;!*</a>)<b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> exn <b>-&gt;</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b>_<b>&gt;</b>
+</pre>
+<div class="nested"><p> A lazy memoizing version of <code><a href="#def:val Hopac.Job.Infixes.&gt;&gt;!">&gt;&gt;!</a></code>.</div>
+</div>
 <pre><b>val</b> <a id="def:val Hopac.Promise.start" href="#dec:val Hopac.Promise.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
 <div class="nested"><p> Creates a job that creates a promise, whose value is computed with the given job, which is immediately started to run as a separate concurrent job.  See also: <code><a href="#def:val Hopac.Promise.queue">queue</a></code>, <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.queue">queue</a></code>.</div>
@@ -1639,7 +1671,7 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.Stream.mapJob" href="#dec:val Hopac.Stream.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Preliminary and subject to change.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs <b>=</b>
-  xs <b>&gt;&gt;=*</b> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+  xs <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
                  <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b>
                    x2yJ x <a href="#def:val Hopac.Alt.Infixes.|&gt;&gt;?">|&gt;&gt;?</a> <b>fun</b> y <b>-&gt;</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (y, <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs)
 </pre></div>
@@ -1756,7 +1788,10 @@ font-weight: bold;
 <div class="nested"><p> Preliminary and subject to change.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.beforeEach" href="#dec:val Hopac.Stream.beforeEach">beforeEach</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Returns a stream that runs the given job each time a value is requested before requesting the next value from the given stream.</div>
+<div class="nested"><p> Returns a stream that runs the given job each time a value is requested before requesting the next value from the given stream.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.beforeEach">beforeEach</a> yJ xs <b>=</b>
+  (yJ <a href="#def:val Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a> xs) <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+                          <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> x (<a href="#def:val Hopac.Stream.beforeEach">beforeEach</a> yJ xs)
+</pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.beforeEachExceptFirst" href="#dec:val Hopac.Stream.beforeEachExceptFirst">beforeEachExceptFirst</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Preliminary and subject to change.</div>
@@ -1789,7 +1824,7 @@ font-weight: bold;
 <div class="nested"><p> Preliminary and subject to change.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.iterJob" href="#dec:val Hopac.Stream.iterJob">iterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Returns a job that sequentially iterates the given job constructor over the given stream.</p><p> The implementation of <code><a href="#def:val Hopac.Stream.iterJob">iterJob</a></code> can be illuminating:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.iterJob">iterJob</a> x2uJ xs <b>=</b>
+<div class="nested"><p> Returns a job that sequentially iterates the given job constructor over the given stream.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.iterJob">iterJob</a> x2uJ xs <b>=</b>
   xs <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> function Nil          <b>-&gt;</b> Job<b>.</b>unit ()
                 <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b> x2uJ x <a href="#def:val Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a> <a href="#def:val Hopac.Stream.iterJob">iterJob</a> x2uJ xs
 </pre></div>
@@ -1807,7 +1842,10 @@ font-weight: bold;
 <div class="nested"><p> Preliminary and subject to change.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.tails" href="#dec:val Hopac.Stream.tails">tails</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
-<div class="nested"><p> Returns a stream of all final segments of the given stream from longest to shortest.</div>
+<div class="nested"><p> Returns a stream of all final segments of the given stream from longest to shortest.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.tails">tails</a> xs <b>=</b>
+  <a href="#def:val Hopac.Stream.cons">cons</a> xs (xs <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+                          <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (_, xs) <b>-&gt;</b> <a href="#def:val Hopac.Stream.tails">tails</a> xs)
+</pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.last" href="#dec:val Hopac.Stream.last">last</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Preliminary and subject to change.</div>
