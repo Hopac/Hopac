@@ -213,36 +213,6 @@ module IVar =
 
 /////////////////////////////////////////////////////////////////////////
 
-module Promise =
-  let start (xJ: Job<'x>) =
-    {new Job<Promise<'x>> () with
-      override self.DoJob (wr, xPrK) =
-       let pr = Promise<'x> ()
-       pr.State <- Promise<'x>.Running
-       xPrK.Value <- pr
-       Worker.Push (&wr, xPrK)
-       Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
-  let queue (xJ: Job<'x>) =
-    {new Job<Promise<'x>> () with
-      override self.DoJob (wr, xPrK) =
-       let pr = Promise<'x> ()
-       pr.State <- Promise<'x>.Running
-       Worker.PushNew (&wr, {new WorkHandler () with
-        override w'.DoWork (wr) =
-         let prc = Promise<'x>.Fulfill (pr)
-         wr.Handler <- prc
-         xJ.DoJob (&wr, prc)})
-       Cont.Do (xPrK, &wr, pr)}
-  module Now =
-    let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
-    let inline withValue (x: 'x) = Promise<'x> (x)
-    let inline withFailure (e: exn) = Promise<'x> (e)
-    let inline isFulfilled (xP: Promise<'x>) = xP.Full
-    let get (xP: Promise<'x>) = xP.Get ()
-  let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
-
-/////////////////////////////////////////////////////////////////////////
-
 module Alt =
   let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
 
@@ -1377,6 +1347,46 @@ module Job =
   let paranoid (xJ: Job<'x>) =
     {new Job<'x> () with
       override xJ'.DoJob (wr, xK) = xJ.DoJob (&wr, xK)}
+
+/////////////////////////////////////////////////////////////////////////
+
+module Promise =
+  let start (xJ: Job<'x>) =
+    {new Job<Promise<'x>> () with
+      override self.DoJob (wr, xPrK) =
+       let pr = Promise<'x> ()
+       pr.State <- Promise<'x>.Running
+       xPrK.Value <- pr
+       Worker.Push (&wr, xPrK)
+       Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
+  let queue (xJ: Job<'x>) =
+    {new Job<Promise<'x>> () with
+      override self.DoJob (wr, xPrK) =
+       let pr = Promise<'x> ()
+       pr.State <- Promise<'x>.Running
+       Worker.PushNew (&wr, {new WorkHandler () with
+        override w'.DoWork (wr) =
+         let prc = Promise<'x>.Fulfill (pr)
+         wr.Handler <- prc
+         xJ.DoJob (&wr, prc)})
+       Cont.Do (xPrK, &wr, pr)}
+  module Now =
+    let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
+    let inline withValue (x: 'x) = Promise<'x> (x)
+    let inline withFailure (e: exn) = Promise<'x> (e)
+    let inline isFulfilled (xP: Promise<'x>) = xP.Full
+    let get (xP: Promise<'x>) = xP.Get ()
+  module Infixes =
+    open Job.Infixes
+    open Alt.Infixes
+    let inline (<|>*) xA1 xA2 = xA1 <|>? xA2 |> Now.delay
+    let inline (>>=*) xJ x2yJ = xJ >>= x2yJ |> Now.delay
+    let inline (>>.*) xJ yJ = xJ >>. yJ |> Now.delay
+    let inline (.>>*) xJ yJ = xJ .>> yJ |> Now.delay
+    let inline (|>>*) xJ x2y = xJ |>> x2y |> Now.delay
+    let inline (>>%*) xJ y = xJ >>% y |> Now.delay
+    let inline (>>!*) xJ e = xJ >>! e |> Now.delay
+  let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
 

@@ -1823,6 +1823,30 @@ module Promise =
     /// promises.  Using this to poll promises is not generally a good idea.
     val get: Promise<'x> -> 'x
 
+  /// Infix operators on promises.  You can open this module to bring all of
+  /// the infix operators into scope.
+  module Infixes =
+    /// A memoizing version of `<|>?`.
+    val inline (<|>*): Alt<'x> -> Alt<'x> -> Promise<'x>
+
+    /// A lazy memoizing version of `>>=`.
+    val inline (>>=*): Job<'x> -> ('x -> #Job<'y>) -> Promise<'y>
+
+    /// A lazy memoizing version of `>>.`.
+    val inline (>>.*): Job<_> -> Job<'y> -> Promise<'y>
+
+    /// A lazy memoizing version of `.>>`.
+    val inline (.>>*): Job<'x> -> Job<_> -> Promise<'x>
+
+    /// A lazy memoizing version of `|>>`.
+    val inline (|>>*): Job<'x> -> ('x -> 'y) -> Promise<'y>
+
+    /// A lazy memoizing version of `>>%`.
+    val inline (>>%*): Job<_> -> 'y -> Promise<'y>
+
+    /// A lazy memoizing version of `>>!`.
+    val inline (>>!*): Job<_> -> exn -> Promise<_>
+
   /// Creates a job that creates a promise, whose value is computed with the
   /// given job, which is immediately started to run as a separate concurrent
   /// job.  See also: `queue`, `Job.queue`.
