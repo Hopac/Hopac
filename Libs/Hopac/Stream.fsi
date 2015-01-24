@@ -19,10 +19,13 @@ module Stream =
   /// Choice streams can be used in ways similar to Rx observable sequences.
   /// However, the underlying implementations of choice streams and observable
   /// sequences are almost polar opposites: choice streams are pull based while
-  /// obserable sequences are push based.  Probably the most notable advantage
-  /// of observable sequences over choice streams is that observables support
-  /// disposables via their subscription protocol.  Choice streams do not have a
-  /// subscription protocol and cannot support disposables in the same manner.
+  /// obserable sequences are push based.
+  ///
+  /// Probably the most notable advantage of observable sequences over choice
+  /// streams is that observables support disposables via their subscription
+  /// protocol.  Choice streams do not have a subscription protocol and cannot
+  /// support disposables in the same manner.
+  ///
   /// On the other hand, choice streams offer several advantages over observable
   /// sequences:
   ///
@@ -55,6 +58,12 @@ module Stream =
   ///
   /// All of the above advantages are strongly related and result from the pull
   /// based nature of choice streams.
+  ///
+  /// While the most common operations are very easy to implement on choice
+  /// streams, some operations perhaps require more intricate programming than
+  /// with push based models.  For example, `groupByFun` and `shift`, that
+  /// corresponds to `Delay` in Rx, are non-trivial, although both
+  /// implementations are actually much shorter than their .Net Rx counterparts.
 #endif
   type Stream<'x> = Alt<Cons<'x>>
 
@@ -468,19 +477,19 @@ module Stream =
   ///>                     +---x        +---x
   ///>  output:     1        2 3   4        5
   ///
-  /// The `shiftBy` operation pulls the `input` while the stream returned by
-  /// `shiftBy` is being pulled.  If the stream produced by `shiftBy` is not
-  /// pulled, `shiftBy` will stop pulling the `input`.
+  /// The `shift` operation pulls the `input` while the stream returned by
+  /// `shift` is being pulled.  If the stream produced by `shift` is not pulled,
+  /// `shift` will stop pulling the `input`.
   ///
   /// Note that this operation has a fairly complex implementation.  Unless you
   /// absolutely want this behavior, you might prefer a combinator such as
   /// `delayEach`.
 #endif
-  val shiftBy: timeout: Job<_> -> Stream<'x> -> Stream<'x>
+  val shift: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces the same elements as the given stream, but
   /// delays each pulled element using the given job.  If the given job fails,
-  /// the returned stream also fails.  See also: `shiftBy`.
+  /// the returned stream also fails.  See also: `shift`.
 #if DOC
   ///
   ///>   input: 1        2 3   4        5
@@ -490,7 +499,7 @@ module Stream =
   /// In the above, the `input` is considered to be independent of the pull
   /// operations performed by `delayEach`.  For streams that produce output
   /// infrequently in relation to the timeout, `delayEach` behaves similarly to
-  /// `shiftBy`.
+  /// `shift`.
 #endif
   val delayEach: Job<_> -> Stream<'x> -> Stream<'x>
 

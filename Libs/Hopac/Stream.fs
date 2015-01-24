@@ -252,7 +252,7 @@ module Stream =
     | Value of 'x
     | Error of exn
 
-  let shiftBy timeout xs =
+  let shift timeout xs =
     let elems = Ch<_> ()
     let toggle = Ch<_> ()
     let rec pullOn xs =
