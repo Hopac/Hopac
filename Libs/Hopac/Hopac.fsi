@@ -1355,7 +1355,7 @@ module Timer =
     ///
     ///> after1s >>= fun () -> ...
     ///
-    /// has the same effect as invoking `sleep` with a time span of one second.
+    /// has the effect of sleeping for one second.
     ///
     /// It is an idiomatic approach with Hopac to rely on garbage collection to
     /// clean up concurrent jobs than can no longer make progress.  It is
