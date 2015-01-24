@@ -1902,19 +1902,19 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>[&lt;</b>AbstractClass<b>&gt;]</b> 
 <b>type</b> <a id="def:type Hopac.Stream.Builder" href="#dec:type Hopac.Stream.Builder">Builder</a> <b>=</b>
 </pre>
-<div class="nested"><p> An experimental generic builder for streams.</div>
+<div class="nested"><p> An experimental generic builder for streams.  The abstract <code>Join</code> operation needs to be implemented in a derived class.  The <code>Join</code> operation is then used to implement <code>Bind</code>, <code>Combine</code>, <code>For</code> and <code>While</code> to get a builder with consistent semantics.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.ambed" href="#dec:val Hopac.Stream.ambed">ambed</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
 </pre>
-<div class="nested"><p> This builder produces a stream with the first results.</div>
+<div class="nested"><p> This builder joins substreams with <code><a href="#def:val Hopac.Stream.amb">amb</a></code> to produce a stream with the first results.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.appended" href="#dec:val Hopac.Stream.appended">appended</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
 </pre>
-<div class="nested"><p> This builder produces a stream with all results in sequential order.</div>
+<div class="nested"><p> This builder joins substreams with <code><a href="#def:val Hopac.Stream.append">append</a></code> to produce a stream with all results in sequential order.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.merged" href="#dec:val Hopac.Stream.merged">merged</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
 </pre>
-<div class="nested"><p> This builder produces a stream with all results in completion order.</div>
+<div class="nested"><p> This builder joins substreams with <code><a href="#def:val Hopac.Stream.merge">merge</a></code> to produce a stream with all results in completion order.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.switched" href="#dec:val Hopac.Stream.switched">switched</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
 </pre>
-<div class="nested"><p> This builder produces a stream will the latest results.</div>
+<div class="nested"><p> This builder joins substreams with <code><a href="#def:val Hopac.Stream.switch">switch</a></code> to produce a stream with the latest results.</div>
 </div>
 <pre><b>[&lt;</b>AutoOpen<b>&gt;]</b>
 <b>module</b> <a id="def:module Hopac.TopLevel" href="#dec:module Hopac.TopLevel">TopLevel</a> <b>=</b>
