@@ -92,11 +92,61 @@ type Void
 /// dispose job.
 #endif
 type IAsyncDisposable =
-  /// Returns a job that needs to be executed to dispose the resource.
+  /// Returns a job that needs to be executed to dispose the resource.  The
+  /// returned job should wait until the resource is properly disposed.
 #if DOC
   ///
-  /// Note that simply calling this function must not immediately dispose the
-  /// resource.
+  /// Note that simply calling `DisposeAsync` must not immediately dispose the
+  /// resource.  For example, the following pattern is incorrect:
+  ///
+  ///> override this.DisposeAsync () = this.DisposeFlag <- true ; Job.unit ()
+  ///
+  /// A typical correct disposal pattern could look something like this:
+  ///
+  ///> override this.DisposeAsync () =
+  ///>   IVar.tryFill requestDisposeIVar () >>.
+  ///>   completedDisposeIVar
+  ///
+  /// The above first signals the server to dispose by filling a synchronous
+  /// variable.  This is non-blocking and does not leak resources.  Then the
+  /// above waits until the server has signaled that disposal is complete.  If
+  /// disposal has already been requested, the first operation does nothing.
+  /// Note that two separate variables are used.
+  ///
+  /// The server loop corresponding to the above could look like this:
+  ///
+  ///> let rec serverLoop ... =
+  ///>   ...
+  ///>   let disposeAlt () =
+  ///>     requestDisposeIVar >>=? fun () ->
+  ///>     ...
+  ///>     completedDisposeIVar <-= ()
+  ///>   ...
+  ///>   ... <|>? disposeAlt () <|>? ...
+  ///
+  /// In some cases it may be preferable to have the server loop take requests
+  /// mainly from a single channel (or mailbox):
+  ///
+  ///> let rec serverLoop ... =
+  ///>   requestCh >>= function
+  ///>     ...
+  ///>     | RequestDispose ->
+  ///>       ...
+  ///>       completedDisposeIVar <-= ()
+  ///>     ...
+  ///
+  /// In such a case, one can still use the above two variable disposal pattern
+  /// by spawning a process that forwards the disposal request to the server
+  /// request channel before the server loop is started:
+  ///
+  ///> start (requestDisposeIVar >>. requestCh <-- RequestDispose)
+  ///
+  /// Alternatively, it is usually acceptable to simply send an asynchronous
+  /// dispose request to the server:
+  ///
+  ///> override this.DisposeAsync () =
+  ///>   requestCh <-+ RequestDispose >>.
+  ///>   completedDisposeIVar
 #endif
   abstract DisposeAsync: unit -> Job<unit>
 
@@ -1310,7 +1360,7 @@ module Timer =
     val timeOut: TimeSpan -> Alt<unit>
 
     /// `timeOutMillis n` is equivalent to `timeOut (TimeSpan.FromMilliseconds
-    /// (double n))`.
+    /// (float n))`.
     val timeOutMillis: int -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1490,7 +1540,7 @@ module IVar =
   /// particular variable is written to at most once, because there is only one
   /// specific concurrent job that may write to the variable, and `tryFill`
   /// should not be used as a substitute for not understanding how the program
-  /// behaves.  However, in some case it can be convinient to use a write once
+  /// behaves.  However, in some case it can be convenient to use a write once
   /// variable as a single shot event and there may be several concurrent jobs
   /// that initially trigger the event.  In such cases, you may use `tryFill`.
 #endif
