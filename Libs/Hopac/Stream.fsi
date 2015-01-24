@@ -414,13 +414,25 @@ module Stream =
   /// produced by the given stream in which case the timeout is restarted.  Note
   /// that if the given stream produces elements more frequently than the
   /// timeout, the returned stream never produces any elements.
-  val throttle: timeout: Alt<_> -> Stream<'x> -> Stream<'x>
+#if DOC
+  ///
+  ///>   input:   1        2 3  4     5 6 7 8 9 ...
+  ///> timeout:   +---x    +-+--+---x +-+-+-+-+-...
+  ///>  output:       1             4
+#endif
+  val debounce: timeout: Alt<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces elements from the given stream so that
   /// after an element is produced by the given stream, a timeout is started and
   /// the latest element produced by the stream is produced when the timeout
   /// expires.
-  val hold: timeout: Job<_> -> Stream<'x> -> Stream<'x>
+#if DOC
+  ///
+  ///>   input:   1        2 3   4
+  ///> timeout:   +---x    +---x +---x
+  ///>  output:       1        3     4
+#endif
+  val throttle: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces a new pair of elements whenever either one
   /// of the given pair of streams produces an element.  If one of the streams

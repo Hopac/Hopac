@@ -202,15 +202,15 @@ module Stream =
   let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =
     Job.tryIn xs (mapC (fun x xs -> cons x (catch e2xs xs))) e2xs |> memo
 
-  let rec throttleGot1 timeout x xs =
-    (timeout |>>? fun _ -> Cons (x, throttle timeout xs)) <|>?
-    (xs >>=? function Nil -> one x | Cons (x, xs) -> throttleGot1 timeout x xs)
-  and throttle timeout xs = mapcm (throttleGot1 timeout) xs
+  let rec debounceGot1 timeout x xs =
+    (timeout |>>? fun _ -> Cons (x, debounce timeout xs)) <|>?
+    (xs >>=? function Nil -> one x | Cons (x, xs) -> debounceGot1 timeout x xs)
+  and debounce timeout xs = mapcm (debounceGot1 timeout) xs
 
-  let rec holdGot1 timeout timer x xs =
-    (timer |>>? fun _ -> Cons (x, hold timeout xs)) <|>?
-    (mapc (holdGot1 timeout timer) xs)
-  and hold timeout xs = mapcm (holdGot1 timeout (memo timeout)) xs
+  let rec throttleGot1 timeout timer x xs =
+    (timer |>>? fun _ -> Cons (x, throttle timeout xs)) <|>?
+    (mapc (throttleGot1 timeout timer) xs)
+  and throttle timeout xs = mapcm (throttleGot1 timeout (memo timeout)) xs
 
   let rec clXY x xs y ys = Cons ((x, y), clY xs y ys <|>* clX ys x xs)
   and clYX y ys x xs = Cons ((x, y), clX ys x xs <|>* clY xs y ys)
