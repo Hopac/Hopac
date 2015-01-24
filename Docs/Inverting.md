@@ -582,8 +582,10 @@ Directly supports dispose  | No                | Yes                  | Reactive
 
 There is a library based on the above technique.  See:
 
-* [Streams.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Extra/Streams.fsi)
-* [Streams.fs](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac.Extra/Streams.fs)
+* [Stream](http://hopac.github.io/Hopac/Hopac.html#def:module%20Hopac.Stream)
+  module reference.
+* [Streams.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac/Streams.fsi)
+* [Streams.fs](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac/Streams.fs)
 
 ## Related work
 
