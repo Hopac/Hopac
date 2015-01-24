@@ -317,7 +317,9 @@ module Stream =
 
   // Exceptions
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces the same sequence of elements as the given
+  /// stream.  If the given stream fails, a new stream is constructed by calling
+  /// the given function and that stream becomes the remainder of the stream.
   val catch: (exn -> #Stream<'x>) -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that is just like the given stream except that just
@@ -333,13 +335,23 @@ module Stream =
 
   // Timing
 
-  /// Preliminary and subject to change.
-  val sample: ticks: Stream<_> -> Stream<'x> -> Stream<'x>
+  /// `sample ticks elems` returns a stream that produces each `elem` that is
+  /// followed by a `tick`.  Excess elements from both streams are skipped.  In
+  /// other words, `elem` followed by `elem` and `tick` followed by `tick` is
+  /// skipped.
+  val sample: ticks: Stream<_> -> elems: Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces elements from the given stream so that an
+  /// element is produced after the given timeout unless a new element is
+  /// produced by the given stream in which case the timeout is restarted.  Note
+  /// that if the given stream produces elements more frequently than the
+  /// timeout, the returned stream never produces any elements.
   val throttle: timeout: Alt<_> -> Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces elements from the given stream so that
+  /// after an element is produced by the given stream, a timeout is started and
+  /// the latest element produced by the stream is produced when the timeout
+  /// expires.
   val hold: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
@@ -396,7 +408,7 @@ module Stream =
 
   /// Returns a job that creates an alternative through which all the values of
   /// the stream generated after the point at which the alternative has been
-  /// created can be read.  See also: `foreverJob`.
+  /// created can be read.  See also: `indefinitely`.
   val values: Stream<'x> -> Job<Alt<'x>>
 
   /// Preliminary and subject to change.
