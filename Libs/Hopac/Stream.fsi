@@ -215,10 +215,14 @@ module Stream =
 
   // Sequence combinators
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces results whenever the given stream produces
+  /// an element and the given job returns `Some` result from that element.
   val chooseJob: ('x -> #Job<option<'y>>) -> Stream<'x> -> Stream<'y>
-  /// Preliminary and subject to change.
+
+  /// Returns a stream that produces results whenever the given stream produces
+  /// an element and the given function returns `Some` result from that element.
   val chooseFun: ('x -> option<'y>) -> Stream<'x> -> Stream<'y>
+
   /// `xs |> choose` is equivalent to `xs |> chooseFun id`.
   val choose: Stream<option<'x>> -> Stream<'x>
 
@@ -227,7 +231,8 @@ module Stream =
   /// Preliminary and subject to change.
   val filterFun: ('x -> bool) -> Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces elements passed through the given job
+  /// whenever the given streams produces elements.
   ///
   /// Reference implementation:
   ///
@@ -236,7 +241,9 @@ module Stream =
   ///>                  | Cons (x, xs) ->
   ///>                    x2yJ x |>>? fun y -> Cons (y, mapJob x2yJ xs)
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
-  /// Preliminary and subject to change.
+
+  /// Returns a stream that produces elements passed through the given function
+  /// whenever the given streams produces elements.
   val mapFun: ('x -> 'y) -> Stream<'x> -> Stream<'y>
 
   /// Preliminary and subject to change.
@@ -255,6 +262,7 @@ module Stream =
   /// `scanFromJob s sx2sJ xs` is equivalent to `scanJob sx2sJ s xs` and is
   /// often syntactically more convenient to use.
   val scanFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Stream<'x> -> Stream<'s>
+
   /// `scanFromFun s sx2sJ xs` is equivalent to `scanFun sx2sJ s xs` and is
   /// often syntactically more convenient to use.
   val scanFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Stream<'s>
@@ -278,7 +286,18 @@ module Stream =
 
   /// Preliminary and subject to change.
   val amb: Stream<'x> -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces elements from both of the given streams so
+  /// that elements from the streams are interleaved non-deterministically in
+  /// the returned stream.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec mergeSwap ls rs =
+  ///>   ls >>= function Nil -> rs
+  ///>                 | Cons (l, ls) -> cons l (merge rs ls)
+  ///> and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
+#endif
   val merge: Stream<'x> -> Stream<'x> -> Stream<'x>
   /// Preliminary and subject to change.
   val append: Stream<'x> -> Stream<'x> -> Stream<'x>
@@ -354,7 +373,10 @@ module Stream =
   /// expires.
   val hold: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that produces a new pair of elements whenever either one
+  /// of the given pair of streams produces an element.  If one of the streams
+  /// produces multiple elements before any elements are produced by the other
+  /// stream, then those elements are skipped.
   val combineLatest: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
   /// Returns a stream that produces the same elements as the given stream, but
