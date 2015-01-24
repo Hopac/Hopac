@@ -278,7 +278,7 @@ module Stream =
   ///
   /// For example,
   ///
-  ///> zip xs (skip 1 xs)
+  ///> zip xs (tail xs)
   ///
   /// is a stream of consecutive pairs from the stream `xs`.
 #endif
@@ -383,12 +383,12 @@ module Stream =
   /// `skip n xs` returns a stream without the first `n` elements of the given
   /// stream.  If the given stream is shorter than `n`, then the returned stream
   /// will be empty.
-  val skip: int -> Stream<'x> -> Stream<'x>
+  val skip: int64 -> Stream<'x> -> Stream<'x>
 
   /// `take n` returns a stream that has the first `n` elements of the given
   /// stream.  If the given stream is shorter than `n`, then `take n` is the
   /// identity function.
-  val take: int -> Stream<'x> -> Stream<'x>
+  val take: int64 -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
   val skipUntil: Alt<_> -> Stream<'x> -> Stream<'x>
@@ -575,15 +575,22 @@ module Stream =
   ///>                 | Cons (x, xs) -> x2uJ x >>. iterJob x2uJ xs
 #endif
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>
-  /// Preliminary and subject to change.
+
+  /// Returns a job that sequentially iterates the given function over the given
+  /// stream.  See also: `iterJob`.
   val iterFun: ('x -> unit) -> Stream<'x> -> Job<unit>
 
-  /// Preliminary and subject to change.
-  val count: Stream<'x> -> Alt<int>
+  /// Returns a job that computes the length of the given stream.
+  val count: Stream<'x> -> Job<int64>
 
-  /// Preliminary and subject to change.
-  val head: Stream<'x> -> Alt<'x>
-  /// Preliminary and subject to change.
+  /// Returns a stream containing only the first element of the given stream.
+  /// If the given stream is closed, the result stream will also be closed.
+  /// Note that `append (head xs) (tail xs)` is equivalent to `xs`.
+  val head: Stream<'x> -> Stream<'x>
+
+  /// Returns a stream just like the given stream except without the first
+  /// element.  If the given stream is closed, the result stream will also be
+  /// closed.  Note that `append (head xs) (tail xs)` is equivalent to `xs`.
   val tail: Stream<'x> -> Stream<'x>
 
   /// Returns a stream of all final segments of the given stream from longest to
@@ -598,13 +605,22 @@ module Stream =
 #endif
   val tails: Stream<'x> -> Stream<Stream<'x>>
 
-  /// Preliminary and subject to change.
-  val last: Stream<'x> -> Alt<'x>
+  /// Returns a stream containing the last element of the given stream.  If the
+  /// given stream is closed, a closed stream is returned.  Note that `append
+  /// (init xs) (last xs)` is equivalent to `xs`.
+  val last: Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
-  val single: Stream<'x> -> Alt<'x>
+  /// Returns a stream with all the elements of the given stream except the last
+  /// element.  If the stream is closed, a closed stream is returned.  Note that
+  /// `append (init xs) (last xs)` is equivalent to `xs`.
+  val init: Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream of all initial segments of the given stream from shortest
+  /// to longest.
+  val inits: Stream<'x> -> Stream<Stream<'x>>
+
+  /// An experimental builder for streams with `append` semantics.  This is not
+  /// the only possible builder for choice streams.
   type Builder =
     new: unit -> Builder
     member inline Bind: Stream<'x> * ('x -> Stream<'y>) -> Stream<'y>

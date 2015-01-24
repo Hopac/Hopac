@@ -14,7 +14,6 @@ open Timer.Global
 
 module Stream =
   let inline (<|>*) x y = x <|>* y :> Alt<_>
-  let inline (>>=*) x y = x >>=* y :> Alt<_>
   let inline (|>>*) x y = x |>>* y :> Alt<_>
   let inline memo x = Promise.Now.delay x :> Alt<_>
   let inline start x = Job.Global.start x
@@ -237,7 +236,7 @@ module Stream =
   let foldFromJob s f xs = foldJob f s xs
   let foldFromFun s f xs = foldFun f s xs
 
-  let count xs = foldFun (fun s _ -> s+1) 0 xs |> memo
+  let count xs = foldFun (fun s _ -> s+1L) 0L xs
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
     xs >>= function Cons (x, xs) -> f x >>. iterJob f xs | Nil -> Job.unit ()
@@ -366,24 +365,28 @@ module Stream =
     mapfc (fun _ ts -> Cons (x, sample ts xs)) ts <|>? mapc (sampleGot1 ts) xs
   and sample ts xs = sampleGot0 ts xs |> memo
 
-  let rec skip' n xs = if 0 < n then mapc (fun _ -> skip' (n-1)) xs else xs
-  let skip n xs = if n < 0 then failwith "skip: n < 0" else skip' n xs |> memo
+  let rec skip' n xs = if 0L < n then mapc (fun _ -> skip' (n-1L)) xs else xs
+  let skip n xs = if n < 0L then failwith "skip: n < 0L" else skip' n xs |> memo
 
   let rec take' n xs =
-    if 0 < n then mapfcm (fun x xs -> Cons (x, take' (n-1) xs)) xs else nil
-  let take n xs = if n < 0 then failwith "take: n < 0" else take' n xs
+    if 0L < n then mapfcm (fun x xs -> Cons (x, take' (n-1L) xs)) xs else nil
+  let take n xs = if n < 0L then failwith "take: n < 0L" else take' n xs
 
-  let inline mapcnm f (xs: Stream<_>) =
-    xs >>=* function Cons (x, xs) -> f x xs | Nil -> failwith "empty"
-
-  let head xs = mapcnm (fun x _ -> Job.result x) xs
-  let tail xs = skip 1 xs
-  let single xs =
-    mapcnm (fun x xs -> xs |>> function Nil -> x | _ -> failwith "single") xs
-  let last xs = mapcnm (foldFun (fun _ x -> x)) xs
-
+  let head xs = mapfcm (fun x _ -> Cons (x, nil)) xs
+  let tail (s: Stream<_>) = memo (s >>= function Cons (_, t) -> t | Nil -> nil)
   let rec ts' = function Cons (_, xs) -> Cons (xs, xs |>>* ts') | Nil -> Nil
   let tails xs = cons xs (xs |>>* ts')
+
+  let last (s: Stream<_>) = memo << Job.delay <| fun () ->
+    let rec lp (r: Job<_>) s =
+      Job.tryIn s (function Cons (_, t) -> lp s t | Nil -> r) (fun _ -> r)
+    lp s s
+  let init (s: Stream<_>) = memo << Job.delay <| fun () ->
+    let rec lp x s =
+      Job.tryIn s (function Cons (h, t) -> cons x (memo (lp h t)) | Nil -> nil)
+       (fun _ -> nil)
+    s >>= function Nil -> nil :> Job<_> | Cons (x, s) -> lp x s
+  let inits xs = scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> take n xs)
 
   let rec unfoldJob f s =
     f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
