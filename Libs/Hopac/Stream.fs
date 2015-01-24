@@ -27,8 +27,8 @@ module Stream =
   let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
   type Cons<'x> =
-    | Nil
     | Cons of Value: 'x * Next: Alt<Cons<'x>>
+    | Nil
 
   type Stream<'x> = Alt<Cons<'x>>
 
@@ -86,8 +86,8 @@ module Stream =
 
   let rec onCloseJob (uJ: Job<unit>) xs =
     Job.tryIn xs
-       <| function Nil -> uJ >>% Nil
-                 | Cons (x, xs) -> upcast cons x (onCloseJob uJ xs)
+       <| function Cons (x, xs) -> cons x (onCloseJob uJ xs) :> Job<_>
+                 | Nil -> uJ >>% Nil
        <| fun e -> uJ >>! e
     |> memo
   let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
@@ -125,8 +125,8 @@ module Stream =
       xs
     let rec loop xs =
       Job.tryIn xs
-       <| function Nil -> Job.unit << iter <| fun xS -> xS.OnCompleted ()
-                 | Cons (x, xs) -> iter (fun xS -> xS.OnNext x); loop xs
+       <| function Cons (x, xs) -> iter (fun xS -> xS.OnNext x); loop xs
+                 | Nil -> Job.unit << iter <| fun xS -> xS.OnCompleted ()
        <| fun e -> Job.unit << iter <| fun xS -> xS.OnError e
     loop xs |> start
     {new IObservable<'x> with
@@ -140,14 +140,14 @@ module Stream =
 
   let once xJ = xJ |>>* fun x -> Cons (x, nil)
 
-  let inline mapfC c = function Nil -> Nil | Cons (x, xs) -> c x xs
+  let inline mapfC c = function Cons (x, xs) -> c x xs | Nil -> Nil 
   let inline mapfc c xs = xs |>>? mapfC c
   let inline mapfcm c xs = mapfc c xs |> memo
 
   let inline mapnc n (c: _ -> _ -> #Job<_>) xs =
     xs >>=? function Cons (x, xs) -> c x xs | _ -> n
   let inline mapC (c: _ -> _ -> #Job<_>) =
-    function Nil -> nil :> Job<_> | Cons (x, xs) -> upcast c x xs
+    function Cons (x, xs) -> c x xs :> Job<_> | Nil -> nil :> Job<_>
   let inline mapc c xs = xs >>=? mapC c
   let inline mapcm c xs = mapc c xs |> memo
 
@@ -204,7 +204,7 @@ module Stream =
 
   let rec debounceGot1 timeout x xs =
     (timeout |>>? fun _ -> Cons (x, debounce timeout xs)) <|>?
-    (xs >>=? function Nil -> one x | Cons (x, xs) -> debounceGot1 timeout x xs)
+    (xs >>=? function Cons (x, xs) -> debounceGot1 timeout x xs | Nil -> one x)
   and debounce timeout xs = mapcm (debounceGot1 timeout) xs
 
   let rec throttleGot1 timeout timer x xs =
@@ -231,8 +231,8 @@ module Stream =
   let scanFromFun s f xs = scanFun f s xs
 
   let rec foldJob f s xs =
-    xs >>= function Nil -> Job.result s
-                  | Cons (x, xs) -> f s x >>= fun s -> foldJob f s xs
+    xs >>= function Cons (x, xs) -> f s x >>= fun s -> foldJob f s xs
+                  | Nil -> Job.result s
   let foldFun f s xs = foldJob (fun s x -> f s x |> Job.result) s xs
   let foldFromJob s f xs = foldJob f s xs
   let foldFromFun s f xs = foldFun f s xs
@@ -240,12 +240,41 @@ module Stream =
   let count xs = foldFun (fun s _ -> s+1) 0 xs |> memo
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
-    xs >>= function Nil -> Job.unit () | Cons (x, xs) -> f x >>. iterJob f xs
+    xs >>= function Cons (x, xs) -> f x >>. iterJob f xs | Nil -> Job.unit ()
   let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
 
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray<_>()
     iterFun ys.Add xs >>% ys
+
+  type Evt<'x> =
+    | Completed
+    | Value of 'x
+    | Error of exn
+
+  let shiftBy timeout xs =
+    let elems = Ch<_> ()
+    let toggle = Ch<_> ()
+    let rec pullOn xs =
+      (toggle >>=? fun () -> pullOff xs) <|>?
+      (Alt.tryIn xs
+        <| function Cons (x, xs) -> Ch.send elems (Value x) >>. pullOn xs
+                  | Nil -> Ch.give elems Completed :> Job<_>
+        <| fun e -> Ch.give elems (Error e)) :> Job<_>
+    and pullOff xs =
+      toggle >>=? fun () -> pullOn xs
+    pullOff xs |> start
+    let toggle = toggle <-- ()
+    let rec ds () =
+      toggle >>.*
+      (elems >>= function
+        | Completed -> nil :> Job<_>
+        | Error e -> error e :> Job<_>
+        | Value x ->
+          Job.tryIn timeout
+           <| fun _ -> toggle >>. cons x (ds ())
+           <| fun e -> toggle >>. error e)
+    ds () :> Alt<_>
 
   let delayEach job xs = mapJob (fun x -> job >>% x) xs
 
@@ -293,10 +322,6 @@ module Stream =
       (let rec serve ss =
          Job.tryIn ss
           <| function
-              | Nil ->
-                key2br.Values
-                |> Seq.iterJob (fun i -> i <-= Nil) >>.
-                (!main <-= Nil) >>% Nil
               | Cons (s, ss) ->
                 Job.tryIn (Job.delay <| fun () -> keyOf s)
                  <| fun k ->
@@ -315,6 +340,10 @@ module Stream =
                          let ki = (k, wrapBranch k (i :> Stream<_>))
                          m <-= Cons (ki, i') >>. newK serve ss ki i'
                  <| raised
+              | Nil ->
+                key2br.Values
+                |> Seq.iterJob (fun i -> i <-= Nil) >>.
+                (!main <-= Nil) >>% Nil
           <| raised
        baton >>=? serve)
     and wrapBranch k xs =
@@ -345,7 +374,7 @@ module Stream =
   let take n xs = if n < 0 then failwith "take: n < 0" else take' n xs
 
   let inline mapcnm f (xs: Stream<_>) =
-    xs >>=* function Nil -> failwith "empty" | Cons (x, xs) -> f x xs
+    xs >>=* function Cons (x, xs) -> f x xs | Nil -> failwith "empty"
 
   let head xs = mapcnm (fun x _ -> Job.result x) xs
   let tail xs = skip 1 xs
@@ -353,7 +382,7 @@ module Stream =
     mapcnm (fun x xs -> xs |>> function Nil -> x | _ -> failwith "single") xs
   let last xs = mapcnm (foldFun (fun _ x -> x)) xs
 
-  let rec ts' = function Nil -> Nil | Cons (_, xs) -> Cons (xs, xs |>>* ts')
+  let rec ts' = function Cons (_, xs) -> Cons (xs, xs |>>* ts') | Nil -> Nil
   let tails xs = cons xs (xs |>>* ts')
 
   let rec unfoldJob f s =
@@ -379,8 +408,8 @@ module Stream =
     let out = Ch<_> ()
     Job.iterateServer xs (fun xs ->
     Job.tryIn xs
-     <| function Nil -> Job.abort ()
-               | Cons (x, xs) -> out <-- Choice1Of2 x >>% xs
+     <| function Cons (x, xs) -> out <-- Choice1Of2 x >>% xs
+               | Nil -> Job.abort ()
      <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
     (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)
 

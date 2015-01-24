@@ -8,10 +8,10 @@ open System
 module Stream =
   /// Represents a point in a non-deterministic stream of values.
   type Cons<'x> =
-    /// Communicates the end of the stream.
-    | Nil
     /// Communicates a value and the remainder of the stream.
     | Cons of Value: 'x * Next: Alt<Cons<'x>>
+    /// Communicates the end of the stream.
+    | Nil
 
   /// Represents a non-deterministic stream of values called a choice stream.
 #if DOC
@@ -333,6 +333,12 @@ module Stream =
   /// the second stream produces no elements.  As soon as the second stream
   /// produces an element, the returned stream only produces elements from the
   /// second stream.  See also: `switchMap`.
+#if DOC
+  ///
+  ///>  first: a b    c   d
+  ///> second:      1  2 3  4 ...
+  ///> output: a b  1  2 3  4 ...
+#endif
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
   /// Joins all the streams in the given stream of streams together with the
@@ -407,30 +413,37 @@ module Stream =
   /// followed by a `tick`.  Excess elements from both streams are skipped.  In
   /// other words, `elem` followed by `elem` and `tick` followed by `tick` is
   /// skipped.
+#if DOC
+  ///
+  ///>  elems: 1  2  3        4 5 6  7
+  ///>  ticks:     x    x    x    x    x
+  ///> output:     2    3         6    7
+#endif
   val sample: ticks: Stream<_> -> elems: Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces elements from the given stream so that an
   /// element is produced after the given timeout unless a new element is
   /// produced by the given stream in which case the timeout is restarted.  Note
   /// that if the given stream produces elements more frequently than the
-  /// timeout, the returned stream never produces any elements.
+  /// timeout, the returned stream never produces any elements.  See also:
+  /// `throttle`.
 #if DOC
   ///
-  ///>   input:   1        2 3  4     5 6 7 8 9 ...
-  ///> timeout:   +---x    +-+--+---x +-+-+-+-+-...
-  ///>  output:       1             4
+  ///>   input: 1        2 3  4     5 6 7 8 9 ...
+  ///> timeout: +---x    +-+--+---x +-+-+-+-+-...
+  ///>  output:     1             4
 #endif
   val debounce: timeout: Alt<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces elements from the given stream so that
   /// after an element is produced by the given stream, a timeout is started and
   /// the latest element produced by the stream is produced when the timeout
-  /// expires.
+  /// expires.  See also: `debounce`.
 #if DOC
   ///
-  ///>   input:   1        2 3   4
-  ///> timeout:   +---x    +---x +---x
-  ///>  output:       1        3     4
+  ///>   input: 1        2 3   4
+  ///> timeout: +---x    +---x +---x
+  ///>  output:     1        3     4
 #endif
   val throttle: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
@@ -438,11 +451,47 @@ module Stream =
   /// of the given pair of streams produces an element.  If one of the streams
   /// produces multiple elements before any elements are produced by the other
   /// stream, then those elements are skipped.  See also: `zip`.
+#if DOC
+  ///
+  ///>  xs: 1 2                  3     4
+  ///>  ys:     a     b     c
+  ///> xys:   (2,a) (2,b) (2,c)(3,c) (4,c)
+#endif
   val combineLatest: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
+  /// Returns a stream that produces the same sequence of elements as the given
+  /// stream, but shifted in time by the given timeout.
+#if DOC
+  ///
+  ///>   input: 1        2 3   4        5
+  ///> timeout: +---x    +---x +---x
+  ///>                     +---x        +---x
+  ///>  output:     1        2 3   4        5
+  ///
+  /// The `shiftBy` operation pulls the `input` while the stream returned by
+  /// `shiftBy` is being pulled.  If the stream produced by `shiftBy` is not
+  /// pulled, `shiftBy` will stop pulling the `input`.
+  ///
+  /// Note that this operation has a fairly complex implementation.  Unless you
+  /// absolutely want this behavior, you might prefer a combinator such as
+  /// `delayEach`.
+#endif
+  val shiftBy: timeout: Job<_> -> Stream<'x> -> Stream<'x>
+
   /// Returns a stream that produces the same elements as the given stream, but
-  /// delays each returned element using the given job.  If the given job fails,
-  /// the returned stream also fails.
+  /// delays each pulled element using the given job.  If the given job fails,
+  /// the returned stream also fails.  See also: `shiftBy`.
+#if DOC
+  ///
+  ///>   input: 1        2 3   4        5
+  ///> timeout: +---x    +---x---x---x  +---x
+  ///>  output:     1        2   3   4      5
+  ///
+  /// In the above, the `input` is considered to be independent of the pull
+  /// operations performed by `delayEach`.  For streams that produce output
+  /// infrequently in relation to the timeout, `delayEach` behaves similarly to
+  /// `shiftBy`.
+#endif
   val delayEach: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces the same elements as the given stream, but
