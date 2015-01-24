@@ -1,3 +1,13 @@
+#### 0.0.0.38 - 24.01.2015
+* Move Streams, BoundedMb and some functions form Hopac.Extra library to Hopac.
+* Documenting and refining choice streams.
+* Put `Streams` under `TopLevel`.
+* Expose `Stream<'x>` at `Hopac` namespace level.
+* Experimental streams builder.
+* Refining streams.
+* Lazy memoizing promise operators.
+* Fixed missing init in IVar and Nack.
+
 #### 0.0.0.37 - 21.01.2015
 * Merge Hopac.Extra package.
 * Renamed `Streams.finallyFun` to `Streams.onCloseFun` to emphasize semantic differences.  
