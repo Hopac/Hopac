@@ -504,6 +504,7 @@ font-weight: bold;
   <b>val</b> <a id="dec:val Hopac.Stream.last" href="#def:val Hopac.Stream.last">last</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.init" href="#def:val Hopac.Stream.init">init</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.inits" href="#def:val Hopac.Stream.inits">inits</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+  <b>[&lt;</b>AbstractClass<b>&gt;]</b> 
   <b>type</b> <a id="dec:type Hopac.Stream.Builder" href="#def:type Hopac.Stream.Builder">Builder</a> <b>=</b>
     <b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
     <b>member</b> Bind<b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> (<i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
@@ -515,12 +516,16 @@ font-weight: bold;
     <b>member</b> While<b>:</b> (unit <b>-&gt;</b> bool) <b>*</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>member</b> Yield<b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
     <b>member</b> YieldFrom<b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>abstract</b> Join<b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>*</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Stream.ambed" href="#def:val Hopac.Stream.ambed">ambed</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+  <b>val</b> <a id="dec:val Hopac.Stream.appended" href="#def:val Hopac.Stream.appended">appended</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+  <b>val</b> <a id="dec:val Hopac.Stream.merged" href="#def:val Hopac.Stream.merged">merged</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+  <b>val</b> <a id="dec:val Hopac.Stream.switched" href="#def:val Hopac.Stream.switched">switched</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
 </pre>
 <pre><b>[&lt;</b>AutoOpen<b>&gt;]</b>
 <b>module</b> <a id="dec:module Hopac.TopLevel" href="#def:module Hopac.TopLevel">TopLevel</a> <b>=</b>
   <b>type</b> <a id="dec:type Hopac.TopLevel.Stream" href="#def:type Hopac.TopLevel.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> <a href="#def:module Hopac.Stream">Stream</a><b>.</b><a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.TopLevel.job" href="#def:val Hopac.TopLevel.job">job</a><b>:</b> <a href="#def:type Hopac.JobBuilder">JobBuilder</a>
-  <b>val</b> <a id="dec:val Hopac.TopLevel.stream" href="#def:val Hopac.TopLevel.stream">stream</a><b>:</b> <a href="#def:module Hopac.Stream">Stream</a><b>.</b><a href="#def:type Hopac.Stream.Builder">Builder</a>
   <b>val</b> <a id="dec:val Hopac.TopLevel.run" href="#def:val Hopac.TopLevel.run">run</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
   <b>val</b> <a id="dec:val Hopac.TopLevel.start" href="#def:val Hopac.TopLevel.start">start</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> unit
   <b>val</b> <a id="dec:val Hopac.TopLevel.startIgnore" href="#def:val Hopac.TopLevel.startIgnore">startIgnore</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> unit
@@ -576,7 +581,7 @@ font-weight: bold;
   <b>...</b>
   <b>...</b> <a href="#def:val Hopac.Alt.Infixes.&lt;|&gt;?">&lt;|&gt;?</a> disposeAlt () <a href="#def:val Hopac.Alt.Infixes.&lt;|&gt;?">&lt;|&gt;?</a> <b>...</b>
 </pre><p> In some cases it may be preferable to have the server loop take requests mainly from a single channel (or mailbox):</p><pre><b>let</b> <b>rec</b> serverLoop <b>...</b> <b>=</b>
-  requestCh <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> function
+  requestCh <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <b>function</b>
     <b>...</b>
     <b>|</b> RequestDispose <b>-&gt;</b>
       <b>...</b>
@@ -1678,10 +1683,10 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.Stream.mapJob" href="#dec:val Hopac.Stream.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream that produces elements passed through the given job whenever the given streams produces elements.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs <b>=</b>
-  xs <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
-                 <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b>
-                   x2yJ x <a href="#def:val Hopac.Alt.Infixes.|&gt;&gt;?">|&gt;&gt;?</a> <b>fun</b> y <b>-&gt;</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (y, <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs)
-</pre></div>
+  memo (xs <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <b>function</b> Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+                      <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b>
+                        x2yJ x <a href="#def:val Hopac.Alt.Infixes.|&gt;&gt;?">|&gt;&gt;?</a> <b>fun</b> y <b>-&gt;</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (y, <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs))
+</pre><p> Above, <code>memo</code> is <code><b>fun</b>&nbsp;x&nbsp;<b>-&gt;</b>&nbsp;<a href="#def:module Hopac.Promise">Promise</a><b>.</b><a href="#def:module Hopac.Promise.Now">Now</a><b>.</b><a href="#def:val Hopac.Promise.Now.delay">delay</a>&nbsp;x&nbsp;<b>:&gt;</b>&nbsp;<a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>_<b>&gt;</b></code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.mapFun" href="#dec:val Hopac.Stream.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream that produces elements passed through the given function whenever the given streams produces elements.</div>
@@ -1731,7 +1736,7 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.Stream.merge" href="#dec:val Hopac.Stream.merge">merge</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream that produces elements from both of the given streams so that elements from the streams are interleaved non-deterministically in the returned stream.  See also: <code><a href="#def:val Hopac.Stream.mergeMap">mergeMap</a></code>.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> mergeSwap ls rs <b>=</b>
-  ls <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> function Nil <b>-&gt;</b> rs
+  ls <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <b>function</b> Nil <b>-&gt;</b> rs
                 <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (l, ls) <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> l (<a href="#def:val Hopac.Stream.merge">merge</a> rs ls)
 and <a href="#def:val Hopac.Stream.merge">merge</a> ls rs <b>=</b> mergeSwap ls rs <a href="#def:val Hopac.Promise.Infixes.&lt;|&gt;*">&lt;|&gt;*</a> mergeSwap rs ls
 </pre></div>
@@ -1831,7 +1836,7 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>val</b> <a id="def:val Hopac.Stream.beforeEach" href="#dec:val Hopac.Stream.beforeEach">beforeEach</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream that runs the given job each time a value is requested before requesting the next value from the given stream.  If the given job fails, the returned stream also fails.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.beforeEach">beforeEach</a> yJ xs <b>=</b>
-  (yJ <a href="#def:val Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a> xs) <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+  (yJ <a href="#def:val Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a> xs) <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> <b>function</b> Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
                           <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> x (<a href="#def:val Hopac.Stream.beforeEach">beforeEach</a> yJ xs)
 </pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.atDateTimeOffsets" href="#dec:val Hopac.Stream.atDateTimeOffsets">atDateTimeOffsets</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>DateTimeOffset<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>DateTimeOffset<b>&gt;</b>
@@ -1864,7 +1869,7 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>val</b> <a id="def:val Hopac.Stream.iterJob" href="#dec:val Hopac.Stream.iterJob">iterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a job that sequentially iterates the given job constructor over the given stream.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.iterJob">iterJob</a> x2uJ xs <b>=</b>
-  xs <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> function Nil <b>-&gt;</b> Job<b>.</b>unit ()
+  xs <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <b>function</b> Nil <b>-&gt;</b> Job<b>.</b>unit ()
                 <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b> x2uJ x <a href="#def:val Hopac.Job.Infixes.&gt;&gt;.">&gt;&gt;.</a> <a href="#def:val Hopac.Stream.iterJob">iterJob</a> x2uJ xs
 </pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.iterFun" href="#dec:val Hopac.Stream.iterFun">iterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
@@ -1882,7 +1887,7 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>val</b> <a id="def:val Hopac.Stream.tails" href="#dec:val Hopac.Stream.tails">tails</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream of all final segments of the given stream from longest to shortest.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.tails">tails</a> xs <b>=</b>
-  <a href="#def:val Hopac.Stream.cons">cons</a> xs (xs <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> function Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+  <a href="#def:val Hopac.Stream.cons">cons</a> xs (xs <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> <b>function</b> Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
                           <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (_, xs) <b>-&gt;</b> <a href="#def:val Hopac.Stream.tails">tails</a> xs)
 </pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.last" href="#dec:val Hopac.Stream.last">last</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -1894,9 +1899,22 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>val</b> <a id="def:val Hopac.Stream.inits" href="#dec:val Hopac.Stream.inits">inits</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream of all initial segments of the given stream from shortest to longest.</div>
-<pre><b>type</b> <a id="def:type Hopac.Stream.Builder" href="#dec:type Hopac.Stream.Builder">Builder</a> <b>=</b>
+<pre><b>[&lt;</b>AbstractClass<b>&gt;]</b> 
+<b>type</b> <a id="def:type Hopac.Stream.Builder" href="#dec:type Hopac.Stream.Builder">Builder</a> <b>=</b>
 </pre>
-<div class="nested"><p> An experimental builder for streams with <code><a href="#def:val Hopac.Stream.append">append</a></code> semantics.  This is not the only possible builder for choice streams.</div>
+<div class="nested"><p> An experimental generic builder for streams.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.ambed" href="#dec:val Hopac.Stream.ambed">ambed</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+</pre>
+<div class="nested"><p> This builder produces a stream with the first results.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.appended" href="#dec:val Hopac.Stream.appended">appended</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+</pre>
+<div class="nested"><p> This builder produces a stream with all results in sequential order.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.merged" href="#dec:val Hopac.Stream.merged">merged</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+</pre>
+<div class="nested"><p> This builder produces a stream with all results in completion order.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.switched" href="#dec:val Hopac.Stream.switched">switched</a><b>:</b> <a href="#def:type Hopac.Stream.Builder">Builder</a>
+</pre>
+<div class="nested"><p> This builder produces a stream will the latest results.</div>
 </div>
 <pre><b>[&lt;</b>AutoOpen<b>&gt;]</b>
 <b>module</b> <a id="def:module Hopac.TopLevel" href="#dec:module Hopac.TopLevel">TopLevel</a> <b>=</b>
@@ -1907,9 +1925,6 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>val</b> <a id="def:val Hopac.TopLevel.job" href="#dec:val Hopac.TopLevel.job">job</a><b>:</b> <a href="#def:type Hopac.JobBuilder">JobBuilder</a>
 </pre>
 <div class="nested"><p> Default expression builder for jobs.</div>
-<pre><b>val</b> <a id="def:val Hopac.TopLevel.stream" href="#dec:val Hopac.TopLevel.stream">stream</a><b>:</b> <a href="#def:module Hopac.Stream">Stream</a><b>.</b><a href="#def:type Hopac.Stream.Builder">Builder</a>
-</pre>
-<div class="nested"><p> Default expression builder for streams.</div>
 <pre><b>val</b> <a id="def:val Hopac.TopLevel.run" href="#dec:val Hopac.TopLevel.run">run</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
 </pre>
 <div class="nested"><p> Starts running the given job on the global scheduler and then blocks the current thread waiting for the job to either return successfully or fail.</p><p> WARNING: Use of <code><a href="#def:val Hopac.TopLevel.run">run</a></code> should be considered carefully, because calling <code><a href="#def:val Hopac.TopLevel.run">run</a></code> from an arbitrary thread can cause deadlock.</p><p> <code><a href="#def:val Hopac.TopLevel.run">run</a></code> is mainly provided for conveniently running Hopac code from F# Interactive and can also be used as an entry point to the Hopac runtime in console applications.  In Windows applications, for example, <code><a href="#def:val Hopac.TopLevel.run">run</a></code> should not be called from the GUI thread.</p><p> A call of <code><a href="#def:val Hopac.TopLevel.run">run</a>&nbsp;xJ</code> is safe when the call is not made from within a Hopac worker thread and the job <code>xJ</code> does not perform operations that might block or that might directly, or indirectly, need to communicate with the thread from which <code><a href="#def:val Hopac.TopLevel.run">run</a></code> is being called.</p><p> Note that using this function from within a job workflow should never be needed, because within a workflow the result of a job can be obtained by binding.</p><p> This is the same function as <code><a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:module Hopac.Job.Global">Global</a><b>.</b><a href="#def:val Hopac.Job.Global.run">run</a></code>.  See also: <code><a href="#def:val Hopac.Job.abort">abort</a></code>.</div>
