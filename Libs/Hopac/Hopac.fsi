@@ -1356,6 +1356,16 @@ module Timer =
     ///> after1s >>= fun () -> ...
     ///
     /// has the same effect as invoking `sleep` with a time span of one second.
+    ///
+    /// It is an idiomatic approach with Hopac to rely on garbage collection to
+    /// clean up concurrent jobs than can no longer make progress.  It is
+    /// therefore important to note that a server loop
+    ///
+    ///> let rec serverLoop ... =
+    ///>   ... <|>? (timeOut ... >>=? ... serverLoop ...) <|>? ...
+    ///
+    /// that always waits for a timeout is held live by the timeout.  Such
+    /// servers need to support an explicit kill protocol.
 #endif
     val timeOut: TimeSpan -> Alt<unit>
 
