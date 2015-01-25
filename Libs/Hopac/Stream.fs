@@ -201,6 +201,35 @@ module Stream =
   let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =
     Job.tryIn xs (mapC (fun x xs -> cons x (catch e2xs xs))) e2xs |> memo
 
+  // Sampler.regular
+  // Sampler.debounce
+  // Sampler.throttle
+  // Sampler.fromStream
+  // Sampler.fromJob
+
+  module Sampler =
+    // debounce
+    let restart (timeSpan: TimeSpan) : Alt<_> =
+      timeOut timeSpan
+    // throttle
+    let retain (timeSpan: TimeSpan) : Alt<_> =
+      let timeout = timeOut timeSpan
+      let req = Ch<_> ()
+      let res = Ch<_> ()
+      let rec idle () =
+        req >>= fun () -> busy (memo timeout)
+      and busy timeout =
+        (timeout >>=? fun () -> res <-- () >>= idle) <|>?
+        (req >>=? fun () -> busy timeout)
+      idle () |> Job.Global.server
+      Alt.guard (req <-+ () >>% res)
+
+  let rec sampleGot0 ts xs =
+    mapc (fun _ ts -> sampleGot0 ts xs) ts <|>? mapc (sampleGot1 ts) xs
+  and sampleGot1 ts x xs =
+    mapfc (fun _ ts -> Cons (x, sample ts xs)) ts <|>? mapc (sampleGot1 ts) xs
+  and sample ts xs = sampleGot0 ts xs |> memo
+
   let rec debounceGot1 timeout x xs =
     (timeout |>>? fun _ -> Cons (x, debounce timeout xs)) <|>?
     (xs >>=? function Cons (x, xs) -> debounceGot1 timeout x xs | Nil -> one x)
@@ -362,12 +391,6 @@ module Stream =
        <| fun serve ss _ _ _ -> serve ss
     !main |> wrapMain
   let groupByFun keyOf ss = groupByJob (keyOf >> Job.result) ss
-
-  let rec sampleGot0 ts xs =
-    mapc (fun _ ts -> sampleGot0 ts xs) ts <|>? mapc (sampleGot1 ts) xs
-  and sampleGot1 ts x xs =
-    mapfc (fun _ ts -> Cons (x, sample ts xs)) ts <|>? mapc (sampleGot1 ts) xs
-  and sample ts xs = sampleGot0 ts xs |> memo
 
   let rec skip' n xs = if 0L < n then mapc (fun _ -> skip' (n-1L)) xs else xs
   let skip n xs = if n < 0L then failwith "skip: n < 0L" else skip' n xs |> memo
