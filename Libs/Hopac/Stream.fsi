@@ -445,12 +445,14 @@ module Stream =
 
   /// `skip n xs` returns a stream without the first `n` elements of the given
   /// stream.  If the given stream is shorter than `n`, then the returned stream
-  /// will be empty.
+  /// will be empty.  Note that if `n` is non-negative, then `append (take n xs)
+  /// (skip n xs)` is equivalent to `xs`.
   val skip: int64 -> Stream<'x> -> Stream<'x>
 
   /// `take n` returns a stream that has the first `n` elements of the given
   /// stream.  If the given stream is shorter than `n`, then `take n` is the
-  /// identity function.
+  /// identity function.  Note that if `n` is non-negative, then `append (take n
+  /// xs) (skip n xs)` is equivalent to `xs`.
   val take: int64 -> Stream<'x> -> Stream<'x>
 
   /// Preliminary and subject to change.
