@@ -50,11 +50,13 @@ module Stream =
   /// synchronous.
   ///
   /// - Choice streams allow values to be generated both lazily in response to
-  /// consumers and eagerly in response to producers.  Observable sequences can
-  /// only be generated eagerly in response to producers.  For example, the
-  /// `afterEach` and `beforeEach` combinators cannot be implemented for
-  /// observable sequences, because observables do not have a protocol for
-  /// requesting elements one by one.
+  /// consumers, see the fibonacci example in `delay`, and eagerly in response
+  /// to producers, see `shift`.  Observable sequences can only be generated
+  /// eagerly in response to producers.  The fibonacci example cannot be
+  /// expressed using observable sequences, because an observable sequence would
+  /// enumerate the fibonacci sequence eagerly, and combinators like `afterEach`
+  /// and `beforeEach` cannot be implemented for observable sequences, because
+  /// observables do not have a protocol for requesting elements one by one.
   ///
   /// All of the above advantages are strongly related and result from the pull
   /// based nature of choice streams.
@@ -142,6 +144,16 @@ module Stream =
   ///>   lp 0I 1I
   ///
   /// is the stream of all fibonacci numbers.
+  ///
+  /// The above `fibs` streams produces results lazily, but can do so at a
+  /// relatively fast rate when it is being pulled eagerly.  The following
+  ///
+  ///> let slowFibs =
+  ///>   fibs
+  ///>   |> afterEach (timeOutMillis 1000)
+  ///
+  /// stream would produce the fibonacci sequence with at most one element per
+  /// second.
 #endif
   val inline delay: (unit -> #Stream<'x>) -> Stream<'x>
 
@@ -479,9 +491,10 @@ module Stream =
   ///>                     +---x        +---x
   ///>  output:     1        2 3   4        5
   ///
-  /// The `shift` operation pulls the `input` while the stream returned by
-  /// `shift` is being pulled.  If the stream produced by `shift` is not pulled,
-  /// `shift` will stop pulling the `input`.
+  /// The `shift` operation pulls the input while the stream returned by `shift`
+  /// is being pulled.  If the stream produced by `shift` is not pulled, `shift`
+  /// will stop pulling the input.  This basically means that the timing of the
+  /// output can be determined by an eager producer of the input.
   ///
   /// Note that this operation has a fairly complex implementation.  Unless you
   /// absolutely want this behavior, you might prefer a combinator such as
