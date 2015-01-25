@@ -283,7 +283,7 @@ module Stream =
     | Error of exn
 
   let shift timeout (xs: Stream<'x>) : Stream<'x> =
-    let elems = Ch<Alt<Evt<'x>>> ()
+    let elems = Mailbox<Alt<Evt<'x>>> ()
     let toggle = Ch<_> ()
     let rec pullOn xs =
       (toggle >>=? fun () -> pullOff xs) <|>?
@@ -291,12 +291,15 @@ module Stream =
         <| function
             | Cons (x, xs) ->
               Promise.start (timeout >>% Value x) >>= fun p ->
-              Ch.send elems (p :> Alt<_>) >>. pullOn xs
+              Mailbox.send elems (p :> Alt<_>) >>. pullOn xs
             | Nil ->
-              Ch.give elems (Alt.always Completed) :> Job<_>
-        <| fun e -> Ch.give elems (Alt.always (Error e)))
+              Mailbox.send elems (Alt.always Completed) >>.
+              Job.forever toggle
+        <| fun e ->
+             Mailbox.send elems (Alt.always (Error e)) >>.
+             Job.forever toggle)
     and pullOff xs =
-      toggle >>=? fun () -> pullOn xs
+      toggle >>= fun () -> pullOn xs
     pullOff xs |> start
     let toggle = toggle <-- ()
     let rec ds () =
