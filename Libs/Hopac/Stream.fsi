@@ -71,6 +71,43 @@ module Stream =
 
   /// Represents an imperative source of a stream of values called a stream
   /// source.
+#if DOC
+  ///
+  /// A basic use for a stream source would be to produce a stream in response
+  /// to events from a GUI.  For example, given a GUI button, one could write
+  ///
+  ///> let buttonClickSrc = Stream.Src.create ()
+  ///> button.Click.Add (ignore >> Stream.Src.value buttonClickSrc >> start)
+  ///
+  /// to produce a stream of button clicks.  The `Stream.Src.tap` function
+  /// returns the generated stream, which can then be manipulated using stream
+  /// combinators.
+  ///
+  /// Here is a silly example.  We could write a stream combinator that counts
+  /// the number of events within a given timeout period:
+  ///
+  ///> let eventsWithin timeout xs =
+  ///>   let inc = xs |> Stream.mapFun (fun _ -> +1)
+  ///>   let dec = xs |> Stream.mapFun (fun _ -> -1) |> Stream.shift timeout
+  ///>   Stream.merge inc dec
+  ///>   |> Stream.scanFromFun 0 (+)
+  ///
+  /// Given two stream sources for buttons, the following program would then
+  /// print "That was fast!" whenever both buttons are clicked within 500ms.
+  ///
+  ///> let t500ms = timeOutMillis 500
+  ///> let n1s = Stream.Src.tap button1ClickSrc |> eventsWithin t500ms
+  ///> let n2s = Stream.Src.tap button2ClickSrc |> eventsWithin t500ms
+  ///> Stream.combineLatest n1s n2s
+  ///> |> Stream.chooseFun (fun (n1, n2) ->
+  ///>    if n1 > 0 && n2 > 0 then Some () else None)
+  ///> |> Stream.iterFun (fun () -> printfn "That was fast!")
+  ///> |> queue
+  ///
+  /// Note that there are no special hidden mechanisms involved in the
+  /// implementation of stream sources.  You can easily implement similar
+  /// imperative mechanisms outside of the stream library.
+#endif
   type Src<'x>
 
   /// Operations on stream sources.
@@ -79,7 +116,8 @@ module Stream =
     val create: unit -> Src<'x>
 
     /// Appends a new value to the end of the generated stream.  This operation
-    /// is atomic and can be safely used from multiple parallel jobs.
+    /// is atomic and non-blocking and can be safely used from multiple parallel
+    /// jobs.
     val value: Src<'x> -> 'x -> Job<unit>
 
     /// Terminates the stream with an error.  The given exception is raised in
@@ -96,6 +134,17 @@ module Stream =
 
   /// Represents a mutable variable, called a stream variable, that generates a
   /// stream of values as a side-effect.
+#if DOC
+  ///
+  /// The difference between a stream variable and a stream source is that a
+  /// stream variable cannot be closed and always has a value.  Stream variables
+  /// are one way to represent state, or the model, manipulated by a program
+  /// using streams.
+  ///
+  /// Note that there are no special hidden mechanisms involved in the
+  /// implementation of stream variables.  You can easily implement similar
+  /// imperative mechanisms outside of the stream library.
+#endif
   type Var<'x>
 
   /// Operations on stream variables.
@@ -140,7 +189,7 @@ module Stream =
   /// streams.  For example,
   ///
   ///> let fibs: Stream<BigInteger> =
-  ///>   let rec lp fib0 fib1 = cons fib0 << delay <| fun () -> lp fib1 (fib0+fib1)
+  ///>   let rec lp f0 f1 = cons f0 << delay <| fun () -> lp f1 (f0 + f1)
   ///>   lp 0I 1I
   ///
   /// is the stream of all fibonacci numbers.
