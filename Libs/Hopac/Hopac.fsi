@@ -1389,11 +1389,12 @@ module Timer =
 ///
 /// Channels are optimized for synchronous message passing, which can often be
 /// done without buffering.  Channels also provide an asynchronous `Ch.send`
-/// operation, but for situations where buffering is needed some other message
-/// passing mechanism is likely to perform better.
+/// operation, but in situations where buffering is needed, some other message
+/// passing mechanism such as a bounded mailbox, `BoundedMb<_>`, or unbounded
+/// mailbox, `Mailbox<_>`, may be preferable.
 ///
-/// Note that `Ch` is a subtype of `Alt` and `xCh :> Alt<'x>` is equivalent to
-/// `Ch.take xCh`.
+/// Note that `Ch<'x>` is a subtype of `Alt<'x>` and `xCh :> Alt<'x>` is
+/// equivalent to `Ch.take xCh`.
 type Ch<'x> :> Alt<'x>
 #endif
 
@@ -1406,7 +1407,8 @@ module Ch =
 
   /// Operations bound to the global scheduler.
   module Global =
-    /// Sends the given value to the specified channel.
+    /// Sends the given value to the specified channel.  `Ch.Global.send xCh x`
+    /// is equivalent to `Ch.send xCh x |> TopLevel.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Ch.send` instead.
@@ -1417,7 +1419,7 @@ module Ch =
 
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
-  /// offers to take the value.
+  /// offers to take the value.  See also: `<--`.
   val inline give: Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates an alternative that, at instantiation time, offers to take a value
@@ -1433,7 +1435,7 @@ module Ch =
   /// Note that channels have been optimized for synchronous operations; an
   /// occasional send can be efficient, but when sends are queued, performance
   /// maybe be significantly worse than with a `Mailbox` optimized for
-  /// buffering.
+  /// buffering.  See also: `<-+`.
 #endif
   val inline send: Ch<'x> -> 'x -> Job<unit>
 
@@ -1537,7 +1539,7 @@ module IVar =
   /// naturally follows from the property that there is only one concurrent job
   /// that may ever write to a particular write once variable.  If that is not
   /// the case, then you should likely use some other communication primitive.
-  /// See also `tryFill` and `fillFailure`.
+  /// See also: `<-=`, `tryFill`, `fillFailure`.
 #endif
   val inline fill: IVar<'x> -> 'x -> Job<unit>
 
@@ -1559,7 +1561,7 @@ module IVar =
   /// Creates a job that writes the given exception to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.  See also `fill`.
+  /// usage leads to undefined behavior.  See also: `<-=!`, `fill`.
   val inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
   /// Creates an alternative that becomes available after the write once
@@ -1704,7 +1706,7 @@ module MVar =
   /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.
+  /// behavior.  See also: `<<-=`.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that takes the value of the serialized variable and
@@ -1756,7 +1758,16 @@ module MVar =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a asynchronous, unbounded buffered mailbox.
+/// Represents an asynchronous, unbounded buffered mailbox.
+///
+/// Compared to channels, mailboxes take more memory when empty, but offer space
+/// efficient buffering of messages.  In situations where buffering must be
+/// bounded, a bounded mailbox, `BoundedMb<_>`, should be preferred.  In
+/// situations where buffering is not needed, a channel, `Ch<_>`, should be
+/// preferred.
+///
+/// Note that `Mailbox<'x>` is a subtype of `Alt<'x>` and `xMb :> Alt<'x>` is
+/// equivalent to `Mailbox.take xMb`.
 type Mailbox<'x> :> Alt<'x>
 #endif
 
@@ -1769,7 +1780,8 @@ module Mailbox =
 
   /// Operations bound to the global scheduler.
   module Global =
-    /// Sends the given value to the specified mailbox.
+    /// Sends the given value to the specified mailbox.  `Mailbox.Global.send
+    /// xMb x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Mailbox.send` instead.
@@ -1779,7 +1791,7 @@ module Mailbox =
   val create: unit -> Job<Mailbox<'x>>
 
   /// Creates a job that sends the given value to the specified mailbox.  This
-  /// operation never blocks.
+  /// operation never blocks.  See also: `<<-+`.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that becomes available when the mailbox contains at
