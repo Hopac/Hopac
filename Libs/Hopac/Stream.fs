@@ -162,9 +162,11 @@ module Stream =
     match xO with None -> mapc choose' xOs | Some x -> cons x (choose xOs)
   and choose xOs = mapcm choose' xOs
 
-  let filterJob x2bJ xs =
-    chooseJob (fun x -> x2bJ x |>> fun b -> if b then Some x else None) xs
-  let filterFun x2b xs = filterJob (x2b >> Job.result) xs
+  let rec fj' p x xs =
+    p x >>= fun b -> if b then cons x (filterJob p xs) else mapc (fj' p) xs
+  and filterJob p xs = mapcm (fj' p) xs
+  let rec ff' p x xs = if p x then cons x (filterFun p xs) else mapc (ff' p) xs
+  and filterFun x2b xs = mapcm (ff' x2b) xs
 
   let rec mapJob x2yJ xs =
     mapcm (fun x xs -> x2yJ x |>> fun y -> Cons (y, mapJob x2yJ xs)) xs
@@ -316,9 +318,8 @@ module Stream =
   let rec beforeEach yJ xs =
     memo (yJ >>. mapfc (fun x xs -> Cons (x, beforeEach yJ xs)) xs)
 
-  let distinctByJob x2kJ xs = delay <| fun () ->
-    let ks = HashSet<_>() in filterJob (x2kJ >> Job.map ks.Add) xs
-  let distinctByFun x2k xs = distinctByJob (Job.lift x2k) xs
+  let distinctByJob x2kJ xs = filterJob (x2kJ >> Job.map (HashSet<_>().Add)) xs
+  let distinctByFun x2k xs = filterFun (x2k >> HashSet<_>().Add) xs
 
   let rec ducwj eqJ x' x xs =
     eqJ x' x >>= function true -> mapc (ducwj eqJ x) xs
