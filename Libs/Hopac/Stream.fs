@@ -251,28 +251,32 @@ module Stream =
     | Value of 'x
     | Error of exn
 
-  let shift timeout xs =
-    let elems = Ch<_> ()
+  let shift timeout (xs: Stream<'x>) : Stream<'x> =
+    let elems = Ch<Alt<Evt<'x>>> ()
     let toggle = Ch<_> ()
     let rec pullOn xs =
       (toggle >>=? fun () -> pullOff xs) <|>?
       (Alt.tryIn xs
-        <| function Cons (x, xs) -> Ch.send elems (Value x) >>. pullOn xs
-                  | Nil -> Ch.give elems Completed :> Job<_>
-        <| fun e -> Ch.give elems (Error e)) :> Job<_>
+        <| function
+            | Cons (x, xs) ->
+              Promise.start (timeout >>% Value x) >>= fun p ->
+              Ch.send elems (p :> Alt<_>) >>. pullOn xs
+            | Nil ->
+              Ch.give elems (Alt.always Completed) :> Job<_>
+        <| fun e -> Ch.give elems (Alt.always (Error e)))
     and pullOff xs =
       toggle >>=? fun () -> pullOn xs
     pullOff xs |> start
     let toggle = toggle <-- ()
     let rec ds () =
       toggle >>.*
-      (elems >>= function
-        | Completed -> nil :> Job<_>
-        | Error e -> error e :> Job<_>
-        | Value x ->
-          Job.tryIn timeout
-           <| fun _ -> toggle >>. cons x (ds ())
-           <| fun e -> toggle >>. error e)
+      (elems >>= fun elem ->
+       Job.tryIn elem
+        <| function
+            | Completed -> nil :> Job<_>
+            | Error e -> error e :> Job<_>
+            | Value x -> toggle >>. cons x (ds ())
+        <| fun e -> toggle >>. error e)
     ds () :> Alt<_>
 
   let delayEach job xs = mapJob (fun x -> job >>% x) xs
