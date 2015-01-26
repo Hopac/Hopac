@@ -40,6 +40,13 @@ do Stream.append
    |> run
    |> testEq [2;3;4;5;6;7;8]
 
+// The following are some quickly written naive property based test
+
+do quick <| fun xs ->
+   let s = Stream.ofList xs
+   Stream.zip s (Stream.indefinitely (Stream.values s))
+   |> Stream.toList |> run = List.zip xs xs
+
 do quick <| fun (xs: list<_>) (f: _ -> _) ->
    Stream.onList (Stream.mapFun f) xs = List.map f xs
 do quick <| fun (xs: list<_>) (f: _ -> _) ->
@@ -98,3 +105,14 @@ do quick <| fun s f ->
 do quick <| fun s f ->
    Stream.unfoldJob (f >> Job.result) s |> Stream.take 10L |> Stream.toList |> run =
     List.ofSeq (Seq.unfold f s |> Seq.truncate 10)
+do quick <| fun (xs: list<byte>) ->
+   Stream.onList (Stream.distinctUntilChangedWithFun (=)) xs =
+    Stream.onList (Stream.distinctUntilChangedWithJob (fun a b -> a = b |> Job.result)) xs
+do quick <| fun (xs: list<byte>) (f: byte -> byte) ->
+   Stream.onList (Stream.distinctUntilChangedByFun f) xs =
+    Stream.onList (Stream.distinctUntilChangedByJob (f >> Job.result)) xs
+
+do quick <| fun xs -> xs |> Stream.onList (Stream.shift (timeOutMillis 1)) = xs
+do quick <| fun xs -> xs |> Stream.onList (Stream.delayEach (timeOutMillis 1)) = xs
+do quick <| fun xs -> xs |> Stream.onList (Stream.afterEach (timeOutMillis 1)) = xs
+do quick <| fun xs -> xs |> Stream.onList (Stream.beforeEach (timeOutMillis 1)) = xs
