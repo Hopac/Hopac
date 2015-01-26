@@ -613,10 +613,10 @@ module Stream =
   /// Preliminary and subject to change.
   val toSeq: Stream<'x> -> Job<ResizeArray<'x>>
 
-  /// Returns a job that creates an alternative through which all the values of
-  /// the stream generated after the point at which the alternative has been
-  /// created can be read.  See also: `indefinitely`.
-  val values: Stream<'x> -> Job<Alt<'x>>
+  /// Creates an alternative through which all the values of the stream
+  /// generated after the point at which the alternative has been created can be
+  /// read.  See also: `indefinitely`.
+  val values: Stream<'x> -> Alt<'x>
 
   /// Preliminary and subject to change.
   val foldJob: ('s -> 'x -> #Job<'s>) -> 's -> Stream<'x> -> Job<'s>

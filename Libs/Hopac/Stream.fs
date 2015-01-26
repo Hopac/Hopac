@@ -278,39 +278,35 @@ module Stream =
     iterFun ys.Add xs >>% ys
 
   type Evt<'x> =
-    | Completed
     | Value of 'x
+    | Completed
     | Error of exn
 
-  let shift timeout (xs: Stream<'x>) : Stream<'x> =
-    let elems = Mailbox<Alt<Evt<'x>>> ()
-    let toggle = Ch<_> ()
-    let rec pullOn xs =
-      (toggle >>=? fun () -> pullOff xs) <|>?
-      (Alt.tryIn xs
-        <| function
-            | Cons (x, xs) ->
-              Promise.start (timeout >>% Value x) >>= fun p ->
-              Mailbox.send elems (p :> Alt<_>) >>. pullOn xs
-            | Nil ->
-              Mailbox.send elems (Alt.always Completed) >>.
-              Job.forever toggle
-        <| fun e ->
-             Mailbox.send elems (Alt.always (Error e)) >>.
-             Job.forever toggle)
-    and pullOff xs =
-      toggle >>= fun () -> pullOn xs
-    pullOff xs |> start
-    let toggle = toggle <-- ()
+  let pull xs onValue onCompleted onError =
+    let cmd = Ch<int> ()
+    let rec off xs = cmd >>= on xs
+    and on xs n =
+      (cmd >>=? fun d -> let n = n+d in if n = 0 then off xs else on xs n) <|>?
+      (Alt.tryIn xs <| function Cons (x, xs) -> onValue x >>. on xs n
+                              | Nil -> onCompleted () >>. Job.foreverIgnore cmd
+                    <| fun e -> onError e >>. Job.foreverIgnore cmd) :> Job<_>
+    off xs |> start
+    (cmd <-- 1, cmd <-- -1)
+
+  let shift t (xs: Stream<'x>) : Stream<'x> =
+    let es = Mailbox<Alt<Evt<'x>>> ()
+    let (inc, dec) =
+      pull xs <| fun x -> t >>% Value x |> Promise.start >>= fun p -> es <<-+ upcast p
+              <| fun () -> es <<-+ Alt.always Completed
+              <| fun e -> es <<-+ Alt.always (Error e)
+    let es = inc >>. es
     let rec ds () =
-      toggle >>.*
-      (elems >>= fun elem ->
-       Job.tryIn elem
-        <| function
-            | Completed -> nil :> Job<_>
-            | Error e -> error e :> Job<_>
-            | Value x -> toggle >>. cons x (ds ())
-        <| fun e -> toggle >>. error e)
+      es >>=* fun evt ->
+      Job.tryIn evt
+       <| function Value x -> dec >>. cons x (ds ())
+                 | Completed -> nil :> Job<_>
+                 | Error e -> error e :> Job<_>
+       <| fun e -> dec >>. error e
     ds () :> Alt<_>
 
   let delayEach job xs = mapJob (fun x -> job >>% x) xs
@@ -438,14 +434,13 @@ module Stream =
 
   let afterTimeSpan ts = once (timeOut ts)
 
-  let values (xs: Stream<_>) = Job.delay <| fun () ->
-    let out = Ch<_> ()
-    Job.iterateServer xs (fun xs ->
-    Job.tryIn xs
-     <| function Cons (x, xs) -> out <-- Choice1Of2 x >>% xs
-               | Nil -> Job.abort ()
-     <| fun e -> out <-- Choice2Of2 e >>= Job.abort) >>%
-    (out |>>? function Choice1Of2 x -> x | Choice2Of2 e -> raise e)
+  let values (xs: Stream<'x>) : Alt<'x> =
+    let vs = Ch<_>()
+    let (inc, dec) =
+      pull xs (Choice1Of2 >> Ch.send vs) Job.unit (Choice2Of2 >> Ch.send vs)
+    Alt.withNack <| fun nack ->
+    Job.start (nack >>. dec) >>. inc >>%
+    (vs >>=? function Choice1Of2 x -> dec >>% x | Choice2Of2 e -> raise e)
 
   let rec joinWhileFun join u2b xs = delay <| fun () ->
     if u2b () then join (xs, joinWhileFun join u2b xs) else nil
