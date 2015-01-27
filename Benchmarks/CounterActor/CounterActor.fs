@@ -45,7 +45,7 @@ module ChMsg =
   let run numPerThread =
     printf "ChMsg: "
     let timer = Stopwatch.StartNew ()
-    let r = run <| job {
+    let _ = run <| job {
       let! actor = create
       do! seq {1 .. Environment.ProcessorCount}
           |> Seq.Con.iterJob
@@ -89,7 +89,7 @@ module MbMsg =
   let run numPerThread =
     printf "MbMsg: "
     let timer = Stopwatch.StartNew ()
-    let r = run <| job {
+    let _ = run <| job {
       let! actor = create
       do Parallel.For (0, Environment.ProcessorCount, fun _ ->
            for i=1 to numPerThread do

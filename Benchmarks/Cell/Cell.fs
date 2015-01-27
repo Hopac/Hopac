@@ -178,10 +178,10 @@ module AsyncCell =
     seq {1 .. nJobs}
     |> Seq.map (fun _ -> async {
        let rnd = Random ()
-       for i=0 to nUpdates do
+       for i=1 to nUpdates do
          let c = rnd.Next (0, nCells)
          let! x = get cells.[c]
-         do put cells.[c] (x+1)
+         do ignore i; put cells.[c] (x+1)
        })
     |> Async.Parallel
     |> Async.RunSynchronously

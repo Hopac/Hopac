@@ -83,7 +83,7 @@ module ChGive =
     printf " ChGive: "
     let timer = Stopwatch.StartNew ()
     let before = GC.GetTotalMemory true
-    let i = run << Job.delay <| fun () ->
+    let _ = run << Job.delay <| fun () ->
       let ps = Array.create p n
       let finishCh = ch ()
       ps
@@ -121,7 +121,7 @@ module ChSend =
     printf " ChSend: "
     let timer = Stopwatch.StartNew ()
     let before = GC.GetTotalMemory true
-    let i = run << Job.delay <| fun () ->
+    let _ = run << Job.delay <| fun () ->
       let ps = Array.create p n
       let finishCh = ch ()
       ps
@@ -161,7 +161,7 @@ module MbSend =
     printf " MbSend: "
     let timer = Stopwatch.StartNew ()
     let before = GC.GetTotalMemory true
-    let i = run << Job.delay <| fun () ->
+    let _ = run << Job.delay <| fun () ->
       let ps = Array.create p n
       let finishCh = ch ()
       ps
@@ -206,7 +206,7 @@ module MPPost =
       async {
         for i=1 to p do
           let! x = inbox.Receive ()
-          do results.Add x
+          do ignore i; results.Add x
         do allDone.Set ()
       })
     finishPr.Start ()

@@ -12,7 +12,7 @@ module Literal =
   let run n =
     printf "Literal: "
     let timer = Stopwatch.StartNew ()
-    let i =
+    let _ =
       run <| job {
         let iCh = ch ()
         let rec writer i = job {
@@ -39,7 +39,7 @@ module Tweaked =
   let run n =
     printf "Tweaked: "
     let timer = Stopwatch.StartNew ()
-    let i =
+    let _ =
       run <| job {
         let iCh = ch ()
         let rec writer i =
@@ -81,7 +81,7 @@ module AsyncPR =
       else
         return! reader (sum + x)
     }
-    let i = Async.RunSynchronously (reader 0)
+    let _ = Async.RunSynchronously (reader 0)
     let d = timer.Elapsed
     printf "%9.0f hops/s\n" (float n / d.TotalSeconds)
 

@@ -10,10 +10,13 @@ open Hopac.Job.Infixes
 
 module EgPaper =
   let egpaper =
+#if SHOW
     let l = obj ()
     let inline show stage kind var =
       lock l <| fun () -> printf "<%s%s%s>" stage kind var
-    let inline show stage kind var = ()
+#else
+    let inline show _ _ _ = ()
+#endif
     let inline make kind var op =
       Alt.withNack <| fun nack ->
       show "T" kind var
@@ -33,7 +36,7 @@ module EgPaper =
   let run n =
     printf "EgPaper %8d: " n
     let timer = Stopwatch.StartNew ()
-    let r = run (Job.forN n egpaper)
+    let () = run (Job.forN n egpaper)
     let d = timer.Elapsed
     printf "%fs\n" d.TotalSeconds
 
@@ -57,7 +60,7 @@ module SwapCh =
   let run n =
     printf "SwapCh %8d: " n
     let timer = Stopwatch.StartNew ()
-    let r = run (Job.forN n bench)
+    let () = run (Job.forN n bench)
     let d = timer.Elapsed
     printf "%fs\n" d.TotalSeconds
 
@@ -91,7 +94,7 @@ module BufferedCh =
   let run n =
     printf "BufferedCh %8d: " n
     let timer = Stopwatch.StartNew ()
-    let r = run (Job.forN n bench)
+    let () = run (Job.forN n bench)
     let d = timer.Elapsed
     printf "%fs\n" d.TotalSeconds
 

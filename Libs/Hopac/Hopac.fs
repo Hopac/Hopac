@@ -1072,7 +1072,7 @@ module Job =
     override xK'.Finalize () =
      match xK'.Proc with
       | null -> ()
-      | proc -> Worker.RunOnThisThread (sr, xK')
+      | _ -> Worker.RunOnThisThread (sr, xK')
      Scheduler.start sr uJ
     override xK'.GetProc (wr) =
      match xK'.Proc with
@@ -1836,7 +1836,7 @@ module Extensions =
 
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
       assert (null <> sr)
-      Async.FromContinuations <| fun (x2u, e2u, c2u) ->
+      Async.FromContinuations <| fun (x2u, e2u, _) ->
         let ctx = SynchronizationContext.Current
         let inline apply f x =
           match ctx with

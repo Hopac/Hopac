@@ -126,7 +126,7 @@ module HopacMV =
               resultsMS <-- !myMeets
             | Empty n ->
               meetingPlace <<-= Waiter (n, Chameneos (!myColor, me)) >>= fun () ->
-              me |>> fun (Chameneos (otherColor, other)) ->
+              me |>> fun (Chameneos (otherColor, _)) ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor
             | Waiter (n, Chameneos (otherColor, other)) ->

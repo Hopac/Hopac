@@ -156,8 +156,8 @@ module AsPost =
         do ping.Post msgPong
         for i=2 to numPingPongsPerPair do
           let! Msg ping = inbox.Receive ()
-          do ping.Post msgPong
-        let! Msg ping = inbox.Receive ()
+          do ignore i; ping.Post msgPong
+        let! Msg _ = inbox.Receive ()
         do onDone.Post ()
       }
       [ping; pong]
@@ -166,7 +166,7 @@ module AsPost =
       |> List.collect (fun _ -> startPair ())
     Async.RunSynchronously <| async {
       for i=1 to numPairs do
-        do! onDone.Receive ()
+        do! ignore i; onDone.Receive ()
       return ()
     }
     pairs |> List.iter (fun mb -> (mb :> IDisposable).Dispose ())
