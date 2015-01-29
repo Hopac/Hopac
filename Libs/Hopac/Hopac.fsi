@@ -1136,7 +1136,7 @@ module Alt =
   ///> let incrementBy n : Alt<int> = Alt.withNack <| fun nack ->
   ///>   let replyCh = ch ()
   ///>   counterServer <-+ (n, nack, replyCh) >>%
-  ///>   upcast replyCh
+  ///>   replyCh
   ///
   /// The client side operation just sends the negative acknowledgment to the
   /// server as a part of the request.  It is essential that a synchronous
