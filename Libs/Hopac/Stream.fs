@@ -272,6 +272,8 @@ module Stream =
   let rec iterJob (f: _ -> #Job<unit>) xs =
     xs >>= function Cons (x, xs) -> f x >>. iterJob f xs | Nil -> Job.unit ()
   let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
+  let rec iter (xs: Stream<_>) : Job<unit> =
+    xs >>= function Cons (_, xs) -> iter xs | Nil -> Job.unit ()
 
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray<_>()

@@ -630,8 +630,8 @@ module Stream =
   /// syntactically more convenient to use.
   val foldFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Job<'s>
 
-  /// Returns a job that sequentially iterates the given job constructor over
-  /// the given stream.
+  /// Returns a job that iterates the given job constructor over the given
+  /// stream.
 #if DOC
   ///
   /// Reference implementation:
@@ -642,9 +642,13 @@ module Stream =
 #endif
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>
 
-  /// Returns a job that sequentially iterates the given function over the given
-  /// stream.  See also: `iterJob`.
+  /// Returns a job that iterates the given function over the given stream.  See
+  /// also: `iterJob`.
   val iterFun: ('x -> unit) -> Stream<'x> -> Job<unit>
+
+  /// Returns a job that iterates over all the elements of the given stream.
+  /// `iter xs` is equivalent to `iterFun id xs`.
+  val iter: Stream<'x> -> Job<unit>
 
   /// Returns a job that computes the length of the given stream.
   val count: Stream<'x> -> Job<int64>
