@@ -307,9 +307,12 @@ module Stream =
   /// `xs |> choose` is equivalent to `xs |> chooseFun id`.
   val choose: Stream<option<'x>> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream that contains the elements from the given stream for
+  /// which the given job returns `true`.
   val filterJob: ('x -> #Job<bool>) -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
+
+  /// Returns a stream that contains the elements from the given stream for
+  /// which the given function returns `true`.
   val filterFun: ('x -> bool) -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces elements passed through the given job
