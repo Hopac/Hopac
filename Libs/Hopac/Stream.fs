@@ -345,52 +345,65 @@ module Stream =
   let distinctUntilChangedByFun x2k xs =
     mapfcm (fun x xs -> Cons (x, mapcm (ducbf x2k (x2k x)) xs)) xs
 
+  type Group<'k, 'x> = {key: 'k; mutable var: IVar<Cons<'x>>}
   let groupByJob (keyOf: 'x -> #Job<'k>) ss =
-    let key2br = Dictionary<'k, IVar<Cons<'x>>>()
+    let key2br = Dictionary<'k, Group<'k, 'x>>()
     let main = ref (IVar<_> ())
     let baton = MVar<_>(ss)
+    let closes = Ch ()
     let raised e =
-      key2br.Values |> Seq.iterJob (fun i -> i <-=! e) >>. (!main <-=! e) >>! e
-    let rec wrap self xs newK oldK =
+      key2br.Values
+      |> Seq.iterJob (fun g -> g.var <-=! e) >>. (!main <-=! e) >>! e
+    let rec wrap self xs newK oldK oldC =
       (mapfc (fun x xs -> Cons (x, self xs)) xs) <|>*
       (let rec serve ss =
-         Job.tryIn ss
-          <| function
-              | Cons (s, ss) ->
-                Job.tryIn (Job.delay <| fun () -> keyOf s)
-                 <| fun k ->
-                      match key2br.TryGetValue k with
-                       | Just i ->
-                         let i' = IVar<_> ()
-                         key2br.[k] <- i'
-                         i <-= Cons (s, i') >>. oldK serve ss k s i'
-                       | Nothing ->
-                         let i' = IVar<_> ()
-                         let i = IVar<_> (Cons (s, i'))
-                         key2br.Add (k, i')
-                         let i' = IVar<_> ()
-                         let m = !main
-                         main := i'
-                         let ki = (k, wrapBranch k (i :> Stream<_>))
-                         m <-= Cons (ki, i') >>. newK serve ss ki i'
-                 <| raised
-              | Nil ->
-                key2br.Values
-                |> Seq.iterJob (fun i -> i <-= Nil) >>.
-                (!main <-= Nil) >>% Nil
-          <| raised
+         (closes >>=? fun g ->
+            match key2br.TryGetValue g.key with
+             | Just g' when obj.ReferenceEquals (g', g) ->
+               key2br.Remove g.key |> ignore
+               g.var <-= Nil >>. oldC serve ss g.key
+             | _ -> serve ss) <|>?
+         (Alt.tryIn ss
+           <| function
+               | Cons (s, ss) ->
+                 Job.tryIn (Job.delay <| fun () -> keyOf s)
+                  <| fun k ->
+                       match key2br.TryGetValue k with
+                        | Just g ->
+                          let i = g.var
+                          let n = IVar<_> ()
+                          g.var <- n
+                          i <-= Cons (s, n) >>. oldK serve ss k s n
+                        | Nothing ->
+                          let i' = IVar<_> ()
+                          let i = Alt.always (Cons (s, i'))
+                          let g = {key = k; var = i'}
+                          key2br.Add (k, g)
+                          let i' = IVar<_> ()
+                          let m = !main
+                          main := i'
+                          let close = closes <-+ g
+                          let ki = (k, close, wrapBr k i)
+                          m <-= Cons (ki, i') >>. newK serve ss ki i'
+                  <| raised
+               | Nil ->
+                 key2br.Values
+                 |> Seq.iterJob (fun g -> g.var <-= Nil) >>.
+                 (!main <-= Nil) >>% Nil
+           <| raised) :> Job<_>
        baton >>=? serve)
-    and wrapBranch k xs =
-      wrap (wrapBranch k) xs
+    and wrapBr k xs =
+      wrap (wrapBr k) xs
        <| fun serve ss _ _ -> serve ss
        <| fun serve ss k' x xs ->
-            if k = k'
-            then baton <<-= ss >>% Cons (x, wrapBranch k xs)
-            else serve ss
+            if k = k' then baton <<-= ss >>% Cons (x, wrapBr k xs) else serve ss
+       <| fun serve ss k' ->
+            if k = k' then baton <<-= ss >>% Nil else serve ss
     let rec wrapMain xs =
       wrap wrapMain xs
        <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
+       <| fun serve ss _ -> serve ss
     !main |> wrapMain
   let groupByFun keyOf ss = groupByJob (keyOf >> Job.result) ss
 

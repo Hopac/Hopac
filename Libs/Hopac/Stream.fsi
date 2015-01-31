@@ -329,10 +329,24 @@ module Stream =
   /// whenever the given streams produces elements.
   val mapFun: ('x -> 'y) -> Stream<'x> -> Stream<'y>
 
-  /// Preliminary and subject to change.
-  val groupByJob: ('x -> #Job<'k>) -> Stream<'x> -> Stream<'k * Stream<'x>> when 'k: equality
-  /// Preliminary and subject to change.
-  val groupByFun: ('x -> 'k) -> Stream<'x> -> Stream<'k * Stream<'x>> when 'k: equality
+  /// Splits the given stream into substreams based on the keys extracted from
+  /// the elements by the given job.  See also: `groupByFun`.
+#if DOC
+  ///
+  /// The jobs returned as a part of the resulting stream can be used to
+  /// explicitly close the associated substreams.  Unless explicitly closed,
+  /// substreams remain alive as long as the given stream.  When closing
+  /// substreams, it is important to understand that streams operate
+  /// concurrently.  This means that one should always consume the substream
+  /// until it ends after closing it.  If, after closing a substream, the given
+  /// stream produces more elements with the same key, a new substream with the
+  /// key will be opened.
+#endif
+  val groupByJob: ('x -> #Job<'k>) -> Stream<'x> -> Stream<'k * Job<unit> * Stream<'x>> when 'k: equality
+
+  /// Splits the given stream into substreams based on the keys extracted from
+  /// the elements by the given function.  See `groupByJob` for further details.
+  val groupByFun: ('x -> 'k) -> Stream<'x> -> Stream<'k * Job<unit> * Stream<'x>> when 'k: equality
 
   /// Returns a stream of pairs of elements from the given pair of streams.  No
   /// elements from either stream are skipped and each element is used only
