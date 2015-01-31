@@ -111,6 +111,9 @@ do quick <| fun (xs: list<byte>) ->
 do quick <| fun (xs: list<byte>) (f: byte -> byte) ->
    Stream.onList (Stream.distinctUntilChangedByFun f) xs =
     Stream.onList (Stream.distinctUntilChangedByJob (f >> Job.result)) xs
+do quick <| fun (xs: list<byte>) ->
+   Stream.onList Stream.distinctUntilChanged xs =
+    Stream.onList (Stream.distinctUntilChangedByFun id) xs
 
 do quick <| fun xs -> xs |> Stream.onList (Stream.shift (timeOutMillis 1)) = xs
 do quick <| fun xs -> xs |> Stream.onList (Stream.delayEach (timeOutMillis 1)) = xs

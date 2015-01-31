@@ -323,27 +323,32 @@ module Stream =
   let distinctByFun x2k xs = filterFun (x2k >> HashSet<_>().Add) xs
 
   let rec ducwj eqJ x' x xs =
-    eqJ x' x >>= function true -> mapc (ducwj eqJ x) xs
-                        | false -> cons x (mapcm (ducwj eqJ x) xs)
+    let t = mapc (ducwj eqJ x) xs
+    eqJ x' x >>= function true -> t | false -> cons x (memo t)
   let distinctUntilChangedWithJob eqJ xs =
     mapfcm (fun x xs -> Cons (x, mapcm (ducwj eqJ x) xs)) xs
 
   let rec ducwf eq x' x xs =
-    if eq x' x then mapc (ducwf eq x) xs else cons x (mapcm (ducwf eq x) xs)
+    let t = mapc (ducwf eq x) xs in if eq x' x then t else cons x (memo t)
   let distinctUntilChangedWithFun eq xs =
     mapfcm (fun x xs -> Cons (x, mapcm (ducwf eq x) xs)) xs
 
   let rec ducbj x2kJ k' x xs =
     x2kJ x >>= fun k ->
-    if k = k' then mapc (ducbj x2kJ k) xs else cons x (mapcm (ducbj x2kJ k) xs)
+    let t = mapc (ducbj x2kJ k) xs in if k = k' then t else cons x (memo t)
   let distinctUntilChangedByJob x2kJ xs =
     mapcm (fun x xs -> x2kJ x >>= fun k -> cons x (mapcm (ducbj x2kJ k) xs)) xs
 
   let rec ducbf x2k k' x xs =
     let k = x2k x
-    if k = k' then mapc (ducbf x2k k) xs else cons x (mapcm (ducbf x2k k) xs)
+    let t = mapc (ducbf x2k k) xs in if k = k' then t else cons x (memo t)
   let distinctUntilChangedByFun x2k xs =
     mapfcm (fun x xs -> Cons (x, mapcm (ducbf x2k (x2k x)) xs)) xs
+
+  let rec duc x' x xs =
+    let t = mapc (duc x) xs in if x' = x then t else cons x (memo t)
+  let distinctUntilChanged xs =
+    mapfcm (fun x xs -> Cons (x, mapcm (duc x) xs)) xs
 
   type Group<'k, 'x> = {key: 'k; mutable var: IVar<Cons<'x>>}
   let groupByJob (keyOf: 'x -> #Job<'k>) ss =

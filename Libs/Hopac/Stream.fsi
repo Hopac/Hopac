@@ -389,6 +389,9 @@ module Stream =
   /// Preliminary and subject to change.
   val distinctUntilChangedByFun: ('x -> 'k) -> Stream<'x> -> Stream<'x> when 'k: equality
 
+  /// Preliminary and subject to change.
+  val distinctUntilChanged: Stream<'x> -> Stream<'x> when 'x: equality
+
   // Joining streams
 
   /// Of the two given streams, returns the stream that first produces an
