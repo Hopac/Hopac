@@ -263,7 +263,8 @@ module Stream =
   let rec foldJob f s xs =
     xs >>= function Cons (x, xs) -> f s x >>= fun s -> foldJob f s xs
                   | Nil -> Job.result s
-  let foldFun f s xs = foldJob (fun s x -> f s x |> Job.result) s xs
+  let rec foldFun f s xs =
+    xs >>= function Cons (x, xs) -> foldFun f (f s x) xs | Nil -> Job.result s
   let foldFromJob s f xs = foldJob f s xs
   let foldFromFun s f xs = foldFun f s xs
 
