@@ -849,7 +849,7 @@ module Job =
   /////////////////////////////////////////////////////////////////////////////
 
   /// Creates a job that runs all of the jobs in sequence and returns a list of
-  /// the results.  See also: `seqIgnore`.
+  /// the results.  See also: `seqIgnore`, `conCollect`, `Seq.mapJob`.
 #if DOC
   ///
   /// Reference implementation:
@@ -865,7 +865,7 @@ module Job =
   val seqCollect: seq<#Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs in sequence.  The results of the
-  /// jobs are ignored.  See also: `seqCollect`.
+  /// jobs are ignored.  See also: `seqCollect`, `conIgnore`, `Seq.iterJob`.
 #if DOC
   ///
   /// Reference implementation:
@@ -878,20 +878,23 @@ module Job =
   val seqIgnore: seq<#Job<_>> -> Job<unit>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
-  /// returns a list of the results.
+  /// returns a list of the results.  See also: `conIgnore`, `seqCollect`,
+  /// `Seq.Con.mapJob`.
   ///
   /// Note that when multiple jobs raise exceptions, then the created job raises
   /// an `AggregateException`.
+  ///
+  /// Note that this is not optimal for fine-grained parallel execution.
   val conCollect: seq<#Job<'x>> -> Job<ResizeArray<'x>>
 
   /// Creates a job that runs all of the jobs as separate concurrent jobs and
   /// then waits for all of the jobs to finish.  The results of the jobs are
-  /// ignored.
-#if DOC
+  /// ignored.  See also: `conCollect`, `seqIgnore`, `Seq.Con.iterJob`.
   ///
   /// Note that when multiple jobs raise exceptions, then the created job raises
   /// an `AggregateException`.
-#endif
+  ///
+  /// Note that this is not optimal for fine-grained parallel execution.
   val conIgnore: seq<#Job<_>> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -1942,13 +1945,15 @@ module Extensions =
     /// xs`.
     val inline iterJob: ('x -> #Job<unit>) -> array<'x> -> Job<unit>
 
-    /// `iterJobIgnore x2yJ xs` is equivalent to `iterJob (x2yJ >> Job.Ignore)
-    /// xs`.
+    /// `Array.iterJobIgnore x2yJ xs` is equivalent to `Array.iterJob (x2yJ >>
+    /// Job.Ignore) xs`.
     val iterJobIgnore: ('x -> #Job<_>) -> array<'x> -> Job<unit>
 
   /// Operations for processing sequences with jobs.
   module Seq =
     /// Sequentially iterates the given job constructor over the given sequence.
+    /// See also: `Seq.iterJobIgnore`, `Seq.Con.iterJob`, `seqIgnore`,
+    /// `Array.mapJob`.
 #if DOC
     ///
     /// Reference implementation:
@@ -1960,12 +1965,13 @@ module Extensions =
 #endif
     val inline iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
 
-    /// `iterJobIgnore x2yJ xs` is equivalent to `iterJob (x2yJ >> Job.Ignore)
-    /// xs`.
+    /// `Seq.iterJobIgnore x2yJ xs` is equivalent to `Seq.iterJob (x2yJ >>
+    /// Job.Ignore) xs`.
     val iterJobIgnore: ('x -> #Job<_>) -> seq<'x> -> Job<unit>
 
     /// Sequentially maps the given job constructor to the elements of the
-    /// sequence and returns a list of the results.
+    /// sequence and returns a list of the results.  See also: `seqCollect`,
+    /// `Seq.Con.mapJob`, `Array.mapJob`.
 #if DOC
     ///
     /// Reference implementation:
@@ -2000,16 +2006,23 @@ module Extensions =
     module Con =
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
-      /// the jobs have finished.
+      /// the jobs have finished.  See also: `Con.iterJobIgnore`, `conIgnore`.
+      ///
+      /// Note that this is not optimal for fine-grained parallel execution.
       val inline iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
 
-      /// `iterJobIgnore x2yJ xs` is equivalent to `iterJob (x2yJ >> Job.Ignore)
-      /// xs`.
+      /// `Con.iterJobIgnore x2yJ xs` is equivalent to `Con.iterJob (x2yJ >>
+      /// Job.Ignore) xs`.
+      ///
+      /// Note that this is not optimal for fine-grained parallel execution.
       val iterJobIgnore: ('x -> #Job<_>) -> seq<'x> -> Job<unit>
 
       /// Iterates the given job constructor over the given sequence, runs the
       /// constructed jobs as separate concurrent jobs and waits until all of
-      /// the jobs have finished collecting the results into a list.
+      /// the jobs have finished collecting the results into a list.  See also:
+      /// `Seq.mapJob`, `conCollect`.
+      ///
+      /// Note that this is not optimal for fine-grained parallel execution.
       val mapJob: ('x -> #Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
   /// Operations for interfacing F# async operations with jobs.
@@ -2025,14 +2038,14 @@ module Extensions =
 #endif
   module Async =
     /// Creates a job that starts the given async operation and then waits until
-    /// the operation finishes.
+    /// the operation finishes.  See also: `toJobOn`, `toAlt`, `toAltOn`.
 #if DOC
     ///
     /// The async operation will be started on a Hopac worker thread, which
     /// means that the async operation will continue on the thread pool.
     /// Consider whether you need to call `Async.SwitchToContext` or some other
     /// thread or synchronization context switching async operation in your
-    /// async operation.  See also: `toJobOn`, `toAlt`, `toAltOn`.
+    /// async operation.
 #endif
     val toJob: Async<'x> -> Job<'x>
 
@@ -2045,14 +2058,14 @@ module Extensions =
     /// Creates an alternative that, when instantiated, starts the given async
     /// operation and then becomes enabled once the operation finishes.
     /// Furthermore, in case the alternative is not committed to, the async
-    /// operation is cancelled.
+    /// operation is cancelled.  See also: `toJob`, `toJobOn`, `toAltOn`.
 #if DOC
     ///
     /// The async operation will be started on a Hopac worker thread, which
     /// means that the async operation will continue on the thread pool.
     /// Consider whether you need to call `Async.SwitchToContext` or some other
     /// thread or synchronization context switching async operation in your
-    /// async operation.  See also: `toJob`, `toJobOn`, `toAltOn`.
+    /// async operation.
 #endif
     val toAlt: Async<'x> -> Alt<'x>
 
