@@ -438,9 +438,12 @@ module Stream =
   let rec unfoldJob f s =
     f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
   let unfoldFun f s = unfoldJob (Job.lift f) s
-  let rec iterateJob' x2xJ x = Cons (x, x2xJ x |>>* iterateJob' x2xJ)
-  let iterateJob x2xJ x = cons x (x2xJ x |>>* iterateJob' x2xJ)
-  let iterateFun x2x x = iterateJob (x2x >> Job.result) x
+
+  let rec ij f x = f x |>>* fun x -> Cons (x, ij f x)
+  let iterateJob x2xJ x = cons x (ij x2xJ x)
+
+  let rec it f x = memo << Job.thunk <| fun _ -> let x = f x in Cons (x, it f x)
+  let iterateFun f x = cons x (it f x)
 
   let repeat x = fix (cons x)
   let cycle xs = fix (append xs)

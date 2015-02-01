@@ -42,6 +42,17 @@ do Stream.append
 
 // The following are some quickly written naive property based test
 
+do quick <| fun f (toTake: uint8) ->
+   let n = ref 0
+   Stream.iterateFun (fun x -> n := !n + 1 ; f x) 1
+   |> Stream.take (int64 toTake) |> Stream.iter |> run
+   !n = max 0 (int toTake - 1)
+do quick <| fun f (toTake: uint8) ->
+   let n = ref 0
+   Stream.iterateJob (fun x -> Job.thunk <| fun () -> n := !n + 1 ; f x) 1
+   |> Stream.take (int64 toTake) |> Stream.iter |> run
+   !n = max 0 (int toTake - 1)
+
 do quick <| fun xs ->
    let s = Stream.ofList xs
    Stream.zip s (Stream.indefinitely (Stream.values s))
