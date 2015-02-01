@@ -107,13 +107,13 @@ module Alts =
     scanJob (fun s x -> sx2s s x |> Job.result) s xO
 
   let mapFun (x2y: 'x -> 'y) (xO: Alts<'x>) : Alts<'y> =
-    mapJob (x2y >> Job.result) xO
+    mapJob (Job.lift x2y) xO
 
   let bindFun (xO: Alts<'x>) (x2yO: 'x -> Alts<'y>) : Alts<'y> =
-    bindJob xO (x2yO >> Job.result)
+    bindJob xO (Job.lift x2yO)
 
   let chooseFun (x2yO: 'x -> option<'y>) (xO: Alts<'x>) : Alts<'y> =
-    chooseJob (x2yO >> Job.result) xO
+    chooseJob (Job.lift x2yO) xO
 
   let noDups (xO: Alts<'x>) : Alts<'x> =
     processJob

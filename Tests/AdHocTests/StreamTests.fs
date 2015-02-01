@@ -61,11 +61,11 @@ do quick <| fun xs ->
 do quick <| fun (xs: list<_>) (f: _ -> _) ->
    Stream.onList (Stream.mapFun f) xs = List.map f xs
 do quick <| fun (xs: list<_>) (f: _ -> _) ->
-   Stream.onList (Stream.mapJob (f >> Job.result)) xs = List.map f xs
+   Stream.onList (Stream.mapJob (Job.lift f)) xs = List.map f xs
 do quick <| fun (xs: list<_>) (f: _ -> option<_>) ->
    Stream.onList (Stream.chooseFun f) xs = List.choose f xs
 do quick <| fun (xs: list<_>) (f: _ -> option<_>) ->
-   Stream.onList (Stream.chooseJob (f >> Job.result)) xs = List.choose f xs
+   Stream.onList (Stream.chooseJob (Job.lift f)) xs = List.choose f xs
 do quick <| fun xs ys ->
    Stream.onList2 Stream.append xs ys = List.append xs ys
 do quick <| fun i xs ->
@@ -95,7 +95,7 @@ do quick <| fun xs s f ->
 do quick <| fun xs f ->
    xs |> Stream.onList (Stream.distinctByFun f) = List.ofSeq (Seq.distinctBy f xs)
 do quick <| fun (xs: list<byte>) (f: byte -> byte) ->
-   xs |> Stream.onList (Stream.distinctByJob (f >> Job.result)) = List.ofSeq (Seq.distinctBy f xs)
+   xs |> Stream.onList (Stream.distinctByJob (Job.lift f)) = List.ofSeq (Seq.distinctBy f xs)
 do quick <| fun (xs: list<int>) (f: int -> byte) ->
    (xs
     |> Stream.onList (fun xs ->
@@ -109,19 +109,19 @@ do quick <| fun (xs: list<int>) (f: int -> byte) ->
 do quick <| fun xs f ->
    xs |> Stream.onList (Stream.filterFun f) = List.filter f xs
 do quick <| fun xs f ->
-   xs |> Stream.onList (Stream.filterJob (f >> Job.result)) = List.filter f xs
+   xs |> Stream.onList (Stream.filterJob (Job.lift f)) = List.filter f xs
 do quick <| fun s f ->
    Stream.unfoldFun f s |> Stream.take 10L |> Stream.toList |> run =
     List.ofSeq (Seq.unfold f s |> Seq.truncate 10)
 do quick <| fun s f ->
-   Stream.unfoldJob (f >> Job.result) s |> Stream.take 10L |> Stream.toList |> run =
+   Stream.unfoldJob (Job.lift f) s |> Stream.take 10L |> Stream.toList |> run =
     List.ofSeq (Seq.unfold f s |> Seq.truncate 10)
 do quick <| fun (xs: list<byte>) ->
    Stream.onList (Stream.distinctUntilChangedWithFun (=)) xs =
     Stream.onList (Stream.distinctUntilChangedWithJob (fun a b -> a = b |> Job.result)) xs
 do quick <| fun (xs: list<byte>) (f: byte -> byte) ->
    Stream.onList (Stream.distinctUntilChangedByFun f) xs =
-    Stream.onList (Stream.distinctUntilChangedByJob (f >> Job.result)) xs
+    Stream.onList (Stream.distinctUntilChangedByJob (Job.lift f)) xs
 do quick <| fun (xs: list<byte>) ->
    Stream.onList Stream.distinctUntilChanged xs =
     Stream.onList (Stream.distinctUntilChangedByFun id) xs

@@ -271,7 +271,7 @@ module Stream =
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
     xs >>= function Cons (x, xs) -> f x >>. iterJob f xs | Nil -> Job.unit ()
-  let iterFun (x2u: _ -> unit) xs = iterJob (x2u >> Job.result) xs
+  let iterFun (x2u: _ -> unit) xs = iterJob (Job.lift x2u) xs
   let rec iter (xs: Stream<_>) : Job<unit> =
     xs >>= function Cons (_, xs) -> iter xs | Nil -> Job.unit ()
 
@@ -410,7 +410,7 @@ module Stream =
        <| fun serve ss _ _ _ -> serve ss
        <| fun serve ss _ -> serve ss
     !main |> wrapMain
-  let groupByFun keyOf ss = groupByJob (keyOf >> Job.result) ss
+  let groupByFun keyOf ss = groupByJob (Job.lift keyOf) ss
 
   let rec skip' n xs = if 0L < n then mapc (fun _ -> skip' (n-1L)) xs else xs
   let skip n xs = if n < 0L then failwith "skip: n < 0L" else skip' n xs |> memo
