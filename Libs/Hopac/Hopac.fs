@@ -792,35 +792,21 @@ module Job =
   let inline forN n (uJ: Job<unit>) =
     forNIgnore n uJ
 
-  module Internal =
-    let inline mkFor more next i0 i1 (i2xJ: _ -> #Job<_>) =
-      {new Job<unit> () with
-        override uJ'.DoJob (wr, uK) =
-         {new Cont_State<_, _> (i0) with
-           override xK'.GetProc (wr) = uK.GetProc (&wr)
-           override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
-           override xK'.DoCont (wr, _) =
-            let i = xK'.State
-            if more i i1 then
-              xK'.State <- next i
-              (i2xJ i).DoJob (&wr, xK')
-            else
-              uK.DoWork (&wr)
-           override xK'.DoWork (wr) =
-            let i = xK'.State
-            if more i i1 then
-              xK'.State <- next i
-              (i2xJ i).DoJob (&wr, xK')
-            else
-              uK.DoWork (&wr)}.DoWork (&wr)}
-
-  let forUpToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
-    Internal.mkFor (fun i i1 -> i <= i1) (fun i -> i + 1) i0 i1 i2xJ
+  let inline forUpToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
+    {new JobFor<_, _, _> () with
+      override uJ'.Init (i) =
+        let i' = i0 in if i' <= i1 then i <- i' + 1; upcast i2xJ i' else null
+      override uJ'.Next (_, i) =
+        let i' = i  in if i' <= i1 then i <- i' + 1; upcast i2xJ i' else null} :> Job<unit>
   let inline forUpTo i0 i1 (i2uJ: int -> #Job<unit>) =
     forUpToIgnore i0 i1 i2uJ
 
-  let forDownToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
-    Internal.mkFor (fun i i1 -> i1 <= i) (fun i -> i - 1) i0 i1 i2xJ
+  let inline forDownToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
+    {new JobFor<_, _, _> () with
+      override uJ.Init (i) =
+        let i' = i0 in if i' >= i1 then i <- i' - 1; upcast i2xJ i0 else null
+      override uJ.Next (_, i) =
+        let i' = i  in if i' >= i1 then i <- i' - 1; upcast i2xJ i' else null} :> Job<unit>
   let inline forDownTo i0 i1 (i2uJ: int -> #Job<unit>) =
     forDownToIgnore i0 i1 i2uJ
 

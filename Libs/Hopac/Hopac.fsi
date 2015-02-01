@@ -750,7 +750,7 @@ module Job =
 
   /// `forUpToIgnore lo hi i2xJ` is equivalent to `forUpTo lo hi (i2xJ >>
   /// Job.Ignore)`.
-  val forUpToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
+  val inline forUpToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `forDownTo hi lo i2uJ` creates a job that sequentially iterates from `hi`
   /// to `lo` (inclusive) and calls the given function to construct jobs that
@@ -773,7 +773,7 @@ module Job =
 
   /// `forDownToIgnore hi lo i2xJ` is equivalent to `forDownTo hi lo (i2xJ >>
   /// Job.Ignore)`.
-  val forDownToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
+  val inline forDownToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `whileDo u2b uJ` creates a job that sequentially executes the `uJ` job as
   /// long as `u2b ()` returns `true`.

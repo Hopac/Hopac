@@ -45,6 +45,72 @@ namespace Hopac {
     }
 
     ///
+    public abstract class JobFor<S, R, F> : Job<F> {
+      ///
+      public abstract Job<R> Init(out S s);
+      ///
+      public virtual void Uninit(ref S s) { }
+      ///
+      public abstract Job<R> Next(R r, ref S s);
+      ///
+      public virtual void Finish(ref S s, ref F f) { }
+      ///
+      internal override void DoJob(ref Worker wr, Cont<F> fK) {
+        S s;
+        var rJ = Init(out s);
+        if (null != rJ) {
+          var rK = new ContFor(this, fK, s);
+          wr.Handler = rK;
+          rJ.DoJob(ref wr, rK);
+        } else {
+          Finish(ref s, ref fK.Value);
+          Uninit(ref s);
+          Work.Do(fK, ref wr);
+        }
+      }
+      private sealed class ContFor : Cont<R> {
+        private JobFor<S, R, F> fJ;
+        private Cont<F> fK;
+        private S s;
+        internal ContFor(JobFor<S, R, F> fJ, Cont<F> fK, S s) {
+          this.fJ = fJ;
+          this.fK = fK;
+          this.s = s;
+        }
+        internal override Proc GetProc(ref Worker wr) {
+          return Handler.GetProc(ref wr, ref fK);
+        }
+        internal override void DoHandle(ref Worker wr, Exception e) {
+          wr.Handler = fK;
+          fJ.Uninit(ref s);
+          Handler.DoHandle(fK, ref wr, e);
+        }
+        internal override void DoWork(ref Worker wr) {
+          var rJ = fJ.Next(Value, ref s);
+          if (null != rJ) {
+            rJ.DoJob(ref wr, this);
+          } else {
+            fJ.Finish(ref s, ref fK.Value);
+            wr.Handler = fK;
+            fJ.Uninit(ref s);
+            Work.Do(fK, ref wr);
+          }
+        }
+        internal override void DoCont(ref Worker wr, R r) {
+          var rJ = fJ.Next(r, ref s);
+          if (null != rJ) {
+            rJ.DoJob(ref wr, this);
+          } else {
+            fJ.Finish(ref s, ref fK.Value);
+            wr.Handler = fK;
+            fJ.Uninit(ref s);
+            Work.Do(fK, ref wr);
+          }
+        }
+      }
+    }
+
+    ///
     public sealed class JobJoin<X, JX> : Job<X> where JX : Job<X> {
       private Job<JX> xJJ;
       ///
@@ -119,6 +185,7 @@ namespace Hopac {
 
     ///
     public abstract class JobTryInDelay<X, Y> : JobTryInBase<X, Y> {
+      ///
       public abstract Job<X> DoDelay();
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
         var xK = new ContTryIn(this, yK);
