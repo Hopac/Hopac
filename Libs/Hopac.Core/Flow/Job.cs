@@ -71,23 +71,16 @@ namespace Hopac {
     }
 
     ///
-    public abstract class JobTryIn<X, Y> : Job<Y> {
-      private Job<X> xJ;
-      ///
-      public JobTryIn(Job<X> xJ) { this.xJ = xJ; }
+    public abstract class JobTryInBase<X, Y> : Job<Y> {
       ///
       public abstract Job<Y> DoIn(X x);
       ///
       public abstract Job<Y> DoExn(Exception e);
-      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        var xK = new ContTryIn(this, yK);
-        wr.Handler = xK;
-        xJ.DoJob(ref wr, xK);
-      }
-      private sealed class ContTryIn : Cont<X> {
-        private JobTryIn<X, Y> yJ;
+
+      internal sealed class ContTryIn : Cont<X> {
+        private JobTryInBase<X, Y> yJ;
         private Cont<Y> yK;
-        internal ContTryIn(JobTryIn<X, Y> yJ, Cont<Y> yK) {
+        internal ContTryIn(JobTryInBase<X, Y> yJ, Cont<Y> yK) {
           this.yJ = yJ;
           this.yK = yK;
         }
@@ -109,6 +102,28 @@ namespace Hopac {
           wr.Handler = yK;
           yJ.DoIn(x).DoJob(ref wr, yK);
         }
+      }
+    }
+
+    ///
+    public abstract class JobTryIn<X, Y> : JobTryInBase<X, Y> {
+      private Job<X> xJ;
+      ///
+      public JobTryIn(Job<X> xJ) { this.xJ = xJ; }
+      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
+        var xK = new ContTryIn(this, yK);
+        wr.Handler = xK;
+        xJ.DoJob(ref wr, xK);
+      }
+    }
+
+    ///
+    public abstract class JobTryInDelay<X, Y> : JobTryInBase<X, Y> {
+      public abstract Job<X> DoDelay();
+      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
+        var xK = new ContTryIn(this, yK);
+        wr.Handler = xK;
+        DoDelay().DoJob(ref wr, xK);
       }
     }
 

@@ -23,7 +23,7 @@ module EagerSeq =
        <| function
            | None -> rs <-= None
            | Some (x, xs) ->
-             Job.tryIn (Job.delayWith x2ySJ x)
+             Job.tryInDelay <| fun () -> x2ySJ x
               <| fun ys -> loopYs xs.EagerSeq ys.EagerSeq rs
               <| fun e -> rs <-=! e
        <| fun e -> rs <-=! e
@@ -160,7 +160,7 @@ module EagerSeq =
 
   let unfoldJob (s2xsOJ: 's -> Job<option<'x * 's>>) (s: 's) = Job.delay <| fun () ->
     let rec loop s xs =
-      Job.tryIn (Job.delayWith s2xsOJ s)
+      Job.tryInDelay <| fun () -> s2xsOJ s
        <| function
            | None -> xs <-= None
            | Some (x, s) ->

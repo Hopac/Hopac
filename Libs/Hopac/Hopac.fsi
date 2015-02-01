@@ -616,7 +616,8 @@ module Job =
 
   /// Implements the `try-in-unless` exception handling construct for jobs.
   /// Both of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
-  /// Job<'y>`, for failure, are invoked from a tail position.
+  /// Job<'y>`, for failure, are invoked from a tail position.  See also:
+  /// `tryInDelay`.
 #if DOC
   ///
   /// Note that the workflow notation of F# does not support this operation.  It
@@ -624,6 +625,10 @@ module Job =
   /// write exception handling code that has the desired tail-call properties.
 #endif
   val inline tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
+
+  /// `tryInDelay u2xJ x2yJ e2yJ` is equivalent to `tryIn (delay u2xJ) x2yJ
+  /// e2yJ`.
+  val inline tryInDelay: (unit -> #Job<'x>) -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
 #if DOC

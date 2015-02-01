@@ -371,7 +371,7 @@ module Stream =
          (Alt.tryIn ss
            <| function
                | Cons (s, ss) ->
-                 Job.tryIn (Job.delay <| fun () -> keyOf s)
+                 Job.tryInDelay <| fun () -> keyOf s
                   <| fun k ->
                        match key2br.TryGetValue k with
                         | Just g ->
