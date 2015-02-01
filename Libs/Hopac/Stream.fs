@@ -197,7 +197,7 @@ module Stream =
   let rec skipUntil evt xs =
     (evt >>=? fun _ -> xs) <|>* mapc (fun _ -> skipUntil evt) xs
 
-  let switchOn rs ls = switch ls rs
+  let switchTo rs ls = switch ls rs
   let takeUntil evt xs = switch xs (evt >>%? Nil)
 
   let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =

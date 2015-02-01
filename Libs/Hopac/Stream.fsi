@@ -444,7 +444,7 @@ module Stream =
   /// Returns a stream that produces elements from the first stream as long as
   /// the second stream produces no elements.  As soon as the second stream
   /// produces an element, the returned stream only produces elements from the
-  /// second stream.  See also: `switchMap`.
+  /// second stream.  See also: `switchTo`, `switchMap`.
 #if DOC
   ///
   ///>  first: a b    c   d
@@ -495,13 +495,27 @@ module Stream =
   /// xs) (skip n xs)` is equivalent to `xs`.
   val take: int64 -> Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
+  /// Returns a stream discards elements from the given stream until the given
+  /// alternative is committed to after which the remainder of the given stream
+  /// is produced.  Note that `append (skipUntil alt xs) (takeUntil alt xs)` may
+  /// not be equivalent to `xs`, because there is an inherent race-condition.
   val skipUntil: Alt<_> -> Stream<'x> -> Stream<'x>
-  /// Preliminary and subject to change.
+
+  /// Returns a stream produces elements from the given stream until the given
+  /// alternative is committed to after which the returned stream is closed.
+  /// Note that `append (skipUntil alt xs) (takeUntil alt xs)` may not be
+  /// equivalent to `xs`, because there is an inherent race-condition.
   val takeUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
-  /// Preliminary and subject to change.
-  val switchOn: Stream<'x> -> Stream<'x> -> Stream<'x>
+  /// `switchTo xs ys` is equivalent to `switch ys xs`.
+#if DOC
+  ///
+  /// `switchTo` is designed to be used in pipelines:
+  ///
+  ///> xs
+  ///> |> switchTo ys
+#endif
+  val switchTo: Stream<'x> -> Stream<'x> -> Stream<'x>
 
   // Exceptions
 
