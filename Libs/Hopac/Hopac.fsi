@@ -504,8 +504,8 @@ module Job =
 
   /// Creates a job that calls the given function with the given value to
   /// compute the result of the job.  `lift x2y x` is equivalent to `result x
-  /// |>> x2y`.
-  val lift: ('x -> 'y) -> 'x -> Job<'y>
+  /// |>> x2y`.  Note that `x2y x |> result` is not the same.
+  val inline lift: ('x -> 'y) -> 'x -> Job<'y>
 
   /// Creates a job that invokes the given thunk to compute the result of the
   /// job.  `thunk u2x` is equivalent to `result () |>> u2x`.
@@ -520,7 +520,7 @@ module Job =
   /// optimized version of `result ()`.
   val inline unit: unit -> Job<unit>
 
-  /// Creates a job with the given result.
+  /// Creates a job with the given result.  See also: `lift`, `thunk`, `unit`.
   val result: 'x -> Job<'x>
 
   /// Creates a job that first runs the given job and then passes the result of

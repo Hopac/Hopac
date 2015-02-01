@@ -756,9 +756,9 @@ module Job =
       override yJ'.Do () =
        upcast x2yJ x} :> Job<_>
 
-  let lift (x2y: 'x -> 'y) (x: 'x) =
-    {new Job<'y> () with
-      override yJ'.DoJob (wr, yK) = Cont.Do (yK, &wr, x2y x)}
+  let inline lift (x2y: 'x -> 'y) (x: 'x) =
+    {new JobThunk<'y> () with
+      override yJ'.Do () = x2y x} :> Job<_>
 
   let inline thunk (u2x: unit -> 'x) =
     {new JobThunk<'x> () with
