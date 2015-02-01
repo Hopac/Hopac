@@ -4,11 +4,11 @@ open System.Reflection
 [<assembly: AssemblyTitleAttribute("Hopac")>]
 [<assembly: AssemblyProductAttribute("Hopac")>]
 [<assembly: AssemblyDescriptionAttribute("A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.")>]
-[<assembly: AssemblyVersionAttribute("0.0.0.38")>]
-[<assembly: AssemblyFileVersionAttribute("0.0.0.38")>]
+[<assembly: AssemblyVersionAttribute("0.0.0.39")>]
+[<assembly: AssemblyFileVersionAttribute("0.0.0.39")>]
 [<assembly: AssemblyCompanyAttribute("Housemarque Inc.")>]
 [<assembly: AssemblyCopyrightAttribute("� Housemarque Inc.")>]
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] Version = "0.0.0.38"
+    let [<Literal>] Version = "0.0.0.39"

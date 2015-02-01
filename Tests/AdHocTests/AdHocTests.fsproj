@@ -67,7 +67,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="StreamTests.fs" />
-    <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj">

@@ -1,3 +1,15 @@
+#### 0.0.0.39 - 01.02.2015
+* Added internal class for `for` -style jobs.
+* Added `Job.tryInDelay`.
+* Added `distinctUntilChanged`.
+* Extended `groupByFun` and `groupByJob` with ability to close substreams.
+* Added plain `iter`.
+* Tests for streams.
+* Shift is tricky to implement correctly.
+* Documenting and refining streams.
+* `sleep` doesn't exist anymore.
+* Note about timeouts and liveness.
+
 #### 0.0.0.38 - 24.01.2015
 * Move Streams, BoundedMb and some functions form Hopac.Extra library to Hopac.
 * Documenting and refining choice streams.

@@ -1,0 +1,34 @@
+a556fef8eff50c2b49106cfbefecd8212a93c3dc Added internal class for `for` -style jobs.
+97a31cf96d722e05fdbd82aef958c3eb4a71d40a Added `Job.tryInDelay`.
+c9d8b7d5bb103b738f6b25e36f55ac1d0121cb63 Added `Job.tryInDelay`.
+f9a743bead3e7dcf4170dca7b09159b8631a6d0d Documenting streams.
+9c2824f40033f2d1b10c302019a682ff443bf480 Added `distinctUntilChanged`.
+2e412b7ffcbd700998ef4c974ab45b2a70991649 Extended `groupByFun` and `groupByJob` with ability to close substreams.
+83f45f116d094b206e7e9e4acfc4745e219c2072 Added plain `iter`.
+44b41fdd377bd2d7c2a118eda8996c45f9b5f47e Fix doc as upcast is no longer needed.
+1f44839dfaaafba30ae4f4216f407d9e0c3fe2b5 War on unused variables.
+3357fdd4571340aa77a4551f5b90ecb40e4131d9 A few more tests.  A few of these run for a long time, because they sleep.
+fcba717606440ce9569b55bb7fa66e72a15e3cef Refining streams.
+4bd33e920cfbfcb28aa1e0d26dd7e5d15f00055c Did I mention `shift` is tricky?
+e5cd4603c63a328fa8389511223d7d5fbae5beb9 Minor tweaks.
+9af3d431b643ede9d37e0c4a75a4f1d075842346 A few rather naive tests for streams.
+219f8e25f198d520bdf8c772a3c5ae6eceefa08c Documenting and refining streams.
+b22f0bcb366c55738069dbae88390684991e10e8 Documenting and refining streams.
+d464b0b63daf803d0fead311e305ce71891e7efa Working on streams.
+29628b9481cdfa24a4b4b451af6270846e71e2d5 Shift is tricky to implement correctly...
+4f8b5cc09f1dbc4f1d44fec27e3069e96ae83c04 Documenting and refining streams.
+5526a3c1a9b12aba308f9bb5e83819d43714af28 Documentation.
+dba398c0546b9c7dddb2d6f8acabf365213fcf57 Documenting and refining streams.
+0a14de33f7009baae543fb4c05c37884a7fdedc4 Documenting and refining streams.
+9d781ec81220960109ba8b9ddc7fb8e32fa80270 Documenting and refining streams.
+54aa61a13bdacd6a8f2f57f4c32f00baf6ba7a00 Second attempt.
+c3d416559df7c022c9c454461c1bd89ce53f488e Fix links.
+cc2bb2f812a6d300d0ec64fd6ddcdd4f9c05acb8 Documenting and refining choice streams.
+c245f58a9608af66995864bda13789a9347b1d31 Documenting and refining choice streams.
+03003bc4316d19ce1ee61a328b6bbc9b9a0028c5 Documenting and refining choice streams.
+ed30bd80acee461679e730398de6fb6617cef729 Documenting choice streams.
+1ce55f03b4d6b6245dacc9a6ff286f023180a53d Documenting streams.
+f452d1f1fb598eb9db904ffb6b5c55bf78db9b18 Docs.
+4e1b6382f945055e4e798e5f4a996948baf4595b `sleep` doesn't exist anymore.
+c5e5dc8b312b5b00b41a514d1b8c8f49945bc091 Note about timeouts and liveness.
+9c78c063e63f133aae0bf0dc82c23082d75dab29 Documenting streams.
