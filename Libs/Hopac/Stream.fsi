@@ -357,12 +357,10 @@ module Stream =
   ///
   /// Reference implementation:
   ///
-  ///> let rec mapJob x2yJ xs =
-  ///>   memo (xs >>= function Nil -> nil
-  ///>                       | Cons (x, xs) ->
-  ///>                         x2yJ x |>>? fun y -> Cons (y, mapJob x2yJ xs))
-  ///
-  /// Above, `memo` is `fun x -> Promise.Now.delay x :> Alt<_>`.
+  ///> let rec mapJob f xs =
+  ///>   xs >>=* function Nil -> nil
+  ///>                  | Cons (x, xs) ->
+  ///>                    f x >>=? fun y -> cons y (mapJob f xs)
 #endif
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
