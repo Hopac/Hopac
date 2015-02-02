@@ -493,11 +493,27 @@ module Stream =
   ///>  first: a b    c   d
   ///> second:      1  2 3  4 ...
   ///> output: a b  1  2 3  4 ...
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec switch ls rs =
+  ///>   rs <|>* (ls >>=? function Nil -> rs
+  ///>                           | Cons (l, ls) -> cons l (switch ls rs))
 #endif
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
   /// Joins all the streams in the given stream of streams together with the
   /// given binary join combinator.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec joinWith (join: Stream<_> -> Stream<_> -> #Stream<_>)
+  ///>                  (xxs: Stream<#Stream<_>>) =
+  ///>   xxs >>=* function Nil -> nil
+  ///>                   | Cons (xs, xxs) ->
+  ///>                     join xs (joinWith join xxs) :> Stream<_>
+#endif
   val joinWith: (Stream<'x> -> Stream<'y> -> #Stream<'y>) -> Stream<#Stream<'x>> -> Stream<'y>
 
   /// `mapJoin j f xs` is equivalent to `joinWith j (mapFun f xs)`.
