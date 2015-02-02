@@ -237,11 +237,15 @@ module Stream =
     (mapc (throttleGot1 timeout timer) xs)
   and throttle timeout xs = mapcm (throttleGot1 timeout (memo timeout)) xs
 
-  let rec clXY x xs y ys = Cons ((x, y), clY xs y ys <|>* clX ys x xs)
-  and clYX y ys x xs = Cons ((x, y), clX ys x xs <|>* clY xs y ys)
-  and clX ys x xs = mapfc (clXY x xs) ys
-  and clY xs y ys = mapfc (clYX y ys) xs
-  let combineLatest xs ys = mapc (clX ys) xs <|>* mapc (clY xs) ys
+  let rec ysxxs1 ys x xs =
+    mapfc (fun y ys -> Cons ((x, y), xsyys1 xs y ys <|>* ysxxs1 ys x xs)) ys
+  and xsyys1 xs y ys =
+    mapfc (fun x xs -> Cons ((x, y), ysxxs1 ys x xs <|>* xsyys1 xs y ys)) xs
+  let rec ysxs0 ys xs = mapc (xsyys0 xs) ys
+  and xsyys0 xs y ys = xsyys1 xs y ys <|>? ysxs0 ys xs
+  let rec xsys0 xs ys = mapc (ysxxs0 ys) xs
+  and ysxxs0 ys x xs = ysxxs1 ys x xs <|>? xsys0 xs ys
+  let combineLatest xs ys = xsys0 xs ys <|>* ysxs0 ys xs
 
   let rec zipXY x y xs ys = Cons ((x, y), zip xs ys)
   and zipX ys x xs = mapfc (fun y ys -> zipXY x y xs ys) ys
