@@ -60,14 +60,9 @@ module Stream =
     let tap v = Alt.always v.var
 
   let inline nil<'x> = Alt.always Nil :> Stream<'x>
-
-  let inline consf x xs = Cons (x, xs)
-  let cons x xs = Alt.always (consf x xs)
-
+  let cons x xs = Alt.always (Cons (x, xs))
   let inline error e = Alt.raises e :> Stream<_>
-
   let inline one x = cons x nil
-
   let inline delay (u2xs: unit -> #Stream<'x>) =
     memo << Job.delay <| fun () -> u2xs ()
 
@@ -172,7 +167,7 @@ module Stream =
     mapcm (fun x xs -> x2yJ x |>> fun y -> Cons (y, mapJob x2yJ xs)) xs
   let rec mapFun x2y xs = mapfcm (fun x xs -> Cons (x2y x, mapFun x2y xs)) xs
 
-  let amb ls rs = mapfc consf ls <|>* mapfc consf rs
+  let amb ls rs = ls <|>* rs :> Stream<_>
 
   let rec mergeSwap ls rs = mapnc rs (fun l ls -> cons l (merge rs ls)) ls
   and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
