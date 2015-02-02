@@ -470,8 +470,8 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec mergeSwap ls rs =
-  ///>   ls >>= function Nil -> rs
-  ///>                 | Cons (l, ls) -> cons l (merge rs ls)
+  ///>   ls >>=? function Nil -> rs
+  ///>                  | Cons (l, ls) -> cons l (merge rs ls)
   ///> and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
 #endif
   val merge: Stream<'x> -> Stream<'x> -> Stream<'x>
