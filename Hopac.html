@@ -1716,11 +1716,11 @@ button<b>.</b>Click<b>.</b>Add (ignore <b>&gt;&gt;</b> <a href="#def:module Hopa
 <div class="nested"><p> Returns a stream that contains the elements from the given stream for which the given function returns <code><b>true</b></code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.mapJob" href="#dec:val Hopac.Stream.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Returns a stream that produces elements passed through the given job whenever the given streams produces elements.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs <b>=</b>
-  memo (xs <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <b>function</b> Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
-                      <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b>
-                        x2yJ x <a href="#def:val Hopac.Alt.Infixes.|&gt;&gt;?">|&gt;&gt;?</a> <b>fun</b> y <b>-&gt;</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (y, <a href="#def:val Hopac.Stream.mapJob">mapJob</a> x2yJ xs))
-</pre><p> Above, <code>memo</code> is <code><b>fun</b>&nbsp;x&nbsp;<b>-&gt;</b>&nbsp;<a href="#def:module Hopac.Promise">Promise</a><b>.</b><a href="#def:module Hopac.Promise.Now">Now</a><b>.</b><a href="#def:val Hopac.Promise.Now.delay">delay</a>&nbsp;x&nbsp;<b>:&gt;</b>&nbsp;<a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>_<b>&gt;</b></code>.</div>
+<div class="nested"><p> Returns a stream that produces elements passed through the given job whenever the given streams produces elements.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.mapJob">mapJob</a> f xs <b>=</b>
+  xs <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> <b>function</b> Nil <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
+                 <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> (x, xs) <b>-&gt;</b>
+                   f x <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">&gt;&gt;=?</a> <b>fun</b> y <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> y (<a href="#def:val Hopac.Stream.mapJob">mapJob</a> f xs)
+</pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.mapFun" href="#dec:val Hopac.Stream.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream that produces elements passed through the given function whenever the given streams produces elements.</div>
