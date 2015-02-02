@@ -1616,7 +1616,7 @@ module Latch =
   /// Immediate operations on latches.
   module Now =
     /// Creates a new latch with the specified initial count.
-    val inline create: initial: int -> Latch
+    val create: initial: int -> Latch
 
     /// Increments the counter of the latch.
     val inline increment: Latch -> unit

@@ -1991,7 +1991,8 @@ module Infixes =
 
 module Latch =
   module Now =
-    let inline create initial = Latch (initial)
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let create initial = Latch (initial)
     let inline increment (l: Latch) = l.Increment ()
   let inline decrement (l: Latch) = l.Decrement ()
   let inline await (l: Latch) = l :> Alt<_>
