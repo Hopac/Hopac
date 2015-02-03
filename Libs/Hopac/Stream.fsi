@@ -552,16 +552,25 @@ module Stream =
   /// xs) (skip n xs)` is equivalent to `xs`.
   val take: int64 -> Stream<'x> -> Stream<'x>
 
-  /// Returns a stream discards elements from the given stream until the given
-  /// alternative is committed to after which the remainder of the given stream
-  /// is produced.  Note that `append (skipUntil alt xs) (takeUntil alt xs)` may
-  /// not be equivalent to `xs`, because there is an inherent race-condition.
+  /// Returns a stream that discards elements from the given stream until the
+  /// given alternative is committed to after which the remainder of the given
+  /// stream is produced.  Note that `append (takeUntil evt xs) (skipUntil evt
+  /// xs)` may not be equivalent to `xs`, because there is an inherent
+  /// race-condition.  See also: `takeAndSkipUntil`.
   val skipUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
-  /// Returns a stream produces elements from the given stream until the given
-  /// alternative is committed to after which the returned stream is closed.
-  /// Note that `append (skipUntil alt xs) (takeUntil alt xs)` may not be
-  /// equivalent to `xs`, because there is an inherent race-condition.
+  /// Returns a pair of streams of which the first one takes elements from the
+  /// given stream and the second skips elements from the given stream until the
+  /// given alternative is committed to.  It is guaranteed that
+  /// `takeAndSkipUntil evt xs |> fun (hs, ts) -> append hs ts` is equivalent to
+  /// `xs`.  See also: `skipUntil`, `takeUntil`.
+  val takeAndSkipUntil: Alt<_> -> Stream<'x> -> Stream<'x> * Stream<'x>
+
+  /// Returns a stream that produces elements from the given stream until the
+  /// given alternative is committed to after which the returned stream is
+  /// closed.  Note that `append (takeUntil evt xs) (skipUntil evt xs)` may not
+  /// be equivalent to `xs`, because there is an inherent race-condition.  See
+  /// also: `takeAndSkipUntil`.
   val takeUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
   /// `switchTo xs ys` is equivalent to `switch ys xs`.

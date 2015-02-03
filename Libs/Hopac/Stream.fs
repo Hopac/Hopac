@@ -189,6 +189,13 @@ module Stream =
   let appendMap x2ys xs = mapJoin append x2ys xs
   let switchMap x2ys xs = mapJoin switch x2ys xs
 
+  let rec taker evt skipper xs =
+    (evt >>=? fun _ -> Job.start (xs >>= fun t -> skipper <-= t) >>% Nil) <|>*
+    (xs >>=? function Nil -> skipper <-= Nil >>% Nil
+                    | Cons (x, xs) -> upcast cons x (taker evt skipper xs))
+  let takeAndSkipUntil evt xs =
+    let skipper = IVar () in (taker evt skipper xs, skipper :> Alt<_>)
+
   let rec skipUntil evt xs =
     (evt >>=? fun _ -> xs) <|>* mapc (fun _ -> skipUntil evt) xs
 
