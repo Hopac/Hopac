@@ -109,3 +109,8 @@ module TopLevel =
   /// Creates a timeout for the specified number of milliseconds.  This is the
   /// same function as `Timer.Global.timeOutMillis`.
   val inline timeOutMillis: int -> Alt<unit>
+
+  /// Creates a promise whose value is computed lazily with the given job when
+  /// an attempt is made to read the promise.  This is the same function as
+  /// `Promise.Now.delay`.
+  val inline memo: Job<'x> -> Promise<'x>

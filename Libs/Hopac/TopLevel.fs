@@ -27,3 +27,5 @@ module TopLevel =
 
   let inline timeOut x = Timer.Global.timeOut x
   let inline timeOutMillis x = Timer.Global.timeOutMillis x
+
+  let inline memo x = Promise.Now.delay x
