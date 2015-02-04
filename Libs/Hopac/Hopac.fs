@@ -1422,6 +1422,7 @@ module Timer =
       override wt.GetProc (wr) = wt.uK.GetProc (&wr)
       override wt.DoHandle (wr, e) = wt.uK.DoHandle (&wr, e)
       override wt.DoWork (wr) = wt.uK.DoWork (&wr)
+      new (t, uK) = {inherit WorkTimed (t); uK=uK}
       new (t, me, pk, uK) = {inherit WorkTimed (t, me, pk); uK=uK}
 
     let outOfRange ticks =
@@ -1443,7 +1444,7 @@ module Timer =
         {new Alt<unit> () with
           override uA'.DoJob (wr, uK) =
            (initGlobalTimer ()).SynchronizedPushTimed
-            (WorkTimedUnitCont (Environment.TickCount + ms, 0, null, uK))
+            (WorkTimedUnitCont (Environment.TickCount + ms, uK))
           override uA'.TryAlt (wr, i, uK, uE) =
            (initGlobalTimer ()).SynchronizedPushTimed
             (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
