@@ -1338,16 +1338,15 @@ module Timer =
   module Global =
     /// Creates an alternative that, after instantiation, becomes available
     /// after the specified time span.
-    ///
-    /// Note that this is simply not intended for high precision timing and the
-    /// resolution of the underlying timing mechanism is very coarse (Windows
-    /// system ticks).
-    ///
-    /// Note that you do not need to create a new timeout alternative every time
-    /// you need a timeout with a specific time span.
 #if DOC
     ///
-    /// For example, you can create a timeout for one second
+    /// Note that the timer mechanism is simply not intended for high precision
+    /// timing and the resolution of the underlying mechanism is very coarse
+    /// (Windows system ticks).
+    ///
+    /// Also note that you do not need to create a new timeout alternative every
+    /// time you need a timeout with a specific time span.  For example, you can
+    /// create a timeout for one second
     ///
     ///> let after1s = timeOut (TimeSpan.FromSeconds 1.0)
     ///
@@ -1374,6 +1373,26 @@ module Timer =
     ///
     /// that always waits for a timeout is held live by the timeout.  Such
     /// servers need to support an explicit kill protocol.
+    ///
+    /// When a timeout is used as a part of a non-deterministic choice, e.g.
+    /// `timeOut span <|>? somethingElse`, and some other alternative is
+    /// committed to before the timeout expires, the memory held by the timeout
+    /// can be released by the timer mechanism.  However, when a timeout is not
+    /// part of a non-deterministic choice, e.g.
+    ///
+    ///> start (timeOut span >>= fun () -> gotTimeout <-= ())
+    ///
+    /// no such clean up can be performed.  If there is a possibility that such
+    /// timeouts are kept alive beyond their usefulness, it may be possible to
+    /// arrange for the timeouts to be released by making them part of a
+    /// non-deterministic choice:
+    ///
+    ///> start (timeOut span >>=? IVar.tryFill gotTimeoutOrDoneOtherwise <|>?
+    ///>        gotTimeoutOrDoneOtherwise)
+    ///
+    /// The idea is that the `gotTimeoutOrDoneOtherwise` is filled, using
+    /// `IVar.tryFill` as soon as the timeout is no longer useful.  This allows
+    /// the timer mechanism to release the memory held by the timeout.
 #endif
     val timeOut: TimeSpan -> Alt<unit>
 
