@@ -1,3 +1,13 @@
+#### 0.0.0.40 - 06.02.2015
+* Changed the priority queue to a simple leftist heap and added some extra logic to purge abandoned timeouts while merging. See #50.
+* Added `TopLevel.memo` as an alias for `Promise.Now.delay`.
+* Added `Stream.takeAndSkipUntil`.
+* Disable inlining of `Latch.Now.create` as an attempt to work around a `MissingMethodException`.
+* Fixing `combineLatest` to properly discard unmatched elements.
+* Add more reference implementations to the docs.
+* Renamed `Stream.switchOn` to `Stream.switchTo`.
+* Make `Job.lift` inlineable.
+
 #### 0.0.0.39 - 01.02.2015
 * Added internal class for `for` -style jobs.
 * Added `Job.tryInDelay`.
