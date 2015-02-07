@@ -1541,7 +1541,7 @@ module IVar =
     /// variables such as when creating more complex data structures that make
     /// internal use of write once variables.  Using this to poll write once
     /// variables is not generally a good idea.
-    val inline isFull: IVar<'x> -> bool
+    val isFull: IVar<'x> -> bool
 
     /// Returns the value or raises the failure exception written to the write
     /// once variable.  It is considered an error if the write once variable has
@@ -1861,7 +1861,7 @@ module Promise =
     /// This operation is mainly provided for advanced uses of promises such as
     /// when creating more complex data structures that make internal use of
     /// promises.  Using this to poll promises is not generally a good idea.
-    val inline isFulfilled: Promise<'x> -> bool
+    val isFulfilled: Promise<'x> -> bool
 
     /// Returns the value or raises the failure exception that the promise has
     /// been fulfilled with.  It is considered an error if the promise has not

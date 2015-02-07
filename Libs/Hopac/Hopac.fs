@@ -200,7 +200,8 @@ module IVar =
     let inline create () = IVar<'x> ()
     let inline createFull (x: 'x) = IVar<'x> (x)
     let inline createFailure (e: exn) = IVar<'x> (e)
-    let inline isFull (xI: IVar<'x>) = xI.Full
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let isFull (xI: IVar<'x>) = xI.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xI: IVar<'x>) : 'x = xI.Get ()
 
@@ -1366,7 +1367,9 @@ module Promise =
     let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
-    let inline isFulfilled (xP: Promise<'x>) = xP.Full
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let isFulfilled (xP: Promise<'x>) = xP.Full
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xP: Promise<'x>) = xP.Get ()
   module Infixes =
     open Job.Infixes
