@@ -16,7 +16,8 @@ namespace Hopac {
     public abstract class JobBind<X, Y> : Job<Y> {
       private Job<X> xJ;
       ///
-      public JobBind(Job<X> xJ) { this.xJ = xJ; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<Y> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
       ///
       public abstract Job<Y> Do(X x);
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
@@ -114,7 +115,8 @@ namespace Hopac {
     public sealed class JobJoin<X, JX> : Job<X> where JX : Job<X> {
       private Job<JX> xJJ;
       ///
-      public JobJoin(Job<JX> xJJ) { this.xJJ = xJJ; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<X> InternalInit(Job<JX> xJJ) { this.xJJ = xJJ; return this; }
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
         xJJ.DoJob(ref wr, new ContJoin(xK));
       }
@@ -175,7 +177,8 @@ namespace Hopac {
     public abstract class JobTryIn<X, Y> : JobTryInBase<X, Y> {
       private Job<X> xJ;
       ///
-      public JobTryIn(Job<X> xJ) { this.xJ = xJ; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<Y> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
         var xK = new ContTryIn(this, yK);
         wr.Handler = xK;
@@ -198,7 +201,8 @@ namespace Hopac {
     public abstract class JobTryWith<X> : Job<X> {
       private Job<X> xJ;
       ///
-      public JobTryWith(Job<X> xJ) { this.xJ = xJ; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<X> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
       ///
       public abstract Job<X> DoExn(Exception e);
       internal override void DoJob(ref Worker wr, Cont<X> xK_) {
@@ -238,7 +242,8 @@ namespace Hopac {
     public abstract class JobMap<X, Y> : Job<Y> {
       private Job<X> xJ;
       ///
-      public JobMap(Job<X> xJ) { this.xJ = xJ; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<Y> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
       ///
       public abstract Y Do(X x);
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {

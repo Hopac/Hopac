@@ -22,7 +22,9 @@ namespace Hopac.Core {
   public abstract class ContIterate<X, Y> : Cont<X> {
     internal Cont<Y> yK;
     ///
-    public ContIterate(X x, Cont<Y> yK) { this.Value = x; this.yK = yK; }
+    [MethodImpl(AggressiveInlining.Flag)]
+    public Cont<X> InternalInit(X x, Cont<Y> yK) { this.Value = x; this.yK = yK; return this; }
+
     ///
     public abstract Job<X> Do(X x);
     internal override Proc GetProc(ref Worker wr) {
@@ -114,10 +116,7 @@ namespace Hopac.Core {
     internal S State;
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Cont_State() { }
-
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal Cont_State(S s) { State = s; }
+    internal Cont<T> Init(S s) { State = s; return this; }
   }
 
   internal abstract class Cont_State<T, S1, S2> : Cont<T> {
@@ -125,10 +124,7 @@ namespace Hopac.Core {
     internal S2 State2;
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Cont_State() { }
-
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal Cont_State(S1 s1, S2 s2) { State1 = s1; State2 = s2; }
+    internal Cont<T> Init(S1 s1, S2 s2) { State1 = s1; State2 = s2; return this; }
   }
 
   internal abstract class Cont_State<T, S1, S2, S3> : Cont<T> {
@@ -137,9 +133,6 @@ namespace Hopac.Core {
     internal S3 State3;
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Cont_State() { }
-
-    [MethodImpl(AggressiveInlining.Flag)]
-    internal Cont_State(S1 s1, S2 s2, S3 s3) { State1 = s1; State2 = s2; State3 = s3; }
+    internal Cont<T> Init(S1 s1, S2 s2, S3 s3) { State1 = s1; State2 = s2; State3 = s3; return this; }
   }
 }

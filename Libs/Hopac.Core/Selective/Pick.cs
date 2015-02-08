@@ -6,7 +6,7 @@ namespace Hopac.Core {
   using System.Runtime.CompilerServices;
   using System.Threading;
 
-  internal sealed class Pick {
+  internal abstract class Pick : Else {
     internal Nack Nacks;
     internal volatile int State;  // 0 = available, -1 = claimed, 1 = picked
 
@@ -92,6 +92,30 @@ namespace Hopac.Core {
 
     AlreadyPicked:
       return state;
+    }
+  }
+
+  internal abstract class Pick_State<S1> : Pick {
+    internal S1 State1;
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal Pick Init(S1 s1) {
+      this.pk = this;
+      this.State1 = s1;
+      return this;
+    }
+  }
+
+  internal abstract class Pick_State<S1, S2> : Pick {
+    internal S1 State1;
+    internal S2 State2;
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal Pick Init(S1 s1, S2 s2) {
+      this.pk = this;
+      this.State1 = s1;
+      this.State2 = s2;
+      return this;
     }
   }
 }

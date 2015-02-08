@@ -10,7 +10,8 @@ namespace Hopac.Core {
   public abstract class BindTaskWithResult<X, Y> : Job<Y> {
     private Task<X> xT;
     ///
-    public BindTaskWithResult(Task<X> xT) { this.xT = xT; }
+    [MethodImpl(AggressiveInlining.Flag)]
+    public Job<Y> InternalInit(Task<X> xT) { this.xT = xT; return this; }
     ///
     public abstract Job<Y> Do(X x);
     private sealed class State : Work {
@@ -49,7 +50,8 @@ namespace Hopac.Core {
   public abstract class BindTask<Y> : Job<Y> {
     private Task uT;
     ///
-    public BindTask(Task uT) { this.uT = uT; }
+    [MethodImpl(AggressiveInlining.Flag)]
+    public Job<Y> InternalInit(Task uT) { this.uT = uT; return this; }
     ///
     public abstract Job<Y> Do();
     private sealed class State : Work {

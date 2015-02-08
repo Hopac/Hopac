@@ -2,6 +2,7 @@
 
 namespace Hopac {
   using System;
+  using System.Runtime.CompilerServices;
   using Hopac.Core;
 
   /// <summary>Represents a first class synchronous operation.</summary>
@@ -15,7 +16,8 @@ namespace Hopac {
       internal Alt<X> xA;
 
       ///
-      public AltBind(Alt<X> xA) { this.xA = xA; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Alt<Y> InternalInit(Alt<X> xA) { this.xA = xA; return this; }
 
       ///
       public abstract Job<Y> Do(X x);
@@ -60,7 +62,8 @@ namespace Hopac {
       internal Alt<X> xA;
 
       ///
-      public AltMap(Alt<X> xA) { this.xA = xA; }
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Alt<Y> InternalInit(Alt<X> xA) { this.xA = xA; return this; }
 
       ///
       public abstract Y Do(X x);
