@@ -1369,6 +1369,8 @@ module Promise =
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
     [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let never () = let p = Promise<'x> () in p.State <- Promise<'x>.Running ; p
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
     let isFulfilled (xP: Promise<'x>) = xP.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xP: Promise<'x>) = xP.Get ()

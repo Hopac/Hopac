@@ -1855,6 +1855,9 @@ module Promise =
     /// Creates a promise with the given failure exception.
     val inline withFailure: exn -> Promise<'x>
 
+    /// Creates a promise that will never be fulfilled.
+    val never: unit -> Promise<'x>
+
     /// Returns true iff the given promise has already been fulfilled (either
     /// with a value or with a failure).
     ///
