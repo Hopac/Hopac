@@ -453,7 +453,7 @@ module Alt =
              xAs.Current.TryAlt (&wr, i, xK, xE')
            else
              xAs.Dispose ()
-             xE.TryElse (&wr, i)})
+             xE.TryElse (&wr, i)}.Init(xE.pk))
        else
          xAs.Dispose ()
          xE.TryElse (&wr, i)}
