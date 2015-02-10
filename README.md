@@ -9,3 +9,5 @@ Library Reference: [Hopac](http://hopac.github.io/Hopac/Hopac.html), [Hopac.Expe
 
 [![NuGet](https://img.shields.io/nuget/v/Hopac.svg)](https://www.nuget.org/packages/Hopac/)
 [![NuGet total](https://img.shields.io/nuget/dt/Hopac.svg)](https://www.nuget.org/packages/Hopac/)
+
+[![Join the chat at https://gitter.im/Hopac/Hopac](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Hopac/Hopac?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
