@@ -42,7 +42,7 @@ namespace Hopac.Core {
       if (TaskStatus.RanToCompletion == xT.Status)
         Job.Do(Do(xT.Result), ref wr, yK);
       else
-        xT.GetAwaiter().UnsafeOnCompleted(new State(wr.Scheduler, this, yK).Ready);
+        xT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new State(wr.Scheduler, this, yK).Ready);
     }
   }
 
@@ -86,7 +86,7 @@ namespace Hopac.Core {
       if (TaskStatus.RanToCompletion == uT.Status)
         Job.Do(Do(), ref wr, yK);
       else
-        uT.GetAwaiter().UnsafeOnCompleted(new State(wr.Scheduler, this, yK).Ready);
+        uT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new State(wr.Scheduler, this, yK).Ready);
     }
   }
 
@@ -124,7 +124,7 @@ namespace Hopac.Core {
       if (TaskStatus.RanToCompletion == xT.Status)
         Cont.Do(xK, ref wr, xT.Result);
       else
-        xT.GetAwaiter().UnsafeOnCompleted(new State(xT, xK, wr.Scheduler).Ready);
+        xT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new State(xT, xK, wr.Scheduler).Ready);
     }
   }
 
@@ -166,7 +166,7 @@ namespace Hopac.Core {
       if (TaskStatus.RanToCompletion == uT.Status)
         Work.Do(uK, ref wr);
       else
-        uT.GetAwaiter().UnsafeOnCompleted(new State(uT, uK, wr.Scheduler).Ready);
+        uT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new State(uT, uK, wr.Scheduler).Ready);
     }
   }
 }
