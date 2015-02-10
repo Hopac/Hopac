@@ -1,5 +1,7 @@
 # Hopac
 
+[![Join the chat at https://gitter.im/Hopac/Hopac](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Hopac/Hopac?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Hopac is a [Concurrent ML](http://cml.cs.uchicago.edu/) style concurrent
 programming library for F#.
 
