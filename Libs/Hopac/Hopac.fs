@@ -217,11 +217,17 @@ module IVar =
 module Alt =
   let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
 
-  let inline unit () = StaticData.unit
+  let inline unit () =
+    match StaticData.unit with
+     | null -> StaticData.Init () ; StaticData.unit
+     | unit -> unit
 
   let inline never () = Never<_>() :> Alt<_>
 
-  let inline zero () = StaticData.zero :> Alt<_>
+  let inline zero () =
+    match StaticData.zero with
+     | null -> StaticData.Init () ; StaticData.zero :> Alt<_>
+     | zero -> zero :> Alt<_>
 
   let inline once x = Once<'x> (x) :> Alt<'x>
 
@@ -552,7 +558,6 @@ module Scheduler =
 //     Priority: option<ThreadPriority>
      TopLevelHandler: option<exn -> Job<unit>>}
     static member Def: Create =
-      StaticData.Init ()
       {Foreground = None
        IdleHandler = None
        MaxStackSize = None
@@ -567,7 +572,11 @@ module Scheduler =
       create <- c
 
   let create (c: Create) =
-    StaticData.createScheduler.Invoke
+    let create =
+      match StaticData.createScheduler with
+       | null -> StaticData.Init () ; StaticData.createScheduler
+       | create -> create
+    create.Invoke
      (Option.orDefaultOf c.Foreground,
       Option.orDefaultOf c.IdleHandler,
       Option.orDefaultOf c.MaxStackSize,
@@ -711,7 +720,7 @@ module Ch =
   module Global =
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xCh: Ch<'x>) (x: 'x) =
-      Ch<'x>.Send (StaticData.globalScheduler, xCh, x)
+      Ch<'x>.Send (initGlobalScheduler (), xCh, x)
   let create () = ctor Now.create ()
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   module Try =
@@ -728,7 +737,7 @@ module Mailbox =
   module Global =
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xMb: Mailbox<'x>) (x: 'x) =
-      Mailbox<'x>.Send (StaticData.globalScheduler, xMb, x)
+      Mailbox<'x>.Send (initGlobalScheduler (), xMb, x)
   let create () = ctor Now.create ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
@@ -866,14 +875,14 @@ module Job =
     {new JobMap<'x, 'y> () with
       override yJ'.Do (x) = x2y x}.InternalInit(xJ)
 
-  let inline unit () = StaticData.unit :> Job<_>
+  let inline unit () = Alt.unit () :> Job<_>
 
   let abort () = Never<_>() :> Job<_>
 
   let raises (e: exn) = Raises (e) :> Job<_>
 
   let inline whenDo (b: bool) (uJ: Job<unit>) =
-    if b then uJ else StaticData.unit :> Job<_>
+    if b then uJ else unit ()
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -886,7 +895,10 @@ module Job =
       {new JobRandomMap<_> () with
         override xJ'.Do (random) = u2x random} :> Job<'x>
 
-    let inline get () = StaticData.random
+    let inline get () =
+      match StaticData.random with
+       | null -> StaticData.Init () ; StaticData.random
+       | random -> random
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -1330,11 +1342,17 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  let inline scheduler () = StaticData.scheduler
+  let inline scheduler () =
+    match StaticData.scheduler with
+     | null -> StaticData.Init () ; StaticData.scheduler
+     | scheduler -> scheduler
 
   ///////////////////////////////////////////////////////////////////////
 
-  let inline switchToWorker () = StaticData.switchToWorker
+  let inline switchToWorker () =
+    match StaticData.switchToWorker with
+     | null -> StaticData.Init () ; StaticData.switchToWorker
+     | switch -> switch
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -1414,7 +1432,10 @@ module Proc =
   let inline queue (uJ: Job<unit>) =
     queueIgnore uJ
 
-  let inline self () = StaticData.proc
+  let inline self () =
+    match StaticData.proc with
+     | null -> StaticData.Init () ; StaticData.proc
+     | proc -> proc
 
   let inline join (p: Proc) = p :> Alt<unit>
 
@@ -1438,9 +1459,9 @@ module Timer =
       let ms = (ticks + 9999L) / 10000L // Rounds up.
       if ticks <= 0L then
         if -10000L = ticks then
-          StaticData.zero :> Alt<_>
+          Alt.zero ()
         elif 0L = ticks then
-          StaticData.unit
+          Alt.unit ()
         else
           outOfRange ticks
       elif 21474836470000L < ticks then
@@ -1973,7 +1994,7 @@ type JobBuilder () =
   member inline job.While (u2b: unit -> bool, uJ: Job<unit>) : Job<unit> =
     Job.whileDo u2b uJ
 
-  member inline job.Zero () : Job<unit> = StaticData.unit :> Job<unit>
+  member inline job.Zero () : Job<unit> = Job.unit ()
 
 type EmbeddedJob<'x> = struct
     val Job: Job<'x>
