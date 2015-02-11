@@ -1,3 +1,10 @@
+#### 0.0.0.41 - 11.02.2015
+* Make sure `StaticData` is initialized, fix for #52.
+* Don't capture context, fix for #53.
+* Added `Promise.Now.never`.
+* Optimized anonymous class initialization patterns: small time and space improvement across the board.
+* Another MissingMethodException workaround.
+
 #### 0.0.0.40 - 06.02.2015
 * Changed the priority queue to a simple leftist heap and added some extra logic to purge abandoned timeouts while merging. See #50.
 * Added `TopLevel.memo` as an alias for `Promise.Now.delay`.
