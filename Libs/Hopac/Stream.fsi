@@ -815,26 +815,22 @@ module Stream =
   /// to longest.
   val inits: Stream<'x> -> Stream<Stream<'x>>
 
-  /// An experimental generic builder for streams.  The abstract `Join`
-  /// operation needs to be implemented in a derived class.  The `Join`
-  /// operation is then used to implement `Bind`, `Combine`, `For` and `While`
+  /// An experimental generic builder for streams.  The abstract `Plus` and
+  /// `Zero` operations need to be implemented in a derived class.  The
+  /// operations are then used to implement `Bind`, `Combine`, `For` and `While`
   /// to get a builder with consistent semantics.
   type [<AbstractClass>] Builder =
     new: unit -> Builder
     member inline Bind: Stream<'x> * ('x -> Stream<'y>) -> Stream<'y>
     member inline Combine: Stream<'x> * Stream<'x> -> Stream<'x>
     member inline Delay: (unit -> Stream<'x>) -> Stream<'x>
-    member inline Zero: unit -> Stream<'x>
+    abstract Zero: unit -> Stream<'x>
     member inline For: seq<'x> * ('x -> Stream<'y>) -> Stream<'y>
     member inline TryWith: Stream<'x> * (exn -> Stream<'x>) -> Stream<'x>
     member While: (unit -> bool) * Stream<'x> -> Stream<'x>
     member inline Yield: 'x -> Stream<'x>
     member inline YieldFrom: Stream<'x> -> Stream<'x>
-    abstract Join: Stream<'x> * Stream<'x> -> Stream<'x>
-
-  /// This builder joins substreams with `amb` to produce a stream with the
-  /// first results.
-  val ambed: Builder
+    abstract Plus: Stream<'x> * Stream<'x> -> Stream<'x>
 
   /// This builder joins substreams with `append` to produce a stream with all
   /// results in sequential order.
@@ -843,6 +839,10 @@ module Stream =
   /// This builder joins substreams with `merge` to produce a stream with all
   /// results in completion order.
   val merged: Builder
+
+  /// This builder joins substreams with `amb` to produce a stream with the
+  /// first results.
+  val ambed: Builder
 
   /// This builder joins substreams with `switch` to produce a stream with the
   /// latest results.
