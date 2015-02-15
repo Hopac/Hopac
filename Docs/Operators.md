@@ -1,3 +1,4 @@
+Background reading: [Where is the monad?](http://www.quanttec.com/fparsec/users-guide/where-is-the-monad.html)
 
  Workflow expression                      | Function expression                | Operator expression
 :---------------------------------------- |:---------------------------------- |:----------------------------
@@ -25,7 +26,20 @@
  Explicit workflow               | Implicit workflow   | Implicit expression
 :------------------------------- |:------------------- |:-----------------------------
 `let! x = Ch.take xCh; ...`      | `let! x = xCh; ...` | `xCh >>= fun x -> ...`
-`let! x = Mailbox.take xMb; ...` | `let! x = xMb; ...` | `xMb >>= fun x -> ...`
 `let! x = IVar.read xI; ...`     | `let! x = xI; ...`  | `xI >>= fun x -> ...`
 `let! x = MVar.take xM; ...`     | `let! x = xM; ...`  | `xM >>= fun x -> ...`
+`let! x = Mailbox.take xMb; ...` | `let! x = xMb; ...` | `xMb >>= fun x -> ...`
 `let! x = Promise.read xP; ...`  | `let! x = xP; ...`  | `xP >>= fun x -> ...`
+
+ Function expression    | Operator expression
+:---------------------- |:----------------------
+`Ch.give xCh x`         | `xCh <-- x`
+`Ch.send xCh x`         | `xCh <-+ x`
+`IVar.fill xI x`        | `xI <-= x`
+`IVar.fillFailure xI e` | `xI <-=! e`
+`MVar.fill xM x`        | `xM <<-= x`
+`Mailbox.send xMb x`    | `xMb <<-+ x`
+
+ Function/workflow expression    | Operator expression
+:------------------------------- |:----------------------------
+`memo (Alt.choose [xP1; xP2])`   | `xP1 <|>* xP2`
