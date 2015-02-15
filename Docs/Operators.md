@@ -1,6 +1,6 @@
 
-Workflow expression                       | Function expression               | Operator expression
------------------------------------------:|:---------------------------------:|:----------------------------:
+ Workflow expression                      | Function expression               | Operator expression
+:---------------------------------------- |:--------------------------------- |:----------------------------
 `let! x = xJ; ...`                        | `xJ |> Job.bind (fun x -> ...)`   | `xJ >>= fun x -> ...`
 `let! x = xJ; return f x`                 | `xJ |> Job.map f`                 | `xJ |>> f`
 `let! _ = xJ; return y`                   |                                   | `xJ >>% y`
