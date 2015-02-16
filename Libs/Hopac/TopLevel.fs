@@ -10,8 +10,10 @@ module TopLevel =
 
   let inline run x = Job.Global.run x
   let inline startIgnore x = Job.Global.startIgnore x
+  let inline startDelay x = Job.Global.startIgnore <| Job.delay x
   let inline start x = Job.Global.start x
   let inline queueIgnore x = Job.Global.queueIgnore x
+  let inline queueDelay x = Job.Global.queueIgnore <| Job.delay x
   let inline queue x = Job.Global.queue x
   let inline server x = Job.Global.server x
 
