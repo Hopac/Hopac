@@ -2228,6 +2228,37 @@ module Extensions =
 //    /// `RegisterWaitForSingleObject` API of the system `ThreadPool`.
 //    member awaitAsJob: Job<unit>
 
+  /// Raised by `onceAltOn` when the associated observable signals the
+  /// `OnCompleted` event.
+  exception OnCompleted
+
+  /// Operations for interfacing Hopac with observables.
+  type IObservable<'x> with
+    /// Creates an alternative that, when instantiated, subscribes to the
+    /// observable on the specified synchronization context for at most one
+    /// event.  Passing `null` as the synchronization context means that the
+    /// subscribe and unsubscribe actions are performed on an unspecified
+    /// thread.
+#if DOC
+    ///
+    /// After an `OnNext` event, the alternative returns the value given by the
+    /// observable.  After an `OnError` event, the alternative raises the
+    /// exception given by the observable.  After an `OnCompleted` event, the
+    /// alternative raises the `OnCompleted` exception.
+    ///
+    /// The alternative becomes available as soon as the observable signals any
+    /// event after which the alternative unsubscribes from the observable.  If
+    /// some other alternative is committed to before the observable signals any
+    /// event, the alternative unsubscribes from the observable.  Note, however,
+    /// that if the job explicitly aborts while instantiating some other
+    /// alternative involved in the same synchronous operations, there is no
+    /// guarantee that the observable would be unsubscribed from.
+    ///
+    /// Note that, as usual, the alternative can be used many times and even
+    /// concurrently.
+#endif
+    member onceAltOn: SynchronizationContext -> Alt<'x>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC

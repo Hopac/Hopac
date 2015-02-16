@@ -1934,6 +1934,53 @@ module Extensions =
   let inline asyncOn context scheduler =
     Async.OnWithSchedulerBuilder (context, scheduler)
 
+  exception OnCompleted
+
+  type ObserveOnce<'x> () =
+    [<DefaultValue>] val mutable dispose: IDisposable
+    [<DefaultValue>] val mutable scheduler: Scheduler
+    [<DefaultValue>] val mutable context: SynchronizationContext
+    inherit IVar<'x> ()
+    static member inline Dispose (this: ObserveOnce<'x>) =
+      match this.dispose with
+       | null -> ()
+       | disp ->
+         this.dispose <- null
+         match this.context with
+          | null -> disp.Dispose ()
+          | context ->
+            context.Post ((fun _ -> disp.Dispose ()), null)
+    static member inline Start (this: ObserveOnce<'x>, u2uJ) =
+      match this.scheduler with
+       | null -> ()
+       | sr ->
+         this.scheduler <- null
+         Scheduler.start sr (u2uJ ())
+    interface IObserver<'x> with
+      override this.OnCompleted () =
+        ObserveOnce<'x>.Dispose this
+        ObserveOnce<'x>.Start
+         (this, fun () -> IVar.fillFailure this OnCompleted)
+      override this.OnError e =
+        ObserveOnce<'x>.Dispose this
+        ObserveOnce<'x>.Start (this, fun () -> IVar.fillFailure this e)
+      override this.OnNext x =
+        ObserveOnce<'x>.Dispose this
+        ObserveOnce<'x>.Start (this, fun () -> IVar.fill this x)
+
+  type IObservable<'x> with
+    member this.onceAltOn (context: SynchronizationContext) =
+      Alt.withNack <| fun nack ->
+      Job.scheduler () >>= fun scheduler ->
+      let obs = ObserveOnce<'x> ()
+      obs.scheduler <- scheduler
+      obs.context <- context
+      match context with
+       | null -> obs.dispose <- this.Subscribe obs
+       | context ->
+         context.Post ((fun _ -> obs.dispose <- this.Subscribe obs), null)
+      Job.start (nack |>> fun () -> ObserveOnce<'x>.Dispose obs) >>% obs
+
 /////////////////////////////////////////////////////////////////////////
 
 open Extensions
