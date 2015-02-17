@@ -14,6 +14,17 @@ module TopLevel =
   /// Default expression builder for jobs.
   val job: JobBuilder
 
+  /// Builder for running an async workflow on the main synchronization context
+  /// and interoperating with the Hopac global scheduler.  The application must
+  /// call `Hopac.Extensions.Async.setMain` to configure Hopac with the main
+  /// synchronization context.
+#if DOC
+  ///
+  /// The builder has been constructed by calling
+  /// `Hopac.Extensions.Async.Global.onMain ()`.
+#endif
+  val onMain: Extensions.Async.OnWithSchedulerBuilder
+
   /// Starts running the given job on the global scheduler and then blocks the
   /// current thread waiting for the job to either return successfully or fail.
 #if DOC

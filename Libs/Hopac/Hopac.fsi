@@ -2104,20 +2104,13 @@ module Extensions =
     /// `Job.scheduler`, `Async.Global.ofJob`.
     val ofJobOn: Scheduler -> Job<'x> -> Async<'x>
 
-    /// Operations on the global scheduler.
-    module Global =
-      /// Creates an async operation that starts the given job on the global
-      /// scheduler and then waits until the started job finishes.  See also:
-      /// `Async.ofJobOn`.
-      val ofJob: Job<'x> -> Async<'x>
-
     /// Builder for async workflows.  The methods in this builder delegate to
     /// the default `async` builder.
-    type OnWithSchedulerBuilder =
-      new: SynchronizationContext * Scheduler -> OnWithSchedulerBuilder
+    type [<AbstractClass>] OnWithSchedulerBuilder =
+      new: unit -> OnWithSchedulerBuilder
 
-      val Scheduler: Scheduler
-      val Context: SynchronizationContext
+      abstract Scheduler: Scheduler
+      abstract Context: SynchronizationContext
 
       member inline Bind:  Task<'x> * ('x -> Async<'y>) -> Async<'y>
       member inline Bind:   Job<'x> * ('x -> Async<'y>) -> Async<'y>
@@ -2152,6 +2145,24 @@ module Extensions =
       member inline Zero: unit -> Async<unit>
 
       member inline Run: Async<'x> -> Job<'x>
+
+    /// Operations on the global scheduler.
+    module Global =
+      /// Creates an async operation that starts the given job on the global
+      /// scheduler and then waits until the started job finishes.  See also:
+      /// `Async.ofJobOn`.
+      val ofJob: Job<'x> -> Async<'x>
+
+      /// Creates a builder for running an async workflow on the main
+      /// synchronization context and interoperating with the Hopac global
+      /// scheduler.  The application must call `Hopac.Extensions.Async.setMain`
+      /// to configure Hopac with the main synchronization context.
+      val onMain: unit -> OnWithSchedulerBuilder
+
+    /// Sets the main synchronization context.  This must be called by
+    /// application code in order to use operations such as `onceAltOnMain` and
+    /// `TopLevel.onMain`
+    val setMain: SynchronizationContext -> unit
 
   /// Builder for an async operation started on the given synchronization
   /// context with jobs on the specified scheduler wrapped as a job.
@@ -2251,13 +2262,18 @@ module Extensions =
     /// some other alternative is committed to before the observable signals any
     /// event, the alternative unsubscribes from the observable.  Note, however,
     /// that if the job explicitly aborts while instantiating some other
-    /// alternative involved in the same synchronous operations, there is no
+    /// alternative involved in the same synchronous operation, there is no
     /// guarantee that the observable would be unsubscribed from.
     ///
     /// Note that, as usual, the alternative can be used many times and even
     /// concurrently.
 #endif
     member onceAltOn: SynchronizationContext -> Alt<'x>
+
+    /// This is equivalent to calling `onceAltOn` with the main synchronization
+    /// context.  The application must call `Hopac.Extensions.Async.setMain` to
+    /// configure Hopac with the main synchronization context.
+    member onceAltOnMain: Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 

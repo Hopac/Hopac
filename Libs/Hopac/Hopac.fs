@@ -1868,16 +1868,9 @@ module Extensions =
          override xK'.DoWork (wr) = apply x2u xK'.Value
          override xK'.DoCont (wr, x) = apply x2u x})
 
-    module Global =
-      let ofJob (xJ: Job<'x>) =
-        ofJobOn (initGlobalScheduler ()) xJ
-
-    type OnWithSchedulerBuilder =
-      new (context: SynchronizationContext, scheduler: Scheduler) =
-        {Context = context; Scheduler = scheduler}
-
-      val Scheduler: Scheduler
-      val Context: SynchronizationContext
+    type [<AbstractClass>] OnWithSchedulerBuilder () =
+      abstract Scheduler: Scheduler
+      abstract Context: SynchronizationContext
 
       member inline this.Bind (xT: Task<'x>, x2yA: 'x -> Async<'y>) =
         async.Bind (Async.AwaitTask xT, x2yA)
@@ -1931,8 +1924,35 @@ module Extensions =
 
       member inline this.Run (xA: Async<'x>) = toJobOn this.Context xA
 
+    let inline getMain () =
+      match StaticData.main with
+       | null -> failwith "Hopac: Main synchronization context not set."
+       | ctxt -> ctxt
+
+    module Global =
+      let ofJob (xJ: Job<'x>) =
+        ofJobOn (initGlobalScheduler ()) xJ
+
+      let onMain () = {new OnWithSchedulerBuilder () with
+        override this.Context = getMain ()
+        override this.Scheduler = initGlobalScheduler ()}
+
+    let setMain (context: SynchronizationContext) =
+      let inline check ctxt =
+        if ctxt <> context then
+          failwith "Hopac: Main synchronization context set inconsistently."
+      match StaticData.main with
+       | null ->
+         lock typeof<StaticData> <| fun () ->
+         match StaticData.main with
+          | null -> StaticData.main <- context
+          | ctxt -> check ctxt
+       | ctxt -> check ctxt
+
   let inline asyncOn context scheduler =
-    Async.OnWithSchedulerBuilder (context, scheduler)
+    {new Async.OnWithSchedulerBuilder () with
+      override this.Context = context
+      override this.Scheduler = scheduler}
 
   exception OnCompleted
 
@@ -1980,6 +2000,7 @@ module Extensions =
        | context ->
          context.Post ((fun _ -> obs.dispose <- this.Subscribe obs), null)
       Job.start (nack |>> fun () -> ObserveOnce<'x>.Dispose obs) >>% obs
+    member this.onceAltOnMain = this.onceAltOn (Async.getMain ())
 
 /////////////////////////////////////////////////////////////////////////
 
