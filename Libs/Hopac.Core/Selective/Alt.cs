@@ -3,6 +3,7 @@
 namespace Hopac {
   using System;
   using System.Runtime.CompilerServices;
+  using Microsoft.FSharp.Core;
   using Hopac.Core;
 
   /// <summary>Represents a first class synchronous operation.</summary>
@@ -160,6 +161,81 @@ namespace Hopac {
           }
           xA.TryAlt(ref wr, i, xK, xE);
         }
+      }
+    }
+
+    internal class GuardJobCont<X, xA> : Cont<xA> where xA : Alt<X> {
+      private Cont<X> xK;
+      internal GuardJobCont(Cont<X> xK) { this.xK = xK; }
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref xK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        Handler.DoHandle(xK, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        Value.DoJob(ref wr, xK);
+      }
+      internal override void DoCont(ref Worker wr, xA value) {
+        value.DoJob(ref wr, xK);
+      }
+    }
+
+    internal class WithNackElse : Else {
+      private Nack nk;
+      private Else xE;
+      internal WithNackElse(Nack nk, Else xE) : base(xE.pk) {
+        this.nk = nk;
+        this.xE = xE;
+      }
+      internal override void TryElse(ref Worker wr, int i) {
+        nk.I1 = i;
+        xE.TryElse(ref wr, i);
+      }
+    }
+
+    internal class WithNackCont<X, xA> : Cont<xA> where xA : Alt<X> {
+      private Cont<X> xK;
+      private Else xE;
+      internal WithNackCont(Cont<X> xK, Else xE) {
+        this.xK = xK;
+        this.xE = xE;
+      }
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref xK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        var pk = xE.pk;
+        Pick.PickClaimedAndSetNacks(ref wr, pk.Nacks.I0, pk);
+        Handler.DoHandle(xK, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        var xE = this.xE;
+        var pk = xE.pk;
+        var nk = pk.Nacks;
+        Pick.Unclaim(pk);
+        Value.TryAlt(ref wr, nk.I0, xK, new WithNackElse(nk, xE));
+      }
+      internal override void DoCont(ref Worker wr, xA value) {
+        var xE = this.xE;
+        var pk = xE.pk;
+        var nk = pk.Nacks;
+        Pick.Unclaim(pk);
+        value.TryAlt(ref wr, nk.I0, xK, new WithNackElse(nk, xE));
+      }
+    }
+
+    ///
+    public abstract class AltWithNack<X, xA> : Alt<X> where xA : Alt<X> {
+      ///
+      public abstract Job<xA> Do(Promise<Unit> nack);
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Do(StaticData.zero).DoJob(ref wr, new GuardJobCont<X, xA>(xK));
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
+        var nk = Pick.AddNack(xE.pk, i);
+        if (null != nk)
+          Do(nk).DoJob(ref wr, new WithNackCont<X, xA>(xK, xE));
       }
     }
   }

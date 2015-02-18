@@ -1158,7 +1158,7 @@ module Alt =
   /// alternative of the form `always () <|>? withNack (...)` the `withNack`
   /// alternative is never instantiated.
 #endif
-  val withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
+  val inline withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
   /// Returns a new alternative that upon picking time makes it so that the
   /// given job will be started if the given alternative isn't the one being

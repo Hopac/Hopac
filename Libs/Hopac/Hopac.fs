@@ -233,15 +233,6 @@ module Alt =
 
   let raises e = Raises (e) :> Alt<_>
 
-  type GuardJobCont<'x, 'xA> when 'xA :> Alt<'x> =
-    inherit Cont<'xA>
-    val mutable xK: Cont<'x>
-    new (xK) = {inherit Cont<'xA> (); xK=xK}
-    override xAK'.GetProc (wr) = Handler.GetProc (&wr, &xAK'.xK)
-    override xAK'.DoHandle (wr, e) = Handler.DoHandle (xAK'.xK, &wr, e)
-    override xAK'.DoWork (wr) = xAK'.Value.DoJob (&wr, xAK'.xK)
-    override xAK'.DoCont (wr, xA) = xA.DoJob (&wr, xAK'.xK)
-
   type GuardCont<'x, 'xA> when 'xA :> Alt<'x> =
    inherit Cont<'xA>
    val i: int
@@ -277,43 +268,9 @@ module Alt =
     {new AltRandom<'x> () with
       override xA'.Do (random) = upcast u2xA random} :> Alt<_>
 
-  type WithNackElse (nk: Nack, xE: Else) =
-    inherit Else (xE.pk)
-    override xE'.TryElse (wr, i) =
-      nk.I1 <- i
-      xE.TryElse (&wr, i)
-
-  type WithNackCont<'x, 'xA> when 'xA :> Alt<'x> =
-    inherit Cont<'xA>
-    val mutable xK: Cont<'x>
-    val xE: Else
-    new (xK, xE) = {inherit Cont<'xA> (); xK=xK; xE=xE}
-    override xAK'.GetProc (wr) =
-     Handler.GetProc (&wr, &xAK'.xK)
-    override xAK'.DoHandle (wr, e) =
-     Pick.PickClaimedAndSetNacks (&wr, xAK'.xE.pk.Nacks.I0, xAK'.xE.pk)
-     Handler.DoHandle (xAK'.xK, &wr, e)
-    override xAK'.DoWork (wr) =
-     let xE = xAK'.xE
-     let pk = xE.pk
-     let nk = pk.Nacks
-     Pick.Unclaim pk
-     xAK'.Value.TryAlt (&wr, nk.I0, xAK'.xK, WithNackElse (nk, xE))
-    override xAK'.DoCont (wr, xA) =
-     let xE = xAK'.xE
-     let pk = xE.pk
-     let nk = pk.Nacks
-     Pick.Unclaim pk
-     xA.TryAlt (&wr, nk.I0, xAK'.xK, WithNackElse (nk, xE))
-
-  let withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
-    {new Alt<'x> () with
-      override xA'.DoJob (wr, xK) =
-       (nack2xAJ StaticData.zero).DoJob (&wr, GuardJobCont xK)
-      override xA'.TryAlt (wr, i, xK, xE) =
-       match Pick.AddNack (xE.pk, i) with
-        | null -> ()
-        | nk -> (nack2xAJ nk).DoJob (&wr, WithNackCont (xK, xE))}
+  let inline withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
+    {new AltWithNack<_, _> () with
+      override xA'.Do (nack) = upcast nack2xAJ nack} :> Alt<_>
 
   type WrapAbort =
     inherit Cont<unit>
