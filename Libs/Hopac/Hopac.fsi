@@ -1160,6 +1160,9 @@ module Alt =
 #endif
   val inline withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
+  /// `withNackFun n2xA` is equivalent to `withNack (Job.lift n2xA)`.
+  val inline withNackFun: (Promise<unit> -> #Alt<'x>) -> Alt<'x>
+
   /// Returns a new alternative that upon picking time makes it so that the
   /// given job will be started if the given alternative isn't the one being
   /// picked.

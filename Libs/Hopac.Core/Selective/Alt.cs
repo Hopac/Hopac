@@ -207,6 +207,8 @@ namespace Hopac {
       internal override void DoHandle(ref Worker wr, Exception e) {
         var pk = xE.pk;
         Pick.PickClaimedAndSetNacks(ref wr, pk.Nacks.I0, pk);
+        var xK = this.xK;
+        wr.Handler = xK;
         Handler.DoHandle(xK, ref wr, e);
       }
       internal override void DoWork(ref Worker wr) {
@@ -214,6 +216,8 @@ namespace Hopac {
         var pk = xE.pk;
         var nk = pk.Nacks;
         Pick.Unclaim(pk);
+        var xK = this.xK;
+        wr.Handler = xK;
         Value.TryAlt(ref wr, nk.I0, xK, new WithNackElse(nk, xE));
       }
       internal override void DoCont(ref Worker wr, xA value) {
@@ -221,21 +225,50 @@ namespace Hopac {
         var pk = xE.pk;
         var nk = pk.Nacks;
         Pick.Unclaim(pk);
+        var xK = this.xK;
+        wr.Handler = xK;
         value.TryAlt(ref wr, nk.I0, xK, new WithNackElse(nk, xE));
       }
     }
 
     ///
-    public abstract class AltWithNack<X, xA> : Alt<X> where xA : Alt<X> {
+    public abstract class AltWithNackJob<X, xA> : Alt<X> where xA : Alt<X> {
       ///
       public abstract Job<xA> Do(Promise<Unit> nack);
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
         Do(StaticData.zero).DoJob(ref wr, new GuardJobCont<X, xA>(xK));
       }
       internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
-        var nk = Pick.AddNack(xE.pk, i);
-        if (null != nk)
-          Do(nk).DoJob(ref wr, new WithNackCont<X, xA>(xK, xE));
+        var nk = Pick.ClaimAndAddNack(xE.pk, i);
+        if (null != nk) {
+          var handler = new WithNackCont<X, xA>(xK, xE);
+          wr.Handler = handler;
+          Do(nk).DoJob(ref wr, handler);
+        }
+      }
+    }
+
+    ///
+    public abstract class AltWithNackFun<X> : Alt<X> {
+      ///
+      public abstract Alt<X> Do(Promise<Unit> nack);
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Do(StaticData.zero).DoJob(ref wr, xK);
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
+        var pk = xE.pk;
+        var nk = Pick.ClaimAndAddNack(pk, i);
+        if (null != nk) {
+          Alt<X> xA;
+          try {
+            xA = Do(nk);
+            Pick.Unclaim(pk);
+          } catch (Exception e) {
+            Pick.PickClaimedAndSetNacks(ref wr, i, pk);
+            xA = new AltFail<X>(e);
+          }
+          xA.TryAlt(ref wr, i, xK, new WithNackElse(nk, xE));
+        }
       }
     }
   }

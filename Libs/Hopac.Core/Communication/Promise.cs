@@ -56,6 +56,11 @@ namespace Hopac {
       throw (this.Readers as Fail<T>).exn;
     }
 
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal void UnsafeAddReader(Cont<T> tK) {
+      WaitQueue.AddTaker(ref this.Readers, tK);
+    }
+
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;

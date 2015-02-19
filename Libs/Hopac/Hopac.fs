@@ -170,11 +170,15 @@ module Util =
      xK.Value <- x
      xK'.yJ.DoJob (&wr, DropCont xK)
 
-  /// Only valid to be used when spawning a new thread.
-  type [<AbstractClass>] WorkHandler () =
+  type [<AbstractClass>] ContQueue<'x> () =
+    inherit Cont<'x> ()
+    override xK'.GetProc (_) = failwith "Bug"
+    override xK'.DoHandle (_, _) = failwith "Bug"
+
+  type [<AbstractClass>] WorkQueue () =
     inherit Work ()
-    override w'.GetProc (wr) = raise <| NotImplementedException ()
-    override w'.DoHandle (wr, e) = Handler.DoHandle (null, &wr, e)
+    override w'.GetProc (_) = failwith "Bug"
+    override w'.DoHandle (_, _) = failwith "Bug"
 
   type Handler<'x, 'y> =
     inherit Cont<'x>
@@ -243,15 +247,18 @@ module Alt =
     Handler.GetProc (&wr, &xAK'.xK)
    override xAK'.DoHandle (wr, e) =
     Pick.PickClaimedAndSetNacks (&wr, xAK'.i, xAK'.xE.pk)
-    Handler.DoHandle (xAK'.xK, &wr, e)
+    let xK = xAK'.xK
+    wr.Handler <- xK ; Handler.DoHandle (xK, &wr, e)
    override xAK'.DoWork (wr) =
     let xE = xAK'.xE
     Pick.Unclaim xE.pk
-    xAK'.Value.TryAlt (&wr, xAK'.i, xAK'.xK, xE)
+    let xK = xAK'.xK
+    wr.Handler <- xK ; xAK'.Value.TryAlt (&wr, xAK'.i, xK, xE)
    override xAK'.DoCont (wr, xA) =
     let xE = xAK'.xE
     Pick.Unclaim xE.pk
-    xA.TryAlt (&wr, xAK'.i, xAK'.xK, xE)
+    let xK = xAK'.xK
+    wr.Handler <- xK ; xA.TryAlt (&wr, xAK'.i, xK, xE)
 
   let guard (xAJ: Job<#Alt<'x>>) =
     {new Alt<'x> () with
@@ -269,40 +276,30 @@ module Alt =
       override xA'.Do (random) = upcast u2xA random} :> Alt<_>
 
   let inline withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
-    {new AltWithNack<_, _> () with
+    {new AltWithNackJob<_, _> () with
       override xA'.Do (nack) = upcast nack2xAJ nack} :> Alt<_>
 
-  type WrapAbort =
-    inherit Cont<unit>
-    val mutable uK: Cont<unit>
-    val mutable nk: Promise<unit>
-    val mutable uJ: Job<unit>
-    new (nk, uJ) = {uK=null; nk=nk; uJ=uJ}
-    override wa'.GetProc (wr) = Handler.GetProc (&wr, &wa'.uK)
-    override wa'.DoHandle (wr, e) = Handler.DoHandle (wa'.uK, &wr, e)
-    override wa'.DoCont (wr, _) =
-     match wa'.uJ with
-      | null -> Handler.Terminate (&wr, wa'.uK)
-      | uJ ->
-        wa'.uJ <- null
-        uJ.DoJob (&wr, wa')
-    override wa'.DoWork (wr) =
-     match wa'.nk with
-      | null -> wa'.DoCont (&wr, ())
-      | nk ->
-        wa'.nk <- null
-        nk.DoJob (&wr, wa')
+  let inline withNackFun (nack2xA: Promise<unit> -> #Alt<'x>) =
+    {new AltWithNackFun<_> () with
+      override xA'.Do (nack) = upcast nack2xA nack} :> Alt<_>
 
   let wrapAbort (uJ: Job<unit>) (xA: Alt<'x>) : Alt<'x> =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        xA.DoJob (&wr, xK)
       override xA'.TryAlt (wr, i, xK, xE) =
-       match Pick.AddNack (xE.pk, i) with
+       let uK' = {new ContQueue<_> () with
+        override uK'.DoWork (wr) =
+         let handler = Handler<_, _>()
+         wr.Handler <- handler
+         uJ.DoJob (&wr, handler)
+        override uK'.DoCont (wr, _) = uK'.DoWork (&wr)}
+       let pk = xE.pk
+       match Pick.ClaimAndAddNack (pk, i) with
         | null -> ()
         | nk ->
-          Pick.Unclaim xE.pk
-          Worker.Push (&wr, WrapAbort (nk, uJ))
+          nk.UnsafeAddReader uK'
+          Pick.Unclaim pk
           xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
 
   let inline map (x2y: 'x -> 'y) (xA: Alt<'x>) =
@@ -571,9 +568,11 @@ module Scheduler =
     startIgnore sr uJ
 
   let queueIgnore (sr: Scheduler) (xJ: Job<'x>) =
-    Scheduler.PushNew(sr, {new WorkHandler () with
+    Scheduler.PushNew (sr, {new WorkQueue () with
      override w'.DoWork (wr) =
-      xJ.DoJob (&wr, Handler<_, _> ())})
+      let handler = Handler<_, _> ()
+      wr.Handler <- handler
+      xJ.DoJob (&wr, handler)})
 
   let inline queue sr (uJ: Job<unit>) =
     queueIgnore sr uJ
@@ -1016,9 +1015,11 @@ module Job =
   let queueIgnore (xJ: Job<'x>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
-       Worker.PushNew (&wr, {new WorkHandler () with
+       Worker.PushNew (&wr, {new WorkQueue () with
         override w'.DoWork (wr) =
-         xJ.DoJob (&wr, Handler<_, _> ())})
+         let handler = Handler<_, _> ()
+         wr.Handler <- handler
+         xJ.DoJob (&wr, handler)})
        Work.Do (uK, &wr)}
   let inline queue (uJ: Job<unit>) =
     queueIgnore uJ
@@ -1333,7 +1334,7 @@ module Promise =
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
        pr.State <- Promise<'x>.Running
-       Worker.PushNew (&wr, {new WorkHandler () with
+       Worker.PushNew (&wr, {new WorkQueue () with
         override w'.DoWork (wr) =
          let prc = Promise<'x>.Fulfill (pr)
          wr.Handler <- prc
@@ -1380,7 +1381,7 @@ module Proc =
     {new Job<Proc> () with
       override pJ'.DoJob (wr, pK) =
        let proc = Proc ()
-       Worker.Push (&wr, {new WorkHandler () with
+       Worker.PushNew (&wr, {new WorkQueue () with
         override w'.DoWork (wr) =
          let pf = ProcFinalizer<_> (wr.Scheduler, proc)
          wr.Handler <- pf
@@ -1788,6 +1789,11 @@ module Extensions =
            override xJ'.DoJob (wr, xK) =
             startIn context wr.Scheduler xA xK}
 
+    let inline passOn (context: SynchronizationContext) x f =
+      match context with
+       | null -> f x
+       | ctxt -> ctxt.Post ((fun _ -> f x), null)
+
     let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
       Alt.withNack <| fun nack ->
       {new Job<Alt<'x>> () with
@@ -1815,15 +1821,11 @@ module Extensions =
       assert (null <> sr)
       Async.FromContinuations <| fun (x2u, e2u, _) ->
         let ctx = SynchronizationContext.Current
-        let inline apply f x =
-          match ctx with
-           | null -> f x
-           | ctx -> ctx.Post ((fun _ -> f x) , null)
         Worker.RunOnThisThread (sr, xJ, {new Cont_State<'x, Cont<unit>>() with
          override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-         override xK'.DoHandle (wr, e) = apply e2u e
-         override xK'.DoWork (wr) = apply x2u xK'.Value
-         override xK'.DoCont (wr, x) = apply x2u x})
+         override xK'.DoHandle (wr, e) = passOn ctx e e2u
+         override xK'.DoWork (wr) = passOn ctx xK'.Value x2u
+         override xK'.DoCont (wr, x) = passOn ctx x x2u})
 
     type [<AbstractClass>] OnWithSchedulerBuilder () =
       abstract Scheduler: Scheduler
@@ -1913,50 +1915,68 @@ module Extensions =
 
   exception OnCompleted
 
-  type ObserveOnce<'x> () =
+  type ObserveOnce<'x> =
+    // Initial = 0, Subscribed = 1, Disposed = 2
+    [<DefaultValue>] val mutable State: int
     [<DefaultValue>] val mutable dispose: IDisposable
-    [<DefaultValue>] val mutable scheduler: Scheduler
-    [<DefaultValue>] val mutable context: SynchronizationContext
-    inherit IVar<'x> ()
-    static member inline Dispose (this: ObserveOnce<'x>) =
+    val mutable scheduler: Scheduler
+    val mutable context: SynchronizationContext
+    val mutable xK: Cont<'x>
+    val mutable pk: Pick
+    new (scheduler, context, xK, pk) =
+      {scheduler=scheduler; context=context; xK=xK; pk=pk}
+    static member inline DisposeHere (this: ObserveOnce<'x>) =
       match this.dispose with
        | null -> ()
-       | disp ->
-         this.dispose <- null
-         match this.context with
-          | null -> disp.Dispose ()
-          | context ->
-            context.Post ((fun _ -> disp.Dispose ()), null)
-    static member inline Start (this: ObserveOnce<'x>, u2uJ) =
-      match this.scheduler with
+       | disp -> disp.Dispose ()
+    static member inline Dispose (this: ObserveOnce<'x>) =
+      Interlocked.Exchange (&this.State, 2) |> ignore
+      match this.dispose with
        | null -> ()
-       | sr ->
-         this.scheduler <- null
-         Scheduler.start sr (u2uJ ())
+       | disp -> Async.passOn this.context () disp.Dispose
+    static member inline Commit (this: ObserveOnce<'x>, onCommit: unit -> unit) =
+      if 2 <> Interlocked.Exchange (&this.State, 2) then
+        ObserveOnce<'x>.DisposeHere this
+        if 0 = Pick.DoPickOpt this.pk then
+          onCommit ()
+    static member inline Post (this: ObserveOnce<'x>, observable: IObservable<'x>) =
+      if this.State = 0 then
+        Async.passOn this.context () <| fun () ->
+        this.dispose <- observable.Subscribe this
+        if 0 <> Interlocked.CompareExchange (&this.State, 1, 0) then
+          ObserveOnce<'x>.DisposeHere this
     interface IObserver<'x> with
-      override this.OnCompleted () =
-        ObserveOnce<'x>.Dispose this
-        ObserveOnce<'x>.Start
-         (this, fun () -> IVar.fillFailure this OnCompleted)
       override this.OnError e =
-        ObserveOnce<'x>.Dispose this
-        ObserveOnce<'x>.Start (this, fun () -> IVar.fillFailure this e)
+        ObserveOnce<'x>.Commit (this, fun () ->
+          Worker.RunOnThisThread (this.scheduler, FailWork (e, this.xK)))
+      override this.OnCompleted () = (this :> IObserver<'x>).OnError OnCompleted
       override this.OnNext x =
-        ObserveOnce<'x>.Dispose this
-        ObserveOnce<'x>.Start (this, fun () -> IVar.fill this x)
+        ObserveOnce<'x>.Commit (this, fun () ->
+          let xK = this.xK
+          xK.Value <- x
+          Worker.RunOnThisThread (this.scheduler, xK))
 
   type IObservable<'x> with
     member this.onceAltOn (context: SynchronizationContext) =
-      Alt.withNack <| fun nack ->
-      Job.scheduler () >>= fun scheduler ->
-      let obs = ObserveOnce<'x> ()
-      obs.scheduler <- scheduler
-      obs.context <- context
-      match context with
-       | null -> obs.dispose <- this.Subscribe obs
-       | context ->
-         context.Post ((fun _ -> obs.dispose <- this.Subscribe obs), null)
-      Job.start (nack |>> fun () -> ObserveOnce<'x>.Dispose obs) >>% obs
+      {new Alt<'x> () with
+        override xA'.DoJob (wr, xK) =
+         let obs = ObserveOnce<'x> (wr.Scheduler, context, xK, null)
+         ObserveOnce<'x>.Post (obs, this)
+        override xA'.TryAlt (wr, i, xK, xE) =
+         let pk = xE.pk
+         let obs = ObserveOnce<'x> (wr.Scheduler, context, xK, pk)
+         let uns = {new ContQueue<_> () with
+          override uK'.DoWork (_) = ObserveOnce<'x>.Dispose obs
+          override uK'.DoCont (_, _) = ObserveOnce<'x>.Dispose obs}
+         match Pick.ClaimAndAddNack (pk, i) with
+          | null -> ()
+          | nk ->
+            ObserveOnce<'x>.Post (obs, this)
+            nk.UnsafeAddReader uns
+            Pick.Unclaim pk
+            let i = i+1
+            nk.I1 <- i
+            xE.TryElse (&wr, i)}
     member this.onceAltOnMain = this.onceAltOn (Async.getMain ())
 
 /////////////////////////////////////////////////////////////////////////

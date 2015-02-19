@@ -28,8 +28,10 @@ namespace Hopac.Core {
     TryClaim:
       var st = TryClaim(pk);
       if (st < 0) goto TryClaim;
-      if (st == 0)
+      if (st == 0) {
+        wr.Handler = tK;
         tJ.DoJob(ref wr, tK);
+      }
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -49,7 +51,18 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal static Nack AddNack(Pick pk, int i0) {
+    internal static int DoPickOpt(Pick pk) {
+      var st = 0;
+      if (null == pk) goto Done;
+    Retry:
+      st = TryPick(pk);
+      if (st < 0) goto Retry;
+    Done:
+      return st;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static Nack ClaimAndAddNack(Pick pk, int i0) {
     TryClaim:
       var state = pk.State;
       if (state > 0) goto AlreadyPicked;
