@@ -427,7 +427,7 @@ module Alt =
            let j = xE'.State1 + 1
            if j < xAs.Length  then
              xE'.State1 <- j
-             xAs.[j].TryAlt (&wr, i, xK, xE')})
+             xAs.[j].TryAlt (&wr, i, xK, xE')}.Init())
         override xA'.TryAlt (wr, i, xK, xE) =
          xAs.[0].TryAlt (&wr, i, xK, {new Else_State<int> () with
           override xE'.TryElse (wr, i) =

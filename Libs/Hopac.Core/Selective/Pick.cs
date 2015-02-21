@@ -112,6 +112,12 @@ namespace Hopac.Core {
     internal S1 State1;
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal Pick Init() {
+      this.pk = this;
+      return this;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal Pick Init(S1 s1) {
       this.pk = this;
       this.State1 = s1;
