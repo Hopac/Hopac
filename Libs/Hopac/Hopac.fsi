@@ -906,12 +906,12 @@ module Job =
   /// Reference implementation:
   ///
   ///> let fromBeginEnd doBegin doEnd =
-  ///>   Job.scheduler () >>= fun sr ->
+  ///>   Job.Scheduler.bind <| fun sr ->
   ///>   let xI = ivar ()
   ///>   doBegin <| AsyncCallback (fun ar ->
   ///>     Scheduler.start sr (try xI <-= doEnd ar with e -> xI <-=! e))
   ///>   |> ignore
-  ///>   upcast xI
+  ///>   xI
 #endif
   val inline fromBeginEnd: (AsyncCallback * obj -> IAsyncResult)
                  -> (IAsyncResult -> 'x)
@@ -924,24 +924,72 @@ module Job =
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /// Returns a job that returns the scheduler under which the job is being run.
-  /// This allows interfacing Hopac with existing asynchronous operations that
-  /// do not fall into a pattern that is already supported explicitly.  See, for
-  /// example, the reference implementation of `fromBeginEnd`.  The key is that
-  /// the job that is suspended for the duration of the asynchronous operation
-  /// can then be resumed on the same scheduler.
-  val inline scheduler: unit -> Job<Scheduler>
-
-  /// Returns a job that ensures that the immediately following operation will
-  /// be executed on a Hopac worker thread.
-  val inline switchToWorker: unit -> Job<unit>
-
   /// Given a job, creates a new job that behaves exactly like the given job,
   /// except that the new job obviously cannot be directly downcast to the
   /// underlying type of the given job.  This operation is provided for
   /// debugging purposes.  You can always break abstractions using reflection.
   /// See also: `Alt.paranoid`.
   val paranoid: Job<'x> -> Job<'x>
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  /// Operations for dealing with the scheduler.
+  module Scheduler =
+    /// `bind s2xJ` creates a job that calls the given job constructor with the
+    /// scheduler under which the job is being executed.  `bind` allows
+    /// interfacing Hopac with existing asynchronous operations that do not fall
+    /// into a pattern that is already supported explicitly.
+#if DOC
+    ///
+    /// Hopac jobs are executed under a scheduler.  In almost all cases the
+    /// scheduler is the global scheduler, but Hopac also allows local
+    /// schedulers to be created for special purposes.  A job that is suspended
+    /// for the duration of an external asynchronous operation should be
+    /// explicitly resumed on the same scheduler.
+    ///
+    /// Suppose, for example, that some system provides an asynchronous
+    /// operation with the following signature:
+    ///
+    ///> val opWithCallback: Input
+    ///>                  -> onSuccess: (Output -> unit)
+    ///>                  -> onFailure: (exn -> unit)
+    ///>                  -> unit
+    ///
+    /// We would like to wrap the asynchronous operation as a job with following
+    /// signature:
+    ///
+    ///> val opAsJob: Input -> Job<Output>
+    ///
+    /// This can be done by using a write once variable, which will be filled
+    /// with the result of the operation, and using `bind` to capture the
+    /// current scheduler:
+    ///
+    ///> let opAsJob input = Job.Scheduler.bind <| fun scheduler ->
+    ///>   let resultIVar = ivar ()
+    ///>   let handleWith fill result =
+    ///>     fill resultIVar result |> Scheduler.start scheduler
+    ///>   ioWithCallback input
+    ///>    <| handleWith IVar.fill
+    ///>    <| handleWith IVar.fillFailure
+    ///>   resultIVar
+    ///
+    /// Note that the `Scheduler.start` operation is used to explicitly start
+    /// the fill operation on the captured scheduler.
+    ///
+    /// There are other similar examples as reference implementations of various
+    /// Hopac primitives.  See, for example, the reference implementations of
+    /// `fromBeginEnd` and `Task.awaitJob`.
+
+#endif
+    val inline bind: (Scheduler -> #Job<'x>) -> Job<'x>
+
+    /// Returns a job that returns the scheduler under which the job is being
+    /// run.  `get ()` is equivalent to `bind result`.
+    val inline get: unit -> Job<Scheduler>
+
+    /// Returns a job that ensures that the immediately following operation will
+    /// be executed on a Hopac worker thread.
+    val inline switchToWorker: unit -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -954,7 +1002,7 @@ module Job =
   /// successive executions generate the same sequence of numbers.  In the
   /// extremely rare case that could be a problem, use `TopLevel.queue` or
   /// `switchToWorker`.
-#endif 
+#endif
   module Random =
     /// `bind r2xJ` creates a job that calls the given job constructor with a
     /// pseudo random 64-bit unsigned integer.
@@ -964,6 +1012,7 @@ module Job =
     val inline map: (uint64 -> 'x) -> Job<'x>
 
     /// Returns a job that generates a pseudo random 64-bit unsigned integer.
+    /// `get ()` is equivalent to `bind result`.
     val inline get: unit -> Job<uint64>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2104,7 +2153,7 @@ module Extensions =
 
     /// Creates an async operation that starts the given job on the specified
     /// scheduler and then waits until the started job finishes.  See also:
-    /// `Job.scheduler`, `Async.Global.ofJob`.
+    /// `Job.Scheduler`, `Async.Global.ofJob`.
     val ofJobOn: Scheduler -> Job<'x> -> Async<'x>
 
     /// Builder for async workflows.  The methods in this builder delegate to
@@ -2202,12 +2251,12 @@ module Extensions =
     /// Reference implementation:
     ///
     ///> let awaitJob (xT: Task<'x>) =
-    ///>   Job.scheduler () >>= fun sr ->
+    ///>   Job.Scheduler.bind <| fun sr ->
     ///>   let xI = ivar ()
     ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
     ///>     Scheduler.start sr (try xI <-= xT.Result with e -> xI <-=! e)))
     ///>   |> ignore
-    ///>   upcast xI
+    ///>   xI
 #endif
     static member inline awaitJob: Task<'x> -> Job<'x>
 

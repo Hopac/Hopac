@@ -1300,17 +1300,20 @@ module Job =
 
   ///////////////////////////////////////////////////////////////////////
 
-  let inline scheduler () =
-    match StaticData.scheduler with
-     | null -> StaticData.Init () ; StaticData.scheduler
-     | scheduler -> scheduler
+  module Scheduler =
+    let inline bind (s2xJ: Scheduler -> #Job<'x>) =
+      {new JobSchedulerBind<_> () with
+        override xJ'.Do (scheduler) = upcast s2xJ scheduler} :> Job<_>
 
-  ///////////////////////////////////////////////////////////////////////
+    let inline get () =
+      match StaticData.scheduler with
+       | null -> StaticData.Init () ; StaticData.scheduler
+       | scheduler -> scheduler
 
-  let inline switchToWorker () =
-    match StaticData.switchToWorker with
-     | null -> StaticData.Init () ; StaticData.switchToWorker
-     | switch -> switch
+    let inline switchToWorker () =
+      match StaticData.switchToWorker with
+       | null -> StaticData.Init () ; StaticData.switchToWorker
+       | switch -> switch
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -1736,30 +1739,30 @@ module Extensions =
 
 //  type ThreadPool with
 //    static member queueAsJob (thunk: unit -> 'x) : Job<'x> =
-//      Job.scheduler () >>= fun sr ->
+//      Job.Scheduler.bind <| fun sr ->
 //      let rV = IVar.Now.create ()
 //      ThreadPool.QueueUserWorkItem (fun _ ->
 //        Scheduler.start sr
 //         (try IVar.fill rV (thunk ()) with e -> IVar.fillFailure rV e))
 //      |> ignore
-//      upcast rV
+//      rV
 
 //  type WaitHandle with
 //    member wh.awaitAsJob (timeout: TimeSpan) : Job<bool> =
-//      Job.scheduler () >>= fun sr ->
+//      Job.Scheduler.bind <| fun sr ->
 //      let rV = IVar.Now.create ()
 //      ThreadPool.RegisterWaitForSingleObject
 //       (wh, (fun _ r -> Scheduler.start sr (IVar.fill rV r)),
 //        null, timeout, true) |> ignore
-//      upcast rV
+//      rV
 
 //    member wh.awaitAsJob: Job<unit> =
-//      Job.scheduler () >>= fun sr ->
+//      Job.Scheduler.bind <| fun sr ->
 //      let rV = IVar.Now.create ()
 //      ThreadPool.RegisterWaitForSingleObject
 //       (wh, (fun _ _ -> Scheduler.start sr (IVar.fill rV ())),
 //        null, -1, true) |> ignore
-//      upcast rV
+//      rV
 
   module Async =
     let inline start sr xA (xK: Cont<_>) =

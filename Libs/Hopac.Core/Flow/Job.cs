@@ -353,6 +353,15 @@ namespace Hopac {
     }
 
     ///
+    public abstract class JobSchedulerBind<X> : Job<X> {
+      ///
+      public abstract Job<X> Do(Scheduler scheduler);
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Do(wr.Scheduler).DoJob(ref wr, xK);
+      }
+    }
+
+    ///
     public abstract class JobRandomBind<X> : Job<X> {
       ///
       public abstract Job<X> Do(ulong random);
