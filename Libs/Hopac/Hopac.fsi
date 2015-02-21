@@ -1226,7 +1226,7 @@ module Alt =
   val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
 
   /// Creates an alternative that is available when any one of the given
-  /// alternatives is.  See also: `<|>?`.
+  /// alternatives is.  See also: `choosy`, `<|>?`.
   ///
   /// Note that `choose []` is equivalent to `never ()`.
 #if DOC
@@ -1241,6 +1241,33 @@ module Alt =
   /// `choose` as primitive.
 #endif
   val choose: seq<#Alt<'x>> -> Alt<'x>
+
+  /// `choosy xAs` (read: choose array) is an optimized version of `choose xAs`
+  /// when `xAs` is an array.  Do not write `choosy (Seq.toArray xAs)` instead
+  /// of `choose xAs` unless the resulting alternative is reused many times.
+#if DOC
+  ///
+  /// One dominating cost in .Net is memory allocations.  To choose between
+  /// various forms of non-determistic choice, the following low level
+  /// implementation details may be of interest.
+  ///
+  ///> choosy [| ... |]
+  ///
+  /// Creation: 1 array + 1 object.  Use: 1 object.  Total cost: 3 allocations.
+  ///
+  ///> xA1 <|>? xA2
+  ///
+  /// Creation: 1 object.  Use: 1 object.  Total cost: 2 allocations.
+  ///
+  ///> xA1 <|>? xA2 <|>? xA3
+  ///
+  /// Creation: 2 objects.  Use: 2 objects.  Total cost: 4 allocations.
+  ///
+  /// If you are choosy, then when choosing between 2 or 3 alternatives, `<|>?`
+  /// is likely to be fastest.  When choosing between 4 or more alternatives,
+  /// `choosy` is likely to be fastest.
+#endif
+  val choosy: array<#Alt<'x>> -> Alt<'x>
 
   /// `chooser xAs` is like `choose xAs` except that the order in which the
   /// alternatives from the sequence are considered will be determined at random
@@ -1273,7 +1300,7 @@ module Alt =
   module Infixes =
     /// Creates an alternative that is available when either of the given
     /// alternatives is available.  `xA1 <|>? xA2` is an optimized version of
-    /// `choose [xA1; xA2]`.
+    /// `choose [xA1; xA2]`.  See also: `choosy`.
 #if DOC
     ///
     /// The given alternatives are processed in a left-to-right order with
