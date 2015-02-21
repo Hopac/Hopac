@@ -105,7 +105,7 @@ namespace Hopac {
       internal override void DoHandle(ref Worker wr, Exception e) {
         GC.SuppressFinalize(this);
         this.pr.Terminate(ref wr);
-        Handler.DoHandle(null, ref wr, e);
+        Handler.DoHandleNull(ref wr, e);
       }
       internal override void DoWork(ref Worker wr) {
         GC.SuppressFinalize(this);

@@ -202,7 +202,7 @@ namespace Hopac.Core {
       }
 
       internal override void DoHandle(ref Worker wr, Exception e) {
-        Handler.DoHandle(null, ref wr, e);
+        Handler.DoHandleNull(ref wr, e);
       }
 
       internal override void DoWork(ref Worker wr) { }

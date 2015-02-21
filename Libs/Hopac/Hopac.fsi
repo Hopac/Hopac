@@ -1225,6 +1225,9 @@ module Alt =
 #endif
   val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
 
+  /// `wrapAbortFun u2u xA` is equivalent to `wrapAbort (Job.thunk u2u) xA`.
+  val wrapAbortFun: (unit -> unit) -> Alt<'x> -> Alt<'x>
+
   /// Creates an alternative that is available when any one of the given
   /// alternatives is.  See also: `choosy`, `<|>?`.
   ///

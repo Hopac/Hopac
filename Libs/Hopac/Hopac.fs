@@ -173,12 +173,12 @@ module Util =
   type [<AbstractClass>] ContQueue<'x> () =
     inherit Cont<'x> ()
     override xK'.GetProc (_) = failwith "Bug"
-    override xK'.DoHandle (_, _) = failwith "Bug"
+    override xK'.DoHandle (wr, e) = Handler.DoHandleNull (&wr, e)
 
   type [<AbstractClass>] WorkQueue () =
     inherit Work ()
     override w'.GetProc (_) = failwith "Bug"
-    override w'.DoHandle (_, _) = failwith "Bug"
+    override w'.DoHandle (wr, e) = Handler.DoHandleNull (&wr, e)
 
   type Handler<'x, 'y> =
     inherit Cont<'x>
@@ -294,6 +294,22 @@ module Alt =
          wr.Handler <- handler
          uJ.DoJob (&wr, handler)
         override uK'.DoCont (wr, _) = uK'.DoWork (&wr)}
+       let pk = xE.pk
+       match Pick.ClaimAndAddNack (pk, i) with
+        | null -> ()
+        | nk ->
+          nk.UnsafeAddReader uK'
+          Pick.Unclaim pk
+          xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
+
+  let wrapAbortFun (u2u: unit -> unit) (xA: Alt<'x>) : Alt<'x> =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       xA.DoJob (&wr, xK)
+      override xA'.TryAlt (wr, i, xK, xE) =
+       let uK' = {new ContQueue<_> () with
+        override uK'.DoWork (wr) = u2u ()
+        override uK'.DoCont (wr, _) = u2u ()}
        let pk = xE.pk
        match Pick.ClaimAndAddNack (pk, i) with
         | null -> ()
@@ -1074,7 +1090,7 @@ module Job =
       | proc -> proc.Terminate (&wr)
     override xK'.DoHandle (wr, e) =
      xK'.Term (&wr)
-     Handler.DoHandle (null, &wr, e)
+     Handler.DoHandleNull (&wr, e)
     override xK'.DoWork (wr) = xK'.Term (&wr)
     override xK'.DoCont (wr, _) = xK'.Term (&wr)
 
