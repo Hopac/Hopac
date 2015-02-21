@@ -166,19 +166,20 @@ module HopacAlt =
       {N = n; Ch = ch (); Done = ivar ()}
 
     let swap (csch: CountedSwapCh<'x>) (msgOut: 'x) : Alt<Option<'x>> =
-      (csch.Ch >>=? fun (msgIn, outCh) ->
-       let n = System.Threading.Interlocked.Decrement &csch.N
-       if n > 0 then
-         outCh <-+ Some msgOut >>% Some msgIn
-       elif n = 0 then
-         csch.Done <-= None >>= fun () ->
-         outCh <-+ Some msgOut >>% Some msgIn
-       else
-         outCh <-+ None >>% None) <|>?
-      (Alt.delay <| fun () ->
-       let inCh = ch ()
-       (csch.Ch <-- (msgOut, inCh) >>=? fun () -> inCh :> Job<_>) <|>?
-       csch.Done)
+      Alt.choosy [|
+        csch.Ch >>=? fun (msgIn, outCh) ->
+          let n = System.Threading.Interlocked.Decrement &csch.N
+          if n > 0 then
+            outCh <-+ Some msgOut >>% Some msgIn
+          elif n = 0 then
+            csch.Done <-= None >>= fun () ->
+            outCh <-+ Some msgOut >>% Some msgIn
+          else
+            outCh <-+ None >>% None
+        Alt.delay <| fun () ->
+          let inCh = ch ()
+          csch.Ch <-- (msgOut, inCh) >>.? inCh
+        csch.Done :> Alt<_> |]
 
   module Creature =
     let run (swap: Color -> Alt<Option<Color>>) (myColor: Color) : Job<int> =
