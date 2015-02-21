@@ -199,7 +199,7 @@ module FibNck =
       cancel
 
   let fib n =
-    Alt.withNack <| fun nack ->
+    Alt.withNackJob <| fun nack ->
     Promise.start (fibWithNack n (nack >>%? 0L))
 
   let run n =

@@ -25,7 +25,7 @@ type Server = {
 
 let release s (Lock lock) = s.reqCh <-- Release lock
 
-let acquire s (Lock lock) = Alt.withNack <| fun nack ->
+let acquire s (Lock lock) = Alt.withNackJob <| fun nack ->
   let replyCh = ch ()
   s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
   replyCh

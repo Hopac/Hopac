@@ -33,7 +33,7 @@ module Alts =
   let result x : Alts<'x> = In <| Alt.always (Next (x, Alt.always Done))
 
   let inline start f =
-    Alt.withNack <| fun nack ->
+    Alt.withNackJob <| fun nack ->
     Promise.start (f (nack >>=? Job.abort))
 
   let rec mergeAbort yO1 yO2 abort =

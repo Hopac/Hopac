@@ -1030,8 +1030,8 @@ module Job =
 /// and Concurrent ML, selective synchronous operations are not limited to
 /// primitive message passing operations (see `Ch.give` and `Ch.take`), but are
 /// instead first-class values (see `choose`) and can be extended with
-/// user-defined code (see `wrap` and `withNack`) allowing the encapsulation of
-/// concurrent protocols as selective synchronous operations.
+/// user-defined code (see `wrap` and `withNackJob`) allowing the encapsulation
+/// of concurrent protocols as selective synchronous operations.
 ///
 /// The idea of alternatives is to allow one to introduce new selective
 /// synchronous operations to be used with non-determinic choice aka `choose`.
@@ -1060,10 +1060,10 @@ module Job =
 /// a `read` operation on the write once variable for the reply.  E.g. request
 /// to receive a timeout event.
 ///
-/// - If you have a non-idempotent operation, you can use `withNack` to send the
-/// arguments, negative acknowledgment token and a channel to the server and
+/// - If you have a non-idempotent operation, you can use `withNackJob` to send
+/// the arguments, negative acknowledgment token and a channel to the server and
 /// then synchronize using a `take` operation on the channel for the reply.  See
-/// `withNack` for an illustrative toy example.
+/// `withNackJob` for an illustrative toy example.
 ///
 /// Note that `Alt` is a subtype of `Job`.  You can use an alternative in any
 /// context that requires a job.
@@ -1111,7 +1111,7 @@ module Alt =
   val raises: exn -> Alt<_>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job.  See also: `withNack`.
+  /// given job.  See also: `withNackJob`.
 #if DOC
   ///
   /// `guard` allows client-server protocols that do not require the server to
@@ -1122,10 +1122,10 @@ module Alt =
   ///
   /// Reference implementation:
   ///
-  ///> let guard xAJ = withNack <| fun _ -> xAJ
+  ///> let guard xAJ = withNackJob <| fun _ -> xAJ
   ///
-  /// Note that, like with `withNack`, it is essential to avoid blocking inside
-  /// `guard`.
+  /// Note that, like with `withNackJob`, it is essential to avoid blocking
+  /// inside `guard`.
 #endif
   val guard: Job<#Alt<'x>> -> Alt<'x>
 
@@ -1153,21 +1153,21 @@ module Alt =
   /// also: `guard`.
 #if DOC
   ///
-  /// `withNack` allows client-server protocols that do require the server to be
-  /// notified when the client aborts the transaction to be encapsulated as
+  /// `withNackJob` allows client-server protocols that do require the server to
+  /// be notified when the client aborts the transaction to be encapsulated as
   /// selective operations.  The negative acknowledgment alternative will be
   /// available in case some other instantiated alternative involved in the
   /// choice is committed to instead.
   ///
-  /// Like `guard`, `withNack` is typically used to encapsulate the client side
-  /// operation of a concurrent protocol.  The client side operation typically
-  /// constructs a request, containing the negative acknowledgment alternative,
-  /// sends it to a server and then returns an alternative that waits for a
-  /// rendezvous with the server.  In case the client later commits to some
-  /// other alternative, the negative acknowledgment token becomes available and
-  /// the server can also abort the operation.
+  /// Like `guard`, `withNackJob` is typically used to encapsulate the client
+  /// side operation of a concurrent protocol.  The client side operation
+  /// typically constructs a request, containing the negative acknowledgment
+  /// alternative, sends it to a server and then returns an alternative that
+  /// waits for a rendezvous with the server.  In case the client later commits
+  /// to some other alternative, the negative acknowledgment token becomes
+  /// available and the server can also abort the operation.
   ///
-  /// Here is a simple example of an operation encapsulated using `withNack`.
+  /// Here is a simple example of an operation encapsulated using `withNackJob`.
   /// The idea is that we have a server that maintains a counter.  Clients can
   /// request the server to increment the counter by a specific amount and
   /// return the incremented counter value.  We further want to make it so that
@@ -1190,7 +1190,7 @@ module Alt =
   ///
   /// Here is the encapsulated client side operation:
   ///
-  ///> let incrementBy n : Alt<int> = Alt.withNack <| fun nack ->
+  ///> let incrementBy n : Alt<int> = Alt.withNackJob <| fun nack ->
   ///>   let replyCh = ch ()
   ///>   counterServer <-+ (n, nack, replyCh) >>%
   ///>   replyCh
@@ -1198,18 +1198,21 @@ module Alt =
   /// The client side operation just sends the negative acknowledgment to the
   /// server as a part of the request.  It is essential that a synchronous
   /// rendezvous via a channel, rather than e.g. a write once variable, is used
-  /// for the reply.  It is also essential to avoid blocking inside `withNack`,
-  /// which is why an asynchronous send is used inside the client side
-  /// operation.
+  /// for the reply.  It is also essential to avoid blocking inside
+  /// `withNackJob`, which is why an asynchronous send is used inside the client
+  /// side operation.
   ///
-  /// Note that if an alternative created with `withNack` is not instantiated,
-  /// then no negative acknowledgment is created.  For example, given an
-  /// alternative of the form `always () <|>? withNack (...)` the `withNack`
-  /// alternative is never instantiated.
+  /// Note that if an alternative created with `withNackJob` is not
+  /// instantiated, then no negative acknowledgment is created.  For example,
+  /// given an alternative of the form `always () <|>? withNackJob (...)` the
+  /// `withNackJob` alternative is never instantiated.
 #endif
+  val inline withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
+
+  [<Obsolete "`withNack` has been renamed as `withNackJob`.">]
   val inline withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
-  /// `withNackFun n2xA` is equivalent to `withNack (Job.lift n2xA)`.
+  /// `withNackFun n2xA` is equivalent to `withNackJob (Job.lift n2xA)`.
   val inline withNackFun: (Promise<unit> -> #Alt<'x>) -> Alt<'x>
 
   /// Returns a new alternative that upon picking time makes it so that the
@@ -1220,9 +1223,12 @@ module Alt =
   /// Reference implementation:
   ///
   ///> let wrapAbort (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
-  ///>   Alt.withNack <| fun abortAlt ->
+  ///>   Alt.withNackJob <| fun abortAlt ->
   ///>   Job.start (abortAlt >>. abortAct) >>% evt
 #endif
+  val wrapAbortJob: Job<unit> -> Alt<'x> -> Alt<'x>
+
+  [<Obsolete "`wrapAbort` has been renamed as `wrapAbortJob`.">]
   val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
 
   /// `wrapAbortFun u2u xA` is equivalent to `wrapAbort (Job.thunk u2u) xA`.
@@ -1363,19 +1369,19 @@ module Alt =
   ///
   /// Exceptions from both before and after the commit point can be handled.  An
   /// exception that occurs before a commit point, from the user code in a
-  /// `guard`, `delay`, or `withNack`, results in treating that exception as the
-  /// commit point.
+  /// `guard`, `delay`, or `withNackJob`, results in treating that exception as
+  /// the commit point.
   ///
   /// Note you can also use function or job level exception handling before the
-  /// commit point within the user code in a `guard`, `delay`, or `withNack`.
+  /// commit point within the user code in a `guard`, `delay`, or `withNackJob`.
   val tryIn: Alt<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Alt<'y>
 
   /// Implements a variation of the `try-finally` exception handling construct
   /// for alternatives.  The given action, specified as a function, is executed
   /// after the alternative has been committed to, whether the alternative fails
   /// or completes successfully.  Note that the action is not executed in case
-  /// the alternative is not committed to.  Use `withNack` to attach the action
-  /// to the non-committed case.
+  /// the alternative is not committed to.  Use `withNackJob` to attach the
+  /// action to the non-committed case.
 #if DOC
   ///
   /// Reference implementation:
@@ -1388,8 +1394,8 @@ module Alt =
   /// for alternatives.  The given action, specified as a job, is executed after
   /// the alternative has been committed to, whether the alternative fails or
   /// completes successfully.  Note that the action is not executed in case the
-  /// alternative is not committed to.  Use `withNack` to attach the action to
-  /// the non-committed case.
+  /// alternative is not committed to.  Use `withNackJob` to attach the action
+  /// to the non-committed case.
 #if DOC
   ///
   /// Reference implementation:

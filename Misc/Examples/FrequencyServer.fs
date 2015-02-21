@@ -16,7 +16,7 @@ type FrequencyServer = {
     deallocCh: Ch<Proc * Frequency>
   }
 
-let allocate s = Alt.withNack <| fun nack ->
+let allocate s = Alt.withNackJob <| fun nack ->
   Proc.self () >>= fun self ->
   let replyCh = ch ()
   s.allocCh <-+ (self, nack, replyCh) >>%

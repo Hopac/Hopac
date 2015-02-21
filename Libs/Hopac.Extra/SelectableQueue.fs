@@ -43,6 +43,6 @@ module SelectableQueue =
     q.SendCh <-- x
 
   let take (q: SelectableQueue<'a>) (p: 'a -> bool) : Alt<'a> =
-    Alt.withNack <| fun nack ->
+    Alt.withNackJob <| fun nack ->
     let replyCh = ch ()
     q.TakeCh <-- (p, nack, replyCh) >>% replyCh

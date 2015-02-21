@@ -18,7 +18,7 @@ module EgPaper =
     let inline show _ _ _ = ()
 #endif
     let inline make kind var op =
-      Alt.withNack <| fun nack ->
+      Alt.withNackJob <| fun nack ->
       show "T" kind var
       Job.start (nack |>> fun () -> show "A" kind var) |>> fun () ->
       (op |>>? fun _ -> show "D" kind var)

@@ -275,15 +275,18 @@ module Alt =
     {new AltRandom<'x> () with
       override xA'.Do (random) = upcast u2xA random} :> Alt<_>
 
-  let inline withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
+  let inline withNackJob (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
     {new AltWithNackJob<_, _> () with
       override xA'.Do (nack) = upcast nack2xAJ nack} :> Alt<_>
+
+  let inline withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
+    withNackJob nack2xAJ
 
   let inline withNackFun (nack2xA: Promise<unit> -> #Alt<'x>) =
     {new AltWithNackFun<_> () with
       override xA'.Do (nack) = upcast nack2xA nack} :> Alt<_>
 
-  let wrapAbort (uJ: Job<unit>) (xA: Alt<'x>) : Alt<'x> =
+  let wrapAbortJob (uJ: Job<unit>) (xA: Alt<'x>) : Alt<'x> =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        xA.DoJob (&wr, xK)
@@ -301,6 +304,9 @@ module Alt =
           nk.UnsafeAddReader uK'
           Pick.Unclaim pk
           xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
+
+  let wrapAbort (uJ: Job<unit>) (xA: Alt<'x>) : Alt<'x> =
+    wrapAbortJob uJ xA
 
   let wrapAbortFun (u2u: unit -> unit) (xA: Alt<'x>) : Alt<'x> =
     {new Alt<'x> () with
