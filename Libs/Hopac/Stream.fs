@@ -470,9 +470,9 @@ module Stream =
     let vs = Ch<_>()
     let (inc, dec) =
       pull xs (Choice1Of2 >> Ch.send vs) Job.unit (Choice2Of2 >> Ch.send vs)
-    Alt.withNack <| fun nack ->
-    Job.start (nack >>. dec) >>. inc >>%
-    (vs >>=? function Choice1Of2 x -> dec >>% x | Choice2Of2 e -> raise e)
+    Alt.wrapAbortJob dec
+     (Alt.guard (inc >>% vs) >>=? function Choice1Of2 x -> dec >>% x
+                                         | Choice2Of2 e -> raise e)
 
   let rec sumWhileFun plus zero u2b xs = delay <| fun () ->
     if u2b () then plus (xs, sumWhileFun plus zero u2b xs) else zero ()
