@@ -14,7 +14,7 @@ module Alt =
     // they are defined elsewhere.
 
     let start (abort2xJ: Alt<'x> -> #Job<'x>) : Alt<'x> =
-      Alt.withNack <| fun nack ->
+      Alt.withNackJob <| fun nack ->
       Promise.queue (abort2xJ (nack >>=? Job.abort))
 
     let merge (lhs: Alt<'x>) (rhs: Alt<'x>) =
