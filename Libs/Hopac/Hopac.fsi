@@ -1215,23 +1215,35 @@ module Alt =
   /// `withNackFun n2xA` is equivalent to `withNackJob (Job.lift n2xA)`.
   val inline withNackFun: (Promise<unit> -> #Alt<'x>) -> Alt<'x>
 
-  /// Returns a new alternative that upon picking time makes it so that the
-  /// given job will be started if the given alternative isn't the one being
-  /// picked.
+  /// Returns a new alternative that that makes it so that the given job will be
+  /// started as a separated concurrent job if the given alternative isn't the
+  /// one being committed to.  See also: `wrapAbortFun`, `withNackJob`.
 #if DOC
   ///
-  /// Reference implementation:
+  /// `wrapAbortJob` and `withNackJob` have roughly equivalent expressive power
+  /// and `wrapAbortJob` can be expressed in terms of `withNackJob`.  Sometimes
+  /// `wrapAbortJob` more directly fits the desired usage than `withNackJob` and
+  /// should be preferred in those cases.  In particular, consider using
+  /// `wrapAbortJob`, when you have an alternative whose implementation is
+  /// similar to the following reference implementation:
   ///
-  ///> let wrapAbort (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
-  ///>   Alt.withNackJob <| fun abortAlt ->
-  ///>   Job.start (abortAlt >>. abortAct) >>% evt
+  ///> let wrapAbortJob (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
+  ///>   Alt.withNackJob <| fun nack ->
+  ///>   Job.start (nack >>. abortAct) >>% evt
+  ///
+  /// Historical note: Originally Concurrent ML only provided a corresponding
+  /// combinator named `wrapAbort`.  Later Concurrent ML changed to provide only
+  /// `withNack` as a primitive, because it is a better fit for most use cases,
+  /// and `wrapAbort` could be expressed in terms of it.  Racket only provides
+  /// `withNack` and, under Racket's model, `withNack` cannot be expressed in
+  /// terms of `wrapAbort`.
 #endif
   val wrapAbortJob: Job<unit> -> Alt<'x> -> Alt<'x>
 
   [<Obsolete "`wrapAbort` has been renamed as `wrapAbortJob`.">]
   val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
 
-  /// `wrapAbortFun u2u xA` is equivalent to `wrapAbort (Job.thunk u2u) xA`.
+  /// `wrapAbortFun u2u xA` is equivalent to `wrapAbortJob (Job.thunk u2u) xA`.
   val wrapAbortFun: (unit -> unit) -> Alt<'x> -> Alt<'x>
 
   /// Creates an alternative that is available when any one of the given
@@ -1354,10 +1366,10 @@ module Alt =
     /// `xA >>!? e` is equivalent to `xA >>=? fun _ -> raise e`.
     val (>>!?): Alt<_> -> exn -> Alt<_>
 
-    /// An alternative that is equivalent to first picking either one of the
-    /// given alternatives and then picking the other alternative.  Note that
-    /// this is not the same as picking the alternatives in a single
-    /// transaction.  Such an operation would require a more complex
+    /// An alternative that is equivalent to first committing to either one of
+    /// the given alternatives and then committing to the other alternative.
+    /// Note that this is not the same as committing to both of the alternatives
+    /// in a single transaction.  Such an operation would require a more complex
     /// synchronization protocol like with the so called Transactional Events.
     val (<+>?): Alt<'a> -> Alt<'b> -> Alt<'a * 'b>
 
