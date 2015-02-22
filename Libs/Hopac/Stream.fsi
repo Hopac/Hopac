@@ -3,6 +3,7 @@
 namespace Hopac
 
 open System
+open System.Threading
 
 /// Operations on choice streams.
 module Stream =
@@ -316,6 +317,19 @@ module Stream =
   /// Creates a stream that subscribes to the given observable for the duration
   /// of the job constructed with the stream.
   val subscribingTo: IObservable<'x> -> (Stream<'x> -> #Job<'y>) -> Job<'y>
+
+  /// Subscribes to the given observable on the specified synchronization
+  /// context and returns the events pushed by the observable as a stream.  A
+  /// finalizer is used to automatically unsubscribe from the observable after
+  /// the stream is no longer reachable.
+  val ofObservableOn: subscribeOn: SynchronizationContext
+                   -> IObservable<'x>
+                   -> Stream<'x>
+
+  /// `ofObservable xO` is equivalent to `ofObservable null xO`.  Note that it
+  /// is often necessary to specify the synchronization context to subscribe on.
+  /// See also: `Observable.SubscribeOn`.
+  val ofObservable: IObservable<'x> -> Stream<'x>
 
   /// Returns an observable that eagerly consumes the given stream.
   val toObservable: Stream<'x> -> IObservable<'x>

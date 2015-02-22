@@ -109,6 +109,35 @@ module Stream =
     let src = IVar<_> ()
     Job.using (xs.Subscribe (Subscribe (src))) <| fun _ -> xs2yJ src :> Job<_>
 
+  type Subscriber<'x> (src: IVar<Cons<'x>>) =
+    let mutable src = src
+    [<DefaultValue>] val mutable disp: IDisposable
+    interface IObserver<'x> with
+     override t.OnCompleted () = t.disp <- null; src <-= Nil |> start
+     override t.OnError (e) = t.disp <- null; src <-=! e |> start
+     override t.OnNext (x) =
+       let nxt = IVar<_> ()
+       src <-= Cons (x, nxt) |> start
+       src <- nxt
+
+  let inline post (ctxt: SynchronizationContext) op =
+    match ctxt with null -> op () | ctxt -> ctxt.Post ((fun _ -> op ()), null)
+
+  type Guard<'x> (subr: Subscriber<'x>, ctxt: SynchronizationContext) =
+    override this.Finalize () =
+     match subr.disp with null -> () | disp -> post ctxt disp.Dispose
+
+  let rec guard g xs = xs |>>* function Cons (x, xs) -> Cons (x, guard g xs)
+                                      | Nil -> GC.SuppressFinalize g; Nil
+
+  let ofObservableOn ctxt (xO: IObservable<'x>) : Stream<'x> =
+    let xs = IVar<_> ()
+    let sub = Subscriber (xs)
+    post ctxt <| fun () -> sub.disp <- xO.Subscribe sub
+    guard (Guard<_> (sub, ctxt)) xs
+
+  let ofObservable xO = ofObservableOn null xO
+
   let toObservable xs =
     // XXX Use a better approach than naive locking.
     let subs = HashSet<IObserver<_>>()
