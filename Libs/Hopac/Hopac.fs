@@ -2025,6 +2025,7 @@ module Extensions =
             nk.I1 <- i
             xE.TryElse (&wr, i)}
     member this.onceAltOnMain = this.onceAltOn (Async.getMain ())
+    member this.onceAlt = this.onceAltOn null
 
 /////////////////////////////////////////////////////////////////////////
 

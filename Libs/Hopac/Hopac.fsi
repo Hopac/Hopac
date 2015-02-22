@@ -2370,6 +2370,11 @@ module Extensions =
     /// configure Hopac with the main synchronization context.
     member onceAltOnMain: Alt<'x>
 
+    /// `xO.onceAlt` is equivalent to `xO.oneAltOn null`.  Note that it is often
+    /// necessary to specify the synchronization context to subscribe on.  See
+    /// also: `Observable.SubscribeOn`.
+    member onceAlt: Alt<'x>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
