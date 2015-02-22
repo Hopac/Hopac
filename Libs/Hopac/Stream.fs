@@ -109,32 +109,45 @@ module Stream =
     let src = IVar<_> ()
     Job.using (xs.Subscribe (Subscribe (src))) <| fun _ -> xs2yJ src :> Job<_>
 
-  type Subscriber<'x> (src: IVar<Cons<'x>>) =
+  let inline post (ctxt: SynchronizationContext) op =
+    match ctxt with null -> op () | ctxt -> ctxt.Post ((fun _ -> op ()), null)
+
+  type Subscriber<'x> (src: IVar<Cons<'x>>, ctxt: SynchronizationContext) =
     let mutable src = src
+    // Initial = 0, Subscribed = 1, Disposed = 2
+    [<DefaultValue>] val mutable State: int
     [<DefaultValue>] val mutable disp: IDisposable
+    member this.Dispose () =
+      if 2 <> this.State then
+        this.State <- 2
+        match this.disp with
+         | null -> ()
+         | disp -> post ctxt disp.Dispose
+    member this.Subscribe (xO: IObservable<'x>) =
+      if 0 = this.State then
+        post ctxt <| fun () ->
+          this.disp <- xO.Subscribe this
+          if 0 <> Interlocked.CompareExchange (&this.State, 1, 0) then
+            this.disp.Dispose ()
     interface IObserver<'x> with
-     override t.OnCompleted () = t.disp <- null; src <-= Nil |> start
-     override t.OnError (e) = t.disp <- null; src <-=! e |> start
+     override t.OnCompleted () = t.State <- 2; src <-= Nil |> start
+     override t.OnError (e) = t.State <- 2; src <-=! e |> start
      override t.OnNext (x) =
        let nxt = IVar<_> ()
        src <-= Cons (x, nxt) |> start
        src <- nxt
 
-  let inline post (ctxt: SynchronizationContext) op =
-    match ctxt with null -> op () | ctxt -> ctxt.Post ((fun _ -> op ()), null)
-
-  type Guard<'x> (subr: Subscriber<'x>, ctxt: SynchronizationContext) =
-    override this.Finalize () =
-     match subr.disp with null -> () | disp -> post ctxt disp.Dispose
+  type Guard<'x> (subr: Subscriber<'x>) =
+    override this.Finalize () = subr.Dispose ()
 
   let rec guard g xs = xs |>>* function Cons (x, xs) -> Cons (x, guard g xs)
                                       | Nil -> GC.SuppressFinalize g; Nil
 
   let ofObservableOn ctxt (xO: IObservable<'x>) : Stream<'x> =
-    let xs = IVar<_> ()
-    let sub = Subscriber (xs)
-    post ctxt <| fun () -> sub.disp <- xO.Subscribe sub
-    guard (Guard<_> (sub, ctxt)) xs
+    let xs = IVar ()
+    let sub = Subscriber (xs, ctxt)
+    post ctxt <| fun () -> sub.Subscribe xO
+    guard (Guard (sub)) xs
 
   let ofObservable xO = ofObservableOn null xO
 
