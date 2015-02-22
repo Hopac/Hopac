@@ -540,17 +540,12 @@ module Job =
 #if DOC
   ///
   /// Note that when a job aborts, it is considered to be equivalent to having
-  /// the job block indefinitely.  This means that the job neither returns
-  /// succesfully nor fails with an exception.  While this may sound like
-  /// something that you should worry about, it is, in fact, frequently just
-  /// what you want.  That is, rather than worry about carefully terminating
-  /// each and every concurrent job, it is preferable to just let them be
-  /// garbage collected.  Only jobs that explicitly hold onto some important
-  /// resource need to be carefully managed.
-  ///
-  /// Note that in order to execute clean-up operations implemented with `using`
-  /// or `tryFinallyFun` or `tryFinallyJob` the job must either return normally
-  /// or raise an exception.
+  /// the job block indefinitely and the job will be garbage collected.  This
+  /// also means that the job neither returns succesfully nor fails with an
+  /// exception.  This can sometimes be just what you want.  However, in order
+  /// to execute clean-up operations implemented with `using` or `tryFinallyFun`
+  /// or `tryFinallyJob`, the job must either return normally or raise an
+  /// exception.  In other words, do not use `abort` in such a case.
 #endif
   val abort: unit -> Job<_>
 
@@ -2361,7 +2356,7 @@ module Extensions =
     /// event after which the alternative unsubscribes from the observable.  If
     /// some other alternative is committed to before the observable signals any
     /// event, the alternative unsubscribes from the observable.  Note, however,
-    /// that if the job explicitly aborts while instantiating some other
+    /// that if the current job explicitly aborts while instantiating some other
     /// alternative involved in the same synchronous operation, there is no
     /// guarantee that the observable would be unsubscribed from.
     ///
