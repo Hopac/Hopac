@@ -1977,17 +1977,18 @@ module Extensions =
        | null -> ()
        | disp -> disp.Dispose ()
     static member inline Dispose (this: ObserveOnce<'x>) =
-      Interlocked.Exchange (&this.State, 2) |> ignore
+      this.State <- 2
       match this.dispose with
        | null -> ()
        | disp -> Async.passOn this.context () disp.Dispose
     static member inline Commit (this: ObserveOnce<'x>, onCommit: unit -> unit) =
-      if 2 <> Interlocked.Exchange (&this.State, 2) then
+      if 2 <> this.State then
+        this.State <- 2
         ObserveOnce<'x>.DisposeHere this
         if 0 = Pick.DoPickOpt this.pk then
           onCommit ()
     static member inline Post (this: ObserveOnce<'x>, observable: IObservable<'x>) =
-      if this.State = 0 then
+      if 0 = this.State then
         Async.passOn this.context () <| fun () ->
         this.dispose <- observable.Subscribe this
         if 0 <> Interlocked.CompareExchange (&this.State, 1, 0) then
