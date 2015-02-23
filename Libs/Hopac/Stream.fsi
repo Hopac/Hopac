@@ -326,6 +326,11 @@ module Stream =
                    -> IObservable<'x>
                    -> Stream<'x>
 
+  /// `ofObservableOnMain xO` is equivalent to `ofObservable main xO`, where
+  /// `main` is the main synchronization context as set by application code
+  /// using `setMain`.
+  val ofObservableOnMain: IObservable<'x> -> Stream<'x>
+
   /// `ofObservable xO` is equivalent to `ofObservable null xO`.  Note that it
   /// is often necessary to specify the synchronization context to subscribe on.
   /// See also: `Observable.SubscribeOn`.

@@ -148,7 +148,7 @@ module Stream =
     let sub = Subscriber (xs, ctxt)
     post ctxt <| fun () -> sub.Subscribe xO
     guard (Guard (sub)) xs
-
+  let ofObservableOnMain xO = ofObservableOn (Async.getMain ()) xO
   let ofObservable xO = ofObservableOn null xO
 
   let toObservable xs =
