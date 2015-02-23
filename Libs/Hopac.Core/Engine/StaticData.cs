@@ -53,7 +53,7 @@ namespace Hopac.Core {
 
     /// <summary>The "main" thread synchronization context.  This must be
     /// explicitly configured by the application.</summary>
-    internal static SynchronizationContext main; 
+    public static SynchronizationContext main;
 
     /// <summary>This is normally called automatically by Hopac library code.
     /// This is safe to be called from multiple threads.</summary>

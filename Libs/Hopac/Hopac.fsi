@@ -2259,6 +2259,11 @@ module Extensions =
     /// `TopLevel.onMain`
     val setMain: SynchronizationContext -> unit
 
+    /// Gets the main synchronization context.  The main synchronization context
+    /// must be set by application code using `setMain` before calling this
+    /// function.
+    val getMain: unit -> SynchronizationContext
+
   /// Builder for an async operation started on the given synchronization
   /// context with jobs on the specified scheduler wrapped as a job.
   val inline asyncOn: SynchronizationContext

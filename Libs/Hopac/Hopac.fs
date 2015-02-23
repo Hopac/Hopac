@@ -1930,7 +1930,7 @@ module Extensions =
 
       member inline this.Run (xA: Async<'x>) = toJobOn this.Context xA
 
-    let inline getMain () =
+    let getMain () =
       match StaticData.main with
        | null -> failwith "Hopac: Main synchronization context not set."
        | ctxt -> ctxt
