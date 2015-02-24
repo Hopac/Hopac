@@ -1,4 +1,4 @@
-﻿// Copyright (C) by Vesa Karvonen
+// Copyright (C) by Vesa Karvonen
 
 namespace Hopac
 
@@ -13,9 +13,7 @@ open Hopac.Extensions
 open Timer.Global
 
 module Stream =
-  let inline (<|>*) x y = x <|>* y :> Alt<_>
-  let inline (|>>*) x y = x |>>* y :> Alt<_>
-  let inline memo x = Promise.Now.delay x :> Alt<_>
+  let inline memo x = Promise.Now.delay x
   let inline start x = Job.Global.start x
   let inline tryIn u2v vK eK =
     let mutable e = null
@@ -26,10 +24,10 @@ module Stream =
   let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
   type Cons<'x> =
-    | Cons of Value: 'x * Next: Alt<Cons<'x>>
+    | Cons of Value: 'x * Next: Promise<Cons<'x>>
     | Nil
 
-  type Stream<'x> = Alt<Cons<'x>>
+  type Stream<'x> = Promise<Cons<'x>>
 
   type Src<'x> = {mutable src: IVar<Cons<'x>>}
 
@@ -45,7 +43,7 @@ module Stream =
       else value s x
     let error s e = Job.delay <| fun () -> s.src <-=! e // delay required
     let close s = Job.delay <| fun () -> s.src <-= Nil // delay required
-    let tap s = s.src :> Alt<_>
+    let tap s = s.src :> Promise<_>
 
   type Var<'x> = {mutable var: Cons<'x>}
 
@@ -57,21 +55,22 @@ module Stream =
       match Interlocked.Exchange (&v.var, c) with
        | Cons (_, i) -> (i :?> IVar<_>) <-= c
        | Nil -> failwith "Impossible"
-    let tap v = Alt.always v.var
+    let tap v = Promise.Now.withValue v.var
 
-  let inline nil<'x> = Alt.always Nil :> Stream<'x>
-  let cons x xs = Alt.always (Cons (x, xs))
-  let inline error e = Alt.raises e :> Stream<_>
-  let inline one x = cons x nil
-  let inline delay (u2xs: unit -> #Stream<'x>) =
-    memo << Job.delay <| fun () -> u2xs ()
+  let nil<'x> = Promise.Now.withValue Nil :> Stream<'x>
+  let inline consa x xs = Alt.always (Cons (x, xs))
+  let inline cons' x xs = Promise.Now.withValue (Cons (x, xs))
+  let cons x xs = cons' x (memo xs)
+  let inline error e = Promise.Now.withFailure e :> Stream<_>
+  let one x = cons' x nil
+  let inline delay (u2xs: _ -> #Job<Cons<_>>) = memo (Job.delay u2xs)
 
   let fix (xs2xs: Stream<'x> -> #Stream<'x>) =
     let xs = Promise<_> () // XXX publish interface for this?
-    xs.Readers <- Promise<_>.Fulfill (Job.delay <| fun () -> xs2xs xs)
+    xs.Readers <- Promise<_>.Fulfill (xs, Job.delay <| fun () -> xs2xs xs)
     xs :> Stream<_>
 
-  let inline never<'x> = Alt.never () :> Stream<'x>
+  let inline never<'x> = Promise.Now.never () :> Stream<'x>
 
   let rec ofEnum (xs: IEnumerator<'x>) = memo << Job.thunk <| fun () ->
     if xs.MoveNext () then Cons (xs.Current, ofEnum xs) else xs.Dispose () ; Nil
@@ -80,7 +79,7 @@ module Stream =
 
   let rec onCloseJob (uJ: Job<unit>) xs =
     Job.tryIn xs
-       <| function Cons (x, xs) -> cons x (onCloseJob uJ xs) :> Job<_>
+       <| function Cons (x, xs) -> cons' x (onCloseJob uJ xs) :> Job<_>
                  | Nil -> uJ >>% Nil
        <| fun e -> uJ >>! e
     |> memo
@@ -180,43 +179,45 @@ module Stream =
   let inline mapfc c xs = xs |>>? mapfC c
   let inline mapfcm c xs = mapfc c xs |> memo
 
-  let inline mapnc n (c: _ -> _ -> #Job<_>) xs =
-    xs >>=? function Cons (x, xs) -> c x xs | _ -> n
+  let inline mapnc (n: #Job<_>) (c: _ -> _ -> #Job<_>) xs =
+    xs >>=? function Cons (x, xs) -> c x xs :> Job<_> | _ -> n :> Job<_>
   let inline mapC (c: _ -> _ -> #Job<_>) =
     function Cons (x, xs) -> c x xs :> Job<_> | Nil -> nil :> Job<_>
   let inline mapc c xs = xs >>=? mapC c
   let inline mapcm c xs = mapc c xs |> memo
+  let inline mapncm n c xs = mapnc n c xs |> memo
 
   let rec chooseJob' x2yOJ x xs =
     x2yOJ x >>= function None -> mapc (chooseJob' x2yOJ) xs
-                       | Some y -> cons y (chooseJob x2yOJ xs)
+                       | Some y -> consa y (chooseJob x2yOJ xs)
   and chooseJob x2yOJ xs = mapcm (chooseJob' x2yOJ) xs
   let rec chooseFun' x2yO x xs =
     match x2yO x with None -> mapc (chooseFun' x2yO) xs
-                    | Some y -> cons y (chooseFun x2yO xs)
+                    | Some y -> consa y (chooseFun x2yO xs)
   and chooseFun x2yO xs = mapcm (chooseFun' x2yO) xs
   let rec choose' xO xOs =
-    match xO with None -> mapc choose' xOs | Some x -> cons x (choose xOs)
+    match xO with None -> mapc choose' xOs | Some x -> consa x (choose xOs)
   and choose xOs = mapcm choose' xOs
 
   let rec fj' p x xs =
-    p x >>= fun b -> if b then cons x (filterJob p xs) else mapc (fj' p) xs
+    p x >>= fun b -> if b then consa x (filterJob p xs) else mapc (fj' p) xs
   and filterJob p xs = mapcm (fj' p) xs
-  let rec ff' p x xs = if p x then cons x (filterFun p xs) else mapc (ff' p) xs
+  let rec ff' p x xs = if p x then consa x (filterFun p xs) else mapc (ff' p) xs
   and filterFun x2b xs = mapcm (ff' x2b) xs
 
   let rec mapJob x2yJ xs =
     mapcm (fun x xs -> x2yJ x |>> fun y -> Cons (y, mapJob x2yJ xs)) xs
   let rec mapFun x2y xs = mapfcm (fun x xs -> Cons (x2y x, mapFun x2y xs)) xs
 
-  let amb ls rs = ls <|>* rs :> Stream<_>
+  let amb (ls: Stream<_>) (rs: Stream<_>) = ls <|>* rs :> Stream<_>
 
-  let rec mergeSwap ls rs = mapnc rs (fun l ls -> cons l (merge rs ls)) ls
+  let rec mergeSwap ls rs = mapnc rs (fun l ls -> cons' l (merge rs ls)) ls
   and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
 
-  let rec append ls rs = mapnc rs (fun l ls -> cons l (append ls rs)) ls
+  let rec append l (r: Stream<_>) = mapncm r (fun x l -> consa x (append l r)) l
 
-  let rec switch ls rs = rs <|>* mapnc rs (fun l ls -> cons l (switch ls rs)) ls
+  let rec switch (ls: Stream<_>) (rs: Stream<_>) =
+    rs <|>* mapnc rs (fun l ls -> cons' l (switch ls rs)) ls
 
   let rec joinWith (join: Stream<'x> -> Stream<'y> -> #Stream<'y>)
                    (xxs: Stream<#Stream<'x>>) =
@@ -234,18 +235,18 @@ module Stream =
   let rec taker evt skipper xs =
     (evt >>=? fun _ -> Job.start (xs >>= fun t -> skipper <-= t) >>% Nil) <|>*
     (xs >>=? function Nil -> skipper <-= Nil >>% Nil
-                    | Cons (x, xs) -> upcast cons x (taker evt skipper xs))
+                    | Cons (x, xs) -> upcast cons' x (taker evt skipper xs))
   let takeAndSkipUntil evt xs =
-    let skipper = IVar () in (taker evt skipper xs, skipper :> Alt<_>)
+    let skipper = IVar () in (taker evt skipper xs, skipper :> Stream<_>)
 
   let rec skipUntil evt xs =
     (evt >>=? fun _ -> xs) <|>* mapc (fun _ -> skipUntil evt) xs
 
   let switchTo rs ls = switch ls rs
-  let takeUntil evt xs = switch xs (evt >>%? Nil)
+  let takeUntil (evt: Alt<_>) xs = switch xs (evt >>%* Nil)
 
   let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =
-    Job.tryIn xs (mapC (fun x xs -> cons x (catch e2xs xs))) e2xs |> memo
+    Job.tryIn xs (mapC (fun x xs -> cons' x (catch e2xs xs))) e2xs |> memo
 
   // Sampler.regular
   // Sampler.debounce
@@ -253,22 +254,29 @@ module Stream =
   // Sampler.fromStream
   // Sampler.fromJob
 
-  module Sampler =
-    // debounce
-    let restart (timeSpan: TimeSpan) : Alt<_> =
-      timeOut timeSpan
-    // throttle
-    let retain (timeSpan: TimeSpan) : Alt<_> =
-      let timeout = timeOut timeSpan
-      let req = Ch<_> ()
-      let res = Ch<_> ()
-      let rec idle () =
-        req >>= fun () -> busy (memo timeout)
-      and busy timeout =
-        (timeout >>=? fun () -> res <-- () >>= idle) <|>?
-        (req >>=? fun () -> busy timeout)
-      idle () |> Job.Global.server
-      Alt.guard (req <-+ () >>% res)
+  type Sampler = {Sampler: unit -> Alt<unit>}
+  let sampler u2uA = {Sampler = u2uA}
+  // debounce
+  let restart (timeSpan: TimeSpan) : Sampler =
+    let uA = timeOut timeSpan
+    {Sampler = fun () -> uA}
+  // throttle
+  let retain (timeSpan: TimeSpan) : Sampler =
+    let timeout = timeOut timeSpan
+    {Sampler = fun () ->
+      let state = ref None
+      let timeout = timeout |>> fun () -> state := None
+      Alt.delay <| fun () ->
+      match !state with
+       | None -> let timeout = memo timeout in state := Some timeout; timeout
+       | Some timeout -> timeout}
+
+    // sample
+//    let periodic (timeSpan: TimeSpan) : Alt<_> =
+
+  let rec smpl0 t xs = mapcm (smpl1 t) xs
+  and smpl1 t x xs = (t |>>? fun _ -> Cons (x, smpl0 t xs)) <|>? mapc (smpl1 t) xs
+  let sampling sampler xs = smpl0 (sampler.Sampler ()) xs
 
   let rec sampleGot0 ts xs =
     mapc (fun _ ts -> sampleGot0 ts xs) ts <|>? mapc (sampleGot1 ts) xs
@@ -278,7 +286,7 @@ module Stream =
 
   let rec debounceGot1 timeout x xs =
     (timeout |>>? fun _ -> Cons (x, debounce timeout xs)) <|>?
-    (xs >>=? function Cons (x, xs) -> debounceGot1 timeout x xs | Nil -> one x)
+    (xs >>=? function Cons (x, xs) -> debounceGot1 timeout x xs | Nil -> one x :> Alt<_>)
   and debounce timeout xs = mapcm (debounceGot1 timeout) xs
 
   let rec throttleGot1 timeout timer x xs =
@@ -301,10 +309,15 @@ module Stream =
   and zipY xs y ys = mapfc (fun x xs -> zipXY x y xs ys) xs
   and zip xs ys = mapc (zipX ys) xs <|>* mapc (zipY xs) ys
 
+  let rec zipwfXY f x y xs ys = Cons (f x y, zipWithFun f xs ys)
+  and zipwfX f ys x xs = mapfc (fun y ys -> zipwfXY f x y xs ys) ys
+  and zipwfY f xs y ys = mapfc (fun x xs -> zipwfXY f x y xs ys) xs
+  and zipWithFun f xs ys = mapc (zipwfX f ys) xs <|>* mapc (zipwfY f xs) ys
+
   let rec sj f s x xs = f s x |>> fun s -> Cons (s, mapcm (sj f s) xs)
-  let scanJob f s xs = cons s (mapcm (sj f s) xs)
+  let scanJob f s (xs: Stream<_>) = cons s (mapc (sj f s) xs)
   let rec sf f s x xs = let s = f s x in Cons (s, mapfcm (sf f s) xs)
-  let scanFun f s xs = cons s (mapfcm (sf f s) xs)
+  let scanFun f s (xs: Stream<_>) = cons s (mapfc (sf f s) xs)
   let scanFromJob s f xs = scanJob f s xs
   let scanFromFun s f xs = scanFun f s xs
 
@@ -355,17 +368,17 @@ module Stream =
     let rec ds () =
       es >>=* fun evt ->
       Job.tryIn evt
-       <| function Value x -> dec >>. cons x (ds ())
+       <| function Value x -> dec >>. cons' x (ds ())
                  | Completed -> nil :> Job<_>
                  | Error e -> error e :> Job<_>
        <| fun e -> dec >>. error e
-    ds () :> Alt<_>
+    ds ()
 
   let delayEach job xs = mapJob (fun x -> job >>% x) xs
 
   let rec afterEach' yJ x xs =
     Promise.queue yJ |>> fun pre -> Cons (x, pre >>.* mapc (afterEach' yJ) xs)
-  let afterEach yJ xs = mapcm (afterEach' yJ) xs
+  let afterEach yJ (xs: Stream<_>) = mapcm (afterEach' yJ) xs
   let rec beforeEach yJ xs =
     memo (yJ >>. mapfc (fun x xs -> Cons (x, beforeEach yJ xs)) xs)
 
@@ -374,30 +387,30 @@ module Stream =
 
   let rec ducwj eqJ x' x xs =
     let t = mapc (ducwj eqJ x) xs
-    eqJ x' x >>= function true -> t | false -> cons x (memo t)
-  let distinctUntilChangedWithJob eqJ xs =
+    eqJ x' x >>= function true -> t | false -> cons x t :> Alt<_>
+  let distinctUntilChangedWithJob eqJ (xs: Stream<_>) =
     mapfcm (fun x xs -> Cons (x, mapcm (ducwj eqJ x) xs)) xs
 
   let rec ducwf eq x' x xs =
-    let t = mapc (ducwf eq x) xs in if eq x' x then t else cons x (memo t)
-  let distinctUntilChangedWithFun eq xs =
+    let t = mapc (ducwf eq x) xs in if eq x' x then t else cons x t :> Alt<_>
+  let distinctUntilChangedWithFun eq (xs: Stream<_>) =
     mapfcm (fun x xs -> Cons (x, mapcm (ducwf eq x) xs)) xs
 
   let rec ducbj x2kJ k' x xs =
     x2kJ x >>= fun k ->
-    let t = mapc (ducbj x2kJ k) xs in if k = k' then t else cons x (memo t)
-  let distinctUntilChangedByJob x2kJ xs =
-    mapcm (fun x xs -> x2kJ x >>= fun k -> cons x (mapcm (ducbj x2kJ k) xs)) xs
+    let t = mapc (ducbj x2kJ k) xs in if k = k' then t else cons x t :> Alt<_>
+  let distinctUntilChangedByJob x2kJ (xs: Stream<_>) =
+    mapcm (fun x xs -> x2kJ x >>= fun k -> cons x (mapc (ducbj x2kJ k) xs)) xs
 
   let rec ducbf x2k k' x xs =
     let k = x2k x
-    let t = mapc (ducbf x2k k) xs in if k = k' then t else cons x (memo t)
-  let distinctUntilChangedByFun x2k xs =
+    let t = mapc (ducbf x2k k) xs in if k = k' then t else cons x t :> Alt<_>
+  let distinctUntilChangedByFun x2k (xs: Stream<_>) =
     mapfcm (fun x xs -> Cons (x, mapcm (ducbf x2k (x2k x)) xs)) xs
 
   let rec duc x' x xs =
-    let t = mapc (duc x) xs in if x' = x then t else cons x (memo t)
-  let distinctUntilChanged xs =
+    let t = mapc (duc x) xs in if x' = x then t else cons x t :> Alt<_>
+  let distinctUntilChanged (xs: Stream<_>) =
     mapfcm (fun x xs -> Cons (x, mapcm (duc x) xs)) xs
 
   type Group<'k, 'x> = {key: 'k; mutable var: IVar<Cons<'x>>}
@@ -459,20 +472,20 @@ module Stream =
        <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
        <| fun serve ss _ -> serve ss
-    !main |> wrapMain
+    wrapMain (!main)
   let groupByFun keyOf ss = groupByJob (Job.lift keyOf) ss
 
-  let rec skip' n xs = if 0L < n then mapc (fun _ -> skip' (n-1L)) xs else xs
+  let rec skip' n xs = if 0L < n then mapc (fun _ -> skip' (n-1L)) xs else xs :> Alt<_>
   let skip n xs = if n < 0L then failwith "skip: n < 0L" else skip' n xs |> memo
 
   let rec take' n xs =
     if 0L < n then mapfcm (fun x xs -> Cons (x, take' (n-1L) xs)) xs else nil
   let take n xs = if n < 0L then failwith "take: n < 0L" else take' n xs
 
-  let head xs = mapfcm (fun x _ -> Cons (x, nil)) xs
+  let head (xs: Stream<_>) = mapfcm (fun x _ -> Cons (x, nil)) xs
   let tail (s: Stream<_>) = memo (s >>= function Cons (_, t) -> t | Nil -> nil)
   let rec ts' = function Cons (_, xs) -> Cons (xs, xs |>>* ts') | Nil -> Nil
-  let tails xs = cons xs (xs |>>* ts')
+  let tails xs = cons xs (xs |>> ts')
 
   let last (s: Stream<_>) = memo << Job.delay <| fun () ->
     let rec lp (r: Job<_>) s =
@@ -480,7 +493,7 @@ module Stream =
     lp s s
   let init (s: Stream<_>) = memo << Job.delay <| fun () ->
     let rec lp x s =
-      Job.tryIn s (function Cons (h, t) -> cons x (memo (lp h t)) | Nil -> nil)
+      Job.tryIn s (function Cons (h, t) -> cons x (lp h t) | Nil -> nil)
        (fun _ -> nil)
     s >>= function Nil -> nil :> Job<_> | Cons (x, s) -> lp x s
   let inits xs = scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> take n xs)
@@ -491,10 +504,10 @@ module Stream =
     match f s with None -> Nil | Some (x, s) -> Cons (x, unfoldFun f s)
 
   let rec ij f x = f x |>>* fun x -> Cons (x, ij f x)
-  let iterateJob x2xJ x = cons x (ij x2xJ x)
+  let iterateJob x2xJ x = cons' x (ij x2xJ x)
 
   let rec it f x = memo << Job.thunk <| fun _ -> let x = f x in Cons (x, it f x)
-  let iterateFun f x = cons x (it f x)
+  let iterateFun f x = cons' x (it f x)
 
   let repeat x = fix (cons x)
   let cycle xs = fix (append xs)

@@ -10,7 +10,7 @@ module Stream =
   /// Represents a point in a non-deterministic stream of values.
   type Cons<'x> =
     /// Communicates a value and the remainder of the stream.
-    | Cons of Value: 'x * Next: Alt<Cons<'x>>
+    | Cons of Value: 'x * Next: Promise<Cons<'x>>
     /// Communicates the end of the stream.
     | Nil
 
@@ -68,7 +68,7 @@ module Stream =
   /// corresponds to `Delay` in Rx, are non-trivial, although both
   /// implementations are actually much shorter than their .Net Rx counterparts.
 #endif
-  type Stream<'x> = Alt<Cons<'x>>
+  type Stream<'x> = Promise<Cons<'x>>
 
   /// Represents an imperative source of a stream of values called a stream
   /// source.
@@ -169,22 +169,34 @@ module Stream =
   // Introducing streams
 
   /// An empty or closed choice stream.
-  val inline nil<'x> : Stream<'x>
+  ///
+  /// `nil` is equivalent to `Promise.Now.withValue Nil`.
+  val nil<'x> : Stream<'x>
 
   /// `cons x xs` constructs a choice stream whose first value is `x` and the
-  /// rest of the stream is like `xs`.
+  /// rest of the stream is computed using `xs`.  For example, `cons 1 <| cons 2
+  /// <| cons 3 nil` is a stream producing the sequence `1 2 3`.  See also:
+  /// `delay`.
 #if DOC
+  ///
+  /// `cons x xs` is equivalent to `Promise.Now.withValue (Cons (x,
+  /// Promise.Now.delay xs))`.  Note that the rest of the stream, `xs`, is
+  /// implicitly memoized and, in addition to being a stream, because
+  /// `Stream<'x> :> Job<Cons<'x>>`, it can be a job that performs some
+  /// computation before returning a stream constructor.
   ///
   /// Note that `cons` and `nil` directly correspond to the ordinary list
   /// constructors `::` and `[]` and, aside from the obvious notational
   /// differences, you can construct choice streams just like you would create
   /// ordinary lists.
 #endif
-  val cons: 'x -> Stream<'x> -> Stream<'x>
+  val cons: 'x -> Job<Cons<'x>> -> Stream<'x>
 
-  /// `delay` creates a stream that is constructed lazily.  Use `delay` to avoid
-  /// unbounded eager recursion.
+  /// `delay` creates a stream that is constructed lazily.  Use `delay` to make
+  /// lazy streams and to avoid unbounded eager recursion.
 #if DOC
+  ///
+  /// `delay u2xs` is equivalent to `Promise.Now.delay <| Job.delay u2xs`.
   ///
   /// Note that with `delay`, `cons` and `nil`, you can express arbitrary lazy
   /// streams.  For example,
@@ -205,7 +217,7 @@ module Stream =
   /// stream would produce the fibonacci sequence with at most one element per
   /// second.
 #endif
-  val inline delay: (unit -> #Stream<'x>) -> Stream<'x>
+  val inline delay: (unit -> #Job<Cons<'x>>) -> Stream<'x>
 
   /// A choice stream that never produces any values and never closes.
   val inline never<'x> : Stream<'x>
@@ -214,7 +226,7 @@ module Stream =
   val inline error: exn -> Stream<'x>
 
   /// `one x` is equivalent to `cons x nil`.
-  val inline one: 'x -> Stream<'x>
+  val one: 'x -> Stream<'x>
 
   /// Converts the given sequence to a lazy stream.
   val ofSeq: seq<'x> -> Stream<'x>
@@ -418,6 +430,10 @@ module Stream =
   /// is a stream of consecutive pairs from the stream `xs`.
 #endif
   val zip: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
+
+  /// `zipWithFun f xs ys` is equivalent to `zip xs ys |> mapFun (fun (x, y) ->
+  /// f x y)`
+  val zipWithFun: ('x -> 'y -> 'z) -> Stream<'x> -> Stream<'y> -> Stream<'z>
 
   /// Returns a stream whose elements are computed using the given job and
   /// initial state as with `foldJob`.
