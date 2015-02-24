@@ -18,6 +18,7 @@ namespace Hopac {
     internal const int Running = 1;
     internal const int HasValue = 2;
     internal const int HasExn = 3;
+    internal const int MakeLocked = 4;  // Greater than any state.
 
     /// Unsafe.
     [MethodImpl(AggressiveInlining.Flag)]
@@ -64,27 +65,25 @@ namespace Hopac {
     internal override void DoJob(ref Worker wr, Cont<T> aK) {
     Spin:
       var state = this.State;
+    Reconsider:
       if (state > Running) goto Completed;
       if (state < Delayed) goto Spin;
-      if (state != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
-
-      if (Delayed == state)
-        goto Delayed;
+      var check = state;
+      state = Interlocked.CompareExchange(ref this.State, state-MakeLocked, state);
+      if (Delayed == state) goto Delayed;
+      if (state != check) goto Reconsider;
 
       WaitQueue.AddTaker(ref this.Readers, aK);
       this.State = Running;
       return;
 
     Delayed:
-      var readers = this.Readers;
+      var fulfill = this.Readers;
       this.Readers = aK;
       aK.Next = aK;
       this.State = Running;
 
-      var fulfill = readers as Fulfill;
-      var tJ = fulfill.tJ;
-      fulfill.tJ = null;
-      Job.Do(tJ, ref wr, fulfill);
+      Work.Do(fulfill, ref wr);
       return;
 
     Completed:
@@ -95,17 +94,17 @@ namespace Hopac {
     }
 
     internal override void TryAlt(ref Worker wr, int i, Cont<T> aK, Else aE) {
-      var pkSelf = aE.pk;
     Spin:
       var state = this.State;
+    Reconsider:
       if (state > Running) goto Completed;
       if (state < Delayed) goto Spin;
-      if (state != Interlocked.CompareExchange(ref this.State, ~state, state)) goto Spin;
+      var check = state;
+      state = Interlocked.CompareExchange(ref this.State, state-MakeLocked, state);
+      if (Delayed == state) goto Delayed;
+      if (state != check) goto Reconsider;
 
-      if (Delayed == state)
-        goto Delayed;
-
-      WaitQueue.AddTaker(ref this.Readers, i, pkSelf, aK);
+      WaitQueue.AddTaker(ref this.Readers, i, aE.pk, aK);
       this.State = Running;
       aE.TryElse(ref wr, i + 1);
       return;
@@ -114,7 +113,7 @@ namespace Hopac {
       var taker = new Taker<T>();
       taker.Cont = aK;
       taker.Me = i;
-      taker.Pick = pkSelf;
+      taker.Pick = aE.pk;
       taker.Next = taker;
 
       var fulfill = this.Readers;
@@ -126,9 +125,11 @@ namespace Hopac {
       return;
 
     Completed:
+      var pkSelf = aE.pk;
+    TryPick:
       var stSelf = Pick.TryPick(pkSelf);
       if (stSelf > 0) goto AlreadyPicked;
-      if (stSelf < 0) goto Completed;
+      if (stSelf < 0) goto TryPick;
 
       Pick.SetNacks(ref wr, i, pkSelf);
 
@@ -191,7 +192,7 @@ namespace Hopac {
       Spin:
         var state = tP.State;
         if (state != Running) goto Spin;
-        if (Running != Interlocked.CompareExchange(ref tP.State, ~state, state)) goto Spin;
+        if (Running != Interlocked.CompareExchange(ref tP.State, state-MakeLocked, state)) goto Spin;
 
         var readers = tP.Readers;
         tP.Readers = new Fail<T>(e);
