@@ -33,7 +33,7 @@ module Streams =
     |> Seq.map (fun (xs, ys) ->
        Stream.zipWithFun (+) xs ys)
 
-  let ints () = Stream.iterateFun ((+) 1) 0
+  let ints _ = Stream.iterateFun ((+) 1) 0
 
   module Fib =
     let fibs () = Stream.fix <| fun fibs ->
@@ -50,17 +50,17 @@ module Streams =
       printfn "fib %d = %s, took %A" n (result.ToString ()) stop
 
   module Pyramid =
-    let rec pyramid n =
-      if n <= 0
-      then ints ()
-      else let xs = pyramid (n-1)
-           let ys = pyramid (n-1)
+    let rec pyramid m n =
+      if m <= 0
+      then ints (n+1)
+      else let xs = pyramid (m-1) n
+           let ys = pyramid (m-1) n
            Stream.zipWithFun (+) xs ys
 
     let run m n =
       let timer = Stopwatch.StartNew ()
       let result =
-        pyramid m
+        pyramid m n
         |> Stream.skip (int64 n)
         |> Stream.get
         |> run
@@ -69,16 +69,16 @@ module Streams =
 
   module Diamond =
     let rec repeat n f xs = if n = 0 then xs else repeat (n-1) f (f xs)
-    let diamond n =
-      Seq.singleton (ints ())
-      |> repeat n split
-      |> repeat n join
+    let diamond m n =
+      Seq.singleton (ints (n+1))
+      |> repeat m split
+      |> repeat m join
       |> Seq.head
 
     let run m n =
       let timer = Stopwatch.StartNew ()
       let result =
-        diamond m
+        diamond m n
         |> Stream.skip (int64 n)
         |> Stream.get
         |> run
@@ -97,20 +97,20 @@ module Rx =
     |> Seq.map (fun (xs, ys) ->
        Observable.zipWith (+) xs ys)
 
-  let ints () = Observable.generate 0 (fun _ -> true) ((+) 1) id
+  let ints n = Observable.generate 0 (fun x -> x <= n) ((+) 1) id
 
   module Pyramid =
-    let rec pyramid n =
-      if n <= 0
-      then ints ()
-      else let xs = pyramid (n-1)
-           let ys = pyramid (n-1)
+    let rec pyramid m n =
+      if m <= 0
+      then ints (n+1)
+      else let xs = pyramid (m-1) n
+           let ys = pyramid (m-1) n
            Observable.zipWith (+) xs ys
 
     let run m n =
       let timer = Stopwatch.StartNew ()
       let result = ref -1
-      (pyramid m
+      (pyramid m n
        |> Observable.skip n).SubscribeOn(System.Reactive.Concurrency.ThreadPoolScheduler.Instance)
       |> Observable.subscribe (fun x ->
          lock result <| fun () ->
@@ -124,16 +124,16 @@ module Rx =
 
   module Diamond =
     let rec repeat n f xs = if n = 0 then xs else repeat (n-1) f (f xs)
-    let diamond n =
-      Seq.singleton (ints ())
-      |> repeat n split
-      |> repeat n join
+    let diamond m n =
+      Seq.singleton (ints (n+1))
+      |> repeat m split
+      |> repeat m join
       |> Seq.head
 
     let run m n =
       let timer = Stopwatch.StartNew ()
       let result = ref -1
-      (diamond m
+      (diamond m n
        |> Observable.skip n
        |> Observable.take 1).SubscribeOn(System.Reactive.Concurrency.ThreadPoolScheduler.Instance)
       |> Observable.subscribe (fun x ->
@@ -146,12 +146,10 @@ module Rx =
       let stop = timer.Elapsed
       printfn "r diamond %d %d = %s, took %A" m n ((!result).ToString ()) stop
 
-// 0 1 2 3 4  5  6
-// 1 2 4 8 16 32 64
-
 do for m in [0; 1; 2; 3; 4; 5; 6] do
      for n in [10; 10000; 20000; 80000; 160000; 320000] do
-       for f in [Streams.Pyramid.run; Rx.Pyramid.run] do
+       for f in [Streams.Pyramid.run; Rx.Pyramid.run;
+                 Streams.Diamond.run; Rx.Diamond.run] do
          f m n
          GC.Collect () ; System.Threading.Thread.Sleep 100
          GC.Collect () ; System.Threading.Thread.Sleep 100
