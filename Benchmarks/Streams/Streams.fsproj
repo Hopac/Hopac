@@ -63,14 +63,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Control.Reactive">
-      <HintPath>..\..\packages\FSharp.Control.Reactive.3.1.1\lib\net40\FSharp.Control.Reactive.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharp.Core">
-      <HintPath>..\..\packages\FSharp.Core.3.1.2\lib\net40\FSharp.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

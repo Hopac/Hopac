@@ -171,7 +171,7 @@ module Stream =
   /// An empty or closed choice stream.
   ///
   /// `nil` is equivalent to `Promise.Now.withValue Nil`.
-  val nil<'x> : Stream<'x>
+  val inline nil<'x> : Stream<'x>
 
   /// `cons x xs` constructs a choice stream whose first value is `x` and the
   /// rest of the stream is computed using `xs`.  For example, `cons 1 <| cons 2
@@ -190,7 +190,7 @@ module Stream =
   /// differences, you can construct choice streams just like you would create
   /// ordinary lists.
 #endif
-  val cons: 'x -> Job<Cons<'x>> -> Stream<'x>
+  val inline cons: 'x -> Stream<'x> -> Stream<'x>
 
   /// `delay` creates a stream that is constructed lazily.  Use `delay` to make
   /// lazy streams and to avoid unbounded eager recursion.
@@ -362,7 +362,7 @@ module Stream =
   ///> let rec chooseJob f xs =
   ///>   xs >>=* function Nil -> nil
   ///>                  | Cons (x, xs) ->
-  ///>                    f x >>=? function None -> chooseJob f xs :> Alt<_>
+  ///>                    f x >>=* function None -> chooseJob f xs
   ///>                                    | Some y -> cons y (chooseJob f xs)
 #endif
   val chooseJob: ('x -> #Job<option<'y>>) -> Stream<'x> -> Stream<'y>
@@ -391,7 +391,7 @@ module Stream =
   ///> let rec mapJob f xs =
   ///>   xs >>=* function Nil -> nil
   ///>                  | Cons (x, xs) ->
-  ///>                    f x >>=? fun y -> cons y (mapJob f xs)
+  ///>                    f x >>=* fun y -> cons y (mapJob f xs)
 #endif
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
@@ -442,7 +442,7 @@ module Stream =
   ///> let rec scanJob f s xs =
   ///>   cons s (xs >>=* function Nil -> nil
   ///>                          | Cons (x, xs) ->
-  ///>                            f s x >>=? fun s -> scanJob f s xs)
+  ///>                            f s x >>=* fun s -> scanJob f s xs)
 #endif
   val scanJob: ('s -> 'x -> #Job<'s>) -> 's -> Stream<'x> -> Stream<'s>
 

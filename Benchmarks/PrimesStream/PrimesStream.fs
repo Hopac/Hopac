@@ -5,7 +5,6 @@ module PrimesStream
 open System
 open System.Diagnostics
 open Hopac
-open Hopac.Extra
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 
@@ -150,7 +149,49 @@ module HopacPromise =
 
 /////////////////////////////////////////////////////////////////////////
 
+module HopacStream =
+  open Hopac.Promise.Infixes
+
+  let sieve () = Stream.delay <| fun () ->
+    let rec sieve nats =
+      nats >>=* function
+       | Stream.Nil -> Stream.nil
+       | Stream.Cons (prime, nats) ->
+         Stream.cons prime
+          (nats
+           |> Stream.filterFun (fun x -> x % prime <> 0)
+           |> sieve)
+    Stream.iterateFun (fun x -> x+1) 2
+    |> sieve
+
+  let primes n = Job.delay <| fun () ->
+    let before = GC.GetTotalMemory true
+    let result = Array.zeroCreate n
+    let rec loop i xs =
+      if i < n then
+        xs >>= function
+         | Stream.Nil -> failwith "Impossible"
+         | Stream.Cons (x, xs) ->
+           result.[i] <- x
+           loop (i+1) xs
+      else
+        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
+        Job.result result
+    loop 0 (sieve ())
+
+  let run n =
+    printf "HopacStream:   "
+    let timer = Stopwatch.StartNew ()
+    let ps = run (primes n)
+    let d = timer.Elapsed
+    printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
+    d
+
+/////////////////////////////////////////////////////////////////////////
+
 module HopacCh =
+  open Hopac.Extra
+
   let sieve (primesOut: Stream.Out<_>) =
     let rec sieve natsIn =
       natsIn >>= fun prime ->
@@ -300,6 +341,8 @@ let inline cleanup (d: TimeSpan) =
     Threading.Thread.Sleep 250
 
 do let ns = [10; 100; 1000; 2500; 5000; 7500; 10000]
+   for n in ns do
+     HopacStream.run n |> cleanup
    for n in ns do
      Sequential.run n |> cleanup
    for n in ns do

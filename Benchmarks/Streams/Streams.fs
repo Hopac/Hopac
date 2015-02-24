@@ -2,8 +2,8 @@
 
 module Streams
 
-open FSharp.Control.Reactive
 open System.Reactive.Linq
+open System.Reactive.Concurrency
 open System
 open System.Diagnostics
 open System.Threading
@@ -25,7 +25,7 @@ module Streams =
   let split xss =
     xss
     |> Seq.collect (fun xs ->
-       [Stream.mapFun (fun x ->  x      / 2) xs;
+       [Stream.mapFun (fun x ->  x      / 2) xs
         Stream.mapFun (fun x -> (x + 1) / 2) xs])
   let join xss =
     xss
@@ -33,7 +33,7 @@ module Streams =
     |> Seq.map (fun (xs, ys) ->
        Stream.zipWithFun (+) xs ys)
 
-  let ints _ = Stream.iterateFun ((+) 1) 0
+  let ints _ = Stream.iterateFun (fun x -> x+1) 0
 
   module Fib =
     let fibs () = Stream.fix <| fun fibs ->
@@ -88,16 +88,17 @@ module Streams =
 module Rx =
   let split xss =
     xss
-    |> Seq.collect (fun xs ->
-       [Observable.map (fun x ->  x      / 2) xs;
-        Observable.map (fun x -> (x + 1) / 2) xs])
+    |> Seq.collect (fun (xs: IObservable<_>) ->
+       [xs.Select(fun x ->  x      / 2)
+        xs.Select(fun x -> (x + 1) / 2)])
   let join xss =
     xss
     |> Seq.pairwise
-    |> Seq.map (fun (xs, ys) ->
-       Observable.zipWith (+) xs ys)
+    |> Seq.map (fun (xs: IObservable<_>, ys: IObservable<_>) ->
+       Observable.Zip(xs, ys, fun x y -> x+y))
 
-  let ints n = Observable.generate 0 (fun x -> x <= n) ((+) 1) id
+  let ints n =
+    Observable.Generate(0, (fun x -> x <= n), (fun x -> x+1), (fun x -> x))
 
   module Pyramid =
     let rec pyramid m n =
@@ -105,14 +106,16 @@ module Rx =
       then ints (n+1)
       else let xs = pyramid (m-1) n
            let ys = pyramid (m-1) n
-           Observable.zipWith (+) xs ys
+           Observable.Zip(xs, ys, fun x y -> x+y)
 
     let run m n =
       let timer = Stopwatch.StartNew ()
       let result = ref -1
-      (pyramid m n
-       |> Observable.skip n).SubscribeOn(System.Reactive.Concurrency.ThreadPoolScheduler.Instance)
-      |> Observable.subscribe (fun x ->
+      (pyramid m n)
+       .Skip(n)
+       .Take(1)
+       .SubscribeOn(ThreadPoolScheduler.Instance)
+       .Subscribe(fun x ->
          lock result <| fun () ->
            result := x
            Monitor.Pulse result) |> ignore
@@ -133,10 +136,11 @@ module Rx =
     let run m n =
       let timer = Stopwatch.StartNew ()
       let result = ref -1
-      (diamond m n
-       |> Observable.skip n
-       |> Observable.take 1).SubscribeOn(System.Reactive.Concurrency.ThreadPoolScheduler.Instance)
-      |> Observable.subscribe (fun x ->
+      (diamond m n)
+       .Skip(n)
+       .Take(1)
+       .SubscribeOn(ThreadPoolScheduler.Instance)
+       .Subscribe (fun x ->
          lock result <| fun () ->
            result := x
            Monitor.Pulse result) |> ignore
@@ -146,8 +150,8 @@ module Rx =
       let stop = timer.Elapsed
       printfn "r diamond %d %d = %s, took %A" m n ((!result).ToString ()) stop
 
-do for m in [0; 1; 2; 3; 4; 5; 6] do
-     for n in [10; 10000; 20000; 80000; 160000; 320000] do
+do for m in [0; 1; 4; 6] do
+     for n in [10; 160000; 320000] do
        for f in [Streams.Pyramid.run; Rx.Pyramid.run;
                  Streams.Diamond.run; Rx.Diamond.run] do
          f m n
