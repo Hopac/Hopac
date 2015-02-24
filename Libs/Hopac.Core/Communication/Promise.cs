@@ -26,7 +26,7 @@ namespace Hopac {
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(Job<T> tJ) {
-      this.Readers = new Fulfill(tJ);
+      this.Readers = new Fulfill(this, tJ);
     }
 
     /// Internal implementation detail.
@@ -82,8 +82,8 @@ namespace Hopac {
       this.State = Running;
 
       var fulfill = readers as Fulfill;
-      var tJ = fulfill.tP;
-      fulfill.tP = this;
+      var tJ = fulfill.tJ;
+      fulfill.tJ = null;
       Job.Do(tJ, ref wr, fulfill);
       return;
 
@@ -117,14 +117,11 @@ namespace Hopac {
       taker.Pick = pkSelf;
       taker.Next = taker;
 
-      var readers = this.Readers;
+      var fulfill = this.Readers;
       this.Readers = taker;
       this.State = Running;
 
-      var fulfill = readers as Fulfill;
-      var tJ = fulfill.tP;
-      fulfill.tP = this;
-      Worker.PushNew(ref wr, new JobWork<T>(tJ, fulfill));
+      Worker.PushNew(ref wr, fulfill);
       aE.TryElse(ref wr, i + i);
       return;
 
@@ -144,12 +141,19 @@ namespace Hopac {
     }
 
     internal sealed class Fulfill : Cont<T> {
-      internal Job<T> tP;
+      internal Promise<T> tP;
+      internal Job<T> tJ;
       private Cont<Unit> procFin;
 
       [MethodImpl(AggressiveInlining.Flag)]
-      internal Fulfill(Job<T> tP) {
+      internal Fulfill(Promise<T> tP) {
         this.tP = tP;
+      }
+
+      [MethodImpl(AggressiveInlining.Flag)]
+      internal Fulfill(Promise<T> tP, Job<T> tJ) {
+        this.tP = tP;
+        this.tJ = tJ;
       }
 
       internal override Proc GetProc(ref Worker wr) {
@@ -158,7 +162,7 @@ namespace Hopac {
 
       [MethodImpl(AggressiveInlining.Flag)]
       internal void Do(ref Worker wr, T t) {
-        var tP = this.tP as Promise<T>;
+        var tP = this.tP;
         tP.Value = t;
       Spin:
         var state = tP.State;
@@ -169,7 +173,13 @@ namespace Hopac {
       }
 
       internal override void DoWork(ref Worker wr) {
-        Do(ref wr, this.Value);
+        var tJ = this.tJ;
+        if (null == tJ) {
+          Do(ref wr, this.Value);
+        } else {
+          this.tJ = null;
+          tJ.DoJob(ref wr, this);
+        }
       }
 
       internal override void DoCont(ref Worker wr, T v) {

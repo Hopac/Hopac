@@ -1381,11 +1381,7 @@ module Promise =
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
        pr.State <- Promise<'x>.Running
-       Worker.PushNew (&wr, {new WorkQueue () with
-        override w'.DoWork (wr) =
-         let prc = Promise<'x>.Fulfill (pr)
-         wr.Handler <- prc
-         xJ.DoJob (&wr, prc)})
+       Worker.PushNew (&wr, Promise<'x>.Fulfill (pr, xJ))
        Cont.Do (xPrK, &wr, pr)}
   module Now =
     let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
