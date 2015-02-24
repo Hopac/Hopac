@@ -80,6 +80,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C2B858
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Streams", "Benchmarks\Streams\Streams.fsproj", "{83F3235E-2033-4752-90E9-1048781FA817}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -170,6 +172,10 @@ Global
 		{4E4BE430-1137-43D1-97EF-206BD6ACB2C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E4BE430-1137-43D1-97EF-206BD6ACB2C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E4BE430-1137-43D1-97EF-206BD6ACB2C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83F3235E-2033-4752-90E9-1048781FA817}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83F3235E-2033-4752-90E9-1048781FA817}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83F3235E-2033-4752-90E9-1048781FA817}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83F3235E-2033-4752-90E9-1048781FA817}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -196,5 +202,6 @@ Global
 		{8AE348BF-62A1-4B04-986D-56FF9B137570} = {43B5134E-89E6-411E-A492-6FDA8BD441FB}
 		{7A2F0650-E5F6-4DFB-975D-C9F8B10FF314} = {24B2ECA5-6A25-48E3-942E-D7559D4F8C3B}
 		{4E4BE430-1137-43D1-97EF-206BD6ACB2C1} = {43B5134E-89E6-411E-A492-6FDA8BD441F9}
+		{83F3235E-2033-4752-90E9-1048781FA817} = {0F31BE63-CB73-4207-94E8-158D3077F24A}
 	EndGlobalSection
 EndGlobal
