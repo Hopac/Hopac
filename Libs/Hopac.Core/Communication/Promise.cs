@@ -78,12 +78,15 @@ namespace Hopac {
       return;
 
     Delayed:
-      var fulfill = this.Readers;
-      this.Readers = aK;
-      aK.Next = aK;
+      var readers = this.Readers;
+      this.Readers = null;
       this.State = Running;
 
-      Work.Do(fulfill, ref wr);
+      var fulfill = readers as Fulfill;
+      fulfill.reader = aK;
+      var tJ = fulfill.tJ;
+      fulfill.tJ = null;
+      Job.Do(tJ, ref wr, fulfill);
       return;
 
     Completed:
@@ -110,15 +113,14 @@ namespace Hopac {
       return;
 
     Delayed:
-      var taker = new Taker<T>();
-      taker.Cont = aK;
-      taker.Me = i;
-      taker.Pick = aE.pk;
-      taker.Next = taker;
-
-      var fulfill = this.Readers;
-      this.Readers = taker;
+      var readers = this.Readers;
+      this.Readers = null;
       this.State = Running;
+
+      var fulfill = readers as Fulfill;
+      fulfill.reader = aK;
+      fulfill.me = i;
+      fulfill.pk = aE.pk;
 
       Worker.PushNew(ref wr, fulfill);
       aE.TryElse(ref wr, i + i);
@@ -144,7 +146,12 @@ namespace Hopac {
     internal sealed class Fulfill : Cont<T> {
       internal Promise<T> tP;
       internal Job<T> tJ;
+
       private Cont<Unit> procFin;
+
+      internal Cont<T> reader;
+      internal int me;
+      internal Pick pk;
 
       [MethodImpl(AggressiveInlining.Flag)]
       internal Fulfill(Promise<T> tP) {
@@ -171,6 +178,23 @@ namespace Hopac {
         if (Running != Interlocked.CompareExchange(ref tP.State, HasValue, state)) goto Spin;
 
         WaitQueue.PickReaders(ref tP.Readers, tP.Value, ref wr);
+
+        var pk = this.pk;
+        if (null == pk) goto MaybeGotReader;
+      TryPick:
+        var st = Pick.TryPick(pk);
+        if (st > 0) goto Done;
+        if (st < 0) goto TryPick;
+
+        Pick.SetNacks(ref wr, me, pk);
+
+      MaybeGotReader:
+        var reader = this.reader;
+        if (null == reader) goto Done;
+        wr.Handler = reader;
+        reader.DoCont(ref wr, tP.Value);
+      Done:
+        return;
       }
 
       internal override void DoWork(ref Worker wr) {
