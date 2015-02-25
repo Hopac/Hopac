@@ -91,7 +91,7 @@ let runAll () =
 ```
 
 we can also use
-`Alt.select`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.select),
+`Alt.choose`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose),
 for example, to start multiple fetches in parallel and then cancel the rest when
 the fastest one is completed:
 
@@ -99,7 +99,7 @@ the fastest one is completed:
 let runFastest () =
   urlList
   |> Seq.map fetchAlt
-  |> Alt.select
+  |> Alt.choose
   |> run
 ```
 
@@ -113,10 +113,10 @@ operations created with `fetchAlt` also work with timeouts:
 
 ```fsharp
 let runWithTimeout seconds =
-  Alt.select [
+  Alt.choose [
     fetchAlt ("MSDN", "http://msdn.microsoft.com/") |>>? fun s ->
       printfn "%s before timeout." s
-    Timer.Global.timeOut (TimeSpan.FromSeconds seconds) |>>? fun () ->
+    timeOut (TimeSpan.FromSeconds seconds) |>>? fun () ->
       printfn "timeout!" ]
   |> run
 ```
