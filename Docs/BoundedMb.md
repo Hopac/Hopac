@@ -73,10 +73,8 @@ type BoundedMb<'x>
 
 module BoundedMb =
   val create: capacity: int -> Job<BoundedMb<'x>>
-
-  module Alt =
-    val put: BoundedMb<'x> -> 'x -> Alt<unit>
-    val take: BoundedMb<'x> -> Alt<'x>
+  val put: BoundedMb<'x> -> 'x -> Alt<unit>
+  val take: BoundedMb<'x> -> Alt<'x>
 ```
 
 Looking at the above signature, you may be wondering where is the support for
@@ -90,10 +88,10 @@ timeouts[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global
 and other synchronous operations:
 
 ```fsharp
-Alt.select [
+Alt.choose [
   timeout >>=? ...
-  BoundedMb.Alt.put xMb1 x >>=? ...
-  BoundedMb.Alt.take xMb2 >>=? ...
+  BoundedMb.put xMb1 x >>=? ...
+  BoundedMb.take xMb2 >>=? ...
 ]
 ```
 
@@ -110,17 +108,16 @@ module BoundedMb =
   let create capacity = Job.delay <| fun () ->
     let self = {putCh = ch (); takeCh = ch ()}
     let queue = Queue<_>()
-    let put = self.putCh |>>? queue.Enqueue
+    let put () = self.putCh |>>? queue.Enqueue
     let take () = self.takeCh <-? queue.Peek () |>>? (queue.Dequeue >> ignore)
     let proc = Job.delay <| fun () ->
       match queue.Count with
-       | 0 -> upcast put
-       | n when n = capacity -> upcast (take ())
-       | _ -> take () <|> put
+       | 0 -> put ()
+       | n when n = capacity -> take ()
+       | _ -> take () <|>? put ()
     Job.foreverServer proc >>% self
-  module Alt =
-    let put xB x = xB.putCh <-? x
-    let take xB = xB.takeCh :> Alt<_>
+  let put xB x = xB.putCh <-- x
+  let take xB = xB.takeCh :> Alt<_>
 ```
 
 Take a moment to read through the above implementation.  It uses the basic
@@ -138,13 +135,13 @@ Here is a sample interactive session with `BoundedMb`:
 ```fsharp
 > let mb: BoundedMb<int> = BoundedMb.create 1 |> run ;;
 val mb : BoundedMb<int>
-> BoundedMb.Alt.put mb 123 |> run ;;
+> BoundedMb.put mb 123 |> run ;;
 val it : unit = ()
-> BoundedMb.Alt.put mb 321 <|> timeout 1.0 |> run ;;
+> BoundedMb.put mb 321 <|>? timeout 1.0 |> run ;;
 val it : unit = ()
-> BoundedMb.Alt.take mb |> run ;;
+> BoundedMb.take mb |> run ;;
 val it : int = 123
-> BoundedMb.Alt.take mb |>>? printfn "Got %A" <|> timeout 1.0 |> run ;;
+> BoundedMb.take mb |>>? printfn "Got %A" <|>? timeout 1.0 |> run ;;
 val it : unit = ()
 ```
 
@@ -174,18 +171,18 @@ module BoundedMb =
   let create capacity = Job.delay <| fun () ->
     let self = {putCh = ch (); takeCh = ch ()}
     let queue = Queue<_>()
-    let put = Alt.map queue.Enqueue (Ch.Alt.take self.putCh)
+    let put () = Alt.map queue.Enqueue (Ch.take self.putCh)
     let take () =
       Alt.map (queue.Dequeue >> ignore)
-       (Ch.Alt.give self.takeCh (queue.Peek ()))
+       (Ch.give self.takeCh (queue.Peek ()))
     let proc = Job.delay <| fun () ->
       match queue.Count with
-       | 0 -> upcast put
-       | n when n = capacity -> upcast (take ())
-       | _ -> Alt.select [take (); put] // <|> is a bit faster
+       | 0 -> put ()
+       | n when n = capacity -> take ()
+       | _ -> Alt.choose [take (); put ()] // <|>? is a bit faster
     Job.foreverServer proc >>= fun () ->
     Job.result self
   module Alt =
-    let put xB x = Ch.Alt.give xB.putCh x
-    let take xB = Ch.Alt.take xB.takeCh
+    let put xB x = Ch.give xB.putCh x
+    let take xB = Ch.take xB.takeCh
 ```
