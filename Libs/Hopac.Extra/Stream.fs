@@ -32,10 +32,10 @@ module Stream =
     Job.iterateServer x (fun x -> xOut x >>. x2xJ x)
 
   let mapFun x2y (xIn: In<_>) (yOut: Out<_>) =
-    Job.foreverServer (xIn >>= fun x -> yOut (x2y x))
+    Job.foreverServer (xIn >>= (x2y >> yOut))
 
   let mapJob (x2yJ: _ -> #Job<_>) (xIn: In<_>) (yOut: Out<_>) =
-    Job.foreverServer (xIn >>= fun x -> x2yJ x >>= yOut)
+    Job.foreverServer (xIn >>= (x2yJ >=> yOut))
 
   let sumWithFun xy2z (xIn: In<_>) (yIn: In<_>) (zOut: Out<_>) =
     Job.foreverServer (xIn <+>? yIn >>= fun (x, y) -> zOut (xy2z x y))

@@ -907,6 +907,9 @@ module Job =
       {new JobBind<'x, 'y> () with
         override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xJ)
 
+    let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) : Job<'z> =
+      x2yJ x >>= y2zJ
+
     let (>>.) (xJ: Job<_>) (yJ: Job<'y>) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
@@ -1516,7 +1519,7 @@ module MVar =
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
     xM >>=? (x2xy >> fun (x, y) -> fill xM x >>% y)
   let inline modifyJob (x2xyJ: 'x -> #Job<'x * 'y>) (xM: MVar<'x>) =
-    xM >>=? fun x -> x2xyJ x >>= fun (x, y) -> fill xM x >>% y
+    xM >>=? (x2xyJ >=> fun (x, y) -> fill xM x >>% y)
   let inline read (xM: MVar<'x>) = xM >>=? fun x -> fill xM x >>% x
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 

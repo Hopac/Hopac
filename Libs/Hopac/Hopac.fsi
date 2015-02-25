@@ -561,6 +561,9 @@ module Job =
     /// be run.  This is the same as `bind` with the arguments flipped.
     val inline (>>=): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
 
+    /// `(x2yJ >=> y2zJ) x` is equivalent to `x2yJ x >>= y2zJ`.
+    val inline (>=>): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Job<'z>
+
     /// Creates a job that runs the given two jobs and returns the result of the
     /// second job.  `xJ >>. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
     val (>>.): Job<_> -> Job<'y> -> Job<'y>
@@ -1859,7 +1862,7 @@ module MVar =
   /// Reference implementation:
   ///
   ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
-  ///>   xM >>=? fun x -> x2xyJ x >>= fun (x, y) -> fill xM x >>% y
+  ///>   xM >>=? (x2xyJ >=> fun (x, y) -> fill xM x >>% y)
 #endif
   val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Alt<'y>
 
