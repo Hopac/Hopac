@@ -3,12 +3,20 @@ Programming in Hopac
 
 Hopac provides a programming model that is heavily inspired by
 [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s **Concurrent ML** language.
+Other languages that provide similar or related models include
+[Racket](http://docs.racket-lang.org/reference/concurrency.html), Clojure
+[core.async](https://github.com/clojure/core.async/), and
+[Go](https://golang.org/).  Racket's model is also inspired by CML.  Clojure's
+core.async and Go can be seen as providing a subset of the functionality
+provided by CML.  In particular, they lack the higher-order events and negative
+acknowledgments of CML.
+
 The book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
-is the most comprehensive introduction to Concurrent ML style programming.  This
-document contains some discussion and examples on Hopac programming techniques.
-In the future, this document might grow to a proper introduction to Hopac.
-Feedback is welcome!
+is the most comprehensive introduction to Concurrent ML style programming.  It
+is highly recommended background reading.  This document contains some
+discussion and examples on Hopac programming techniques.  In the future, this
+document might grow to a proper introduction to Hopac.  Feedback is welcome!
 
 The
 [Hopac.fsi](https://github.com/Hopac/Hopac/blob/master/Libs/Hopac/Hopac.fsi)
