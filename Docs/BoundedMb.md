@@ -109,7 +109,7 @@ module BoundedMb =
     let self = {putCh = ch (); takeCh = ch ()}
     let queue = Queue<_>()
     let put () = self.putCh |>>? queue.Enqueue
-    let take () = self.takeCh <-? queue.Peek () |>>? (queue.Dequeue >> ignore)
+    let take () = self.takeCh <-- queue.Peek () |>>? (queue.Dequeue >> ignore)
     let proc = Job.delay <| fun () ->
       match queue.Count with
        | 0 -> put ()
