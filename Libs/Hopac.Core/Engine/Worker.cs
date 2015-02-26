@@ -125,8 +125,15 @@ namespace Hopac.Core {
             goto EnterScheduler;
 
         WorkerLoop:
-          wr.WorkStack = work.Next;
           wr.Handler = work;
+          {
+            var next = work.Next;
+            if (null != next && null == sr.WorkStack) {
+              Scheduler.PushAll(sr, next);
+              next = null;
+            }
+            wr.WorkStack = next;
+          }
           work.DoWork(ref wr);
           work = wr.WorkStack;
           if (null != work)
