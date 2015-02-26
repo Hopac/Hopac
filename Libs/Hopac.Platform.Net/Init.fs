@@ -25,6 +25,7 @@ module Scheduler =
     for i = 0 to numWorkers - 1 do
       s.Events.[i] <- new WorkerEvent (i)
       let thread = new Thread ((fun () -> Worker.Run (s, i)), maxStackSize)
+      thread.Name <- sprintf "Hopac.Worker.%d/%d" i numWorkers
       threads.[i] <- thread
 //      thread.Priority <- priority;
       thread.IsBackground <- not foreground
