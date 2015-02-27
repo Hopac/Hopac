@@ -115,6 +115,8 @@ namespace Hopac.Core {
 
       var iK = new IdleCont();
 
+      var wdm = (1L << 32) / sr.Events.Length;
+
       wr.Event = sr.Events[me];
 
       while (null != sr) {
@@ -155,7 +157,7 @@ namespace Hopac.Core {
         SchedulerGotSome: {
             var last = work;
             int numWorkStack = sr.NumWorkStack - 1;
-            int n = sr.NumWorkStack >> 2;
+            int n = (int)((sr.NumWorkStack * wdm) >> 32);
             numWorkStack -= n;
             while (n > 0) {
               last = last.Next;
