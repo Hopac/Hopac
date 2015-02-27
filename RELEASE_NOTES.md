@@ -1,3 +1,27 @@
+﻿#### 0.0.0.42 - 27.02.2015
+* Distribute work more eagerly.
+* Name worker threads.
+* Added monadic composition operator `>=>` for jobs.
+* Updated documentation.
+* Tuning streams.
+* Tweaked Promisesc.
+* Starting to benchmark streams.
+* Avoid an allocation when choosing over lazy promises.
+* Added `Stream.ofObservableOnMain`.
+* Added `Async.getMain`.
+* Added `Stream.ofObservableOn` and `Stream.ofObservable`.
+* Added `IObservable<_>.onceAlt`.
+* Renamed `withNack` as `withNackJob` and `wrapAbort` as `wrapAbortJob`.
+* Added `Alt.wrapAbortFun`.
+* Added `Alt.choosy`, which is an optimized version of `Alt.choose` for arrays.
+* Added `Job.Scheduler.bind` for wrapping external asynchronous events.
+* Added `Alt.withNackFun`.
+* Inlineable `withNack` avoids closure allocation.
+* Added experimental support for running async comptations on the main synchronization context, which must be explicitly configured by application code.
+* Added `IObservable<'x>.onceAltOn` extension method for conveniently interfacing Hopac with suitable observables.
+* Added `TopLevel.startDelay` and `TopLevel.queueDelay` for convenience.
+* Renamed `Builder.Join` to `Builder.Plus` and recognized that `Zero´ must also be abstract.
+
 #### 0.0.0.41 - 11.02.2015
 * Make sure `StaticData` is initialized, fix for #52.
 * Don't capture context, fix for #53.
