@@ -1694,7 +1694,3 @@ Going Further
 For learning more about Concurrent ML style programming, I highly recommend
 [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).
-
-The wiki also has the page
-[Questions and Answers](https://github.com/Hopac/Hopac/wiki/Questions-and-Answers).
-Feel free to add questions there.
