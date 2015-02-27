@@ -66,9 +66,9 @@ open it up a bit.
   with user defined procedures to
   build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
   more
-  complex[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+  complex[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
   alternatives that encapsulate concurrent client-server protocols.
-* **Selective** means that a form of
+  * **Selective** means that a form of
   choice[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
   or disjunction between alternatives is supported.  An alternative can be
   constructed that, for example, offers to
@@ -579,8 +579,8 @@ let Delay (duration: ref<TimeSpan>)
           (finished: 'x -> Job<unit>)
           (aborted: 'y -> Job<unit>) : Job<unit> =
   start >>= fun x ->
-  Alt.choose [stop                             >>=? fun y -> aborted y
-              Timer.Global.timeOut (!duration) >>=? fun () -> finished x]
+  Alt.choose [stop                >>=? fun y -> aborted y
+              timeOut (!duration) >>=? fun () -> finished x]
 ```
 
 The `Delay` function creates a job that first binds the `start` alternative.  It
@@ -1142,8 +1142,8 @@ The operations `Alt.choose` and `>>=?`, also known as *wrap*, have the following
 signatures:
 
 ```fsharp
-val choose: seq<Alt<'x>> -> Alt<'x>
-val (>>=?): Alt<'x> -> ('x -> Job<'y>) -> Alt<'y>
+val choose: seq<#Alt<'x>> -> Alt<'x>
+val (>>=?): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
 ```
 
 The `Alt.choose`
@@ -1214,7 +1214,7 @@ the `guard`
 combinator that allows an alternative to be computed at instantiation time.
 
 ```fsharp
-val guard: Job<Alt<'x>> -> Alt<'x>
+val guard: Job<#Alt<'x>> -> Alt<'x>
 ```
 
 The idea of the `guard` combinator is that it allows one to encapsulate a
@@ -1226,8 +1226,7 @@ constructing the message, sending it to the server and then waiting for the
 reply in a form that can then be invoked an arbitrary number of times.
 
 Recall in the Kismet sketch it was mentioned that simulations like games often
-have their own notion of time and that the wall-clock time provided by
-`Timer.Global.timeOut`
+have their own notion of time and that the wall-clock time provided by `timeOut`
 [*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
 probably doesn't provide the desired semantics.  A simple game might be designed
 to update the simulation of the game world 60 times per second to match with a
@@ -1374,23 +1373,23 @@ idempotent.  If a client makes a request to the time server and later aborts the
 request, that is, doesn't wait for the server's reply, it causes no harm.
 Sometimes things are not that simple and a server needs to know whether client
 actually committed to a transaction.  Hopac, like CML, supports this via the
-`withNack`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+`withNackJob`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
 combinator:
 
 ```fsharp
-val withNack: (Alt<unit> -> Job<Alt<'x>>) -> Alt<'x>
+val withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 ```
 
-The `withNack` combinator is like `guard` in that it allows an alternative to be
-computed at instantiation time.  Additionally, `withNack` creates a *negative
-acknowledgment alternative* that it gives to the encapsulated alternative
-constructor.  If the constructed alternative is ultimately not committed to, the
-negative acknowledgment alternative becomes available.  Consider the following
-example:
+The `withNackJob` combinator is like `guard` in that it allows an alternative to
+be computed at instantiation time.  Additionally, `withNackJob` creates a
+*negative acknowledgment alternative*, which is actually represented as a
+promise, that it gives to the encapsulated alternative constructor.  If the
+constructed alternative is ultimately not committed to, the negative
+acknowledgment alternative becomes available.  Consider the following example:
 
 ```fsharp
-let verbose alt = Alt.withNack <| fun nack ->
+let verbose alt = Alt.withNackJob <| fun nack ->
   printf "Instantiated and "
   Job.start (nack |>> fun () -> printfn "aborted.") >>%
   (alt |>>? fun x -> printfn "committed to." ; x)
@@ -1433,9 +1432,9 @@ that otherwise couldn't be properly encapsulated as alternatives.
 
 #### Example: Lock Server
 
-An example that illustrates how `withNack`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
-can be used to encapsulate a non-idempotent request as an alternative is the
+An example that illustrates how `withNackJob`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob) can
+be used to encapsulate a non-idempotent request as an alternative is the
 implementation of a *lock server*.  Here is a signature of a lock server:
 
 ```fsharp
@@ -1465,7 +1464,7 @@ Or a client could use a timeout to avoid waiting indefinitely for a lock:
 
 ```fsharp
 Alt.choose [acquire server lock >>=? (* critical section *)
-            Timer.Global.timeOut duration >>=? (* do something else *)]
+            timeOut duration >>=? (* do something else *)]
 ```
 
 What is important here is that the `acquire` alternative must work correctly
@@ -1520,21 +1519,21 @@ code snippets of this example in an interactive session.  As this type safety
 issue is not an essential aspect of the example, we leave it as an exercise for
 the reader to consider how to plug this typing hole.
 
-The `acquire` operation is where we'll use `withNack`:
+The `acquire` operation is where we'll use `withNackJob`:
 
 ```fsharp
-let acquire s (Lock lock) = Alt.withNack <| fun abortAlt ->
+let acquire s (Lock lock) = Alt.withNackJob <| fun abortAlt ->
   let replyCh = Ch.Now.create ()
   Ch.send s.reqCh (Acquire (lock, replyCh, abortAlt)) >>%
   Ch.take replyCh
 ```
 
-Using `withNack` a negative acknowledgment alternative, `abortAlt`, is created
-and then a reply channel, `replyCh`, is allocated and a request is created and
-sent to the lock server `s`.  An asynchronous `send`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.send)
-operation is used as there is no point in waiting for the server at this point.
-Finally the alternative of taking the server's reply is returned.
+Using `withNackJob` a negative acknowledgment alternative, `abortAlt`, is
+created and then a reply channel, `replyCh`, is allocated and a request is
+created and sent to the lock server `s`.  An asynchronous `send`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.send) operation
+is used as there is no point in waiting for the server at this point.  Finally
+the alternative of taking the server's reply is returned.
 
 Note that a new pair of a negative acknowledgment alternative and reply channel
 is created each time an alternative constructed with `acquire` is instantiated.
@@ -1588,7 +1587,7 @@ taking requests from the server's request channel.  The crucial bits in the
 above implementation are the uses of `choose`.  In both cases, the server
 selects between giving the lock to the client and aborting the transaction using
 the reply channel and the abort alternative, which was implemented by the client
-using a negative acknowledgment alternative created by the `withNack`
+using a negative acknowledgment alternative created by the `withNackJob`
 combinator.
 
 You probably noticed the comment in the above server implementation in the case

@@ -125,9 +125,9 @@ client-server programming technique.  `put` and `take` requests use separate
 channels.  Depending on the state of the underlying queue, the server responds
 to either only `get`, only `take` or both kinds of requests.  In a simple case
 like this, cancellation is already taken care of by the synchronous nature of
-channels[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).
-In a more complex scenario, we would make use of the
-`withNack`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNack)
+channels[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).  In a
+more complex scenario, we would make use of the
+`withNackJob`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
 combinator.
 
 Here is a sample interactive session with `BoundedMb`:
