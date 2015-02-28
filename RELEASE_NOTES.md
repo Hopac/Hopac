@@ -1,4 +1,7 @@
-﻿#### 0.0.0.42 - 27.02.2015
+﻿#### 0.0.0.43 - 28.02.2015
+* Scale work sharing by the number of cores.
+
+#### 0.0.0.42 - 27.02.2015
 * Distribute work more eagerly.
 * Name worker threads.
 * Added monadic composition operator `>=>` for jobs.
