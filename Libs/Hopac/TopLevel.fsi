@@ -27,6 +27,7 @@ module TopLevel =
 
   /// Starts running the given job on the global scheduler and then blocks the
   /// current thread waiting for the job to either return successfully or fail.
+  /// See also: `start`.
 #if DOC
   ///
   /// WARNING: Use of `run` should be considered carefully, because calling
@@ -46,46 +47,60 @@ module TopLevel =
   /// needed, because within a workflow the result of a job can be obtained by
   /// binding.
   ///
-  /// This is the same function as `Job.Global.run`.  See also: `abort`.
+  /// This is the same function as `Job.Global.run`.
 #endif
   val inline run: Job<'x> -> 'x
 
   /// Starts running the given job on the global scheduler, but does not wait
-  /// for the job to finish.
+  /// for the job to finish.  See also: `queue`, `server`.
+#if DOC
   ///
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.start` instead.
   ///
   /// This is the same function as `Job.Global.start`.
+#endif
   val inline start: Job<unit> -> unit
 
-  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
+  /// Starts running the given job on the global scheduler, but does not wait
+  /// for the job to finish.  `startIgnore xJ` is equivalent to `Job.Ignore xJ
+  /// |> start`.
   val inline startIgnore: Job<_> -> unit
 
-  /// `startDelay u2xJ` is equivalent to `startIgnore <| Job.delay u2xJ`.
+  /// Starts running the given delayed job on the global scheduler, but does not
+  /// wait for the job to finish.  `startDelay u2xJ` is equivalent to
+  /// `startIgnore <| Job.delay u2xJ`.
   val inline startDelay: (unit -> #Job<_>) -> unit
 
-  /// Queues the given job for execution on the global scheduler.
+  /// Queues the given job for execution on the global scheduler.  See also:
+  /// `start`, `server`.
+#if DOC
   ///
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.queue` instead.
   ///
   /// This is the same function as `Job.Global.queue`.
+#endif
   val inline queue: Job<unit> -> unit
 
-  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  /// Queues the given job for execution on the global scheduler.  `queueIgnore
+  /// xJ` is equivalent to `Job.Ignore xJ |> queue`.
   val inline queueIgnore: Job<_> -> unit
 
+  /// Queues the given delayed job for execution on the global scheduler.
   /// `queueDelay u2xJ` is equivalent to `queueIgnore <| Job.delay u2xJ`.
   val inline queueDelay: (unit -> #Job<_>) -> unit
 
-  /// Like `start`, but the given job is known never to return normally, so the
-  /// job can be spawned in an even more lightweight manner.
+  /// Starts running the given job on the global scheduler like `start`, but the
+  /// given job is known never to return normally, so the job can be spawned in
+  /// an even more lightweight manner.
+#if DOC
   ///
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.server` instead.
   ///
   /// This is the same function as `Job.Global.server`.
+#endif
   val inline server: Job<Void> -> unit
 
   /// Use object as alternative.  This function is a NOP and is provided as a
