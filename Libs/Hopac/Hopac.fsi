@@ -665,6 +665,9 @@ module Job =
 #endif
   val inline tryWith: Job<'x> -> (exn -> #Job<'x>) -> Job<'x>
 
+  /// Implements the try-with exception handling construct for jobs.
+  val inline tryWithDelay: (unit -> #Job<'x>) -> (exn -> #Job<'x>) -> Job<'x>
+
   /// Implements a variation of the `try-finally` exception handling construct
   /// for jobs.  The given action, specified as a function, is executed after
   /// the job has been run, whether it fails or completes successfully.
@@ -675,6 +678,11 @@ module Job =
   ///> let tryFinallyFun xJ u2u = tryFinallyJob xJ (thunk u2u)
 #endif
   val tryFinallyFun: Job<'x> -> (unit -> unit) -> Job<'x>
+
+  /// Implements a variation of the `try-finally` exception handling construct
+  /// for jobs.  The given action, specified as a function, is executed after
+  /// the job has been run, whether it fails or completes successfully.
+  val tryFinallyFunDelay: (unit -> #Job<'x>) -> (unit -> unit) -> Job<'x>
 
   /// Implements a variation of the `try-finally` exception handling construct
   /// for jobs.  The given action, specified as a job, is executed after the job
@@ -692,6 +700,11 @@ module Job =
   ///>    <| fun e -> uJ >>! e
 #endif
   val tryFinallyJob: Job<'x> -> Job<unit> -> Job<'x>
+
+  /// Implements a variation of the `try-finally` exception handling construct
+  /// for jobs.  The given action, specified as a job, is executed after the job
+  /// has been run, whether it fails or completes successfully.
+  val tryFinallyJobDelay: (unit -> #Job<'x>) -> Job<unit> -> Job<'x>
 
   /// Implements the `use` construct for jobs.  The `Dispose` method of the
   /// given disposable object is called after running the job constructed with

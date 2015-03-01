@@ -985,8 +985,11 @@ module Job =
       override yJ'.DoExn (e) = upcast e2yJ e} :> Job<_>
 
   let inline tryWith (xJ: Job<'x>) (e2xJ: exn -> #Job<'x>) =
-    {new JobTryWith<'x> () with
-      override xJ'.DoExn (e) = upcast e2xJ e}.InternalInit(xJ)
+    JobTryWith<'x> (xJ, fun e -> upcast e2xJ e) :> Job<_>
+
+  let inline tryWithDelay (u2xJ: unit -> #Job<'x>) (e2xJ: exn -> #Job<'x>) =
+    {new JobTryWithDelay<'x> () with
+      override xJ'.Do () = upcast u2xJ ()}.Init(fun e -> upcast e2xJ e)
 
   let tryFinallyFun (xJ: Job<'x>) (u2u: unit -> unit) =
     {new Job<'x> () with
@@ -995,12 +998,26 @@ module Job =
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
 
+  let tryFinallyFunDelay (u2xJ: unit -> #Job<'x>) (u2u: unit -> unit) =
+    {new Job<'x> () with
+      override xJ'.DoJob (wr, xK_) =
+       let xK' = TryFinallyFunCont (u2u, xK_)
+       wr.Handler <- xK'
+       u2xJ().DoJob (&wr, xK')}
+
   let tryFinallyJob (xJ: Job<'x>) (uJ: Job<unit>) =
     {new Job<'x> () with
       override xJ'.DoJob (wr, xK_) =
        let xK' = TryFinallyJobCont (uJ, xK_)
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
+
+  let tryFinallyJobDelay (u2xJ: unit -> #Job<'x>) (uJ: Job<unit>) =
+    {new Job<'x> () with
+      override xJ'.DoJob (wr, xK_) =
+       let xK' = TryFinallyJobCont (uJ, xK_)
+       wr.Handler <- xK'
+       u2xJ().DoJob (&wr, xK')}
 
   let usingAsync (x: 'x when 'x :> IAsyncDisposable) (x2yJ: 'x -> #Job<'y>) =
     {new Job<'y> () with

@@ -238,44 +238,65 @@ namespace Hopac {
       }
     }
 
+    internal sealed class ContTryWith<X> : Cont<X> {
+      private FSharpFunc<Exception, Job<X>> e2xJ;
+      private Cont<X> xK;
+      internal ContTryWith(FSharpFunc<Exception, Job<X>> e2xJ, Cont<X> xK) {
+        this.e2xJ = e2xJ;
+        this.xK = xK;
+      }
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref xK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        var xK = this.xK;
+        wr.Handler = xK;
+        e2xJ.Invoke(e).DoJob(ref wr, xK);
+      }
+      internal override void DoWork(ref Worker wr) {
+        var xK = this.xK;
+        wr.Handler = xK;
+        xK.DoCont(ref wr, this.Value);
+      }
+      internal override void DoCont(ref Worker wr, X x) {
+        var xK = this.xK;
+        wr.Handler = xK;
+        xK.DoCont(ref wr, x);
+      }
+    }
+
     ///
-    public abstract class JobTryWith<X> : Job<X> {
+    public sealed class JobTryWith<X> : Job<X> {
       private Job<X> xJ;
+      private FSharpFunc<Exception, Job<X>> e2xJ;
       ///
       [MethodImpl(AggressiveInlining.Flag)]
-      public Job<X> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
-      ///
-      public abstract Job<X> DoExn(Exception e);
+      public JobTryWith(Job<X> xJ, FSharpFunc<Exception, Job<X>> e2xJ) {
+        this.xJ = xJ;
+        this.e2xJ = e2xJ;
+      }
       internal override void DoJob(ref Worker wr, Cont<X> xK_) {
-        var xK = new ContTryWith(this, xK_);
+        var xK = new ContTryWith<X>(e2xJ, xK_);
         wr.Handler = xK;
         xJ.DoJob(ref wr, xK);
       }
-      private sealed class ContTryWith : Cont<X> {
-        private JobTryWith<X> xJ;
-        private Cont<X> xK;
-        internal ContTryWith(JobTryWith<X> xJ, Cont<X> xK) {
-          this.xJ = xJ;
-          this.xK = xK;
-        }
-        internal override Proc GetProc(ref Worker wr) {
-          return Handler.GetProc(ref wr, ref xK);
-        }
-        internal override void DoHandle(ref Worker wr, Exception e) {
-          var xK = this.xK;
-          wr.Handler = xK;
-          xJ.DoExn(e).DoJob(ref wr, xK);
-        }
-        internal override void DoWork(ref Worker wr) {
-          var xK = this.xK;
-          wr.Handler = xK;
-          xK.DoCont(ref wr, this.Value);
-        }
-        internal override void DoCont(ref Worker wr, X x) {
-          var xK = this.xK;
-          wr.Handler = xK;
-          xK.DoCont(ref wr, x);
-        }
+    }
+
+    ///
+    public abstract class JobTryWithDelay<X> : Job<X> {
+      private FSharpFunc<Exception, Job<X>> e2xJ;
+      ///
+      public abstract Job<X> Do();
+      ///
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<X> Init(FSharpFunc<Exception, Job<X>> e2xJ) {
+        this.e2xJ = e2xJ;
+        return this;
+      }
+      internal override void DoJob(ref Worker wr, Cont<X> xK_) {
+        var xK = new ContTryWith<X>(e2xJ, xK_);
+        wr.Handler = xK;
+        Do().DoJob(ref wr, xK);
       }
     }
 
