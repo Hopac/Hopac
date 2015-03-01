@@ -307,13 +307,15 @@ module Proc =
   /// Creates a job that starts a new process.  See also: `queue`, `Job.start`.
   val inline start: Job<unit> -> Job<Proc>
 
-  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
+  /// Creates a job that starts a new process.  `startIgnore xJ` is equivalent
+  /// to `Job.Ignore xJ |> start`.
   val startIgnore: Job<_> -> Job<Proc>
 
   /// Creates a job that queues a new process.  See also: `start`, `Job.queue`.
   val inline queue: Job<unit> -> Job<Proc>
 
-  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  /// Creates a job that queues a new process.  `queueIgnore xJ` is equivalent
+  /// to `Job.Ignore xJ |> queue`.
   val queueIgnore: Job<_> -> Job<Proc>
 
   /// Returns a job that returns the current process.
@@ -365,43 +367,57 @@ type Job<'x>
 /// Operations on jobs.
 module Job =
   /// Operations on the global scheduler.
+#if DOC
   ///
   /// Note that in a typical program there should only be a few points (maybe
   /// just one) where jobs are started or run outside of job workflows.
+#endif
   module Global =
     /// Starts running the given job on the global scheduler, but does not wait
     /// for the job to finish.  Upon the failure or success of the job, one of
-    /// the given actions is called once.  See also: `abort`.
+    /// the given actions is called once.
+#if DOC
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should instead use `Job.start` with the desired exception handling
     /// construct (e.g. `Job.tryIn` or `Job.catch`).
+#endif
     val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
     /// Starts running the given job on the global scheduler, but does not wait
-    /// for the job to finish.
+    /// for the job to finish.  See also: `queue`, `server`.
+#if DOC
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.start` instead.
+#endif
     val inline start: Job<unit> -> unit
 
-    /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
+    /// Starts running the given job on the global scheduler, but does not wait
+    /// for the job to finish.  `startIgnore xJ` is equivalent to `Job.Ignore xJ
+    /// |> start`.
     val startIgnore: Job<_> -> unit
 
-    /// Queues the job for execution on the global scheduler.
+    /// Queues the job for execution on the global scheduler.  See also:
+    /// `start`, `server`.
+#if DOC
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.queue` instead.
+#endif
     val inline queue: Job<unit> -> unit
 
-    /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+    /// Queues the job for execution on the global scheduler.  `queueIgnore xJ`
+    /// is equivalent to `Job.Ignore xJ |> queue`.
     val queueIgnore: Job<_> -> unit
 
     /// Like `Job.Global.start`, but the given job is known never to return
     /// normally, so the job can be spawned in an even more lightweight manner.
+#if DOC
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.server` instead.
+#endif
     val server: Job<Void> -> unit
 
     /// Starts running the given job on the global scheduler and then blocks the
@@ -431,7 +447,9 @@ module Job =
   /// `Job.queue`, `Proc.start`.
   val inline start: Job<unit> -> Job<unit>
 
-  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
+  /// Creates a job that immediately starts running the given job as a separate
+  /// concurrent job.  `startIgnore xJ` is equivalent to `Job.Ignore xJ |>
+  /// start`.
   val startIgnore: Job<_> -> Job<unit>
 
   /// Creates a job that schedules the given job to be run as a separate
@@ -451,19 +469,22 @@ module Job =
 #endif
   val inline queue: Job<unit> -> Job<unit>
 
-  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  /// Creates a job that schedules the given job to be run as a separate
+  /// concurrent job.  `queueIgnore xJ` is equivalent to `Job.Ignore xJ |>
+  /// queue`.
   val queueIgnore: Job<_> -> Job<unit>
 
-  /// Like `Job.start`, but the given job is known never to return normally, so
-  /// the job can be spawned in an even more lightweight manner.
+  /// Creates a job that immediately starts running the given job as a separate
+  /// concurrent job like `start`, but the given job is known never to return
+  /// normally, so the job can be spawned in an even more lightweight manner.
   val server: Job<Void> -> Job<unit>
 
-  /// `Job.startWithFinalizer finalizerJ uJ` is like `Job.start uJ`, but
-  /// attaches a finalizer to the started job.  The finalizer job is started as
-  /// a separate job in case the started job does not return succesfully or
-  /// raise an exception and is garbage collected.  If the job either returns
-  /// normally or raises an exception, the finalizer job is not started.  See
-  /// also: `Proc`.
+  /// Creates a job that immediately starts running the given job as a separate
+  /// concurrent job like `start`, but also attaches a finalizer to the started
+  /// job.  The finalizer job is started as a separate job in case the started
+  /// job does not return succesfully or raise an exception and is garbage
+  /// collected.  If the job either returns normally or raises an exception, the
+  /// finalizer job is not started.  See also: `Proc`.
 #if DOC
   ///
   /// When a job in Hopac is aborted (see `abort`) or is, for example, blocked
@@ -477,8 +498,10 @@ module Job =
 #endif
   val inline startWithFinalizer: finalizer: Job<unit> -> Job<unit> -> Job<unit>
 
-  /// `startWithFinalizerIgnore finalizerJ xJ` is equivalent to `Job.Ignore xJ
-  /// |> startWithFinalizer finalizerJ`.
+  /// Creates a job that immediately starts running the given job as a separate
+  /// concurrent job like `start`, but also attaches a finalizer to the started
+  /// job.  `startWithFinalizerIgnore finalizerJ xJ` is equivalent to
+  /// `Job.Ignore xJ |> startWithFinalizer finalizerJ`.
   val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -511,7 +534,8 @@ module Job =
   /// job.  `thunk u2x` is equivalent to `result () |>> u2x`.
   val inline thunk: (unit -> 'x) -> Job<'x>
 
-  /// `Ignore xJ` is equivalent to `xJ |>> fun _ -> ()`.
+  /// Creates a job like the given job except that the result of the job will be
+  /// `()`.  `Ignore xJ` is equivalent to `xJ |>> ignore`.
   val Ignore: Job<_> -> Job<unit>
 
   /////////////////////////////////////////////////////////////////////////////
@@ -561,7 +585,9 @@ module Job =
     /// be run.  This is the same as `bind` with the arguments flipped.
     val inline (>>=): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
 
-    /// `(x2yJ >=> y2zJ) x` is equivalent to `x2yJ x >>= y2zJ`.
+    /// Creates a job that is the composition of the given two jobs.  `(x2yJ >=>
+    /// y2zJ) x` is equivalent to `x2yJ x >>= y2zJ` and is much like the `>>`
+    /// operator on ordinary functions.
     val inline (>=>): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Job<'z>
 
     /// Creates a job that runs the given two jobs and returns the result of the
@@ -624,8 +650,10 @@ module Job =
 #endif
   val inline tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
-  /// `tryInDelay u2xJ x2yJ e2yJ` is equivalent to `tryIn (delay u2xJ) x2yJ
-  /// e2yJ`.
+  /// Implements the `try-in-unless` exception handling construct for jobs.
+  /// Both of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
+  /// Job<'y>`, for failure, are invoked from a tail position.  `tryInDelay u2xJ
+  /// x2yJ e2yJ` is equivalent to `tryIn (delay u2xJ) x2yJ e2yJ`.
   val inline tryInDelay: (unit -> #Job<'x>) -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
@@ -651,10 +679,10 @@ module Job =
   /// Implements a variation of the `try-finally` exception handling construct
   /// for jobs.  The given action, specified as a job, is executed after the job
   /// has been run, whether it fails or completes successfully.
+#if DOC
   ///
   /// Note that the workflow notation of F# does not support this operation.  It
   /// only supports the weaker `tryFinallyFun` operation.
-#if DOC
   ///
   /// Reference implementation:
   ///
@@ -789,7 +817,9 @@ module Job =
 #endif
   val inline whileDo: (unit -> bool) -> Job<unit> -> Job<unit>
 
-  /// `whileDoIgnore u2b xJ` is equivalent to `Job.Ignore xJ |> whileDo u2b`.
+  /// `whileDoIgnore u2b xJ` creates a job that sequentially executes the `xJ`
+  /// job as long as `u2b ()` returns `true`.  `whileDoIgnore u2b xJ` is
+  /// equivalent to `Job.Ignore xJ |> whileDo u2b`.
   val whileDoIgnore: (unit -> bool) -> Job<_> -> Job<unit>
 
   /// `whenDo b uJ` is equivalent to `if b then uJ else Job.unit ()`.
