@@ -88,8 +88,8 @@ module Stream =
   /// the number of events within a given timeout period:
   ///
   ///> let eventsWithin timeout xs =
-  ///>   let inc = xs |> Stream.mapFun (fun _ -> +1)
-  ///>   let dec = xs |> Stream.mapFun (fun _ -> -1) |> Stream.shift timeout
+  ///>   let inc = xs |> Stream.mapConst +1
+  ///>   let dec = xs |> Stream.mapConst -1 |> Stream.shift timeout
   ///>   Stream.merge inc dec
   ///>   |> Stream.scanFromFun 0 (+)
   ///
