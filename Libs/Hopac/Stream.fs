@@ -87,29 +87,6 @@ module Stream =
     |> memo
   let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
 
-  type Subscribe<'x> (src: IVar<Cons<'x>>) =
-    let mutable src = src
-    interface IObserver<'x> with
-     override t.OnCompleted () = src <-= Nil |> start
-     override t.OnError (e) = src <-=! e |> start
-     override t.OnNext (x) =
-       let nxt = IVar<_> ()
-       src <-= Cons (x, nxt) |> start
-       src <- nxt
-
-  let subscribeDuring (xs2ys: Stream<'x> -> #Stream<'y>) (xs: IObservable<'x>) =
-    delay <| fun () ->
-    let src = IVar<_> ()
-    xs2ys src |> onCloseFun (xs.Subscribe (Subscribe (src))).Dispose
-
-  let subscribeOnFirst (xs: IObservable<'x>) = delay <| fun () ->
-    let src = IVar<_> () in xs.Subscribe (Subscribe (src)) |> ignore ; src
-
-  let subscribingTo (xs: IObservable<'x>) (xs2yJ: Stream<'x> -> #Job<'y>) =
-    Job.delay <| fun () ->
-    let src = IVar<_> ()
-    Job.using (xs.Subscribe (Subscribe (src))) <| fun _ -> xs2yJ src :> Job<_>
-
   let inline post (ctxt: SynchronizationContext) op =
     match ctxt with null -> op () | ctxt -> ctxt.Post ((fun _ -> op ()), null)
 

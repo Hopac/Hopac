@@ -284,52 +284,6 @@ module Stream =
 
   // Observable
 
-  /// Creates a stream that subscribes to the observable when the first element
-  /// of the stream is requested.  Conversely, if no elements are requested from
-  /// the returned stream, no subscribe action is performed.  There is no way to
-  /// explicitly unsubscribe.  To limit the subscription, you need to compose
-  /// the observable in such a way that it is closed at the point when it needs
-  /// to be unsubscribed.  See also: `subscribeDuring`.
-#if DOC
-  ///
-  /// Note that to subscribe immediately, you can start the evaluation of the
-  /// returned stream.  You can write, for example,
-  ///
-  ///> xObs
-  ///> |> subscribeOnFirst
-  ///> |>! startIgnore
-  ///> |> ...
-  ///
-  /// where `|>!` is the function
-  ///
-  ///> let (|>!) x f = f x ; x
-#endif
-  val subscribeOnFirst: IObservable<'x> -> Stream<'x>
-
-  /// Creates a stream, using the given function, that subscribes to the
-  /// observable when the first element of the stream is requested and
-  /// unsubscribes from the observable when the returned stream closes.  See
-  /// also: `subscribeOnFirst`.
-#if DOC
-  ///
-  /// For example,
-  ///
-  ///> xObs
-  ///> |> subscribeDuring (fun xs ->
-  ///>    xs
-  ///>    |> take 1)
-  ///> |> ...
-  ///
-  /// creates a stream that subscribes to the observable, takes (and produces)
-  /// at most one element from the observable, and then unsubscribes from the
-  /// observable and closes.
-#endif
-  val subscribeDuring: (Stream<'x> -> #Stream<'y>) -> IObservable<'x> -> Stream<'y>
-
-  /// Creates a stream that subscribes to the given observable for the duration
-  /// of the job constructed with the stream.
-  val subscribingTo: IObservable<'x> -> (Stream<'x> -> #Job<'y>) -> Job<'y>
-
   /// Subscribes to the given observable on the specified synchronization
   /// context and returns the events pushed by the observable as a stream.  A
   /// finalizer is used to automatically unsubscribe from the observable after
