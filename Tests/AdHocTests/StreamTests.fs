@@ -1,6 +1,6 @@
-﻿// Copyright (C) by Housemarque, Inc.
+﻿// Copyright (C) by Vesa Karvonen
 
-module AdHocTests
+module StreamTests
 
 open FsCheck
 open System
