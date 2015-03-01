@@ -112,6 +112,47 @@ namespace Hopac {
     }
 
     ///
+    public abstract class JobWhileDoDelay<X> : Job<Unit> {
+      ///
+      public abstract Job<X> Do();
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        var xJ = Do();
+        if (null != xJ)
+          xJ.DoJob(ref wr, new ContWhile(this, uK));
+        else
+          Work.Do(uK, ref wr);
+      }
+      private sealed class ContWhile : Cont<X> {
+        private JobWhileDoDelay<X> uJ;
+        private Cont<Unit> uK;
+        internal ContWhile(JobWhileDoDelay<X> uJ, Cont<Unit> uK) {
+          this.uJ = uJ;
+          this.uK = uK;
+        }
+        internal override Proc GetProc(ref Worker wr) {
+          return uK.GetProc(ref wr);
+        }
+        internal override void DoHandle(ref Worker wr, Exception e) {
+          uK.DoHandle(ref wr, e);
+        }
+        internal override void DoWork(ref Worker wr) {
+          var xJ = uJ.Do();
+          if (null != xJ)
+            xJ.DoJob(ref wr, this);
+          else
+            Work.Do(uK, ref wr);
+        }
+        internal override void DoCont(ref Worker wr, X value) {
+          var xJ = uJ.Do();
+          if (null != xJ)
+            xJ.DoJob(ref wr, this);
+          else
+            Work.Do(uK, ref wr);
+        }
+      }
+    }
+
+    ///
     public sealed class JobJoin<X, JX> : Job<X> where JX : Job<X> {
       private Job<JX> xJJ;
       ///

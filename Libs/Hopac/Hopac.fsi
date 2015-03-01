@@ -802,7 +802,7 @@ module Job =
   val inline forDownToIgnore: int -> int -> (int -> #Job<_>) -> Job<unit>
 
   /// `whileDo u2b uJ` creates a job that sequentially executes the `uJ` job as
-  /// long as `u2b ()` returns `true`.
+  /// long as `u2b ()` returns `true`.  See also: `whileDoDelay`.
 #if DOC
   ///
   /// Reference implementation:
@@ -817,10 +817,14 @@ module Job =
 #endif
   val inline whileDo: (unit -> bool) -> Job<unit> -> Job<unit>
 
+  /// `whileDoDelay u2b u2xJ` creates a job that sequentially constructs a job
+  /// with `u2xJ` and executes it as long as `u2b ()` returns `true`.
+  val inline whileDoDelay: (unit -> bool) -> (unit -> #Job<_>) -> Job<unit>
+
   /// `whileDoIgnore u2b xJ` creates a job that sequentially executes the `xJ`
   /// job as long as `u2b ()` returns `true`.  `whileDoIgnore u2b xJ` is
   /// equivalent to `Job.Ignore xJ |> whileDo u2b`.
-  val whileDoIgnore: (unit -> bool) -> Job<_> -> Job<unit>
+  val inline whileDoIgnore: (unit -> bool) -> Job<_> -> Job<unit>
 
   /// `whenDo b uJ` is equivalent to `if b then uJ else Job.unit ()`.
   val inline whenDo: bool -> Job<unit> -> Job<unit>
@@ -885,7 +889,7 @@ module Job =
   ///> let seqCollect (xJs: seq<Job<'x>>) = Job.delay <| fun () ->
   ///>   let xs = ResizeArray<_>()
   ///>   Job.using (xJs.GetEnumerator ()) <| fun xJs ->
-  ///>   Job.whileDo xJs.MoveNext (Job.delay <| fun () ->
+  ///>   Job.whileDoDelay xJs.MoveNext (fun () ->
   ///>     xJs.Current |>> xs.Add) >>%
   ///>   xs
 
@@ -900,7 +904,7 @@ module Job =
   ///
   ///> let seqIgnore (uJs: seq<#Job<unit>>) = Job.delay <| fun () ->
   ///>   Job.using (uJs.GetEnumerator ()) <| fun uJs ->
-  ///>   Job.whileDo uJs.MoveNext (Job.delay <| fun () ->
+  ///>   Job.whileDoDelay uJs.MoveNext (fun () ->
   ///>     uJs.Current)
 #endif
   val seqIgnore: seq<#Job<_>> -> Job<unit>
@@ -2110,7 +2114,7 @@ module Extensions =
     ///
     ///> let iterJob x2uJ (xs: seq<'x>) = Job.delay <| fun () ->
     ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
-    ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
+    ///>   Job.whileDoDelay xs.MoveNext (fun () ->
     ///>     x2uJ xs.Current)
 #endif
     val inline iterJob: ('x -> #Job<unit>) -> seq<'x> -> Job<unit>
@@ -2129,7 +2133,7 @@ module Extensions =
     ///> let mapJob x2yJ (xs: seq<'x>) = Job.delay <| fun () ->
     ///>   let ys = ResizeArray<_>()
     ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
-    ///>   Job.whileDo xs.MoveNext (Job.delay <| fun () ->
+    ///>   Job.whileDoDelay xs.MoveNext (fun () ->
     ///>     x2yJ xs.Current |>> ys.Add) >>%
     ///>   ys
 #endif

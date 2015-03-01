@@ -842,15 +842,12 @@ module Job =
         {new ContIterate<'x, 'y> () with
           override xK'.Do (x) = upcast x2xJ x}.InternalInit (x, yK) :> Work} :> Job<_>
 
-  let whileDoIgnore (cond: unit -> bool) (xJ: Job<_>) =
-    {new Job<unit> () with
-      override uJ'.DoJob (wr, uK) = {new Cont<_> () with
-       override xK'.GetProc (wr) = uK.GetProc (&wr)
-       override xK'.DoHandle (wr, e) = uK.DoHandle (&wr, e)
-       override xK'.DoCont (wr, _) =
-        if cond () then xJ.DoJob (&wr, xK') else uK.DoWork (&wr)
-       override xK'.DoWork (wr) =
-        if cond () then xJ.DoJob (&wr, xK') else uK.DoWork (&wr)}.DoWork (&wr)}
+  let inline whileDoDelay (cond: unit -> bool) (u2xJ: unit -> #Job<'x>) =
+    {new JobWhileDoDelay<'x> () with
+      override uJ'.Do () =
+        if cond () then upcast u2xJ () else null} :> Job<_>
+  let inline whileDoIgnore (cond: unit -> bool) (xJ: Job<_>) =
+    whileDoDelay cond (fun () -> xJ)
   let inline whileDo cond (uJ: Job<unit>) =
     whileDoIgnore cond uJ
 
