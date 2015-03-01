@@ -350,8 +350,13 @@ module Stream =
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
   /// Returns a stream that produces elements passed through the given function
-  /// whenever the given streams produces elements.
+  /// whenever the given streams produces elements.  `mapFun x2y` is equivalent
+  /// to `mapJob (Job.lift x2y)`.
   val mapFun: ('x -> 'y) -> Stream<'x> -> Stream<'y>
+
+  /// Returns a stream that produces the given element each time the given
+  /// stream produces an element.
+  val mapConst: 'y -> Stream<'x> -> Stream<'y>
 
   /// Splits the given stream into substreams based on the keys extracted from
   /// the elements by the given job.  See also: `groupByFun`.
