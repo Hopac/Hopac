@@ -2056,12 +2056,6 @@ type JobBuilder () =
   member inline job.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xJ >>= x2yJ
 
-  member inline job.Combine (uA: Async<unit>, xJ: Job<'x>) : Job<'x> =
-    Async.toJob uA >>. xJ
-  member inline job.Combine (uT: Task<unit>, xJ: Job<'x>) : Job<'x> =
-    Task.awaitJob uT >>. xJ
-  member inline job.Combine (uT: Task, xJ: Job<'x>) : Job<'x> =
-    Task.awaitJob uT >>. xJ
   member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>. xJ
 
   member inline job.Delay (u2xJ: unit -> Job<'x>) : Job<'x> = Job.delay u2xJ
@@ -2076,21 +2070,9 @@ type JobBuilder () =
   member inline job.ReturnFrom (uT: Task) : Job<unit> = Task.awaitJob uT
   member inline job.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
 
-  member inline job.TryFinally (xA: Async<'x>, u2u: unit -> unit) : Job<'x> =
-    Job.tryFinallyFun (Async.toJob xA) u2u
-  member inline job.TryFinally (xT: Task<'x>, u2u: unit -> unit) : Job<'x> =
-    Job.tryFinallyFun (Task.awaitJob xT) u2u
-  member inline job.TryFinally (uT: Task, u2u: unit -> unit) : Job<unit> =
-    Job.tryFinallyFun (Task.awaitJob uT) u2u
   member inline job.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =
     Job.tryFinallyFun xJ u2u
 
-  member inline job.TryWith (xA: Async<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
-    Job.tryWith (Async.toJob xA) e2xJ
-  member inline job.TryWith (xT: Task<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
-    Job.tryWith (Task.awaitJob xT) e2xJ
-  member inline job.TryWith (uT: Task, e2xJ: exn -> Job<unit>) : Job<unit> =
-    Job.tryWith (Task.awaitJob uT) e2xJ
   member inline job.TryWith (xJ: Job<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith xJ e2xJ
 

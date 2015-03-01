@@ -159,7 +159,7 @@ type IAsyncDisposable =
 ///
 ///> ... ; ...
 ///> do ...
-///> do! ...
+///> do! ... | async | task
 ///> for ... = ... to ... do ...
 ///> for ... in ... do ...
 ///> if ... then ...
@@ -169,16 +169,16 @@ type IAsyncDisposable =
 ///> match ... with ...
 ///> return ...
 ///> return! ... | async | task
-///> try ... | async | task finally ...
-///> try ... | async | task with ...
+///> try ... finally ...
+///> try ... with ...
 ///> use ... = ... in ...
-///> use! ... = ... | async | task in ...
+///> use! ... = ... in ...
 ///> while ... do ...
 ///
 /// In the above, an ellipsis denotes either a job, an ordinary expression or a
-/// pattern.  A job workflow can also directly bind async operations, which will
-/// be started on a Hopac worker thread (see `Async.toJob`), and tasks (see
-/// `Task.awaitJob`).
+/// pattern.  A job workflow can also directly bind and return from async
+/// operations, which will be started on a Hopac worker thread (see
+/// `Async.toJob`), and tasks (see `Task.awaitJob`).
 ///
 /// Note that the `Job` module provides more combinators for constructing jobs.
 /// For example, the F# workflow notation does not support `Job.tryFinallyJob`
@@ -195,10 +195,7 @@ type JobBuilder =
   member inline Bind:  Task     * (unit -> Job<'y>) -> Job<'y>
   member inline Bind:   Job<'x> * ('x   -> Job<'y>) -> Job<'y>
 
-  member inline Combine: Async<unit> * Job<'x> -> Job<'x>
-  member inline Combine:  Task<unit> * Job<'x> -> Job<'x>
-  member inline Combine:  Task       * Job<'x> -> Job<'x>
-  member inline Combine:   Job<unit> * Job<'x> -> Job<'x>
+  member inline Combine: Job<unit> * Job<'x> -> Job<'x>
 
   member inline Delay: (unit -> Job<'x>) -> Job<'x>
 
@@ -211,15 +208,9 @@ type JobBuilder =
   member inline ReturnFrom:  Task     -> Job<unit>
   member inline ReturnFrom:   Job<'x> -> Job<'x>
 
-  member inline TryFinally: Async<'x> * (unit -> unit) -> Job<'x>
-  member inline TryFinally:  Task<'x> * (unit -> unit) -> Job<'x>
-  member inline TryFinally:  Task     * (unit -> unit) -> Job<unit>
-  member inline TryFinally:   Job<'x> * (unit -> unit) -> Job<'x>
+  member inline TryFinally: Job<'x> * (unit -> unit) -> Job<'x>
 
-  member inline TryWith: Async<'x> * (exn -> Job<'x>  ) -> Job<'x>
-  member inline TryWith:  Task<'x> * (exn -> Job<'x>  ) -> Job<'x>
-  member inline TryWith:  Task     * (exn -> Job<unit>) -> Job<unit>
-  member inline TryWith:   Job<'x> * (exn -> Job<'x>  ) -> Job<'x>
+  member inline TryWith: Job<'x> * (exn -> Job<'x>  ) -> Job<'x>
 
   member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
 
