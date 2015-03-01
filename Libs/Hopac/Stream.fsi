@@ -297,7 +297,7 @@ module Stream =
   /// using `setMain`.
   val ofObservableOnMain: IObservable<'x> -> Stream<'x>
 
-  /// `ofObservable xO` is equivalent to `ofObservable null xO`.  Note that it
+  /// `ofObservable xO` is equivalent to `ofObservableOn null xO`.  Note that it
   /// is often necessary to specify the synchronization context to subscribe on.
   /// See also: `Observable.SubscribeOn`.
   val ofObservable: IObservable<'x> -> Stream<'x>
