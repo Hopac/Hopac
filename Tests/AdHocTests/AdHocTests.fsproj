@@ -66,6 +66,7 @@
   </Target>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="BuilderTests.fs" />
     <Compile Include="StreamTests.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
