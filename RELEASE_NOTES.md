@@ -1,4 +1,13 @@
-﻿#### 0.0.0.43 - 28.02.2015
+﻿#### 0.0.0.44 - 02.03.2015
+* Fixed to properly remove waiter in case it timed out rather than was signalled.
+* Signal when top timed changes to improve timer accuracy.
+* Add a test of the job computation builder.
+* Remove redundant builder methods.
+* Added `Job.tryFinallyFunDelay`, `Job.tryFinallyJobDelay`, `Job.tryWithDelay` and `Job.whileDoDelay`.
+* Added `Stream.mapConst`.
+* Removed `Stream.subscribeOnFirst`, `Stream.subscribeDuring` and `Stream.subscribingTo`, because `Stream.ofObservable` easily covers all of those use cases. 
+
+#### 0.0.0.43 - 28.02.2015
 * Scale work sharing by the number of cores.
 
 #### 0.0.0.42 - 27.02.2015
