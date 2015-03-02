@@ -2035,6 +2035,8 @@ open Extensions
 open Job.Infixes
 
 type JobBuilder () =
+  member inline job.Bind (xO: IObservable<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+    xO.onceAlt >>= x2yJ
   member inline job.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Async.toJob xA >>= x2yJ
   member inline job.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
@@ -2043,34 +2045,25 @@ type JobBuilder () =
     Task.bindJob (uT, u2xJ)
   member inline job.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xJ >>= x2yJ
-
   member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>. xJ
-
   member inline job.Delay (u2xJ: unit -> Job<'x>) : Job<'x> = Job.delay u2xJ
-
   member inline job.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
     Seq.iterJob x2uJ xs
-
   member inline job.Return (x: 'x) : Job<'x> = Job.result x
-
+  member inline job.ReturnFrom (xO: IObservable<'x>) = xO.onceAlt :> Job<_>
   member inline job.ReturnFrom (xA: Async<'x>) : Job<'x> = Async.toJob xA
   member inline job.ReturnFrom (xT: Task<'x>) : Job<'x> = Task.awaitJob xT
   member inline job.ReturnFrom (uT: Task) : Job<unit> = Task.awaitJob uT
   member inline job.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
-
   member inline job.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =
     Job.tryFinallyFun xJ u2u
-
   member inline job.TryWith (xJ: Job<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
     Job.tryWith xJ e2xJ
-
   member inline job.Using (x: 'x, x2yJ: 'x -> Job<'y>) : Job<'y>
       when 'x :> IDisposable =
     Job.using x x2yJ
-
   member inline job.While (u2b: unit -> bool, uJ: Job<unit>) : Job<unit> =
     Job.whileDo u2b uJ
-
   member inline job.Zero () : Job<unit> = Job.unit ()
 
 type EmbeddedJob<'x> = struct

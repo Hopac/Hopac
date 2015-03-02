@@ -159,13 +159,13 @@ type IAsyncDisposable =
 ///
 ///> ... ; ...
 ///> do ...
-///> do! ... | async | task
+///> do! ... | async | task | obs
 ///> for ... = ... to ... do ...
 ///> for ... in ... do ...
 ///> if ... then ...
 ///> if ... then ... else ...
 ///> let ... = ... in ...
-///> let! ... = ... | async | task in ...
+///> let! ... = ... | async | task | obs in ...
 ///> match ... with ...
 ///> return ...
 ///> return! ... | async | task
@@ -178,7 +178,8 @@ type IAsyncDisposable =
 /// In the above, an ellipsis denotes either a job, an ordinary expression or a
 /// pattern.  A job workflow can also directly bind and return from async
 /// operations, which will be started on a Hopac worker thread (see
-/// `Async.toJob`), and tasks (see `Task.awaitJob`).
+/// `Async.toJob`), tasks (see `Task.awaitJob`) and observables (see
+/// `IObservable<'x>.onceAlt`).
 ///
 /// Note that the `Job` module provides more combinators for constructing jobs.
 /// For example, the F# workflow notation does not support `Job.tryFinallyJob`
@@ -190,10 +191,11 @@ type IAsyncDisposable =
 type JobBuilder =
   new: unit -> JobBuilder
 
-  member inline Bind: Async<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:  Task<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:  Task     * (unit -> Job<'y>) -> Job<'y>
-  member inline Bind:   Job<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind: IObservable<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:       Async<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:        Task<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
+  member inline Bind:         Job<'x> * ('x   -> Job<'y>) -> Job<'y>
 
   member inline Combine: Job<unit> * Job<'x> -> Job<'x>
 
@@ -203,14 +205,15 @@ type JobBuilder =
 
   member inline Return: 'x -> Job<'x>
 
-  member inline ReturnFrom: Async<'x> -> Job<'x>
-  member inline ReturnFrom:  Task<'x> -> Job<'x>
-  member inline ReturnFrom:  Task     -> Job<unit>
-  member inline ReturnFrom:   Job<'x> -> Job<'x>
+  member inline ReturnFrom: IObservable<'x> -> Job<'x>
+  member inline ReturnFrom:       Async<'x> -> Job<'x>
+  member inline ReturnFrom:        Task<'x> -> Job<'x>
+  member inline ReturnFrom:        Task     -> Job<unit>
+  member inline ReturnFrom:         Job<'x> -> Job<'x>
 
   member inline TryFinally: Job<'x> * (unit -> unit) -> Job<'x>
 
-  member inline TryWith: Job<'x> * (exn -> Job<'x>  ) -> Job<'x>
+  member inline TryWith: Job<'x> * (exn -> Job<'x>) -> Job<'x>
 
   member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
 
