@@ -93,7 +93,22 @@ namespace Hopac {
       UnsafeDec(sr);
       Exit(sr);
       ev.Wait(ms);
-      ev.Reset();
+      Enter(sr);
+      if (ev.IsSet) {
+        ev.Reset();
+      } else {
+        int i = sr.WaiterStack;
+        int me = ev.Me;
+        if (i == me) {
+          sr.WaiterStack = ev.Next;
+        } else {
+          WorkerEvent p = sr.Events[i];
+          while (p.Next != me) {
+            p = sr.Events[p.Next];
+          }
+          p.Next = ev.Next;
+        }
+      }
     }
 
     [MethodImpl(AggressiveInlining.Flag)]

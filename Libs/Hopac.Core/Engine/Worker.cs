@@ -149,16 +149,17 @@ namespace Hopac.Core {
             goto TryIdle;
 
           Scheduler.Enter(sr);
-
+        EnteredScheduler:
           work = sr.WorkStack;
           if (null == work)
             goto ExitAndTryIdle;
 
         SchedulerGotSome: {
             var last = work;
-            int numWorkStack = sr.NumWorkStack - 1;
-            int n = (int)((sr.NumWorkStack * wdm) >> 32);
-            numWorkStack -= n;
+            int numWorkStack = sr.NumWorkStack;
+            int n = (int)((numWorkStack - 1L) * wdm >> 32) + 1;
+            sr.NumWorkStack = numWorkStack-n;
+            n -= 1;
             while (n > 0) {
               last = last.Next;
               n -= 1;
@@ -168,7 +169,6 @@ namespace Hopac.Core {
             sr.WorkStack = next;
             if (null != next)
               Scheduler.UnsafeSignal(sr);
-            sr.NumWorkStack = numWorkStack;
             Scheduler.Exit(sr);
             goto WorkerLoop;
           }
@@ -194,7 +194,7 @@ namespace Hopac.Core {
             goto SchedulerGotSome;
 
           Scheduler.UnsafeWait(sr, iK.Value, wr.Event);
-          goto EnterScheduler;
+          goto EnteredScheduler;
         } catch (KillException) {
           Scheduler.Kill(sr);
           Scheduler.Dec(sr);
