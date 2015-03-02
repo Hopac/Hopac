@@ -79,7 +79,10 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     private void DropTimed() {
       var top = TopTimed;
-      TopTimed = Merge(top.Next as WorkTimed, top.Right);
+      var n = Merge(top.Next as WorkTimed, top.Right);
+      TopTimed = n;
+      if (null != n)
+        Scheduler.Signal(this.Scheduler);
     }
 
     private static WorkTimed Merge(WorkTimed x, WorkTimed y) {
