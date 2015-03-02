@@ -1898,10 +1898,6 @@ module Extensions =
       member inline this.Bind (xA: Async<'x>, x2yA: 'x -> Async<'y>) =
         async.Bind (xA, x2yA)
 
-      member inline this.Combine (uT: Task<unit>, xA: Async<'x>) =
-        async.Combine (Async.AwaitTask uT, xA)
-      member inline this.Combine (uJ: Job<unit>, xA: Async<'x>) =
-        async.Combine (ofJobOn this.Scheduler uJ, xA)
       member inline this.Combine (uA: Async<unit>, xA: Async<'x>) =
         async.Combine (uA, xA)
 
@@ -1919,17 +1915,9 @@ module Extensions =
         async.ReturnFrom (ofJobOn this.Scheduler xJ)
       member inline this.ReturnFrom (xA: Async<'x>) = async.ReturnFrom xA
 
-      member inline this.TryFinally (xT: Task<'x>, u2u: unit -> unit) =
-        async.TryFinally (Async.AwaitTask xT, u2u)
-      member inline this.TryFinally (xJ: Job<'x>, u2u: unit -> unit) =
-        async.TryFinally (ofJobOn this.Scheduler xJ, u2u)
       member inline this.TryFinally (xA: Async<'x>, u2u: unit -> unit) =
         async.TryFinally (xA, u2u)
 
-      member inline this.TryWith (xT: Task<'x>, e2xA: exn -> Async<'x>) =
-        async.TryWith (Async.AwaitTask xT, e2xA)
-      member inline this.TryWith (xJ: Job<'x>, e2xA: exn -> Async<'x>) =
-        async.TryWith (ofJobOn this.Scheduler xJ, e2xA)
       member inline this.TryWith (xA: Async<'x>, e2xA: exn -> Async<'x>) =
         async.TryWith (xA, e2xA)
 

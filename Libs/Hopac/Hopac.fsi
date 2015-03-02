@@ -2252,8 +2252,6 @@ module Extensions =
       member inline Bind:   Job<'x> * ('x -> Async<'y>) -> Async<'y>
       member inline Bind: Async<'x> * ('x -> Async<'y>) -> Async<'y>
 
-      member inline Combine:  Task<unit> * Async<'x> -> Async<'x>
-      member inline Combine:   Job<unit> * Async<'x> -> Async<'x>
       member inline Combine: Async<unit> * Async<'x> -> Async<'x>
 
       member inline Delay: (unit -> Async<'x>) -> Async<'x>
@@ -2266,12 +2264,8 @@ module Extensions =
       member inline ReturnFrom:   Job<'x> -> Async<'x>
       member inline ReturnFrom: Async<'x> -> Async<'x>
 
-      member inline TryFinally:  Task<'x> * (unit -> unit) -> Async<'x>
-      member inline TryFinally:   Job<'x> * (unit -> unit) -> Async<'x>
       member inline TryFinally: Async<'x> * (unit -> unit) -> Async<'x>
 
-      member inline TryWith:  Task<'x> * (exn -> Async<'x>) -> Async<'x>
-      member inline TryWith:   Job<'x> * (exn -> Async<'x>) -> Async<'x>
       member inline TryWith: Async<'x> * (exn -> Async<'x>) -> Async<'x>
 
       member inline Using: 'x * ('x -> Async<'y>) -> Async<'y> when 'x :> IDisposable
