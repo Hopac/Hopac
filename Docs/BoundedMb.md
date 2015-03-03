@@ -171,10 +171,12 @@ module BoundedMb =
   let create capacity = Job.delay <| fun () ->
     let self = {putCh = ch (); takeCh = ch ()}
     let queue = Queue<_>()
-    let put () = Alt.map queue.Enqueue (Ch.take self.putCh)
+    let put () =
+      Ch.take self.putCh
+      |> Alt.map queue.Enqueue
     let take () =
-      Alt.map (queue.Dequeue >> ignore)
-       (Ch.give self.takeCh (queue.Peek ()))
+      Ch.give self.takeCh (queue.Peek ())
+      |> Alt.map (queue.Dequeue >> ignore)
     let proc = Job.delay <| fun () ->
       match queue.Count with
        | 0 -> put ()
@@ -182,7 +184,6 @@ module BoundedMb =
        | _ -> Alt.choose [take (); put ()] // <|>? is a bit faster
     Job.foreverServer proc >>= fun () ->
     Job.result self
-  module Alt =
-    let put xB x = Ch.give xB.putCh x
-    let take xB = Ch.take xB.takeCh
+  let put xB x = Ch.give xB.putCh x
+  let take xB = Ch.take xB.takeCh
 ```
