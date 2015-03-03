@@ -1739,6 +1739,15 @@ module IVar =
 #if DOC
 /// Represents a dynamic latch.
 ///
+/// Latches are used for determining when a finite set of parallel jobs is done.
+/// If the size of the set is known a priori, then the latch can be initialized
+/// with the size as initial count and then each job just decrements the latch.
+///
+/// If the size is unknown (dynamic), then a latch is initialized with a count
+/// of one, the a priori known jobs are queued to the latch and then the latch
+/// is decremented.  A queue operation increments the count immediately and
+/// decrements the count after the job is finished.
+///
 /// Both a first-order interface, with `create`, `increment` and `decrement`
 /// operations, and a higher-order interface, with `within`, `holding`, `queue`
 /// and `queueAsAlt` operations, are provided for programming with latches.
