@@ -9,6 +9,42 @@ open System
 open System.Diagnostics
 open System.Threading.Tasks
 
+let doJobAsyncBinds n =
+    let timer = Stopwatch.StartNew ()
+    printf "Job binds: "
+    async {
+      do! Async.SwitchToThreadPool ()
+      for i=1 to n do
+        do ignore i
+        do! Async.Global.ofJob (job { return () })
+    }
+    |> Async.RunSynchronously
+    let d = timer.Elapsed
+    printfn "%d hops in %A" n d
+
+do for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doJobAsyncBinds n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
+let doAsyncJobBinds n =
+    let timer = Stopwatch.StartNew ()
+    printf "Async binds: "
+    job {
+      do! Job.Scheduler.switchToWorker ()
+      for i=1 to n do
+        do ignore i
+        do! async { return () }
+    }
+    |> run
+    let d = timer.Elapsed
+    printfn "%d hops in %A" n d
+
+do for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doAsyncJobBinds n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
 let runHopacTCS numOps n =
   printf "HopacTCS: "
   let timer = Stopwatch.StartNew ()
