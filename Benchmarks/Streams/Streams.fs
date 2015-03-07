@@ -14,12 +14,148 @@ open Hopac.Promise.Infixes
 open Hopac.Infixes
 
 module Stream =
+  open Stream
+
   let get xs =
-    xs |>> function Stream.Cons (x, _) -> x | _ -> failwith "Nil"
-  
+    xs |>> function Cons (x, _) -> x | _ -> failwith "Nil"
+
   let fix (xs2xs: Stream<'x> -> Stream<'x>) : Stream<'x> =
     let xs = ivar ()
     Job.delay (fun () -> xs2xs xs) >>=* fun xs' -> xs <-= xs' >>. xs
+
+  let ints n =
+    generateFun 0
+     <| fun i -> i < n
+     <| fun i -> i + 1
+     <| fun i -> i
+
+module Obs =
+  let ints n = Observable.Generate(0, (fun i -> i < n), (fun i -> i + 1), (fun i -> i))
+
+module BasicBench =
+
+  let bench name max f =
+    try
+      for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
+        if n <= max then
+          printf "%s: " name
+          GC.Collect () ; Thread.Sleep 100
+          let start = Stopwatch.StartNew ()
+          f n
+          let elapsed = start.Elapsed
+          GC.Collect () ; Thread.Sleep 100
+          printfn "%8d in %As is %11.2f ops/s" n elapsed (float n / elapsed.TotalSeconds)
+    with e ->
+      printfn "Failed with: %A" e
+
+  do
+
+     bench "shift" 1000000 <| fun n ->
+       Stream.ints n
+       |> Stream.shift (Job.unit ())
+       |> Stream.shift (Job.unit ())
+       |> Stream.shift (Job.unit ())
+       |> Stream.iter |> run
+
+     bench "delayEach" 10000000 <| fun n ->
+       Stream.ints n
+       |> Stream.delayEach (Job.unit ())
+       |> Stream.delayEach (Job.unit ())
+       |> Stream.delayEach (Job.unit ())
+       |> Stream.iter |> run
+
+     bench "afterEach" 10000000 <| fun n ->
+       Stream.ints n
+       |> Stream.afterEach (Job.unit ())
+       |> Stream.afterEach (Job.unit ())
+       |> Stream.afterEach (Job.unit ())
+       |> Stream.iter |> run
+
+     bench "distinctUntilChanged" 10000000 <| fun n ->
+       Stream.ints n
+       |> Stream.distinctUntilChanged
+       |> Stream.distinctUntilChanged
+       |> Stream.distinctUntilChanged
+       |> Stream.iter |> run
+
+     bench "take" 10000000 <| fun n ->
+       Stream.ints n
+       |> Stream.take (int64 n)
+       |> Stream.take (int64 n)
+       |> Stream.take (int64 n)
+       |> Stream.iter |> run
+
+     bench "Observable.Take" 10000000 <| fun n ->
+       Obs.ints(n).Take(n).Take(n).Take(n).Subscribe() |> ignore
+
+     bench "zip" 10000000 <| fun n ->
+       Stream.zip
+        <| Stream.ints n
+        <| Stream.ints n
+       |> Stream.iter |> run
+
+     bench "combineLatest" 10000000 <| fun n ->
+       Stream.combineLatest
+        <| Stream.ints n
+        <| Stream.ints n
+       |> Stream.iter |> run
+
+     bench "scanFromFun" 10000000 <| fun n ->
+       Stream.ints n
+       |> Stream.scanFromFun 0 (fun x y -> x + y)
+       |> Stream.scanFromFun 0 (fun x y -> x - y)
+       |> Stream.iter |> run
+
+     bench "appendMap" 1000000 <| fun n ->
+       let one = Stream.one 1
+       Stream.ints n
+       |> Stream.appendMap (fun _ -> one)
+       |> Stream.appendMap (fun _ -> one)
+       |> Stream.iter |> run
+
+     bench "filterFun" 10000000 <| fun n ->
+       Stream.ints n
+       |> Stream.filterFun (fun i -> (i &&& 1) = 0)
+       |> Stream.filterFun (fun i -> (i &&& 2) = 0)
+       |> Stream.filterFun (fun i -> (i &&& 4) = 0)
+       |> Stream.filterFun (fun i -> (i &&& 8) = 0)
+       |> Stream.iter |> run
+     bench "Observable.Where" 1000000 <| fun n ->
+       Obs.ints(n)
+        .Where(fun i -> (i &&& 1) = 0)
+        .Where(fun i -> (i &&& 2) = 0)
+        .Where(fun i -> (i &&& 4) = 0)
+        .Where(fun i -> (i &&& 8) = 0)
+        .Subscribe() |> ignore
+
+     bench "chooseFun" 1000000 <| fun n ->
+       Stream.ints n
+       |> Stream.chooseFun (fun i -> if (i &&& 1) = 0 then Some (i+1) else None)
+       |> Stream.chooseFun (fun i -> if (i &&& 2) = 0 then Some (i+2) else None)
+       |> Stream.chooseFun (fun i -> if (i &&& 4) = 0 then Some (i+4) else None)
+       |> Stream.iter |> run
+
+     bench "merge" 1000000 <| fun n ->
+       Stream.merge
+        <| Stream.ints n
+        <| Stream.ints n
+       |> Stream.iter |> run
+
+     bench "mapFun" 1000000 <| fun n ->
+       Stream.ints n
+       |> Stream.mapFun (fun n -> n + 1)
+       |> Stream.mapFun (fun n -> n - 1)
+       |> Stream.iter |> run
+     bench "Observable.Select" 1000000 <| fun n ->
+       Obs.ints(n)
+        .Select(fun n -> n + 1)
+        .Select(fun n -> n - 1)
+        .Subscribe() |> ignore
+
+     bench "generateFun" 10000000 <| fun n ->
+       Stream.ints n |> Stream.iter |> run
+     bench "Observable.Generate" 10000000 <| fun n ->
+       Obs.ints(n).Subscribe() |> ignore
 
 module Streams =
   let split xss =
