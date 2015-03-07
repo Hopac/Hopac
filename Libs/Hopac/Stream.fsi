@@ -38,9 +38,9 @@ module Stream =
   /// The implementation of choice streams is two orders of magnitude shorter
   /// than the implementation of .Net Rx.
   ///
-  /// - Choice streams are designed to be consistent in that they generate the
-  /// same sequence of values for every consumer.  There are no hot and cold
-  /// observables like with observable sequences.  Many trivial choice stream
+  /// - Choice streams are consistent in that every consumer of a stream gets
+  /// the exact same sequence of values.  There is no need for `Connect` and
+  /// `Publish` like with observable sequences.  Many trivial choice stream
   /// combinators, such as `tails`, can be very challenging, if not impossible,
   /// to specify and implement meaningfully for observable sequences.
   ///
