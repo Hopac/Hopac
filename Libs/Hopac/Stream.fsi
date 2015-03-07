@@ -261,6 +261,19 @@ module Stream =
   /// function.
   val unfoldFun: ('s -> option<'x * 's>) -> 's -> Stream<'x>
 
+  /// Generator functions for `generateFuns`.
+  type [<AbstractClass>] GenerateFuns<'s, 'x> =
+    new: unit -> GenerateFuns<'s, 'x>
+    abstract While: 's -> bool
+    abstract Next: 's -> 's
+    abstract Select: 's -> 'x
+
+  /// Generates a stream from the given state using the given function object.
+  val generateFuns: 's -> GenerateFuns<'s, 'x> -> Stream<'x>
+
+  /// Generates a stream.
+  val inline generateFun: 's -> ('s -> bool) -> ('s -> 's) -> ('s -> 'x) -> Stream<'x>
+
   /// Returns an infinite stream of repeated applications of the given job to
   /// the given initial value.
 #if DOC
@@ -411,11 +424,11 @@ module Stream =
 
   /// `scanFromJob s sx2sJ xs` is equivalent to `scanJob sx2sJ s xs` and is
   /// often syntactically more convenient to use.
-  val scanFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Stream<'x> -> Stream<'s>
+  val inline scanFromJob: 's -> ('s -> 'x -> #Job<'s>) -> Stream<'x> -> Stream<'s>
 
   /// `scanFromFun s sx2sJ xs` is equivalent to `scanFun sx2sJ s xs` and is
   /// often syntactically more convenient to use.
-  val scanFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Stream<'s>
+  val inline scanFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Stream<'s>
 
   /// Returns a stream that contains no duplicate entries based on the keys
   /// returned by the given job.
