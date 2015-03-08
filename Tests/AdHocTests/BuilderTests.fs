@@ -8,10 +8,14 @@ open System.Threading.Tasks
 
 // This is a compile only test.
 let testSyntax (xT: Task<IDisposable>)
+               (xE: IEvent<int>)
+               (xO: IObservable<float>)
                (t: Task)
                (xA: Async<int>)
                (xs: seq<float>)
                (uJ: Job<unit>) = job {
+  let! _ = xE
+  let! _ = xO
   let! _ = xT
   let! _ = xA
   do! t
