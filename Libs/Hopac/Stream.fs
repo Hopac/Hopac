@@ -205,32 +205,33 @@ module Stream =
   let rec mapConst y xs =
     xs |>>* function Cons (_, xs) -> Cons (y, mapConst y xs) | Nil -> Nil
 
-  let amb (ls: Stream<_>) (rs: Stream<_>) = ls <|>* rs
+  let amb' (ls: Stream<_>) (rs: Stream<_>) = ls <|>? rs
+  let amb ls rs = amb' ls rs |> memo
 
   let rec mergeSwap ls rs =
     ls >>=? function Cons (l, ls) -> consj l (merge rs ls) | Nil -> upcast rs
-  and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
+  and merge' ls rs = mergeSwap ls rs <|>? mergeSwap rs ls
+  and merge ls rs = merge' ls rs |> memo
 
-  let rec append ls (rs: Stream<_>) =
-    ls >>=* function Cons (l, ls) -> consj l (append ls rs) | Nil -> upcast rs
+  let rec append' ls (rs: Stream<_>) =
+    ls >>= function Cons (l, ls) -> consj l (append ls rs) | Nil -> upcast rs
+  and append ls rs = append' ls rs |> memo
 
-  let rec switch (ls: Stream<_>) (rs: Stream<_>) =
-    rs <|>* mapnc rs (fun l ls -> consj l (switch ls rs)) ls
+  let rec switch' (ls: Stream<_>) (rs: Stream<_>) =
+    rs <|>? (ls >>=? function Cons (l, ls) -> consj l (switch ls rs)
+                            | Nil -> upcast rs)
+  and switch ls rs = switch' ls rs |> memo
 
-  let rec joinWith (join: Stream<'x> -> Stream<'y> -> #Stream<'y>)
-                   (xxs: Stream<#Stream<'x>>) =
-    xxs >>=* function Cons (xs, xxs) -> join xs (joinWith join xxs) :> Job<_>
-                    | Nil -> nilj
-
-  let rec mapJoin (join: Stream<'y> -> Stream<'z> -> #Stream<'z>)
-                  (x2ys: 'x -> #Stream<'y>) (xs: Stream<'x>) : Stream<'z> =
-    xs >>=* function Cons (x, xs) -> join (x2ys x) (mapJoin join x2ys xs) :> Job<_>
+  let rec joinWith join xs =
+    xs >>=* function Cons (x, xs) -> join x (joinWith join xs) :> Job<_>
                    | Nil -> nilj
 
-  let ambMap x2ys xs = mapJoin amb x2ys xs
-  let mergeMap x2ys xs = mapJoin merge x2ys xs
-  let appendMap x2ys xs = mapJoin append x2ys xs
-  let switchMap x2ys xs = mapJoin switch x2ys xs
+  let inline mapJoin join x2ys xs = joinWith (fun x zs -> join (x2ys x) zs) xs
+
+  let ambMap x2ys xs = mapJoin amb' x2ys xs
+  let mergeMap x2ys xs = mapJoin merge' x2ys xs
+  let appendMap x2ys xs = mapJoin append' x2ys xs
+  let switchMap x2ys xs = mapJoin switch' x2ys xs
 
   let rec taker evt skipper xs =
     (evt >>=? fun _ -> Job.start (xs >>= fun t -> skipper <-= t) >>% Nil) <|>*

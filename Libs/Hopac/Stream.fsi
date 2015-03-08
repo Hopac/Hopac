@@ -509,20 +509,10 @@ module Stream =
 
   /// Joins all the streams in the given stream of streams together with the
   /// given binary join combinator.
-#if DOC
-  ///
-  /// Reference implementation:
-  ///
-  ///> let rec joinWith (join: Stream<_> -> Stream<_> -> #Stream<_>)
-  ///>                  (xxs: Stream<#Stream<_>>) =
-  ///>   xxs >>=* function Nil -> nil
-  ///>                   | Cons (xs, xxs) ->
-  ///>                     join xs (joinWith join xxs) :> Stream<_>
-#endif
-  val joinWith: (Stream<'x> -> Stream<'y> -> #Stream<'y>) -> Stream<#Stream<'x>> -> Stream<'y>
+  val joinWith: ('x -> Stream<'y> -> #Job<Cons<'y>>) -> Stream<'x> -> Stream<'y>
 
   /// `mapJoin j f xs` is equivalent to `joinWith j (mapFun f xs)`.
-  val mapJoin: (Stream<'y> -> Stream<'z> -> #Stream<'z>) -> ('x -> #Stream<'y>) -> Stream<'x> -> Stream<'z>
+  val inline mapJoin: ('y -> Stream<'z> -> #Job<Cons<'z>>) -> ('x -> 'y) -> Stream<'x> -> Stream<'z>
 
   /// Maps and joins all the streams together with `amb`.  This corresponds to
   /// the idea of starting several alternative streams in parallel and then only
