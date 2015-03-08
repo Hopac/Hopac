@@ -50,6 +50,27 @@ module BasicBench =
 
   do
 
+     bench "appendMap" 1000000 <| fun n ->
+       let one = Stream.one 1
+       Stream.ints n
+       |> Stream.appendMap (fun _ -> one)
+       |> Stream.appendMap (fun _ -> one)
+       |> Stream.iter |> run
+
+     bench "mergeMap" 1000000 <| fun n ->
+       let one = Stream.one 1
+       Stream.ints n
+       |> Stream.mergeMap (fun _ -> one)
+       |> Stream.mergeMap (fun _ -> one)
+       |> Stream.iter |> run
+
+     bench "switchMap" 1000000 <| fun n ->
+       let one = Stream.one 1
+       Stream.ints n
+       |> Stream.switchMap (fun _ -> one)
+       |> Stream.switchMap (fun _ -> one)
+       |> Stream.iter |> run
+
      bench "shift" 1000000 <| fun n ->
        Stream.ints n
        |> Stream.shift (Job.unit ())
@@ -104,13 +125,6 @@ module BasicBench =
        Stream.ints n
        |> Stream.scanFromFun 0 (fun x y -> x + y)
        |> Stream.scanFromFun 0 (fun x y -> x - y)
-       |> Stream.iter |> run
-
-     bench "appendMap" 1000000 <| fun n ->
-       let one = Stream.one 1
-       Stream.ints n
-       |> Stream.appendMap (fun _ -> one)
-       |> Stream.appendMap (fun _ -> one)
        |> Stream.iter |> run
 
      bench "filterFun" 10000000 <| fun n ->
