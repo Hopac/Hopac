@@ -600,43 +600,62 @@ module Stream =
 
   // Timing
 
-  /// `sample ticks elems` returns a stream that produces each `elem` that is
-  /// followed by a `tick`.  Excess elements from both streams are skipped.  In
-  /// other words, `elem` followed by `elem` and `tick` followed by `tick` is
-  /// skipped.
+  /// `debounce timeout elements` returns a stream so that after each element a
+  /// timeout is started and the element is produced if no other elements is
+  /// received before the timeout is signaled.  Note that if the given stream
+  /// produces elements more frequently than the timeout, the returned stream
+  /// never produces any elements.
 #if DOC
   ///
-  ///>  elems: 1  2  3        4 5 6  7
-  ///>  ticks:     x    x    x    x    x
-  ///> output:     2    3         6    7
-#endif
-  val sample: ticks: Stream<_> -> elems: Stream<'x> -> Stream<'x>
-
-  /// Returns a stream that produces elements from the given stream so that an
-  /// element is produced after the given timeout unless a new element is
-  /// produced by the given stream in which case the timeout is restarted.  Note
-  /// that if the given stream produces elements more frequently than the
-  /// timeout, the returned stream never produces any elements.  See also:
-  /// `throttle`.
-#if DOC
-  ///
-  ///>   input: 1        2 3  4     5 6 7 8 9 ...
-  ///> timeout: +---x    +-+--+---x +-+-+-+-+-...
-  ///>  output:     1             4
+  ///> elements: 1        2 3  4     5 6 7 8 9 ...
+  ///>  timeout: +---x    +-+--+---x +-+-+-+-+-...
+  ///>   output:     1             4
 #endif
   val debounce: timeout: Alt<_> -> Stream<'x> -> Stream<'x>
 
-  /// Returns a stream that produces elements from the given stream so that
-  /// after an element is produced by the given stream, a timeout is started and
-  /// the latest element produced by the stream is produced when the timeout
-  /// expires.  See also: `debounce`.
+  /// `samplesBefore ticks elements` returns a stream that consumes both ticks
+  /// and elements and produces each element that precedes a tick.  Excess
+  /// elements from both streams are skipped.
 #if DOC
   ///
-  ///>   input: 1        2 3   4
-  ///> timeout: +---x    +---x +---x
-  ///>  output:     1        3     4
+  ///> elements: 1  2  3        4 5 6  7
+  ///>    ticks:     x    x    x     x   x
+  ///>   output:     2    3          6   7
 #endif
-  val throttle: timeout: Job<_> -> Stream<'x> -> Stream<'x>
+  val samplesBefore: ticks: Stream<_> -> Stream<'x> -> Stream<'x>
+
+  /// `samplesAfter ticks elements` returns a stream that consumes both ticks
+  /// and elements and produces each element that follows a tick.  Excess
+  /// elements from both streams are skipped.
+#if DOC
+  ///
+  ///> elements: 1  2  3        4 5 6  7
+  ///>    ticks:     x    x    x     x   x
+  ///>   output:       3        4      7
+#endif
+  val samplesAfter: ticks: Stream<_> -> Stream<'x> -> Stream<'x>
+
+  /// `ignoreUntil timeout elements` returns a stream that, after getting an
+  /// element, starts a timeout and produces the last element received when the
+  /// timeout is signaled.
+#if DOC
+  ///
+  ///> elements: 1   2      3       4 5 6
+  ///> timeouts: +-----x    +-----x +-----x
+  ///>   output:       2          3       6
+#endif
+  val ignoreUntil: timeout: Job<_> -> Stream<'x> -> Stream<'x>
+
+  /// `ignoreWhile timeout elements` returns a stream that, after getting an
+  /// element, starts a timeout, produces the element and ignores other elements
+  /// until the timeout is signaled.
+#if DOC
+  ///
+  ///> elements: 1   2      3       4 5 6
+  ///> timeouts: +-----x    +-----x +-----x
+  ///>   output: 1          3       4
+#endif
+  val ignoreWhile: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces a new pair of elements whenever either one
   /// of the given pair of streams produces an element.  If one of the streams
@@ -684,7 +703,7 @@ module Stream =
   /// infrequently in relation to the timeout, `delayEach` behaves similarly to
   /// `shift`.
 #endif
-  val delayEach: Job<_> -> Stream<'x> -> Stream<'x>
+  val delayEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces the same elements as the given stream, but
   /// after each element, the given job is used as a delay before a request is
@@ -702,7 +721,7 @@ module Stream =
   /// The above stream ensures that polls are at least 10 seconds apart.  Also
   /// when polls are requested less frequently, there is no delay before a poll.
 #endif
-  val afterEach: Job<_> -> Stream<'x> -> Stream<'x>
+  val afterEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that runs the given job each time a value is requested
   /// before requesting the next value from the given stream.  If the given job
@@ -712,17 +731,17 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec beforeEach yJ xs =
-  ///>   (yJ >>. xs) >>=* function Nil -> nil
-  ///>                           | Cons (x, xs) -> cons x (beforeEach yJ xs)
+  ///>   yJ >>. xs >>=* function Nil -> nil
+  ///>                         | Cons (x, xs) -> cons x (beforeEach yJ xs)
 #endif
-  val beforeEach: Job<_> -> Stream<'x> -> Stream<'x>
+  val beforeEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Given a stream of dates, returns a stream that produces the dates after
   /// the dates.
-  val atDateTimeOffsets: Stream<DateTimeOffset> -> Stream<DateTimeOffset>
+  val afterDateTimeOffsets: Stream<DateTimeOffset> -> Stream<DateTimeOffset>
 
   /// Returns a stream that produces the given date after the given date.
-  val atDateTimeOffset: DateTimeOffset -> Stream<DateTimeOffset>
+  val afterDateTimeOffset: DateTimeOffset -> Stream<DateTimeOffset>
 
   /// Returns a stream that produces an element after the given time span.
   /// Note that streams are memoized.
