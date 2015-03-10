@@ -417,7 +417,7 @@ font-weight: bold;
 </pre>
 <pre><b>module</b> <a id="dec:module Hopac.Stream" href="#def:module Hopac.Stream">Stream</a> <b>=</b>
   <b>type</b> <a id="dec:type Hopac.Stream.Cons" href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b>
-    <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of Value<b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.LazifyFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+    <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of Value<b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.KeepLatestFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
     <b>|</b> Nil
   <b>type</b> <a id="dec:type Hopac.Stream.Stream" href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>type</b> <a id="dec:type Hopac.Stream.Src" href="#def:type Hopac.Stream.Src">Src</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -448,7 +448,7 @@ font-weight: bold;
   <b>type</b> <a id="dec:type Hopac.Stream.GenerateFuns" href="#def:type Hopac.Stream.GenerateFuns">GenerateFuns</a><b>&lt;</b><i>'s</i>, <i>'x</i><b>&gt;</b> <b>=</b>
     <b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.GenerateFuns">GenerateFuns</a><b>&lt;</b><i>'s</i>, <i>'x</i><b>&gt;</b>
     <b>abstract</b> While<b>:</b> <i>'s</i> <b>-&gt;</b> bool
-    <b>abstract</b> <a href="#def:abstract Hopac.Stream.LazifyFuns.Next">Next</a><b>:</b> <i>'s</i> <b>-&gt;</b> <i>'s</i>
+    <b>abstract</b> <a href="#def:abstract Hopac.Stream.KeepLatestFuns.Next">Next</a><b>:</b> <i>'s</i> <b>-&gt;</b> <i>'s</i>
     <b>abstract</b> Select<b>:</b> <i>'s</i> <b>-&gt;</b> <i>'x</i>
   <b>val</b> <a id="dec:val Hopac.Stream.generateFuns" href="#def:val Hopac.Stream.generateFuns">generateFuns</a><b>:</b> <i>'s</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.GenerateFuns">GenerateFuns</a><b>&lt;</b><i>'s</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.generateFun" href="#def:val Hopac.Stream.generateFun">generateFun</a><b>:</b> <i>'s</i> <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> bool) <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'s</i>) <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -507,13 +507,13 @@ font-weight: bold;
   <b>val</b> <a id="dec:val Hopac.Stream.onCloseJob" href="#def:val Hopac.Stream.onCloseJob">onCloseJob</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.onCloseFun" href="#def:val Hopac.Stream.onCloseFun">onCloseFun</a><b>:</b> (unit <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>[&lt;</b>AbstractClass<b>&gt;]</b> 
-  <b>type</b> <a id="dec:type Hopac.Stream.LazifyFuns" href="#def:type Hopac.Stream.LazifyFuns">LazifyFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>=</b>
-    <b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.LazifyFuns">LazifyFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b>
-    <b>abstract</b> <a id="dec:abstract Hopac.Stream.LazifyFuns.First" href="#def:abstract Hopac.Stream.LazifyFuns.First">First</a><b>:</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
-    <b>abstract</b> <a id="dec:abstract Hopac.Stream.LazifyFuns.Next" href="#def:abstract Hopac.Stream.LazifyFuns.Next">Next</a><b>:</b> <i>'y</i> <b>*</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
-  <b>val</b> <a id="dec:val Hopac.Stream.lazifyFuns" href="#def:val Hopac.Stream.lazifyFuns">lazifyFuns</a><b>:</b> <a href="#def:type Hopac.Stream.LazifyFuns">LazifyFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> <a id="dec:val Hopac.Stream.lazifyQueued" href="#def:val Hopac.Stream.lazifyQueued">lazifyQueued</a><b>:</b> maxCount<b>:</b> int <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>Queue<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val Hopac.Stream.lazify1" href="#def:val Hopac.Stream.lazify1">lazify1</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+  <b>type</b> <a id="dec:type Hopac.Stream.KeepLatestFuns" href="#def:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>=</b>
+    <b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b>
+    <b>abstract</b> <a id="dec:abstract Hopac.Stream.KeepLatestFuns.First" href="#def:abstract Hopac.Stream.KeepLatestFuns.First">First</a><b>:</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
+    <b>abstract</b> <a id="dec:abstract Hopac.Stream.KeepLatestFuns.Next" href="#def:abstract Hopac.Stream.KeepLatestFuns.Next">Next</a><b>:</b> <i>'y</i> <b>*</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
+  <b>val</b> <a id="dec:val Hopac.Stream.keepLatestFuns" href="#def:val Hopac.Stream.keepLatestFuns">keepLatestFuns</a><b>:</b> <a href="#def:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Stream.keepLatest" href="#def:val Hopac.Stream.keepLatest">keepLatest</a><b>:</b> maxCount<b>:</b> int <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>Queue<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Stream.keepLatest1" href="#def:val Hopac.Stream.keepLatest1">keepLatest1</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.debounce" href="#def:val Hopac.Stream.debounce">debounce</a><b>:</b> timeout<b>:</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.samplesBefore" href="#def:val Hopac.Stream.samplesBefore">samplesBefore</a><b>:</b> ticks<b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.samplesAfter" href="#def:val Hopac.Stream.samplesAfter">samplesAfter</a><b>:</b> ticks<b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -1672,7 +1672,7 @@ font-weight: bold;
 <pre><b>module</b> <a id="def:module Hopac.Stream" href="#dec:module Hopac.Stream">Stream</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on choice streams.<pre><b>type</b> <a id="def:type Hopac.Stream.Cons" href="#dec:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b>
-  <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of Value<b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.LazifyFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+  <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of Value<b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.KeepLatestFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>|</b> Nil
 </pre>
 <div class="nested"><p> Represents a point in a non-deterministic stream of values.</div>
@@ -1973,31 +1973,31 @@ output<b>:</b> a b  1  2 3  4 <b>...</b>
 </pre>
 <div class="nested"><p> <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.onCloseFun">onCloseFun</a>&nbsp;u2u</code> is equivalent to <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.onCloseJob">onCloseJob</a>&nbsp;(<a href="#def:module Hopac.Job">Job</a><b>.</b><a href="#def:val Hopac.Job.thunk">thunk</a>&nbsp;u2u)</code>.</div>
 <pre><b>[&lt;</b>AbstractClass<b>&gt;]</b> 
-<b>type</b> <a id="def:type Hopac.Stream.LazifyFuns" href="#dec:type Hopac.Stream.LazifyFuns">LazifyFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>=</b>
+<b>type</b> <a id="def:type Hopac.Stream.KeepLatestFuns" href="#dec:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>=</b>
 </pre>
-<div class="nested"><p> Functions for collecting elements from a live stream to be lazified.<pre><b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.LazifyFuns">LazifyFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b>
+<div class="nested"><p> Functions for collecting elements from a live stream to be lazified.<pre><b>new</b><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Empty constructor.</div>
-<pre><b>abstract</b> <a id="def:abstract Hopac.Stream.LazifyFuns.First" href="#dec:abstract Hopac.Stream.LazifyFuns.First">First</a><b>:</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
+<pre><b>abstract</b> <a id="def:abstract Hopac.Stream.KeepLatestFuns.First" href="#dec:abstract Hopac.Stream.KeepLatestFuns.First">First</a><b>:</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
 </pre>
 <div class="nested"><p> Called to begin the next batch of elements.</div>
-<pre><b>abstract</b> <a id="def:abstract Hopac.Stream.LazifyFuns.Next" href="#dec:abstract Hopac.Stream.LazifyFuns.Next">Next</a><b>:</b> <i>'y</i> <b>*</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
+<pre><b>abstract</b> <a id="def:abstract Hopac.Stream.KeepLatestFuns.Next" href="#dec:abstract Hopac.Stream.KeepLatestFuns.Next">Next</a><b>:</b> <i>'y</i> <b>*</b> <i>'x</i> <b>-&gt;</b> <i>'y</i>
 </pre>
 <div class="nested"><p> Called to add an element to the current batch.</div>
 </div>
-<pre><b>val</b> <a id="def:val Hopac.Stream.lazifyFuns" href="#dec:val Hopac.Stream.lazifyFuns">lazifyFuns</a><b>:</b> <a href="#def:type Hopac.Stream.LazifyFuns">LazifyFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+<pre><b>val</b> <a id="def:val Hopac.Stream.keepLatestFuns" href="#dec:val Hopac.Stream.keepLatestFuns">keepLatestFuns</a><b>:</b> <a href="#def:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Converts a given imperative live stream into a lazy stream by spawning a job to eagerly consume and collect elements from the live stream using the given <code>LazifyFun<b>&lt;</b>_,&nbsp;_<b>&gt;</b></code> object.</div>
-<pre><b>val</b> <a id="def:val Hopac.Stream.lazifyQueued" href="#dec:val Hopac.Stream.lazifyQueued">lazifyQueued</a><b>:</b> maxCount<b>:</b> int <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>Queue<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+<div class="nested"><p> Converts a given imperative live stream into a lazy stream by spawning a job to eagerly consume and collect elements from the live stream using the given <code><a href="#def:type Hopac.Stream.KeepLatestFuns">KeepLatestFuns</a><b>&lt;</b>_,&nbsp;_<b>&gt;</b></code> object.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.keepLatest" href="#dec:val Hopac.Stream.keepLatest">keepLatest</a><b>:</b> maxCount<b>:</b> int <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>Queue<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
 </pre>
-<div class="nested"><p> Converts a given imperative live stream into a lazy stream of queued elements by spawning a job to eagerly consume and queue elements from the live stream.  At most <code>maxCount</code> most recent elements are kept in a queue.</div>
-<pre><b>val</b> <a id="def:val Hopac.Stream.lazify1" href="#dec:val Hopac.Stream.lazify1">lazify1</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+<div class="nested"><p> Converts a given imperative live stream into a lazy stream of queued elements by spawning a job to eagerly consume and queue elements from the live stream.  At most <code>maxCount</code> most recent elements are kept in a queue and after that the oldest elements are thrown away.  See also: <code><a href="#def:val Hopac.Stream.keepLatest1">keepLatest1</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.keepLatest1" href="#dec:val Hopac.Stream.keepLatest1">keepLatest1</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Converts an imperative live stream into a lazy stream by eagerly consuming (and throwing away) elements from the live stream and producing only one previous element only requested.</p><p> Basically,</p><pre>live <b>|&gt;</b> <a href="#def:val Hopac.Stream.lazify1">lazify1</a> <b>|&gt;</b> <a href="#def:val Hopac.Stream.afterEach">afterEach</a> timeout
+<div class="nested"><p> Converts an imperative live stream into a lazy stream by spawning a job to eagerly consume (and throw away) elements from the live stream and producing only one most recent element each time when requested.  See also: <code><a href="#def:val Hopac.Stream.keepLatest">keepLatest</a></code>.</p><p> Basically,</p><pre>live <b>|&gt;</b> <a href="#def:val Hopac.Stream.keepLatest1">keepLatest1</a> <b>|&gt;</b> <a href="#def:val Hopac.Stream.afterEach">afterEach</a> timeout
 </pre><p> is similar to</p><pre>live <b>|&gt;</b> <a href="#def:val Hopac.Stream.ignoreWhile">ignoreWhile</a> timeout
-</pre><p> and</p><pre>live <b>|&gt;</b> <a href="#def:val Hopac.Stream.lazify1">lazify1</a> <b>|&gt;</b> <a href="#def:val Hopac.Stream.beforeEach">beforeEach</a> timeout
+</pre><p> and</p><pre>live <b>|&gt;</b> <a href="#def:val Hopac.Stream.keepLatest1">keepLatest1</a> <b>|&gt;</b> <a href="#def:val Hopac.Stream.beforeEach">beforeEach</a> timeout
 </pre><p> is similar to</p><pre>live <b>|&gt;</b> <a href="#def:val Hopac.Stream.ignoreUntil">ignoreUntil</a> timeout
-</pre><p> However, a lazified stream, assuming there is enough CPU time to consume elements from the live stream, does not hold to an arbitrary number of stream conses.</div>
+</pre><p> However, a lazified stream, assuming there is enough CPU time to consume elements from the live stream, never internally holds to an arbitrary number of stream conses.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.debounce" href="#dec:val Hopac.Stream.debounce">debounce</a><b>:</b> timeout<b>:</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> <code><a href="#def:val Hopac.Stream.debounce">debounce</a>&nbsp;timeout&nbsp;elements</code> returns a stream so that after each element a timeout is started and the element is produced if no other elements is received before the timeout is signaled.  Note that if the given stream produces elements more frequently than the timeout, the returned stream never produces any elements.</p><pre>elements<b>:</b> 1        2 3  4     5 6 7 8 9 <b>...</b>
