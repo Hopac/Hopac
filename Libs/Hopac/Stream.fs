@@ -286,7 +286,7 @@ module Stream =
                     | Nil -> nilj) :> Job<_>
   let ignoreWhile timeout (xs: Stream<_>) = xs >>=* ignoreWhile1 timeout
 
-  type [<AbstractClass>] LazifyFuns<'x, 'y> () =
+  type [<AbstractClass>] KeepLatestFuns<'x, 'y> () =
     abstract First: 'x -> 'y
     abstract Next: 'y * 'x -> 'y
 
@@ -294,7 +294,7 @@ module Stream =
     override this.Finalize () =
       v <-= () |> start
 
-  let lazifyFuns (fns: LazifyFuns<_, _>) xs =
+  let keepLatestFuns (fns: KeepLatestFuns<_, _>) xs =
     let gc = IVar ()
     let req = Ch ()
     let finished = IVar ()
@@ -313,16 +313,16 @@ module Stream =
     let rec recur () = (req |>>? fun x -> Cons (x, recur ())) <|>* (finished)
     recur ()
 
-  let lazifyQueued maxCount xs =
-    xs |> lazifyFuns {new LazifyFuns<_, _> () with
+  let keepLatest maxCount xs =
+    xs |> keepLatestFuns {new KeepLatestFuns<_, _> () with
      override this.First x = this.Next (Queue<'x>(1), x)
      override this.Next (q, x) =
       if q.Count = maxCount then
         q.Dequeue () |> ignore
       q.Enqueue x ; q}
 
-  let lazify1 xs =
-    xs |> lazifyFuns {new LazifyFuns<_, _> () with
+  let keepLatest1 xs =
+    xs |> keepLatestFuns {new KeepLatestFuns<_, _> () with
      override this.First x = x
      override this.Next (_, x) = x}
 

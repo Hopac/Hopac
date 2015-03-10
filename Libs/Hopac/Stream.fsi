@@ -615,9 +615,9 @@ module Stream =
   // Lazifying
 
   /// Functions for collecting elements from a live stream to be lazified.
-  type [<AbstractClass>] LazifyFuns<'x, 'y> =
+  type [<AbstractClass>] KeepLatestFuns<'x, 'y> =
     /// Empty constructor.
-    new: unit -> LazifyFuns<'x, 'y>
+    new: unit -> KeepLatestFuns<'x, 'y>
 
     /// Called to begin the next batch of elements.
     abstract First: 'x -> 'y
@@ -627,22 +627,25 @@ module Stream =
 
   /// Converts a given imperative live stream into a lazy stream by spawning a
   /// job to eagerly consume and collect elements from the live stream using the
-  /// given `LazifyFun<_, _>` object.
-  val lazifyFuns: LazifyFuns<'x, 'y> -> Stream<'x> -> Stream<'y>
+  /// given `KeepLatestFuns<_, _>` object.
+  val keepLatestFuns: KeepLatestFuns<'x, 'y> -> Stream<'x> -> Stream<'y>
 
   /// Converts a given imperative live stream into a lazy stream of queued
   /// elements by spawning a job to eagerly consume and queue elements from the
-  /// live stream.  At most `maxCount` most recent elements are kept in a queue.
-  val lazifyQueued: maxCount: int -> Stream<'x> -> Stream<Queue<'x>>
+  /// live stream.  At most `maxCount` most recent elements are kept in a queue
+  /// and after that the oldest elements are thrown away.  See also:
+  /// `keepLatest1`.
+  val keepLatest: maxCount: int -> Stream<'x> -> Stream<Queue<'x>>
 
-  /// Converts an imperative live stream into a lazy stream by eagerly consuming
-  /// (and throwing away) elements from the live stream and producing only one
-  /// previous element only requested.
+  /// Converts an imperative live stream into a lazy stream by spawning a job to
+  /// eagerly consume (and throw away) elements from the live stream and
+  /// producing only one most recent element each time when requested.  See
+  /// also: `keepLatest`.
 #if DOC
   ///
   /// Basically,
   ///
-  ///> live |> lazify1 |> afterEach timeout
+  ///> live |> keepLatest1 |> afterEach timeout
   ///
   /// is similar to
   ///
@@ -650,17 +653,17 @@ module Stream =
   ///
   /// and
   ///
-  ///> live |> lazify1 |> beforeEach timeout
+  ///> live |> keepLatest1 |> beforeEach timeout
   ///
   /// is similar to
   ///
   ///> live |> ignoreUntil timeout
   ///
   /// However, a lazified stream, assuming there is enough CPU time to consume
-  /// elements from the live stream, does not hold to an arbitrary number of
-  /// stream conses.
+  /// elements from the live stream, never internally holds to an arbitrary
+  /// number of stream conses.
 #endif
-  val lazify1: Stream<'x> -> Stream<'x>
+  val keepLatest1: Stream<'x> -> Stream<'x>
 
   // Timing
 
