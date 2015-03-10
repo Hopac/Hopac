@@ -50,6 +50,24 @@ module BasicBench =
 
   do
 
+     bench "lazify1" 10000000 <| fun n ->
+       Stream.append (Stream.ints n) (Stream.cons -1 Stream.never)
+       |> Stream.lazify1
+       |> Stream.takeWhileFun (fun i -> 0 <= i)
+       |> Stream.iter |> run
+
+     bench "ignoreWhile" 1000000 <| fun n ->
+       Stream.ints n
+       |> Stream.ignoreWhile (Job.unit ())
+       |> Stream.iter |> run
+
+     bench "shift" 1000000 <| fun n ->
+       Stream.ints n
+       |> Stream.shift (Job.unit ())
+       |> Stream.shift (Job.unit ())
+       |> Stream.shift (Job.unit ())
+       |> Stream.iter |> run
+
      bench "appendMap" 1000000 <| fun n ->
        let one = Stream.one 1
        Stream.ints n
@@ -69,13 +87,6 @@ module BasicBench =
        Stream.ints n
        |> Stream.switchMap (fun _ -> one)
        |> Stream.switchMap (fun _ -> one)
-       |> Stream.iter |> run
-
-     bench "shift" 1000000 <| fun n ->
-       Stream.ints n
-       |> Stream.shift (Job.unit ())
-       |> Stream.shift (Job.unit ())
-       |> Stream.shift (Job.unit ())
        |> Stream.iter |> run
 
      bench "delayEach" 10000000 <| fun n ->

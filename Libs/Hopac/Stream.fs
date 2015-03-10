@@ -286,6 +286,56 @@ module Stream =
                     | Nil -> nilj) :> Job<_>
   let ignoreWhile timeout (xs: Stream<_>) = xs >>=* ignoreWhile1 timeout
 
+  type [<AbstractClass>] LazifyFuns<'x, 'y> () =
+    abstract First: 'x -> 'y
+    abstract Next: 'y * 'x -> 'y
+
+  type GcSignal (v: IVar<unit>) =
+    override this.Finalize () =
+      v <-= () |> start
+
+  let lazifyFuns (fns: LazifyFuns<_, _>) xs =
+    let gc = IVar ()
+    let req = Ch ()
+    let finished = IVar ()
+    let rec gotSome y xs =
+      (gc) <|>?
+      (req <-- y >>=? fun () -> gotNone xs) <|>?
+      (xs >>=? function Cons (x, xs) -> gotSome (fns.Next (y, x)) xs
+                      | Nil -> finished <-= ()) :> Job<_>
+    and gotNone xs =
+      (gc) <|>?
+      (xs >>=? function Cons (x, xs) -> gotSome (fns.First x) xs
+                      | Nil -> finished <-= ())
+    Job.tryWith (gotNone xs) (fun e -> finished <-=! e) |> start
+    let gcSignal = GcSignal (gc)
+    let finished = finished |>>? fun () -> GC.SuppressFinalize (gcSignal) ; Nil
+    let rec recur () = (req |>>? fun x -> Cons (x, recur ())) <|>* (finished)
+    recur ()
+
+  let lazifyQueued maxCount xs =
+    xs |> lazifyFuns {new LazifyFuns<_, _> () with
+     override this.First x = this.Next (Queue<'x>(1), x)
+     override this.Next (q, x) =
+      if q.Count = maxCount then
+        q.Dequeue () |> ignore
+      q.Enqueue x ; q}
+
+  let lazify1 xs =
+    xs |> lazifyFuns {new LazifyFuns<_, _> () with
+     override this.First x = x
+     override this.Next (_, x) = x}
+
+  let rec takeWhileJob x2bJ xs =
+    xs >>=* function Cons (x, xs) ->
+                     x2bJ x |>> fun b ->
+                     if b then Cons (x, takeWhileJob x2bJ xs) else Nil
+                   | Nil -> nilj
+  let rec takeWhileFun x2b xs =
+    xs |>>* function Cons (x, xs) ->
+                     if x2b x then Cons (x, takeWhileFun x2b xs) else Nil
+                   | Nil -> Nil
+
   let rec ysxxs1 x xs ys = ys |>>? function
     | Cons (y, ys) -> Cons ((x, y), xsyys1 y ys xs <|>* ysxxs1 x xs ys)
     | Nil -> Nil
@@ -491,16 +541,14 @@ module Stream =
 
   let rec skip' xs = function
     | 0L -> xs :> Job<_>
-    | n ->
-      let n=n-1L
-      xs >>= function Cons (_, xs) -> skip' xs n | Nil -> nilj
+    | n -> let n = n-1L
+           xs >>= function Cons (_, xs) -> skip' xs n | Nil -> nilj
   let skip n xs = if n < 0L then failwith "skip: n < 0L" else skip' xs n |> memo
 
   let rec take' xs = function
     | 0L -> nil
-    | n ->
-      let n = n-1L
-      xs |>>* function Cons (x, xs) -> Cons (x, take' xs n) | Nil -> Nil
+    | n -> let n = n-1L
+           xs |>>* function Cons (x, xs) -> Cons (x, take' xs n) | Nil -> Nil
   let take n xs = if n < 0L then failwith "take: n < 0L" else take' xs n
 
   let head (xs: Stream<_>) =

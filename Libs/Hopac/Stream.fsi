@@ -4,6 +4,7 @@ namespace Hopac
 
 open System
 open System.Threading
+open System.Collections.Generic
 
 /// Operations on choice streams.
 module Stream =
@@ -38,6 +39,10 @@ module Stream =
   /// The implementation of choice streams is two orders of magnitude shorter
   /// than the implementation of .Net Rx.
   ///
+  /// - Basically all operations on ordinary lazy streams can be implemented on
+  /// and are meaningful on choice streams.  The same is not true of observable
+  /// sequences, because they are eager/strict and do not compose the same way.
+  ///
   /// - Choice streams are consistent in that every consumer of a stream gets
   /// the exact same sequence of values.  There is no need for `Connect` and
   /// `Publish` like with observable sequences.  Many trivial choice stream
@@ -60,7 +65,8 @@ module Stream =
   /// observables do not have a protocol for requesting elements one by one.
   ///
   /// All of the above advantages are strongly related and result from the pull
-  /// based nature of choice streams.
+  /// based nature of choice streams.  Pull semantics puts the consumer in
+  /// control.
   ///
   /// While the most common operations are very easy to implement on choice
   /// streams, some operations perhaps require more intricate programming than
@@ -507,6 +513,16 @@ module Stream =
 #endif
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
+  /// `switchTo xs ys` is equivalent to `switch ys xs`.
+#if DOC
+  ///
+  /// `switchTo` is designed to be used in pipelines:
+  ///
+  ///> xs
+  ///> |> switchTo ys
+#endif
+  val switchTo: Stream<'x> -> Stream<'x> -> Stream<'x>
+
   /// Joins all the streams in the given stream of streams together with the
   /// given binary join combinator.
   val joinWith: ('x -> Stream<'y> -> #Job<Cons<'y>>) -> Stream<'x> -> Stream<'y>
@@ -570,15 +586,13 @@ module Stream =
   /// also: `takeAndSkipUntil`.
   val takeUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
-  /// `switchTo xs ys` is equivalent to `switch ys xs`.
-#if DOC
-  ///
-  /// `switchTo` is designed to be used in pipelines:
-  ///
-  ///> xs
-  ///> |> switchTo ys
-#endif
-  val switchTo: Stream<'x> -> Stream<'x> -> Stream<'x>
+  /// Returns the maximal prefix of the given stream of elements that satisfy
+  /// the given predicate given as a job.
+  val takeWhileJob: ('x -> #Job<bool>) -> Stream<'x> -> Stream<'x>
+
+  /// Returns the maximal prefix of the given stream of elements that satisfy
+  /// the given predicate given as a function.
+  val takeWhileFun: ('x -> bool) -> Stream<'x> -> Stream<'x>
 
   // Exceptions
 
@@ -597,6 +611,56 @@ module Stream =
   /// `xs |> onCloseFun u2u` is equivalent to `xs |> onCloseJob (Job.thunk
   /// u2u)`.
   val onCloseFun: (unit -> unit) -> Stream<'x> -> Stream<'x>
+
+  // Lazifying
+
+  /// Functions for collecting elements from a live stream to be lazified.
+  type [<AbstractClass>] LazifyFuns<'x, 'y> =
+    /// Empty constructor.
+    new: unit -> LazifyFuns<'x, 'y>
+
+    /// Called to begin the next batch of elements.
+    abstract First: 'x -> 'y
+
+    /// Called to add an element to the current batch.
+    abstract Next: 'y * 'x -> 'y
+
+  /// Converts a given imperative live stream into a lazy stream by spawning a
+  /// job to eagerly consume and collect elements from the live stream using the
+  /// given `LazifyFun<_, _>` object.
+  val lazifyFuns: LazifyFuns<'x, 'y> -> Stream<'x> -> Stream<'y>
+
+  /// Converts a given imperative live stream into a lazy stream of queued
+  /// elements by spawning a job to eagerly consume and queue elements from the
+  /// live stream.  At most `maxCount` most recent elements are kept in a queue.
+  val lazifyQueued: maxCount: int -> Stream<'x> -> Stream<Queue<'x>>
+
+  /// Converts an imperative live stream into a lazy stream by eagerly consuming
+  /// (and throwing away) elements from the live stream and producing only one
+  /// previous element only requested.
+#if DOC
+  ///
+  /// Basically,
+  ///
+  ///> live |> lazify1 |> afterEach timeout
+  ///
+  /// is similar to
+  ///
+  ///> live |> ignoreWhile timeout
+  ///
+  /// and
+  ///
+  ///> live |> lazify1 |> beforeEach timeout
+  ///
+  /// is similar to
+  ///
+  ///> live |> ignoreUntil timeout
+  ///
+  /// However, a lazified stream, assuming there is enough CPU time to consume
+  /// elements from the live stream, does not hold to an arbitrary number of
+  /// stream conses.
+#endif
+  val lazify1: Stream<'x> -> Stream<'x>
 
   // Timing
 
