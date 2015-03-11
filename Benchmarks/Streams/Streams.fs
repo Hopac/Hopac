@@ -50,9 +50,9 @@ module BasicBench =
 
   do
 
-     bench "keepLatest1" 10000000 <| fun n ->
+     bench "keepPreceding1" 10000000 <| fun n ->
        Stream.append (Stream.ints n) (Stream.cons -1 Stream.never)
-       |> Stream.keepLatest1
+       |> Stream.keepPreceding1
        |> Stream.takeWhileFun (fun i -> 0 <= i)
        |> Stream.iter |> run
 

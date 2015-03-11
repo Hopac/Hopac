@@ -286,7 +286,7 @@ module Stream =
                     | Nil -> nilj) :> Job<_>
   let ignoreWhile timeout (xs: Stream<_>) = xs >>=* ignoreWhile1 timeout
 
-  type [<AbstractClass>] KeepLatestFuns<'x, 'y> () =
+  type [<AbstractClass>] KeepPrecedingFuns<'x, 'y> () =
     abstract First: 'x -> 'y
     abstract Next: 'y * 'x -> 'y
 
@@ -294,7 +294,7 @@ module Stream =
     member gcs.Suppress () = GC.SuppressFinalize gcs
     override gcs.Finalize () = v <-= () |> start
 
-  let keepLatestFuns (fns: KeepLatestFuns<_, _>) xs =
+  let keepPrecedingFuns (fns: KeepPrecedingFuns<_, _>) xs =
     let gc = IVar ()
     let req = Ch ()
     let tail = ref (IVar ())
@@ -313,24 +313,50 @@ module Stream =
                       | Nil -> !tail <-= Nil)
     Job.tryWith (gotNone xs) (fun e -> !tail <-=! e) |> start
     let gcs = GcSignal (gc)
-    let req = req <-- 0
+    let req = req <-+ 0
     let rec recur xs =
       req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
                              | Nil -> gcs.Suppress () ; Nil
     !tail |> recur
 
-  let keepLatest maxCount xs =
-    xs |> keepLatestFuns {new KeepLatestFuns<_, _> () with
+  let keepPreceding maxCount xs =
+    xs |> keepPrecedingFuns {new KeepPrecedingFuns<_, _> () with
      override this.First x = this.Next (Queue<'x>(1), x)
      override this.Next (q, x) =
       if q.Count = maxCount then
         q.Dequeue () |> ignore
       q.Enqueue x ; q}
 
-  let keepLatest1 xs =
-    xs |> keepLatestFuns {new KeepLatestFuns<_, _> () with
+  let keepPreceding1 xs =
+    xs |> keepPrecedingFuns {new KeepPrecedingFuns<_, _> () with
      override this.First x = x
      override this.Next (_, x) = x}
+
+  let keepFollowing1 xs =
+    let gc = IVar ()
+    let req = Ch ()
+    let tail = ref (IVar ())
+    let rec gotReq xs =
+      (gc) <|>?
+      (xs >>=? function
+        | Cons (x, xs) ->
+          let newTail = IVar ()
+          let oldTail = !tail
+          tail := newTail
+          oldTail <-= Cons (x, newTail) >>. noReq xs
+        | Nil -> !tail <-= Nil)
+    and noReq xs =
+      (gc) <|>?
+      (req >>=? fun _ -> gotReq xs) <|>?
+      (xs >>=? function Cons (_, xs) -> noReq xs
+                      | Nil -> !tail <-= Nil) :> Job<_>
+    Job.tryWith (noReq xs) (fun e -> !tail <-=! e) |> start
+    let gcs = GcSignal (gc)
+    let req = req <-+ 0
+    let rec recur xs =
+      req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
+                             | Nil -> gcs.Suppress () ; Nil
+    !tail |> recur
 
   let rec skipWhileJob' x2bJ = function
     | Cons (x, xs) ->

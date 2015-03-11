@@ -623,9 +623,9 @@ module Stream =
   // Lazifying
 
   /// Functions for collecting elements from a live stream to be lazified.
-  type [<AbstractClass>] KeepLatestFuns<'x, 'y> =
+  type [<AbstractClass>] KeepPrecedingFuns<'x, 'y> =
     /// Empty constructor.
-    new: unit -> KeepLatestFuns<'x, 'y>
+    new: unit -> KeepPrecedingFuns<'x, 'y>
 
     /// Called to begin the next batch of elements.
     abstract First: 'x -> 'y
@@ -635,25 +635,25 @@ module Stream =
 
   /// Converts a given imperative live stream into a lazy stream by spawning a
   /// job to eagerly consume and collect elements from the live stream using the
-  /// given `KeepLatestFuns<_, _>` object.
-  val keepLatestFuns: KeepLatestFuns<'x, 'y> -> Stream<'x> -> Stream<'y>
+  /// given `KeepPrecedingFuns<_, _>` object.
+  val keepPrecedingFuns: KeepPrecedingFuns<'x, 'y> -> Stream<'x> -> Stream<'y>
 
   /// Converts a given imperative live stream into a lazy stream of queued
   /// elements by spawning a job to eagerly consume and queue elements from the
   /// live stream.  At most `maxCount` most recent elements are kept in a queue
   /// and after that the oldest elements are thrown away.  See also:
-  /// `keepLatest1`.
-  val keepLatest: maxCount: int -> Stream<'x> -> Stream<Queue<'x>>
+  /// `keepPreceding1`.
+  val keepPreceding: maxCount: int -> Stream<'x> -> Stream<Queue<'x>>
 
   /// Converts an imperative live stream into a lazy stream by spawning a job to
   /// eagerly consume (and throw away) elements from the live stream and
   /// producing only one most recent element each time when requested.  See
-  /// also: `keepLatest`.
+  /// also: `keepPreceding`, `keepFollowing1`.
 #if DOC
   ///
   /// Basically,
   ///
-  ///> live |> keepLatest1 |> afterEach timeout
+  ///> live |> keepPreceding1 |> afterEach timeout
   ///
   /// is similar to
   ///
@@ -661,7 +661,7 @@ module Stream =
   ///
   /// and
   ///
-  ///> live |> keepLatest1 |> beforeEach timeout
+  ///> live |> keepPreceding1 |> beforeEach timeout
   ///
   /// is similar to
   ///
@@ -671,7 +671,13 @@ module Stream =
   /// elements from the live stream, never internally holds to an arbitrary
   /// number of stream conses.
 #endif
-  val keepLatest1: Stream<'x> -> Stream<'x>
+  val keepPreceding1: Stream<'x> -> Stream<'x>
+
+  /// Converts an imperative live stream into a lazy stream by spawning a job to
+  /// eagerly consume (and throw away) elements from the live stream and
+  /// producing only one element after each pull request.  See also:
+  /// `keepPreceding1`.
+  val keepFollowing1: Stream<'x> -> Stream<'x>
 
   // Timing
 
