@@ -586,6 +586,14 @@ module Stream =
   /// also: `takeAndSkipUntil`.
   val takeUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
+  /// Returns the stream without the maximal prefix of elements that satisfy the
+  /// given predicate given as a job.
+  val skipWhileJob: ('x -> #Job<bool>) -> Stream<'x> -> Stream<'x>
+
+  /// Returns the stream without the maximal prefix of elements that satisfy the
+  /// given predicate given as a function.
+  val skipWhileFun: ('x -> bool) -> Stream<'x> -> Stream<'x>
+
   /// Returns the maximal prefix of the given stream of elements that satisfy
   /// the given predicate given as a job.
   val takeWhileJob: ('x -> #Job<bool>) -> Stream<'x> -> Stream<'x>

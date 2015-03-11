@@ -332,6 +332,16 @@ module Stream =
      override this.First x = x
      override this.Next (_, x) = x}
 
+  let rec skipWhileJob' x2bJ = function
+    | Cons (x, xs) ->
+      x2bJ x >>= fun b -> if b then xs >>= skipWhileJob' x2bJ else consj x xs
+    | Nil -> nilj
+  let skipWhileJob x2bJ (xs: Stream<_>) = xs >>=* skipWhileJob' x2bJ
+  let rec skipWhileFun' x2b = function
+    | Cons (x, xs) -> if x2b x then xs >>= skipWhileFun' x2b else consj x xs
+    | Nil -> nilj
+  let skipWhileFun x2b (xs: Stream<_>) = xs >>=* skipWhileFun' x2b
+
   let rec takeWhileJob x2bJ xs =
     xs >>=* function Cons (x, xs) ->
                      x2bJ x |>> fun b ->
