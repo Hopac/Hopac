@@ -646,9 +646,9 @@ module Stream =
   val keepPreceding: maxCount: int -> Stream<'x> -> Stream<Queue<'x>>
 
   /// Converts an imperative live stream into a lazy stream by spawning a job to
-  /// eagerly consume (and throw away) elements from the live stream and
-  /// producing only one most recent element each time when requested.  See
-  /// also: `keepPreceding`, `keepFollowing1`.
+  /// eagerly consume (and throw away) elements from the live stream and to
+  /// produce only one most recent element each time when requested.  See also:
+  /// `keepPreceding`, `keepFollowing1`.
 #if DOC
   ///
   /// Basically,
@@ -674,8 +674,8 @@ module Stream =
   val keepPreceding1: Stream<'x> -> Stream<'x>
 
   /// Converts an imperative live stream into a lazy stream by spawning a job to
-  /// eagerly consume (and throw away) elements from the live stream and
-  /// producing only one element after each pull request.  See also:
+  /// eagerly consume (and throw away) elements from the live stream and to
+  /// produce only one element after each pull request.  See also:
   /// `keepPreceding1`.
   val keepFollowing1: Stream<'x> -> Stream<'x>
 
