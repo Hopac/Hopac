@@ -290,28 +290,34 @@ module Stream =
     abstract First: 'x -> 'y
     abstract Next: 'y * 'x -> 'y
 
-  type GcSignal (v: IVar<unit>) =
-    override this.Finalize () =
-      v <-= () |> start
+  type GcSignal (v: IVar<_>) =
+    member gcs.Suppress () = GC.SuppressFinalize gcs
+    override gcs.Finalize () = v <-= () |> start
 
   let keepLatestFuns (fns: KeepLatestFuns<_, _>) xs =
     let gc = IVar ()
     let req = Ch ()
-    let finished = IVar ()
+    let tail = ref (IVar ())
     let rec gotSome y xs =
       (gc) <|>?
-      (req <-- y >>=? fun () -> gotNone xs) <|>?
+      (req >>=? fun _ ->
+        let newTail = IVar ()
+        let oldTail = !tail
+        tail := newTail
+        oldTail <-= Cons (y, newTail) >>. gotNone xs) <|>?
       (xs >>=? function Cons (x, xs) -> gotSome (fns.Next (y, x)) xs
-                      | Nil -> finished <-= ()) :> Job<_>
+                      | Nil -> !tail <-= Nil) :> Job<_>
     and gotNone xs =
       (gc) <|>?
       (xs >>=? function Cons (x, xs) -> gotSome (fns.First x) xs
-                      | Nil -> finished <-= ())
-    Job.tryWith (gotNone xs) (fun e -> finished <-=! e) |> start
-    let gcSignal = GcSignal (gc)
-    let finished = finished |>>? fun () -> GC.SuppressFinalize (gcSignal) ; Nil
-    let rec recur () = (req |>>? fun x -> Cons (x, recur ())) <|>* (finished)
-    recur ()
+                      | Nil -> !tail <-= Nil)
+    Job.tryWith (gotNone xs) (fun e -> !tail <-=! e) |> start
+    let gcs = GcSignal (gc)
+    let req = req <-- 0
+    let rec recur xs =
+      req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
+                             | Nil -> gcs.Suppress () ; Nil
+    !tail |> recur
 
   let keepLatest maxCount xs =
     xs |> keepLatestFuns {new KeepLatestFuns<_, _> () with
