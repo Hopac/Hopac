@@ -679,7 +679,7 @@ module Stream =
   /// `keepPreceding1`.
   val keepFollowing1: Stream<'x> -> Stream<'x>
 
-  /// Given a stream of ticks and a lazy stream of values returns a stream of
+  /// Given a stream of ticks and a lazy stream of elements returns a stream of
   /// elements pulled from the lazy stream based on the ticks.  See also:
   /// `keepPreceding1`, `keepFollowing1`.
 #if DOC
