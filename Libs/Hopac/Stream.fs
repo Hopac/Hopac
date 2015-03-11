@@ -358,6 +358,13 @@ module Stream =
                              | Nil -> gcs.Suppress () ; Nil
     !tail |> recur
 
+  let rec pullOn ts xs =
+    ts >>=* function
+     | Nil -> nilj
+     | Cons (_, ts) ->
+       xs >>= function Nil -> nilj
+                     | Cons (x, xs) -> consj x (pullOn ts xs)
+
   let rec skipWhileJob' x2bJ = function
     | Cons (x, xs) ->
       x2bJ x >>= fun b -> if b then xs >>= skipWhileJob' x2bJ else consj x xs
@@ -688,3 +695,79 @@ module Stream =
   let switched = {new Builder () with
     member this.Zero () = never
     member this.Plus (xs, ys) = switch xs ys}
+
+(*
+
+
+type Constraint = interface end
+type Bit<'z, 'o, 'r> = inherit Constraint
+type Error = interface end
+
+type Live = interface end
+type Lazy = inherit Live
+
+type Inf = interface end
+type Fin = inherit Inf
+
+type Streams<'ly, 'fi, 'x> when 'ly :> Live and 'fi :> Inf = S of Stream.Stream<'x>
+
+
+module Streams =
+
+  let mapFun (x2y: 'x -> 'y) (S xs: Streams<'ly, 'fi, 'x>) : Streams<'ly, 'fi, 'y> =
+    S (Stream.mapFun x2y xs)
+
+  let zipFin (S xs: Streams<Lazy, Fin, 'x>)
+             (S ys: Streams<Lazy, Fin, 'y>) :
+                    Streams<Lazy, Fin, 'x * 'y> =
+    S (Stream.zip xs ys)
+
+  let zip (S xs: Streams<Lazy, #Inf, 'x>)
+          (S ys: Streams<Lazy, #Inf, 'y>) :
+                 Streams<Lazy, Inf, 'x * 'y> =
+    S (Stream.zip xs ys)
+
+  let cycle (S xs: Streams<Lazy, Fin, 'x>) :
+                   Streams<Lazy, Inf, 'x> =
+    S (Stream.cycle xs)
+
+  let appendMap (x2ys: 'x -> Streams<Lazy, Fin, 'y>)
+                (S xs: Streams<Lazy, 'fi :> Inf, 'x>) : Streams<Lazy, 'fi, 'y> =
+    S (Stream.appendMap (fun x -> x2ys x |> fun (S ys) -> ys) xs)
+
+  let switchMap (x2ys: 'x -> Streams<#Live, #Inf, 'y>)
+                (S xs: Streams<#Live, #Inf, 'x>) : Streams<Live, Inf, 'y> =
+    S (Stream.switchMap (fun x -> x2ys x |> fun (S ys) -> ys) xs)
+
+  let append (S xs: Streams<'ly :> Live, Fin, 'x>)
+             (S ys: Streams<Lazy, 'fi :> Inf, 'x>) : Streams<'ly, 'fi, 'x> =
+    S (Stream.append xs ys)
+
+  let ri () = S Stream.nil : Streams<Live, Inf, _>
+  let rf () = S Stream.nil : Streams<Live, Fin, _>
+  let li () = S Stream.nil : Streams<Lazy, Inf, _>
+  let lf () = S Stream.nil : Streams<Lazy, Fin, _>
+
+  let foo () = zipFin (lf ()) (lf ())
+
+  let foo00 () = append (ri ()) (ri ())
+  let foo01 () = append (ri ()) (rf ())
+  let foo02 () = append (ri ()) (li ())
+  let foo03 () = append (ri ()) (lf ())
+  let foo04 () = append (rf ()) (ri ())
+  let foo05 () = append (rf ()) (rf ())
+  let foo06 () = append (rf ()) (li ())
+  let foo07 () = append (rf ()) (lf ())
+  let foo08 () = append (li ()) (ri ())
+  let foo09 () = append (li ()) (rf ())
+  let foo10 () = append (li ()) (li ())
+  let foo11 () = append (li ()) (lf ())
+  let foo12 () = append (lf ()) (ri ())
+  let foo13 () = append (lf ()) (rf ())
+  let foo14 () = append (lf ()) (li ())
+  let foo15 () = append (lf ()) (lf ())
+
+  let bar1 () = cycle (l ())
+  let bar2 () = cycle (r ())
+
+  *)

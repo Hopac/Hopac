@@ -648,7 +648,7 @@ module Stream =
   /// Converts an imperative live stream into a lazy stream by spawning a job to
   /// eagerly consume (and throw away) elements from the live stream and to
   /// produce only one most recent element each time when requested.  See also:
-  /// `keepPreceding`, `keepFollowing1`.
+  /// `pullOn`, `keepPreceding`, `keepFollowing1`.
 #if DOC
   ///
   /// Basically,
@@ -675,9 +675,32 @@ module Stream =
 
   /// Converts an imperative live stream into a lazy stream by spawning a job to
   /// eagerly consume (and throw away) elements from the live stream and to
-  /// produce only one element after each pull request.  See also:
+  /// produce only one element after each pull request.  See also: `pullOn`,
   /// `keepPreceding1`.
   val keepFollowing1: Stream<'x> -> Stream<'x>
+
+  /// Given a stream of ticks and a lazy stream of values returns a stream of
+  /// elements pulled from the lazy stream based on the ticks.  See also:
+  /// `keepPreceding1`, `keepFollowing1`.
+#if DOC
+  ///
+  /// For example,
+  ///
+  ///> live |> keepPreceding1 |> pullOn ticks
+  ///
+  /// is similar to
+  ///
+  ///> live |> samplesBefore ticks
+  ///
+  /// and
+  ///
+  ///> live |> keepFollowing1 |> pullOn ticks
+  ///
+  /// is similar to
+  ///
+  ///> live |> samplesAfter ticks
+#endif
+  val pullOn: ticks: Stream<_> -> Stream<'x> -> Stream<'x>
 
   // Timing
 
