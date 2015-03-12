@@ -180,9 +180,9 @@ module Stream =
   val inline nil<'x> : Stream<'x>
 
   /// `cons x xs` constructs a choice stream whose first value is `x` and the
-  /// rest of the stream is computed using `xs`.  For example, `cons 1 <| cons 2
-  /// <| cons 3 nil` is a stream producing the sequence `1 2 3`.  See also:
-  /// `delay`.
+  /// rest of the stream is computed using `xs`.  For example, `cons 1 << cons 2
+  /// << cons 3 <| cons 4 nil` is a stream producing the sequence `1 2 3 4`.
+  /// See also: `delay`.
 #if DOC
   ///
   /// `cons x xs` is equivalent to `Promise.Now.withValue (Cons (x,
