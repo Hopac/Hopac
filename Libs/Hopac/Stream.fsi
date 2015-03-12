@@ -398,7 +398,8 @@ module Stream =
 
   /// Returns a stream of pairs of elements from the given pair of streams.  No
   /// elements from either stream are skipped and each element is used only
-  /// once.  See also: `combineLatest`.
+  /// once.  In `zip xs ys`, the `xs` stream is examined first.  See also:
+  /// `pullOn`, `combineLatest`.
 #if DOC
   ///
   /// For example,
@@ -410,7 +411,7 @@ module Stream =
   val zip: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
   /// `zipWithFun f xs ys` is equivalent to `zip xs ys |> mapFun (fun (x, y) ->
-  /// f x y)`
+  /// f x y)`.
   val zipWithFun: ('x -> 'y -> 'z) -> Stream<'x> -> Stream<'y> -> Stream<'z>
 
   /// Returns a stream whose elements are computed using the given job and
@@ -699,6 +700,8 @@ module Stream =
   /// is similar to
   ///
   ///> live |> samplesAfter ticks
+  ///
+  /// `pullOn ts xs` is equivalent to `zipWithFun (fun _ x -> x) ts xs`.
 #endif
   val pullOn: ticks: Stream<_> -> Stream<'x> -> Stream<'x>
 
@@ -795,7 +798,8 @@ module Stream =
 
   /// Returns a stream that produces the same elements as the given stream, but
   /// delays each pulled element using the given job.  If the given job fails,
-  /// the returned stream also fails.  See also: `shift`.
+  /// the returned stream also fails.  `delayEach yJ xs` is equivalent to
+  /// `zipWithFun (fun x _ -> x) xs (indefinitely yJ)`.  See also: `shift`.
 #if DOC
   ///
   ///>   input: 1        2 3   4        5
@@ -829,15 +833,8 @@ module Stream =
 
   /// Returns a stream that runs the given job each time a value is requested
   /// before requesting the next value from the given stream.  If the given job
-  /// fails, the returned stream also fails.
-#if DOC
-  ///
-  /// Reference implementation:
-  ///
-  ///> let rec beforeEach yJ xs =
-  ///>   yJ >>. xs >>=* function Nil -> nil
-  ///>                         | Cons (x, xs) -> cons x (beforeEach yJ xs)
-#endif
+  /// fails, the returned stream also fails.  `beforeEach yJ xs` is equivalent
+  /// to `pullOn (indefinitely yJ) xs`.
   val beforeEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Given a stream of dates, returns a stream that produces the dates after
