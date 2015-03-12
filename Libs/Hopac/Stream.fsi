@@ -185,11 +185,7 @@ module Stream =
   /// See also: `delay`.
 #if DOC
   ///
-  /// `cons x xs` is equivalent to `Promise.Now.withValue (Cons (x,
-  /// Promise.Now.delay xs))`.  Note that the rest of the stream, `xs`, is
-  /// implicitly memoized and, in addition to being a stream, because
-  /// `Stream<'x> :> Job<Cons<'x>>`, it can be a job that performs some
-  /// computation before returning a stream constructor.
+  /// `cons x xs` is equivalent to `Promise.Now.withValue (Cons (x, xs))`.
   ///
   /// Note that `cons` and `nil` directly correspond to the ordinary list
   /// constructors `::` and `[]` and, aside from the obvious notational
