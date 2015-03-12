@@ -301,7 +301,7 @@ module Stream =
   /// `cycle` is the identity function.
   val cycle: Stream<'x> -> Stream<'x>
 
-  // Observable
+  // Observables
 
   /// Subscribes to the given observable on the specified synchronization
   /// context and returns the events pushed by the observable as a stream.  A
@@ -847,8 +847,8 @@ module Stream =
   /// Returns a stream that produces the given date after the given date.
   val afterDateTimeOffset: DateTimeOffset -> Stream<DateTimeOffset>
 
-  /// Returns a stream that produces an element after the given time span.
-  /// Note that streams are memoized.
+  /// Returns a stream that produces an element after the given time span.  Note
+  /// that streams are memoized.
   val afterTimeSpan: TimeSpan -> Stream<unit>
 
   // Eliminating streams
