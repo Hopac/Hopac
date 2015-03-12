@@ -358,13 +358,6 @@ module Stream =
                              | Nil -> gcs.Suppress () ; Nil
     !tail |> recur
 
-  let rec pullOn ts xs =
-    ts >>=* function
-     | Nil -> nilj
-     | Cons (_, ts) ->
-       xs >>= function Nil -> nilj
-                     | Cons (x, xs) -> consj x (pullOn ts xs)
-
   let rec skipWhileJob' x2bJ = function
     | Cons (x, xs) ->
       x2bJ x >>= fun b -> if b then xs >>= skipWhileJob' x2bJ else consj x xs
@@ -400,10 +393,12 @@ module Stream =
   let combineLatest (xs: Stream<_>) (ys: Stream<_>) =
     ysxxs0 ys xs <|>* xsyys0 xs ys
 
-  let rec zipXY x xs = function Cons (y, ys) -> Cons ((x, y), zip xs ys)
-                                   | Nil -> Nil
-  and zipX ys = function Cons (x, xs) -> ys |>> zipXY x xs
-                       | Nil -> nilj
+  let rec pullOnT xs = function Cons (_, ts) -> xs |>> pullOnX ts | Nil -> nilj
+  and pullOnX ts = function Cons (x, xs) -> Cons (x, pullOn ts xs) | Nil -> Nil
+  and pullOn ts xs = ts >>=* pullOnT xs
+
+  let rec zipX ys = function Cons (x, xs) -> ys |>> zipY x xs | Nil -> nilj
+  and zipY x xs = function Cons (y, ys) -> Cons ((x, y), zip xs ys) | Nil -> Nil
   and zip xs ys = xs >>=* zipX ys
   let rec zipWithFunXY xy2z x xs = function
     | Cons (y, ys) -> Cons (xy2z x y, zipWithFun xy2z xs ys)
