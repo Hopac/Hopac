@@ -524,6 +524,18 @@ module Stream =
   /// given binary join combinator.
   val joinWith: ('x -> Stream<'y> -> #Job<Cons<'y>>) -> Stream<'x> -> Stream<'y>
 
+  /// Joins all the streams together with `amb`.
+  val ambAll: Stream<#Stream<'x>> -> Stream<'x>
+
+  /// Joins all the streams together with `merge`.
+  val mergeAll: Stream<#Stream<'x>> -> Stream<'x>
+
+  /// Joins all the streams together with `append`.
+  val appendAll: Stream<#Stream<'x>> -> Stream<'x>
+
+  /// Joins all the streams together with `switch`.
+  val switchAll: Stream<#Stream<'x>> -> Stream<'x>
+
   /// `mapJoin j f xs` is equivalent to `joinWith j (mapFun f xs)`.
   val inline mapJoin: ('y -> Stream<'z> -> #Job<Cons<'z>>) -> ('x -> 'y) -> Stream<'x> -> Stream<'z>
 

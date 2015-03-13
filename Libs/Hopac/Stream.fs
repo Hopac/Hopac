@@ -215,6 +215,11 @@ module Stream =
     xs >>=* function Cons (x, xs) -> join x (joinWith join xs) :> Job<_>
                    | Nil -> nilj
 
+  let ambAll xxs = joinWith amb xxs
+  let mergeAll xxs = joinWith merge xxs
+  let appendAll xxs = joinWith append xxs
+  let switchAll xxs = joinWith switch xxs
+
   let inline mapJoin join x2ys xs = joinWith (fun x zs -> join (x2ys x) zs) xs
 
   let ambMap x2ys xs = mapJoin amb' x2ys xs
