@@ -604,8 +604,13 @@ module Stream =
     xs |>>* function Cons (x, _) -> Cons (x, nil) | Nil -> Nil
   let tail (xs: Stream<_>) =
     xs >>=* function Cons (_, xs) -> xs :> Job<_> | Nil -> nilj
-  let rec ts' = function Cons (_, xs) -> Cons (xs, xs |>>* ts') | Nil -> Nil
-  let tails xs = cons xs (xs |>>* ts')
+  let rec tails' = function Cons (_, xs) -> Cons (xs, xs |>>* tails')
+                          | Nil -> Nil
+  let tails xs = cons xs (xs |>>* tails')
+  let rec tailsMapFun' xs2y = function
+    | Cons (_, xs) -> Cons (xs2y xs, xs |>>* tailsMapFun' xs2y)
+    | Nil -> Nil
+  let tailsMapFun xs2y xs = cons (xs2y xs) (xs |>>* tailsMapFun' xs2y)
 
   let last (s: Stream<_>) = memo << Job.delay <| fun () ->
     let rec lp (r: Job<_>) s =
@@ -618,6 +623,8 @@ module Stream =
        (fun _ -> nilj)
     s >>= function Nil -> nilj | Cons (x, s) -> lp x s
   let inits xs = scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> take n xs)
+  let initsMapFun xs2y xs =
+    scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> xs2y (take n xs))
 
   let rec unfoldJob f s =
     f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)

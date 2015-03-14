@@ -936,6 +936,9 @@ module Stream =
 #endif
   val tails: Stream<'x> -> Stream<Stream<'x>>
 
+  /// `tailsMapFun xs2y xs` is equivalent to `tails xs |> mapFun xs2y`.
+  val tailsMapFun: (Stream<'x> -> 'y) -> Stream<'x> -> Stream<'y>
+
   /// Returns a stream containing the last element of the given stream.  If the
   /// given stream is closed, a closed stream is returned.  Note that `append
   /// (init xs) (last xs)` is equivalent to `xs`.
@@ -949,6 +952,9 @@ module Stream =
   /// Returns a stream of all initial segments of the given stream from shortest
   /// to longest.
   val inits: Stream<'x> -> Stream<Stream<'x>>
+
+  /// `initsMapFun xs2y xs` is equivalent to `inits xs |> mapFun xs2y`.
+  val initsMapFun: (Stream<'x> -> 'y) -> Stream<'x> -> Stream<'y>
 
   /// An experimental generic builder for streams.  The abstract `Plus` and
   /// `Zero` operations need to be implemented in a derived class.  The
