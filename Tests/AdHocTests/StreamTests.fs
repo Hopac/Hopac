@@ -111,8 +111,8 @@ do quick <| fun (xs: list<int>) (f: int -> byte) ->
    (xs
     |> Stream.onList (fun xs ->
        xs
-       |> Stream.groupByFun f
-       |> Stream.mapJob (fun (_, _, xs) -> Stream.toList xs)))
+       |> Stream.groupByFun (fun _ _ xs -> xs) f
+       |> Stream.mapJob (fun xs -> Stream.toList xs)))
     = (xs
       |> Seq.groupBy f
       |> Seq.map (fun (_, xs) -> List.ofSeq xs)

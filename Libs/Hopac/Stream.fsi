@@ -373,24 +373,33 @@ module Stream =
   /// stream produces an element.
   val mapConst: 'y -> Stream<'x> -> Stream<'y>
 
-  /// Splits the given stream into substreams based on the keys extracted from
-  /// the elements by the given job.  See also: `groupByFun`.
+  /// `groupByJob newGroup keyOf elems` splits the given source stream into
+  /// substreams or groups based on the keys extracted from the elements by
+  /// `keyOf` and formed using `newGroup`.  See also: `groupByFun`.
 #if DOC
   ///
-  /// The jobs returned as a part of the resulting stream can be used to
-  /// explicitly close the associated substreams.  Unless explicitly closed,
-  /// substreams remain alive as long as the given stream.  When closing
+  /// New groups are formed by calling the given function with a key, a job for
+  /// closing the substream and the substream.  Unless explicitly closed,
+  /// substreams remain alive as long as the source stream.  When closing
   /// substreams, it is important to understand that streams operate
   /// concurrently.  This means that one should always consume the substream
   /// until it ends after closing it.  If, after closing a substream, the given
   /// stream produces more elements with the same key, a new substream with the
   /// key will be opened.
 #endif
-  val groupByJob: ('x -> #Job<'k>) -> Stream<'x> -> Stream<'k * Job<unit> * Stream<'x>> when 'k: equality
+  val groupByJob: ('k -> Job<unit> -> Stream<'x> -> #Job<'y>)
+               -> ('x -> #Job<'k>)
+               -> Stream<'x>
+               -> Stream<'y> when 'k: equality
 
-  /// Splits the given stream into substreams based on the keys extracted from
-  /// the elements by the given function.  See `groupByJob` for further details.
-  val groupByFun: ('x -> 'k) -> Stream<'x> -> Stream<'k * Job<unit> * Stream<'x>> when 'k: equality
+  /// `groupByJob newGroup keyOf elems` splits the given source stream into
+  /// substreams or groups based on the keys extracted from the elements by
+  /// `keyOf` and formed using `newGroup`.  See `groupByJob` for further
+  /// details.
+  val groupByFun: ('k -> Job<unit> -> Stream<'x> -> 'y)
+               -> ('x -> 'k)
+               -> Stream<'x>
+               -> Stream<'y> when 'k: equality
 
   /// Returns a stream of pairs of elements from the given pair of streams.  No
   /// elements from either stream are skipped and each element is used only

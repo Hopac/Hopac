@@ -527,7 +527,9 @@ module Stream =
     xs |>>* function Cons (x, xs) -> Cons (x, xs >>=* duc' x) | Nil -> Nil
 
   type Group<'k, 'x> = {key: 'k; mutable var: IVar<Cons<'x>>}
-  let groupByJob (keyOf: 'x -> #Job<'k>) ss =
+  let groupByJob (newGroup: 'k -> Job<unit> -> Stream<'x> -> #Job<'y>)
+                 (keyOf: 'x -> #Job<'k>)
+                 ss =
     let key2br = Dictionary<'k, Group<'k, 'x>>()
     let main = ref (IVar<_> ())
     let baton = MVar<_>(ss)
@@ -564,8 +566,9 @@ module Stream =
                           let m = !main
                           main := i'
                           let close = closes <-+ g
-                          let ki = (k, close, wrapBr k i)
-                          m <-= Cons (ki, i') >>. newK serve ss ki i'
+                          Job.tryInDelay <| fun () -> newGroup k close (wrapBr k i)
+                           <| fun y -> m <-= Cons (y, i') >>. newK serve ss y i'
+                           <| raised
                   <| raised
                | Nil ->
                  key2br.Values
@@ -582,11 +585,13 @@ module Stream =
             if k = k' then baton <<-= ss >>% Nil else serve ss
     let rec wrapMain xs =
       wrap wrapMain xs
-       <| fun _ ss ki i -> baton <<-= ss >>% Cons (ki, wrapMain i)
+       <| fun _ ss y i -> baton <<-= ss >>% Cons (y, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
        <| fun serve ss _ -> serve ss
     wrapMain (!main)
-  let groupByFun keyOf ss = groupByJob (Job.lift keyOf) ss
+  let groupByFun newGroup keyOf ss =
+    groupByJob (fun k uJ xs -> newGroup k uJ xs |> Job.result)
+     (keyOf >> Job.result) ss
 
   let rec skip' xs = function
     | 0L -> xs :> Job<_>
