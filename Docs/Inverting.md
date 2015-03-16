@@ -562,23 +562,28 @@ action is executed.  However, unlike with the Rx `Finally`, if the clients
 consuming a stream returned by `onCloseJob` do not consume the stream until it
 is closed, the action will not be performed.
 
-Of course, it is also possible to implement an explicit notification interface
-between a particular choice stream combinator or producer and its clients, but
-such functionality is not built into the mechanism.
+Using finalizers it is also possible to implement a combinator that invokes a
+finalization action even in case a stream is just discarded and becomes garbage.
+Such combinators are provided by the actual choice stream library, see
+[doFinalizeJob](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Stream.doFinalizeJob).
+
+It is also possible to implement an explicit notification interface between a
+particular choice stream combinator or producer and its clients, but such
+functionality is not built into the mechanism.
 
 ## Summary
 
-Feature                    | Choice Streams    | Reactive Extensions  | Arguably better?
---------------------------:|:-----------------:|:--------------------:|:-----------------:
-Approach                   | Lazy Pull         | Eager Push           | -
-Merge                      | Yes               | Yes                  | -
-GroupBy                    | Yes               | Yes                  | -
-Compositions               | Declarative       | Declarative          | -
-Consistent Streams         | Yes               | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html) | Choice streams
-Consumers                  | Can be functional | Always imperative    | Choice streams
-Fully GC'd                 | Yes               | No                   | Choice streams
-Wraps locks over user code | No                | Yes                  | Choice streams
-Directly supports dispose  | No                | Yes                  | Reactive Extensions
+Feature                    | Choice Streams      | Reactive Extensions  | Arguably better?
+--------------------------:|:-------------------:|:--------------------:|:-----------------:
+Approach                   | Lazy Pull           | Eager Push           | -
+Merge                      | Yes                 | Yes                  | -
+GroupBy                    | Yes                 | Yes                  | -
+Compositions               | Declarative         | Declarative          | -
+Consistent Streams         | Yes                 | [No](http://nullzzz.blogspot.fi/2012/01/things-you-should-know-about-rx.html) | Choice streams
+Consumers                  | Can be functional   | Always imperative    | Choice streams
+Fully GC'd                 | Yes                 | No                   | Choice streams
+Wraps locks over user code | No                  | Yes                  | Choice streams
+Directly supports dispose  | No, needs finalizer | Yes                  | Reactive Extensions[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Stream.doFinalizeJob)
 
 ## Let's see some more code!
 
