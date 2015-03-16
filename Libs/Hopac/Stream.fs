@@ -90,6 +90,13 @@ module Stream =
     |> memo
   let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
 
+  type FinalizeJob (uJ: Job<unit>) =
+    override this.Finalize () = start uJ
+  let doFinalizeJob (uJ: Job<unit>) xs =
+    let finalize = FinalizeJob (uJ)
+    onCloseJob (Job.delay <| fun () -> GC.SuppressFinalize finalize ; Job.start uJ) xs
+  let doFinalizeFun u2u xs = doFinalizeJob (Job.thunk u2u) xs
+
   let inline post (ctxt: SynchronizationContext) op =
     match ctxt with null -> op () | ctxt -> ctxt.Post ((fun _ -> op ()), null)
 

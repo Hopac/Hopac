@@ -159,6 +159,9 @@ module Stream =
   val inline onCloseJob: Job<unit> -> Stream<'l, 'x> -> Stream<'l, 'x>
   val inline onCloseFun: (unit -> unit) -> Stream<'l, 'x> -> Stream<'l, 'x>
 
+  val inline doFinalizeJob: Job<unit> -> Stream<'l, 'x> -> Stream<'l, 'x>
+  val inline doFinalizeFun: (unit -> unit) -> Stream<'l, 'x> -> Stream<'l, 'x>
+
   val inline keepPrecedingFuns: Hopac.Stream.KeepPrecedingFuns<'x, 'y>
                       -> Stream<#Live, 'x>
                       -> Stream<'l, 'y>

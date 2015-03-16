@@ -26,7 +26,8 @@ module Stream =
   /// Probably the most notable advantage of observable sequences over choice
   /// streams is that observables support disposables via their subscription
   /// protocol.  Choice streams do not have a subscription protocol and cannot
-  /// support disposables in the same manner.
+  /// support disposables in the exact same manner.  However, `onCloseJob` and
+  /// `doFinalizeJob` provide similar functionality.
   ///
   /// On the other hand, choice streams offer several advantages over observable
   /// sequences:
@@ -641,12 +642,27 @@ module Stream =
   /// before the returned stream is closed, due to the given stream being
   /// closed, whether with an error or without, the given job is executed.  In
   /// case the job raises an exception, that exception closes the returned
-  /// stream.
+  /// stream.  See also: `onCloseFun`, `doFinalizeJob`.
   val onCloseJob: Job<unit> -> Stream<'x> -> Stream<'x>
 
-  /// `xs |> onCloseFun u2u` is equivalent to `xs |> onCloseJob (Job.thunk
-  /// u2u)`.
+  /// Returns a stream that is just like the given stream except that just
+  /// before the returned stream is closed, due to the given stream being
+  /// closed, whether with an error or without, the given function is called.
+  /// In case the function raises an exception, that exception closes the
+  /// returned stream.  See also: `onCloseJob`, `doFinalizeFun`.
   val onCloseFun: (unit -> unit) -> Stream<'x> -> Stream<'x>
+
+  /// Returns a stream that is just like the given stream except that after
+  /// the returned stream is closed or becomes garbage, the given job is
+  /// started as a separate concurrent job.  See also: `doFinalizeFun`,
+  /// `onCloseJob`.
+  val doFinalizeJob: Job<unit> -> Stream<'x> -> Stream<'x>
+
+  /// Returns a stream that is just like the given stream except that after
+  /// the returned stream is closed or becomes garbage, a separate job is
+  /// started that calls the given function.  See also: `doFinalizeJob`,
+  /// `onCloseFun`.
+  val doFinalizeFun: (unit -> unit) -> Stream<'x> -> Stream<'x>
 
   // Lazifying
 

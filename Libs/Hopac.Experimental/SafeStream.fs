@@ -175,6 +175,9 @@ module Stream =
   let inline onCloseJob uJ xs = lazily xs <| Stream.onCloseJob uJ
   let inline onCloseFun u2u xs = lazily xs <| Stream.onCloseFun u2u
 
+  let inline doFinalizeJob uJ xs = lazily xs <| Stream.doFinalizeJob uJ
+  let inline doFinalizeFun u2u xs = lazily xs <| Stream.doFinalizeFun u2u
+
   let inline keepPrecedingFuns fns (Stream xs: Stream<#Live, _>) =
     Stream.keepPrecedingFuns fns xs |> Stream
   let inline keepPreceding maxCount (Stream xs: Stream<#Live, _>) =
