@@ -60,6 +60,8 @@
     <Compile Include="EagerSeq.fs" />
     <Compile Include="Discrete.fsi" />
     <Compile Include="Discrete.fs" />
+    <Compile Include="SafeStream.fsi" />
+    <Compile Include="SafeStream.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">12</MinimumVisualStudioVersion>
