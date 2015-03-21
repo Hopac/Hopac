@@ -46,6 +46,27 @@ module Stream =
     let close s = Job.delay <| fun () -> s.src <-= Nil // delay required
     let tap s = s.src :> Promise<_>
 
+  let ValueChangedEventArgs =
+    System.ComponentModel.PropertyChangedEventArgs "Value"
+
+  type Property<'x> (x: 'x) =
+    let mutable var = Cons (x, IVar<_> ())
+    let propertyChangedEvent = Event<_,_> ()
+    interface System.ComponentModel.INotifyPropertyChanged with
+      [<CLIEvent>]
+      member this.PropertyChanged = propertyChangedEvent.Publish
+    member this.Value
+     with get () =
+        match var with Cons (x, _) -> x | Nil -> failwith "Impossible"
+      and set x =
+        let c = Cons (x, IVar<_> ())
+        match Interlocked.Exchange (&var, c) with
+         | Cons (_, i) ->
+           (i :?> IVar<_>) <-= c |> start
+           propertyChangedEvent.Trigger (this, ValueChangedEventArgs)
+         | Nil -> failwith "Impossible"
+    member this.Tap () = Promise.Now.withValue var
+
   type Var<'x> = {mutable var: Cons<'x>}
 
   module Var =

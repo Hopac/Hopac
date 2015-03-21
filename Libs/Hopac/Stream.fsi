@@ -5,6 +5,7 @@ namespace Hopac
 open System
 open System.Threading
 open System.Collections.Generic
+open System.ComponentModel
 
 /// Operations on choice streams.
 module Stream =
@@ -172,6 +173,21 @@ module Stream =
     /// Returns the generated stream, including the current value of the
     /// variable, from the point in time when `tap` is called.
     val tap: Var<'x> -> Stream<'x>
+
+  /// Represents a mutable property, much like a stream variable, that generates
+  /// a stream of values and property change notifications as a side-effect.
+  type Property<'x> =
+    interface INotifyPropertyChanged
+
+    /// Creates a new property with the specified initial value.
+    new: 'x -> Property<'x>
+
+    /// Allows to get and set the value of a `Property<'x>`.
+    member Value: 'x with get, set
+
+    /// Returns the generated stream, including the current value of the
+    /// property, from the point in time when `Tap` is called.
+    member Tap: unit -> Stream<'x>
 
   // Introducing streams
 
