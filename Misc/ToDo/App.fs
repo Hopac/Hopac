@@ -2,9 +2,13 @@
 
 module ToDo
 
-// NOTE: This is not meant to demonstrate the most concise or best way to
-// program with WPF and choice streams.  This example overuses choice streams
-// to show some more usage patterns.
+// NOTES: This is not meant to demonstrate the most concise or best way to
+// program with WPF and choice streams.  This example overuses choice streams to
+// show some more usage patterns.  WPF is fundamentally an imperative UI
+// framework and this example does not try to rewrite WPF as a more functional
+// framework.  Some of the simple techniques in this example, such using an
+// immutable list as the model and removing and adding all controls when the
+// model changes, do not scale.  Consider those as exercises to fix.
 
 open Hopac
 open Hopac.Job.Infixes
@@ -13,6 +17,7 @@ open Hopac.Infixes
 open Hopac.Extensions
 
 open System
+open System.Collections.Generic
 open System.Threading
 open System.Windows
 open System.Windows.Controls
@@ -44,7 +49,7 @@ let main argv =
 
       let itemsAndCtrls =
         Stream.Var.tap itemsVar
-        |> Stream.mapJob (fun items -> onMain {
+        |> Stream.scanFromJob [] (fun oldItemsAndCtrls newItems -> onMain {
            let newCtrl item =
              let ctrl = ToDo.UI.ItemControl ()
 
@@ -78,8 +83,15 @@ let main argv =
 
              ctrl
 
-           return items
-                  |> List.map (fun item -> (item, newCtrl item)) })
+           let itemToCtrl = Dictionary<_, _> ()
+           oldItemsAndCtrls |> List.iter (fun (item, ctrl) -> itemToCtrl.[item] <- ctrl)
+
+           return newItems
+                  |> List.map (fun item ->
+                     (item,
+                      match itemToCtrl.TryGetValue item with
+                       | (false, _) -> newCtrl item
+                       | (_, ctrl) -> ctrl)) })
 
       let filter =
         let filterOn (button: Button) pred =
@@ -115,9 +127,16 @@ let main argv =
       |> queue
 
       Stream.ofObservableOnMain main.EnterHeader.KeyUp
-      |> Stream.chooseFun (fun e -> if e.Key = Key.Enter then Some () else None)
-      |> Stream.iterJob (fun _ -> onMain {
-         let item = {IsCompleted = Stream.Var.create false; Header = main.EnterHeader.Text}
+      |> Stream.chooseJob (fun e -> onMain {
+         return match main.EnterHeader.Text with
+                 | _ when e.Key <> Key.Enter -> None
+                 | "" -> None
+                 | header -> Some header })
+      |> Stream.filterFun (fun header ->
+         Stream.Var.get itemsVar
+         |> List.forall (fun item -> item.Header <> header))
+      |> Stream.iterJob (fun header -> onMain {
+         let item = {IsCompleted = Stream.Var.create false; Header = header}
          main.EnterHeader.Text <- ""
          return! (Stream.Var.get itemsVar @ [item])
                  |> Stream.Var.set itemsVar })
