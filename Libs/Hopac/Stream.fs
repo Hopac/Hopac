@@ -14,6 +14,7 @@ open Timer.Global
 
 module Stream =
   let inline memo x = Promise.Now.delay x
+  let inline queue x = Job.Global.queue x
   let inline start x = Job.Global.start x
   let inline server x = Job.Global.server x
   let inline tryIn u2v vK eK =
@@ -468,6 +469,9 @@ module Stream =
     xs >>= function Cons (x, xs) -> f x ; iterFun f xs | Nil -> Job.unit ()
   let rec iter (xs: Stream<_>) : Job<unit> =
     xs >>= function Cons (_, xs) -> iter xs | Nil -> Job.unit ()
+  let subscribeJob f xs = iterJob f xs |> queue
+  let subscribeFun f xs = iterFun f xs |> queue
+  let subscribe xs = iter xs |> queue
 
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray<_>()

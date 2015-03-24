@@ -952,6 +952,15 @@ module Stream =
   /// `iter xs` is equivalent to `iterFun id xs`.
   val iter: Stream<'x> -> Job<unit>
 
+  /// `xs |> subscribeJob x2uJ` is equivalent to `xs |> iterJob x2uJ |> queue`.
+  val subscribeJob: ('x -> #Job<unit>) -> Stream<'x> -> unit
+
+  /// `xs |> subscribeFun x2u` is equivalent to `xs |> iterFun x2u |> queue`.
+  val subscribeFun: ('x -> unit) -> Stream<'x> -> unit
+
+  /// `xs |> subscribe` is equivalent to `xs |> iter |> queue`.
+  val subscribe: Stream<'x> -> unit
+
   /// Returns a job that computes the length of the given stream.
   val count: Stream<'x> -> Job<int64>
 
