@@ -30,6 +30,19 @@ open System.Windows.Input
 
 [<AutoOpen>]
 module internal Util =
+  type IDictionary<'k, 'v> with
+    member this.TryGet k =
+      match this.TryGetValue k with
+       | (false, _) -> None
+       | (_, v) -> Some v
+    member this.Add (kvs: seq<'k * 'v>) =
+      kvs |> Seq.iter this.Add
+  module Dictionary =
+    let create kvs =
+      let d = Dictionary<_, _>()
+      d.Add kvs
+      d
+
   let setupWhen (onEvent: IEvent<_, _>) =
     let mainCtx = ivar ()
     let handler =
@@ -54,18 +67,16 @@ let main argv =
 
       let itemsVar = Stream.Var.create []
 
-      let items = Stream.Var.tap itemsVar
-
       let changedCompleted =
-        items
+        Stream.Var.tap itemsVar
         |> Stream.switchMap (fun items ->
            Stream.ofSeq items
-           |> Stream.mergeMap (fun i -> Stream.Var.tap i.IsCompleted)
+           |> Stream.mergeMap (fun item -> Stream.Var.tap item.IsCompleted)
            |> Stream.mapConst items)
-        |> Stream.merge items
+        |> Stream.merge (Stream.Var.tap itemsVar)
 
       let itemsAndCtrls =
-        items
+        Stream.Var.tap itemsVar
         |> Stream.scanFromJob [] (fun oldItemsAndCtrls newItems -> onMain {
            let newCtrl item =
              let ctrl = ToDo.UI.ItemControl ()
@@ -77,19 +88,18 @@ let main argv =
                 if ctrl.Header.Focus () then
                   ctrl.Header.SelectAll () })
              Stream.ofObservableOnMain ctrl.Header.KeyUp
-             |> Stream.filterFun (fun e -> e.Key = Key.Enter)
-             |> Stream.mapConst ()
+             |> Stream.filterFun (fun evt -> evt.Key = Key.Enter)
+             |> Stream.mapIgnore
              |> Stream.merge (Stream.ofObservableOnMain ctrl.LostFocus
-                              |> Stream.mapConst ())
-             |> Stream.subscribeJob (fun _ -> onMain {
+                              |> Stream.mapIgnore)
+             |> Stream.subscribeJob (fun () -> onMain {
+                Keyboard.ClearFocus ()
+                ctrl.Header.Focusable <- false
                 match ctrl.Header.Text.Trim () with
                  | "" ->
                    ctrl.Header.Text <- Stream.Var.get item.Header
-                   ctrl.Header.Focusable <- false
                  | text ->
-                   Keyboard.ClearFocus ()
                    ctrl.Header.Text <- text
-                   ctrl.Header.Focusable <- false
                    return! Stream.Var.set item.Header text })
 
              Stream.ofObservableOnMain ctrl.IsCompleted.Click
@@ -108,34 +118,34 @@ let main argv =
                 ctrl.Header.FontStyle <-
                   if isCompleted then FontStyles.Italic else FontStyles.Normal })
 
-             Stream.ofObservableOnMain ctrl.MouseEnter
-             |> Stream.subscribeJob (fun _ -> onMain {
-                ctrl.Remove.Visibility <- Visibility.Visible })
-             Stream.ofObservableOnMain ctrl.MouseLeave
-             |> Stream.subscribeJob (fun _ -> onMain {
-                ctrl.Remove.Visibility <- Visibility.Hidden })
+             Stream.merge
+              (Stream.ofObservableOnMain ctrl.MouseEnter |> Stream.mapConst +1)
+              (Stream.ofObservableOnMain ctrl.MouseLeave |> Stream.mapConst -1)
+             |> Stream.scanFromFun 0 (+)
+             |> Stream.subscribeJob (fun n -> onMain {
+                ctrl.Remove.Visibility <-
+                  if 0 < n then Visibility.Visible else Visibility.Hidden })
 
              Stream.ofObservableOnMain ctrl.Remove.Click
              |> Stream.subscribeJob (fun _ ->
                 Stream.Var.get itemsVar
-                |> List.filter (fun item' -> item' <> item)
+                |> List.filter ((<>) item)
                 |> Stream.Var.set itemsVar)
 
              ctrl
 
-           let itemToCtrl = Dictionary<_, _> ()
-           oldItemsAndCtrls |> List.iter (fun (item, ctrl) -> itemToCtrl.[item] <- ctrl)
+           let itemToCtrl = Dictionary.create oldItemsAndCtrls
 
            return newItems
                   |> List.map (fun item ->
                      (item,
-                      match itemToCtrl.TryGetValue item with
-                       | (false, _) -> newCtrl item
-                       | (_, ctrl) -> ctrl)) })
+                      match itemToCtrl.TryGet item with
+                       | None -> newCtrl item
+                       | Some ctrl -> ctrl)) })
 
       let isAny _ = true
-      let isCompleted it = Stream.Var.get it.IsCompleted
-      let isActive it = isCompleted it |> not
+      let isCompleted item = Stream.Var.get item.IsCompleted
+      let isActive item = isCompleted item |> not
 
       let filter =
         let filterOn (button: Button) pred =
@@ -174,7 +184,7 @@ let main argv =
          onMain { main.EnterHeader.Text <- "" } >>.
          let item = {IsCompleted = Stream.Var.create false
                      Header = Stream.Var.create header}
-         (Stream.Var.get itemsVar @ [item])
+         Stream.Var.get itemsVar @ [item]
          |> Stream.Var.set itemsVar)
 
       changedCompleted
