@@ -6,7 +6,7 @@ module ToDo
 // program with WPF and choice streams.  This example avoids data binding and
 // some builtin WPF controls and overuses choice streams to show some more
 // choice stream usage patterns.  WPF is fundamentally an imperative UI
-// framework and this example does not try to rewrite WPF as a more functional
+// framework and this example does not try to rewrite WPF as a more declarative
 // framework.  Some of the simple techniques used in this example, such using an
 // immutable list as the model and removing and adding all controls to a panel
 // when the model changes, do not scale (yes, there are builtin components for
