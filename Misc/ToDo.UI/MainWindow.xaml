@@ -10,7 +10,14 @@
       <RowDefinition Height="*"/>
       <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
-    <TextBox Grid.Row="0" x:Name="EnterHeader" x:FieldModifier="public" Margin="5 5 5 5" Padding="5 5" VerticalAlignment="Center" Grid.Column="1"/>
+    <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <CheckBox Grid.Column="0" x:Name="CompleteAll" x:FieldModifier="public" Margin="5 5 5 5" VerticalAlignment="Center"/>
+      <TextBox Grid.Column="1" x:Name="EnterHeader" x:FieldModifier="public" Margin="5 5 5 5" Padding="5 5" VerticalAlignment="Center"/>
+    </Grid>
     <ScrollViewer Grid.Row="1" VerticalAlignment="Stretch">
       <StackPanel Orientation="Vertical" x:Name="Items" x:FieldModifier="public">
       </StackPanel>
