@@ -390,6 +390,9 @@ module Stream =
   /// stream produces an element.
   val mapConst: 'y -> Stream<'x> -> Stream<'y>
 
+  /// `xs |> mapIgnore` is equivalent to `xs |> mapConst ()`.
+  val mapIgnore: Stream<'x> -> Stream<unit>
+
   /// `groupByJob newGroup keyOf elems` splits the given source stream into
   /// substreams or groups based on the keys extracted from the elements by
   /// `keyOf` and formed using `newGroup`.  See also: `groupByFun`.

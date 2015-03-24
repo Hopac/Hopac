@@ -222,6 +222,8 @@ module Stream =
     xs |>>* function Cons (x, xs) -> Cons (x2y x, mapFun x2y xs) | Nil -> Nil
   let rec mapConst y xs =
     xs |>>* function Cons (_, xs) -> Cons (y, mapConst y xs) | Nil -> Nil
+  let rec mapIgnore xs =
+    xs |>>* function Cons (_, xs) -> Cons ((), mapIgnore xs) | Nil -> Nil
 
   let amb' (ls: Stream<_>) (rs: Stream<_>) = ls <|>? rs
   let amb ls rs = amb' ls rs |> memo
