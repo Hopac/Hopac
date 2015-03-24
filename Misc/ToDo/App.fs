@@ -58,11 +58,11 @@ let main argv =
 
       let changedCompleted =
         items
-        |> Stream.switchMap
-            (Stream.ofSeq
-             >> Stream.mergeMap (fun i -> Stream.Var.tap i.IsCompleted))
-        |> Stream.mapConst ()
-        |> Stream.merge (items |> Stream.mapConst ())
+        |> Stream.switchMap (fun items ->
+           Stream.ofSeq items
+           |> Stream.mergeMap (fun i -> Stream.Var.tap i.IsCompleted)
+           |> Stream.mapConst items)
+        |> Stream.merge items
 
       let itemsAndCtrls =
         items
@@ -72,17 +72,16 @@ let main argv =
 
              ctrl.Header.Text <- Stream.Var.get item.Header
              Stream.ofObservableOnMain ctrl.Header.MouseDoubleClick
-             |> Stream.iterJob (fun _ -> onMain {
+             |> Stream.subscribeJob (fun _ -> onMain {
                 ctrl.Header.Focusable <- true
                 if ctrl.Header.Focus () then
                   ctrl.Header.SelectAll () })
-             |> queue
              Stream.ofObservableOnMain ctrl.Header.KeyUp
              |> Stream.filterFun (fun e -> e.Key = Key.Enter)
              |> Stream.mapConst ()
              |> Stream.merge (Stream.ofObservableOnMain ctrl.LostFocus
                               |> Stream.mapConst ())
-             |> Stream.iterJob (fun () -> onMain {
+             |> Stream.subscribeJob (fun _ -> onMain {
                 match ctrl.Header.Text.Trim () with
                  | "" ->
                    ctrl.Header.Text <- Stream.Var.get item.Header
@@ -92,42 +91,35 @@ let main argv =
                    ctrl.Header.Text <- text
                    ctrl.Header.Focusable <- false
                    return! Stream.Var.set item.Header text })
-             |> queue
 
              Stream.ofObservableOnMain ctrl.IsCompleted.Click
-             |> Stream.iterJob (fun _ -> onMain {
+             |> Stream.subscribeJob (fun _ -> onMain {
                 let isChecked = ctrl.IsCompleted.IsChecked.Value
                 if isChecked <> Stream.Var.get item.IsCompleted then
                   Stream.Var.set item.IsCompleted isChecked |> start })
-             |> queue
              Stream.Var.tap item.IsCompleted
-             |> Stream.iterJob (fun _ -> onMain {
+             |> Stream.subscribeJob (fun _ -> onMain {
                 let isCompleted = Stream.Var.get item.IsCompleted
                 if ctrl.IsCompleted.IsChecked.Value <> isCompleted then
                   ctrl.IsCompleted.IsChecked <- Nullable<bool> isCompleted })
-             |> queue
 
              Stream.Var.tap item.IsCompleted
-             |> Stream.iterJob (fun isCompleted -> onMain {
+             |> Stream.subscribeJob (fun isCompleted -> onMain {
                 ctrl.Header.FontStyle <-
                   if isCompleted then FontStyles.Italic else FontStyles.Normal })
-             |> queue
 
              Stream.ofObservableOnMain ctrl.MouseEnter
-             |> Stream.iterJob (fun _ -> onMain {
+             |> Stream.subscribeJob (fun _ -> onMain {
                 ctrl.Remove.Visibility <- Visibility.Visible })
-             |> queue
              Stream.ofObservableOnMain ctrl.MouseLeave
-             |> Stream.iterJob (fun _ -> onMain {
+             |> Stream.subscribeJob (fun _ -> onMain {
                 ctrl.Remove.Visibility <- Visibility.Hidden })
-             |> queue
 
              Stream.ofObservableOnMain ctrl.Remove.Click
-             |> Stream.iterJob (fun _ -> 
+             |> Stream.subscribeJob (fun _ ->
                 Stream.Var.get itemsVar
                 |> List.filter (fun item' -> item' <> item)
                 |> Stream.Var.set itemsVar)
-             |> queue
 
              ctrl
 
@@ -162,16 +154,15 @@ let main argv =
         changedCompleted
         |> Stream.combineLatest itemsAndCtrls
         |> Stream.combineLatest filter
-        |> Stream.mapFun (fun (filter, (ics, ())) ->
+        |> Stream.mapFun (fun (filter, (ics, _)) ->
            ics
            |> List.filter (fst >> filter))
 
       filteredItemsAndCtrls
-      |> Stream.iterJob (fun fics -> onMain {
+      |> Stream.subscribeJob (fun fics -> onMain {
          main.Items.Children.Clear ()
          fics
          |> Seq.iter (snd >> main.Items.Children.Add >> ignore) })
-      |> queue
 
       Stream.ofObservableOnMain main.EnterHeader.KeyUp
       |> Stream.filterFun (fun e -> e.Key = Key.Enter)
@@ -179,49 +170,42 @@ let main argv =
          return match main.EnterHeader.Text.Trim () with
                  | "" -> None
                  | header -> Some header })
-      |> Stream.iterJob (fun header ->
+      |> Stream.subscribeJob (fun header ->
          onMain { main.EnterHeader.Text <- "" } >>.
          let item = {IsCompleted = Stream.Var.create false
                      Header = Stream.Var.create header}
          (Stream.Var.get itemsVar @ [item])
          |> Stream.Var.set itemsVar)
-      |> queue
 
       changedCompleted
-      |> Stream.iterJob (fun () -> onMain {
-         let n = Stream.Var.get itemsVar |> Seq.filter isActive |> Seq.length
+      |> Stream.subscribeJob (fun items -> onMain {
+         let n = items |> Seq.filter isActive |> Seq.length
          main.NumberOfItems.Text <- sprintf "%d items left" n })
-      |> queue
 
       changedCompleted
-      |> Stream.iterJob (fun () -> onMain {
-         let n = Stream.Var.get itemsVar |> Seq.filter isCompleted |> Seq.length
+      |> Stream.subscribeJob (fun items -> onMain {
+         let n = items |> Seq.filter isCompleted |> Seq.length
          main.ClearCompleted.Visibility <-
            if n=0 then Visibility.Hidden else Visibility.Visible
          main.ClearCompleted.Content <- sprintf "Clear completed %d" n})
-      |> queue
 
       Stream.ofObservableOnMain main.ClearCompleted.Click
-      |> Stream.iterJob (fun _ ->
+      |> Stream.subscribeJob (fun _ ->
          Stream.Var.get itemsVar
          |> List.filter (fun item -> Stream.Var.get item.IsCompleted |> not)
          |> Stream.Var.set itemsVar)
-      |> queue
 
       changedCompleted
-      |> Stream.mapFun (fun () ->
-         let items = Stream.Var.get itemsVar
+      |> Stream.mapFun (fun items ->
          items.Length <> 0 && List.forall isCompleted items)
-      |> Stream.iterJob (fun allCompleted -> onMain {
+      |> Stream.subscribeJob (fun allCompleted -> onMain {
          main.CompleteAll.IsChecked <- Nullable<bool> allCompleted })
-      |> queue
 
       Stream.ofObservableOnMain main.CompleteAll.Click
-      |> Stream.iterJob (fun _ ->
-         onMain { return main.CompleteAll.IsChecked.Value } >>= fun completed -> 
+      |> Stream.subscribeJob (fun _ ->
+         onMain { return main.CompleteAll.IsChecked.Value } >>= fun completed ->
          Stream.Var.get itemsVar
          |> Seq.iterJob (fun item -> Stream.Var.set item.IsCompleted completed))
-      |> queue
 
   |> queue
 
