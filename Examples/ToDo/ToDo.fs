@@ -12,6 +12,14 @@ module ToDo
 // when the model changes, do not necessarily scale.  Would have used XAML type
 // provider, but it currently does not mix with PCL.
 //
+// The main problem with this example is that this doesn't really contain
+// anything where choice streams work significantly better than Rx, such as
+// asynchronous http requests, polling, streams requiring backpressure, or
+// initialization of "hot" streams that would require hacks like
+// `Publish-Connect` in Rx.  Although it doesn't really make any difference in
+// this example, the `keepPreceding1` combinator is an example of something that
+// is not supported by .Net Rx.  See comment below.
+//
 // See also: https://github.com/tastejs/todomvc/blob/master/app-spec.md
 
 open Hopac
