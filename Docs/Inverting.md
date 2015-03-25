@@ -1,4 +1,4 @@
-**NOTE: This document is *out-of-date*, but should be useful as background material.  Read the [reference manual](http://hopac.github.io/Hopac/Hopac.html#def:module%20Hopac.Stream) for more up-to-date information and feel free to ask questions as issues.**
+**NOTE: This document is *out-of-date*, but should be useful as background material.  For more up-to-date information read the [reference manual](http://hopac.github.io/Hopac/Hopac.html#def:module%20Hopac.Stream), see the [ToDo example](../Examples/ToDo/ToDo.fs) and feel free to ask questions as issues.**
 
 # Inverting Event Streams is a Choice with Concurrent Jobs
 
