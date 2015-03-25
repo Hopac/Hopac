@@ -167,12 +167,43 @@ module Stream =
     /// Sets the value of the variable and appends the value to the end of the
     /// generated stream.  Note that while this operation is atomic, and can be
     /// safely used from multiple parallel jobs, a combination of `get` and
-    /// `set` is not atomic.
+    /// `set` is not atomic.  See also: `MVar<'x>`.
     val set: Var<'x> -> 'x -> Job<unit>
 
     /// Returns the generated stream, including the current value of the
     /// variable, from the point in time when `tap` is called.
     val tap: Var<'x> -> Stream<'x>
+
+  /// Represents a serialized mutable stream variable that generates a stream of
+  /// values as a side-effect.  The difference between `MVar<'x>` and `Var<'x>`
+  /// is that read-modify-write operations, such as `MVar.updateJob`, are
+  /// serialized or atomic like with the ordinary `MVar<'x>`.
+  type MVar<'x>
+
+  /// Operations on serialized stream variables.
+  module MVar =
+    /// Creates a new serialized stream variable.
+    val create: 'x -> MVar<'x>
+
+    /// Returns a job that gets the value of the variable.
+    val get: MVar<'x> -> Job<'x>
+
+    /// Creates a job that sets the value of the variable.
+    val set: MVar<'x> -> 'x -> Job<unit>
+
+    /// Creates a job that updates the value of the variable with the given
+    /// function.  If the function raises an exception, the variable will not
+    /// be unmodified.
+    val updateFun: MVar<'x> -> ('x -> 'x) -> Job<unit>
+
+    /// Creates a job that updates the value of the variable with the given
+    /// job.  If the function raises an exception, the variable will not be
+    /// unmodified.
+    val updateJob: MVar<'x> -> ('x -> #Job<'x>) -> Job<unit>
+
+    /// Returns the generated stream, including the current value of the
+    /// variable, from the point in time when `tap` is called.
+    val tap: MVar<'x> -> Stream<'x>
 
   /// Represents a mutable property, much like a stream variable, that generates
   /// a stream of values and property change notifications as a side-effect.

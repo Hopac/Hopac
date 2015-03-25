@@ -13,16 +13,18 @@ open Hopac.Extensions
 open Timer.Global
 
 module Stream =
+  let imp () = failwith "Impossible"
   let inline memo x = Promise.Now.delay x
   let inline queue x = Job.Global.queue x
   let inline start x = Job.Global.start x
   let inline server x = Job.Global.server x
-  let inline tryIn u2v vK eK =
+  let inline tryAp x2y x yK eK =
     let mutable e = null
-    let v = try u2v () with e' -> e <- e' ; Unchecked.defaultof<_>
+    let y = try x2y x with e' -> e <- e' ; Unchecked.defaultof<_>
     match e with
-     | null -> vK v
+     | null -> yK y
      | e -> eK e
+  let inline tryIn u2v vK eK = tryAp u2v () vK eK
   let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
   type Cons<'x> =
@@ -57,28 +59,48 @@ module Stream =
       [<CLIEvent>]
       member this.PropertyChanged = propertyChangedEvent.Publish
     member this.Value
-     with get () =
-        match var with Cons (x, _) -> x | Nil -> failwith "Impossible"
+     with get () = match var with Cons (x, _) -> x | Nil -> imp ()
       and set x =
         let c = Cons (x, IVar<_> ())
         match Interlocked.Exchange (&var, c) with
          | Cons (_, i) ->
            (i :?> IVar<_>) <-= c |> start
            propertyChangedEvent.Trigger (this, ValueChangedEventArgs)
-         | Nil -> failwith "Impossible"
+         | Nil -> imp ()
     member this.Tap () = Promise.Now.withValue var
 
   type Var<'x> = {mutable var: Cons<'x>}
 
   module Var =
     let create x = {var = Cons (x, IVar<_> ())}
-    let get v = match v.var with Cons (x, _) -> x | Nil -> failwith "Impossible"
+    let get v = match v.var with Cons (x, _) -> x | Nil -> imp ()
     let set v x = Job.delay <| fun () ->
       let c = Cons (x, IVar<_> ())
       match Interlocked.Exchange (&v.var, c) with
        | Cons (_, i) -> (i :?> IVar<_>) <-= c
-       | Nil -> failwith "Impossible"
+       | Nil -> imp ()
     let tap v = Promise.Now.withValue v.var
+
+  type MVar<'x> = {mvar: Hopac.MVar<Cons<'x>>}
+
+  module MVar =
+    let create x = {mvar = MVar (Cons (x, IVar ()))}
+    let get xM = MVar.read xM.mvar |>> function Cons (x, _) -> x | Nil -> imp ()
+    let inline push xM (i: Promise<_>) x =
+      let c = Cons (x, IVar<_> ())
+      (i :?> IVar<_>) <-= c >>. MVar.fill xM.mvar c
+    let inline fail xM c e = MVar.fill xM.mvar c >>! e
+    let set xM x = xM.mvar >>= function Cons (_, i) -> push xM i x | Nil -> imp ()
+    let updateFun xM x2x =
+      xM.mvar >>= function
+       | Cons (x, i) as c -> tryAp x2x x (push xM i) (fail xM c)
+       | Nil -> imp ()
+    let updateJob xM x2xJ =
+      xM.mvar >>= function
+       | Cons (x, i) as c ->
+         Job.tryInDelay (fun () -> x2xJ x) (push xM i) (fail xM c)
+       | Nil -> imp ()
+    let tap xM = memo (MVar.read xM.mvar)
 
   let nilj<'x> = Job.result Nil :> Job<Cons<'x>>
   let nila<'x> = Alt.always Nil :> Alt<Cons<'x>>
