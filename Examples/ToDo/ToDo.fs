@@ -101,41 +101,41 @@ let main argv =
 
         Stream.ofObservableOnMain control.IsCompleted.Click
         |> Stream.subscribeJob (fun _ -> onMain {
-          let isCompleted = control.IsCompleted.IsChecked.Value
-          return! Stream.MVar.updateFun modelMVar
-                    << updateItem id <| fun item ->
-                        {item with IsCompleted = isCompleted} })
+           let isCompleted = control.IsCompleted.IsChecked.Value
+           return! Stream.MVar.updateFun modelMVar
+                     << updateItem id <| fun item ->
+                         {item with IsCompleted = isCompleted} })
 
         Stream.ofObservableOnMain control.Header.MouseDoubleClick
         |> Stream.subscribeJob (fun _ -> onMain {
-          control.Header.Focusable <- true
-          if control.Header.Focus () then
-            control.Header.SelectAll () })
+           control.Header.Focusable <- true
+           if control.Header.Focus () then
+             control.Header.SelectAll () })
         Stream.ofObservableOnMain control.Header.KeyUp
         |> Stream.filterFun (fun evt -> evt.Key = Key.Enter)
         |> Stream.mapIgnore
         |> Stream.merge (Stream.ofObservableOnMain control.Header.LostFocus
                         |> Stream.mapIgnore)
         |> Stream.subscribeJob (fun () -> onMain {
-          Keyboard.ClearFocus ()
-          control.Header.Focusable <- false
-          match control.Header.Text.Trim () with
-            | "" -> control.Header.Text <- item.Header
-            | header ->
-              return! Stream.MVar.updateFun modelMVar << updateItem id <| fun item ->
-                      {item with Header = header} })
+           Keyboard.ClearFocus ()
+           control.Header.Focusable <- false
+           match control.Header.Text.Trim () with
+             | "" -> control.Header.Text <- item.Header
+             | header ->
+               return! Stream.MVar.updateFun modelMVar << updateItem id <| fun item ->
+                       {item with Header = header} })
 
         Stream.merge
           (Stream.ofObservableOnMain control.MouseEnter |> Stream.mapConst +1)
           (Stream.ofObservableOnMain control.MouseLeave |> Stream.mapConst -1)
         |> Stream.scanFromFun 0 (+)
         |> Stream.subscribeJob (fun n -> onMain {
-          control.Remove.Visibility <-
-            if 0 < n then Visibility.Visible else Visibility.Hidden })
+           control.Remove.Visibility <-
+             if 0 < n then Visibility.Visible else Visibility.Hidden })
 
         Stream.ofObservableOnMain control.Remove.Click
         |> Stream.subscribeJob (fun _ ->
-          Stream.MVar.updateFun modelMVar <| Map.remove id)
+           Stream.MVar.updateFun modelMVar <| Map.remove id)
 
         control
 
