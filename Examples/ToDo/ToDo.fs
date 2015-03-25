@@ -7,8 +7,8 @@ module ToDo
 // some builtin WPF controls and overuses choice streams to show some more
 // choice stream usage patterns.  WPF is a fundamentally imperative GUI
 // framework and this example does not try to rewrite WPF as a more declarative
-// framework.  Some of the simple techniques used in this example, such using an
-// immutable map as the model and removing and adding all controls to a panel
+// framework.  Some of the simple techniques used in this example, such as using
+// an immutable map as the model and removing and adding all controls to a panel
 // when the model changes, do not necessarily scale.  Would have used XAML type
 // provider, but it currently does not mix with PCL.
 //
@@ -60,7 +60,7 @@ type Item = {
 module Id =
   let mutable private id = 0L
 
-  /// Returns a new unique id.
+  /// Returns the next unique id.
   let next () = Interlocked.Increment &id
 
 [<STAThread; EntryPoint>]
@@ -132,7 +132,7 @@ let main argv =
           if item.IsCompleted then FontStyles.Italic else FontStyles.Normal
 
         // This updates the underlying item in response to a click on the
-        // completed check box.
+        // completed checkbox.
         Stream.ofObservableOnMain control.IsCompleted.Click
         |> Stream.subscribeJob (fun _ -> onMain {
            let isCompleted = control.IsCompleted.IsChecked.Value
@@ -226,7 +226,7 @@ let main argv =
       |> Stream.subscribeJob (fun _ ->
          Stream.MVar.updateFun modelMVar << Map.filter <| fun _ -> isActive)
 
-      // This updates the CompleteAll check box for marking all ToDo items as
+      // This updates the CompleteAll checkbox for marking all ToDo items as
       // completed or active.
       Stream.MVar.tap modelMVar
       |> Stream.mapFun (fun model ->
@@ -236,7 +236,7 @@ let main argv =
          main.CompleteAll.IsChecked <- Nullable<bool> allCompleted })
 
       // This makes all ToDo items as either completed or active depending on
-      // the state if the CompleteAll check box when it is clicked.
+      // the state of the CompleteAll checkbox when it is clicked.
       Stream.ofObservableOnMain main.CompleteAll.Click
       |> Stream.subscribeJob (fun _ ->
          onMain { return main.CompleteAll.IsChecked.Value } >>= fun isCompleted ->
