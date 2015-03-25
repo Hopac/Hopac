@@ -40,11 +40,6 @@ module internal Util =
     Async.setMain ctx
     onEvent.RemoveHandler handler
 
-  module Stream =
-    module Var =
-      let updateFun v f =
-        Stream.Var.get v |> f |> Stream.Var.set v
-
 type Item = {
     IsCompleted: bool
     Header: string
@@ -60,7 +55,7 @@ let main argv =
 
   setupWhen main.Activated |>> fun () ->
 
-      let modelVar = Stream.Var.create Map.empty
+      let modelMVar = Stream.MVar.create Map.empty
 
       let updateItem id f model =
         match Map.tryFind id model with
@@ -76,7 +71,7 @@ let main argv =
                    main.EnterHeader.Text <- ""
                    Some header })
       |> Stream.subscribeJob (fun header ->
-         Stream.Var.updateFun modelVar
+         Stream.MVar.updateFun modelMVar
           <| Map.add (Id.next ()) {IsCompleted = false; Header = header})
 
       let isAny _ = true
@@ -94,7 +89,7 @@ let main argv =
         |> Stream.mapJob (fun (bn, pred) -> onMain {
            [main.FilterAll; main.FilterActive; main.FilterCompleted]
            |> Seq.iter (fun bn' -> bn'.IsEnabled <- bn <> bn')
-           return pred })      
+           return pred })
 
       let newControl id item =
         let control = ToDo.UI.ItemControl ()
@@ -107,7 +102,7 @@ let main argv =
         Stream.ofObservableOnMain control.IsCompleted.Click
         |> Stream.subscribeJob (fun _ -> onMain {
           let isCompleted = control.IsCompleted.IsChecked.Value
-          return! Stream.Var.updateFun modelVar
+          return! Stream.MVar.updateFun modelMVar
                     << updateItem id <| fun item ->
                         {item with IsCompleted = isCompleted} })
 
@@ -127,7 +122,7 @@ let main argv =
           match control.Header.Text.Trim () with
             | "" -> control.Header.Text <- item.Header
             | header ->
-              return! Stream.Var.updateFun modelVar << updateItem id <| fun item ->
+              return! Stream.MVar.updateFun modelMVar << updateItem id <| fun item ->
                       {item with Header = header} })
 
         Stream.merge
@@ -140,11 +135,11 @@ let main argv =
 
         Stream.ofObservableOnMain control.Remove.Click
         |> Stream.subscribeJob (fun _ ->
-          Stream.Var.updateFun modelVar <| Map.remove id)
+          Stream.MVar.updateFun modelMVar <| Map.remove id)
 
         control
 
-      Stream.Var.tap modelVar
+      Stream.MVar.tap modelMVar
       |> Stream.combineLatest filter
       |> Stream.subscribeJob (fun (filter, model) -> onMain {
          main.Items.Children.Clear ()
@@ -155,12 +150,12 @@ let main argv =
               |> main.Items.Children.Add
               |> ignore) })
 
-      Stream.Var.tap modelVar
+      Stream.MVar.tap modelMVar
       |> Stream.subscribeJob (fun model -> onMain {
          let n = Map.toSeq model |> Seq.filter (snd >> isActive) |> Seq.length
          main.NumberOfItems.Text <- sprintf "%d items left" n })
 
-      Stream.Var.tap modelVar
+      Stream.MVar.tap modelMVar
       |> Stream.subscribeJob (fun model -> onMain {
          let n = Map.toSeq model |> Seq.filter (snd >> isCompleted) |> Seq.length
          main.ClearCompleted.Visibility <-
@@ -169,9 +164,9 @@ let main argv =
 
       Stream.ofObservableOnMain main.ClearCompleted.Click
       |> Stream.subscribeJob (fun _ ->
-         Stream.Var.updateFun modelVar << Map.filter <| fun _ -> isActive)
+         Stream.MVar.updateFun modelMVar << Map.filter <| fun _ -> isActive)
 
-      Stream.Var.tap modelVar
+      Stream.MVar.tap modelMVar
       |> Stream.mapFun (fun model ->
          not (Map.isEmpty model) && Map.forall (fun _ -> isCompleted) model)
       |> Stream.subscribeJob (fun allCompleted -> onMain {
@@ -180,7 +175,7 @@ let main argv =
       Stream.ofObservableOnMain main.CompleteAll.Click
       |> Stream.subscribeJob (fun _ ->
          onMain { return main.CompleteAll.IsChecked.Value } >>= fun isCompleted ->
-         Stream.Var.updateFun modelVar << Map.map <| fun _ item ->
+         Stream.MVar.updateFun modelMVar << Map.map <| fun _ item ->
          {item with IsCompleted = isCompleted})
 
   |> queue
