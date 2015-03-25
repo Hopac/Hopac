@@ -192,13 +192,13 @@ module Stream =
     val set: MVar<'x> -> 'x -> Job<unit>
 
     /// Creates a job that updates the value of the variable with the given
-    /// function.  If the function raises an exception, the variable will not
-    /// be unmodified.
+    /// function in a serialized or atomic fashion.  If the function raises an
+    /// exception, the variable will not be unmodified.
     val updateFun: MVar<'x> -> ('x -> 'x) -> Job<unit>
 
     /// Creates a job that updates the value of the variable with the given
-    /// job.  If the function raises an exception, the variable will not be
-    /// unmodified.
+    /// job in a serialized or atomic fashion.  If the function raises an
+    /// exception, the variable will not be unmodified.
     val updateJob: MVar<'x> -> ('x -> #Job<'x>) -> Job<unit>
 
     /// Returns the generated stream, including the current value of the
