@@ -86,6 +86,7 @@ let main argv =
         |> Stream.merge (filterOn main.FilterAll isAny)
         |> Stream.merge (filterOn main.FilterActive isActive)
         |> Stream.merge (filterOn main.FilterCompleted isCompleted)
+        |> Stream.keepPreceding1
         |> Stream.mapJob (fun (bn, pred) -> onMain {
            [main.FilterAll; main.FilterActive; main.FilterCompleted]
            |> Seq.iter (fun bn' -> bn'.IsEnabled <- bn <> bn')
@@ -129,6 +130,7 @@ let main argv =
           (Stream.ofObservableOnMain control.MouseEnter |> Stream.mapConst +1)
           (Stream.ofObservableOnMain control.MouseLeave |> Stream.mapConst -1)
         |> Stream.scanFromFun 0 (+)
+        |> Stream.keepPreceding1
         |> Stream.subscribeJob (fun n -> onMain {
            control.Remove.Visibility <-
              if 0 < n then Visibility.Visible else Visibility.Hidden })
@@ -141,6 +143,7 @@ let main argv =
 
       Stream.MVar.tap modelMVar
       |> Stream.combineLatest filter
+      |> Stream.keepPreceding1
       |> Stream.subscribeJob (fun (filter, model) -> onMain {
          main.Items.Children.Clear ()
          model
@@ -151,11 +154,13 @@ let main argv =
               |> ignore) })
 
       Stream.MVar.tap modelMVar
+      |> Stream.keepPreceding1
       |> Stream.subscribeJob (fun model -> onMain {
          let n = Map.toSeq model |> Seq.filter (snd >> isActive) |> Seq.length
          main.NumberOfItems.Text <- sprintf "%d items left" n })
 
       Stream.MVar.tap modelMVar
+      |> Stream.keepPreceding1
       |> Stream.subscribeJob (fun model -> onMain {
          let n = Map.toSeq model |> Seq.filter (snd >> isCompleted) |> Seq.length
          main.ClearCompleted.Visibility <-
@@ -169,6 +174,7 @@ let main argv =
       Stream.MVar.tap modelMVar
       |> Stream.mapFun (fun model ->
          not (Map.isEmpty model) && Map.forall (fun _ -> isCompleted) model)
+      |> Stream.keepPreceding1
       |> Stream.subscribeJob (fun allCompleted -> onMain {
          main.CompleteAll.IsChecked <- Nullable<bool> allCompleted })
 
