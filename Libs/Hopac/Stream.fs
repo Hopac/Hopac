@@ -100,7 +100,8 @@ module Stream =
        | Cons (x, i) as c ->
          Job.tryInDelay (fun () -> x2xJ x) (push xM i) (fail xM c)
        | Nil -> imp ()
-    let tap xM = memo (MVar.read xM.mvar)
+    let tap xM =
+      let xs = memo (MVar.read xM.mvar) in Job.Global.startIgnore xs ; xs
 
   let nilj<'x> = Job.result Nil :> Job<Cons<'x>>
   let nila<'x> = Alt.always Nil :> Alt<Cons<'x>>
