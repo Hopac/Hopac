@@ -417,7 +417,7 @@ font-weight: bold;
 </pre>
 <pre><b>module</b> <a id="dec:module Hopac.Stream" href="#def:module Hopac.Stream">Stream</a> <b>=</b>
   <b>type</b> <a id="dec:type Hopac.Stream.Cons" href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b>
-    <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of Value<b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.KeepPrecedingFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+    <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of <a href="#def:member Hopac.Stream.Property.Value">Value</a><b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.KeepPrecedingFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
     <b>|</b> Nil
   <b>type</b> <a id="dec:type Hopac.Stream.Stream" href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> <a href="#def:type Hopac.Promise">Promise</a><b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>type</b> <a id="dec:type Hopac.Stream.Src" href="#def:type Hopac.Stream.Src">Src</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -433,6 +433,19 @@ font-weight: bold;
     <b>val</b> <a id="dec:val Hopac.Stream.Var.get" href="#def:val Hopac.Stream.Var.get">get</a><b>:</b> <a href="#def:type Hopac.Stream.Var">Var</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
     <b>val</b> <a id="dec:val Hopac.Stream.Var.set" href="#def:val Hopac.Stream.Var.set">set</a><b>:</b> <a href="#def:type Hopac.Stream.Var">Var</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
     <b>val</b> <a id="dec:val Hopac.Stream.Var.tap" href="#def:val Hopac.Stream.Var.tap">tap</a><b>:</b> <a href="#def:type Hopac.Stream.Var">Var</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+  <b>type</b> <a id="dec:type Hopac.Stream.MVar" href="#def:type Hopac.Stream.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+  <b>module</b> <a id="dec:module Hopac.Stream.MVar" href="#def:module Hopac.Stream.MVar">MVar</a> <b>=</b>
+    <b>val</b> <a id="dec:val Hopac.Stream.MVar.create" href="#def:val Hopac.Stream.MVar.create">create</a><b>:</b> <i>'x</i> <b>-&gt;</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.Stream.MVar.get" href="#def:val Hopac.Stream.MVar.get">get</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.Stream.MVar.set" href="#def:val Hopac.Stream.MVar.set">set</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.Stream.MVar.updateFun" href="#def:val Hopac.Stream.MVar.updateFun">updateFun</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.Stream.MVar.updateJob" href="#def:val Hopac.Stream.MVar.updateJob">updateJob</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+    <b>val</b> <a id="dec:val Hopac.Stream.MVar.tap" href="#def:val Hopac.Stream.MVar.tap">tap</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+  <b>type</b> <a id="dec:type Hopac.Stream.Property" href="#def:type Hopac.Stream.Property">Property</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b>
+    <b>interface</b> INotifyPropertyChanged
+    <b>new</b><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Property">Property</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+    <b>member</b> <a id="dec:member Hopac.Stream.Property.Value" href="#def:member Hopac.Stream.Property.Value">Value</a><b>:</b> <i>'x</i> <b>with</b> get, set
+    <b>member</b> <a id="dec:member Hopac.Stream.Property.Tap" href="#def:member Hopac.Stream.Property.Tap">Tap</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.nil" href="#def:val Hopac.Stream.nil">nil</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.cons" href="#def:val Hopac.Stream.cons">cons</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.delay" href="#def:val Hopac.Stream.delay">delay</a><b>:</b> (unit <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -470,6 +483,7 @@ font-weight: bold;
   <b>val</b> <a id="dec:val Hopac.Stream.mapJob" href="#def:val Hopac.Stream.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.mapFun" href="#def:val Hopac.Stream.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.mapConst" href="#def:val Hopac.Stream.mapConst">mapConst</a><b>:</b> <i>'y</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Stream.mapIgnore" href="#def:val Hopac.Stream.mapIgnore">mapIgnore</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.groupByJob" href="#def:val Hopac.Stream.groupByJob">groupByJob</a><b>:</b> (<i>'k</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>)
                <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'k</i><b>&gt;</b>)
                <b>-&gt;</b> Stream<b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -552,6 +566,9 @@ font-weight: bold;
   <b>val</b> <a id="dec:val Hopac.Stream.iterJob" href="#def:val Hopac.Stream.iterJob">iterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.iterFun" href="#def:val Hopac.Stream.iterFun">iterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.iter" href="#def:val Hopac.Stream.iter">iter</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Stream.subscribeJob" href="#def:val Hopac.Stream.subscribeJob">subscribeJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> unit
+  <b>val</b> <a id="dec:val Hopac.Stream.subscribeFun" href="#def:val Hopac.Stream.subscribeFun">subscribeFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> unit
+  <b>val</b> <a id="dec:val Hopac.Stream.subscribe" href="#def:val Hopac.Stream.subscribe">subscribe</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> unit
   <b>val</b> <a id="dec:val Hopac.Stream.count" href="#def:val Hopac.Stream.count">count</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>int64<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.head" href="#def:val Hopac.Stream.head">head</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Stream.tail" href="#def:val Hopac.Stream.tail">tail</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -1310,10 +1327,10 @@ font-weight: bold;
 <pre><b>type</b> <a id="def:type Hopac.MVar" href="#dec:type Hopac.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:&gt;</b> <a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Represents a serialized variable.</p><p> You can use serialized variables to serialize access to a specific piece of shared state.  The idea is that one and only one concurrent job has access to that state at any one time.  This way access to the shared state is entirely serialized.</p><p> WARNING: Unfortunately, <code><a href="#def:type Hopac.MVar">MVar</a></code>s are easy to use unsafely.  Do not use an <code><a href="#def:type Hopac.MVar">MVar</a></code> to pass information from a client to a server, for example.  Use a <code><a href="#def:type Hopac.Ch">Ch</a></code> or <code><a href="#def:type Hopac.Mailbox">Mailbox</a></code> for that.  Note that if you are familiar with the <code><a href="#def:type Hopac.MVar">MVar</a></code> abstraction provided by Concurrent Haskell, then it is important to realize that the semantics and intended usage of Hopac's and Concurrent ML's <code><a href="#def:type Hopac.MVar">MVar</a></code> are quite different.  The <code><a href="#def:type Hopac.MVar">MVar</a></code> of Concurrent Haskell is a bit like a simplified <code><a href="#def:type Hopac.Ch">Ch</a></code> with a buffer of one element and some additional operations. The <code><a href="#def:type Hopac.MVar">MVar</a></code> of Hopac and Concurrent ML does not allow usage as a kind of buffered channel.</p><p> A serialized variable can be either empty or full.  When a job makes an attempt to take the value of an empty variable, the job is suspended until some other job fills the variable with a value.  At any one time there should only be at most one job that holds the state to be written to a serialized variable.  Indeed, the idea is that access to that state is serialized.  If this cannot be guaranteed, in other words, there might be two or more jobs trying to fill a serialized variable, then you should not be using serialized variables.</p><p> Another way to put it is that serialized variables are designed to be used in such a way that the variable acts as a mechanism for passing a permission token, the value contained by the variable, from one concurrent job to another.  Only the concurrent job that holds the token is allowed to fill the variable.  When used in this way, operations on the variable appear as atomic and access to the state will be serialized.</p><p> In general, aside from a possible initial <code>fill</code> operation, an access to a serialized variable should be of the form <code>take&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;<b>...</b>&nbsp;fill</code> or of the form <code>read</code>.  On the other hand, accesses of the form <code>fill</code> and <code>read&nbsp;<a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;<b>...</b>&nbsp;fill</code> are unsafe.  A <code>take</code> operation effectively grants permission to the job to access the shared state.  The <code>fill</code> operation then gives that permission to the next job that wants to access the shared state.</p><p> Here is an implementation of a synchronization object similar to the .Net <code>AutoResetEvent</code> using serialized variables:</p><pre><b>type</b> AutoResetEvent (<a href="#def:val Hopac.Stream.init">init</a><b>:</b> bool) <b>=</b>
-  <b>let</b> <a href="#def:val Hopac.Stream.Var.set">set</a> <b>=</b> <b>if</b> <a href="#def:val Hopac.Stream.init">init</a> <b>then</b> <a href="#def:val Hopac.TopLevel.mvarFull">mvarFull</a> () <b>else</b> <a href="#def:val Hopac.TopLevel.mvar">mvar</a> ()
+  <b>let</b> set <b>=</b> <b>if</b> <a href="#def:val Hopac.Stream.init">init</a> <b>then</b> <a href="#def:val Hopac.TopLevel.mvarFull">mvarFull</a> () <b>else</b> <a href="#def:val Hopac.TopLevel.mvar">mvar</a> ()
   <b>let</b> unset <b>=</b> <b>if</b> <a href="#def:val Hopac.Stream.init">init</a> <b>then</b> <a href="#def:val Hopac.TopLevel.mvar">mvar</a> () <b>else</b> <a href="#def:val Hopac.TopLevel.mvarFull">mvarFull</a> ()
-  <b>member</b> this<b>.</b>Set <b>=</b> unset <a href="#def:val Hopac.Alt.Infixes.&lt;|&gt;?">&lt;|&gt;?</a> <a href="#def:val Hopac.Stream.Var.set">set</a> <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <a href="#def:module Hopac.MVar">MVar</a><b>.</b><a href="#def:val Hopac.MVar.fill">fill</a> <a href="#def:val Hopac.Stream.Var.set">set</a>
-  <b>member</b> this<b>.</b>Wait <b>=</b> <a href="#def:val Hopac.Stream.Var.set">set</a> <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">&gt;&gt;=?</a> <a href="#def:module Hopac.MVar">MVar</a><b>.</b><a href="#def:val Hopac.MVar.fill">fill</a> unset
+  <b>member</b> this<b>.</b>Set <b>=</b> unset <a href="#def:val Hopac.Alt.Infixes.&lt;|&gt;?">&lt;|&gt;?</a> set <a href="#def:val Hopac.Job.Infixes.&gt;&gt;=">&gt;&gt;=</a> <a href="#def:module Hopac.MVar">MVar</a><b>.</b><a href="#def:val Hopac.MVar.fill">fill</a> set
+  <b>member</b> this<b>.</b>Wait <b>=</b> set <a href="#def:val Hopac.Alt.Infixes.&gt;&gt;=?">&gt;&gt;=?</a> <a href="#def:module Hopac.MVar">MVar</a><b>.</b><a href="#def:val Hopac.MVar.fill">fill</a> unset
 </pre><p> The idea is to use two serialized variables to represent the state of the synchronization object.  At most one of the variables, representing the state of the synchronization object, is full at any time.</p><p> Note that <code><a href="#def:type Hopac.MVar">MVar</a></code> is a subtype of <code><a href="#def:type Hopac.Alt">Alt</a></code> and <code>xM&nbsp;<b>:&gt;</b>&nbsp;<a href="#def:type Hopac.Alt">Alt</a><b>&lt;</b><i>'x</i><b>&gt;</b></code> is equivalent to <code><a href="#def:module Hopac.MVar">MVar</a><b>.</b><a href="#def:val Hopac.MVar.take">take</a>&nbsp;xM</code>.</div>
 <pre><b>module</b> <a id="def:module Hopac.MVar" href="#dec:module Hopac.MVar">MVar</a> <b>=</b>
 </pre>
@@ -1690,7 +1707,7 @@ font-weight: bold;
 <pre><b>module</b> <a id="def:module Hopac.Stream" href="#dec:module Hopac.Stream">Stream</a> <b>=</b>
 </pre>
 <div class="nested"><p> Operations on choice streams.<pre><b>type</b> <a id="def:type Hopac.Stream.Cons" href="#dec:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b>
-  <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of Value<b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.KeepPrecedingFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+  <b>|</b> <a href="#def:type Hopac.Stream.Cons">Cons</a> of <a href="#def:member Hopac.Stream.Property.Value">Value</a><b>:</b> <i>'x</i> <b>*</b> <a href="#def:abstract Hopac.Stream.KeepPrecedingFuns.Next">Next</a><b>:</b> Promise<b>&lt;</b><a href="#def:type Hopac.Stream.Cons">Cons</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>|</b> Nil
 </pre>
 <div class="nested"><p> Represents a point in a non-deterministic stream of values.</div>
@@ -1746,10 +1763,46 @@ button<b>.</b>Click<b>.</b>Add (ignore <b>&gt;&gt;</b> <a href="#def:module Hopa
 <div class="nested"><p> Gets the value of the variable.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.Var.set" href="#dec:val Hopac.Stream.Var.set">set</a><b>:</b> <a href="#def:type Hopac.Stream.Var">Var</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Sets the value of the variable and appends the value to the end of the generated stream.  Note that while this operation is atomic, and can be safely used from multiple parallel jobs, a combination of <code><a href="#def:val Hopac.Stream.Var.get">get</a></code> and <code><a href="#def:val Hopac.Stream.Var.set">set</a></code> is not atomic.</div>
+<div class="nested"><p> Sets the value of the variable and appends the value to the end of the generated stream.  Note that while this operation is atomic, and can be safely used from multiple parallel jobs, a combination of <code><a href="#def:val Hopac.Stream.Var.get">get</a></code> and <code><a href="#def:val Hopac.Stream.Var.set">set</a></code> is not atomic.  See also: <code>MVar<b>&lt;</b><i>'x</i><b>&gt;</b></code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.Var.tap" href="#dec:val Hopac.Stream.Var.tap">tap</a><b>:</b> <a href="#def:type Hopac.Stream.Var">Var</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns the generated stream, including the current value of the variable, from the point in time when <code><a href="#def:val Hopac.Stream.Var.tap">tap</a></code> is called.</div>
+</div>
+<pre><b>type</b> <a id="def:type Hopac.Stream.MVar" href="#dec:type Hopac.Stream.MVar">MVar</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Represents a serialized mutable stream variable that generates a stream of values as a side-effect.  The difference between <code>MVar<b>&lt;</b><i>'x</i><b>&gt;</b></code> and <code><a href="#def:type Hopac.Stream.Var">Var</a><b>&lt;</b><i>'x</i><b>&gt;</b></code> is that read-modify-write operations, such as <code>MVar<b>.</b><a href="#def:val Hopac.Stream.MVar.updateJob">updateJob</a></code>, are serialized, so they effectively appear as atomic, like with the ordinary <code>MVar<b>&lt;</b><i>'x</i><b>&gt;</b></code>.</div>
+<pre><b>module</b> <a id="def:module Hopac.Stream.MVar" href="#dec:module Hopac.Stream.MVar">MVar</a> <b>=</b>
+</pre>
+<div class="nested"><p> Operations on serialized stream variables.<pre><b>val</b> <a id="def:val Hopac.Stream.MVar.create" href="#dec:val Hopac.Stream.MVar.create">create</a><b>:</b> <i>'x</i> <b>-&gt;</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a new serialized stream variable.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.MVar.get" href="#dec:val Hopac.Stream.MVar.get">get</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Returns a job that gets the value of the variable.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.MVar.set" href="#dec:val Hopac.Stream.MVar.set">set</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a job that sets the value of the variable.  Note that a combination of <code><a href="#def:val Hopac.Stream.MVar.get">get</a></code> and <code><a href="#def:val Hopac.Stream.MVar.set">set</a></code> is not serialized.  See also: <code><a href="#def:val Hopac.Stream.MVar.updateFun">updateFun</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.MVar.updateFun" href="#dec:val Hopac.Stream.MVar.updateFun">updateFun</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a job that updates the value of the variable with the given function in a serialized fashion.  If the function raises an exception, the variable will not be modified.  See also: <code><a href="#def:val Hopac.Stream.MVar.updateJob">updateJob</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.MVar.updateJob" href="#dec:val Hopac.Stream.MVar.updateJob">updateJob</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a job that updates the value of the variable with the given job in a serialized fashion.  If the function raises an exception, the variable will not be modified.  See also: <code><a href="#def:val Hopac.Stream.MVar.updateFun">updateFun</a></code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.MVar.tap" href="#dec:val Hopac.Stream.MVar.tap">tap</a><b>:</b> MVar<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Returns the generated stream, including the current value of the variable, from the point in time when <code><a href="#def:val Hopac.Stream.MVar.tap">tap</a></code> is called.</div>
+</div>
+<pre><b>type</b> <a id="def:type Hopac.Stream.Property" href="#dec:type Hopac.Stream.Property">Property</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b>
+</pre>
+<div class="nested"><p> Represents a mutable property, much like a stream variable, that generates a stream of values and property change notifications as a side-effect.<pre><b>new</b><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Property">Property</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Creates a new property with the specified initial value.</div>
+<pre><b>member</b> <a id="def:member Hopac.Stream.Property.Value" href="#dec:member Hopac.Stream.Property.Value">Value</a><b>:</b> <i>'x</i> <b>with</b> get, set
+</pre>
+<div class="nested"><p> Allows to get and set the value of a <code><a href="#def:type Hopac.Stream.Property">Property</a><b>&lt;</b><i>'x</i><b>&gt;</b></code>.</div>
+<pre><b>member</b> <a id="def:member Hopac.Stream.Property.Tap" href="#dec:member Hopac.Stream.Property.Tap">Tap</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
+</pre>
+<div class="nested"><p> Returns the generated stream, including the current value of the property, from the point in time when <code><a href="#def:member Hopac.Stream.Property.Tap">Tap</a></code> is called.</div>
 </div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.nil" href="#dec:val Hopac.Stream.nil">nil</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
@@ -1774,26 +1827,26 @@ button<b>.</b>Click<b>.</b>Add (ignore <b>&gt;&gt;</b> <a href="#def:module Hopa
 <div class="nested"><p> Constructs a choice stream that is closed with an error.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.one" href="#dec:val Hopac.Stream.one">one</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> <code><a href="#def:val Hopac.Stream.one">one</a>&nbsp;x</code> is equivalent to <code><a href="#def:val Hopac.Stream.cons">cons</a>&nbsp;x&nbsp;<a href="#def:val Hopac.Stream.nil">nil</a></code>.</div>
+<div class="nested"><p> Returns a stream of length one containing the given value.  <code><a href="#def:val Hopac.Stream.one">one</a>&nbsp;x</code> is equivalent to <code><a href="#def:val Hopac.Stream.cons">cons</a>&nbsp;x&nbsp;<a href="#def:val Hopac.Stream.nil">nil</a></code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.ofSeq" href="#dec:val Hopac.Stream.ofSeq">ofSeq</a><b>:</b> seq<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Converts the given sequence to a lazy stream.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.indefinitely" href="#dec:val Hopac.Stream.indefinitely">indefinitely</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Generates a stream by repeating the given job indefinitely.  For example, given a channel, <code>xCh</code>, a stream can be created, <code><a href="#def:val Hopac.Stream.indefinitely">indefinitely</a>&nbsp;xCh</code>, through which all the values given on the channel can be observed.  See also: <code><a href="#def:val Hopac.Stream.values">values</a></code>.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.indefinitely">indefinitely</a> xJ <b>=</b> xJ <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> <b>fun</b> x <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> x (<a href="#def:val Hopac.Stream.indefinitely">indefinitely</a> xJ)
+<div class="nested"><p> Returns a lazy stream whose elements are generated by running the given job.  For example, given a channel, <code>xCh</code>, a stream can be created, <code><a href="#def:val Hopac.Stream.indefinitely">indefinitely</a>&nbsp;xCh</code>, through which all the values given on the channel can be observed.  See also: <code><a href="#def:val Hopac.Stream.values">values</a></code>.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.indefinitely">indefinitely</a> xJ <b>=</b> xJ <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> <b>fun</b> x <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> x (<a href="#def:val Hopac.Stream.indefinitely">indefinitely</a> xJ)
 </pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.once" href="#dec:val Hopac.Stream.once">once</a><b>:</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> <code><a href="#def:val Hopac.Stream.once">once</a>&nbsp;xJ</code> is equivalent to <code><a href="#def:val Hopac.Stream.indefinitely">indefinitely</a>&nbsp;xJ&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.take">take</a>&nbsp;1</code>.</div>
+<div class="nested"><p> Returns a lazy stream that, when pulled, runs the given job, produces the result of the job and closes.  <code><a href="#def:val Hopac.Stream.once">once</a>&nbsp;xJ</code> is equivalent to <code><a href="#def:val Hopac.Stream.indefinitely">indefinitely</a>&nbsp;xJ&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.take">take</a>&nbsp;1</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.unfoldJob" href="#dec:val Hopac.Stream.unfoldJob">unfoldJob</a><b>:</b> (<i>'s</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b>option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Returns a stream that contains the elements generated by the given job.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.unfoldJob">unfoldJob</a> f s <b>=</b>
+<div class="nested"><p> Returns a lazy stream that contains the elements generated by the given job.</p><p> Reference implementation:</p><pre><b>let</b> <b>rec</b> <a href="#def:val Hopac.Stream.unfoldJob">unfoldJob</a> f s <b>=</b>
   f s <a href="#def:val Hopac.Promise.Infixes.&gt;&gt;=*">&gt;&gt;=*</a> <b>function</b> None <b>-&gt;</b> <a href="#def:val Hopac.Stream.nil">nil</a>
                   <b>|</b> Some (x, s) <b>-&gt;</b> <a href="#def:val Hopac.Stream.cons">cons</a> x (<a href="#def:val Hopac.Stream.unfoldJob">unfoldJob</a> f s)
 </pre></div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.unfoldFun" href="#dec:val Hopac.Stream.unfoldFun">unfoldFun</a><b>:</b> (<i>'s</i> <b>-&gt;</b> option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b>
 </pre>
-<div class="nested"><p> Returns a stream that contains the elements generated by the given function.</div>
+<div class="nested"><p> Returns a lazy stream that contains the elements generated by the given function.</div>
 <pre><b>[&lt;</b>AbstractClass<b>&gt;]</b> 
 <b>type</b> <a id="def:type Hopac.Stream.GenerateFuns" href="#dec:type Hopac.Stream.GenerateFuns">GenerateFuns</a><b>&lt;</b><i>'s</i>, <i>'x</i><b>&gt;</b> <b>=</b>
 </pre>
@@ -1864,6 +1917,9 @@ button<b>.</b>Click<b>.</b>Add (ignore <b>&gt;&gt;</b> <a href="#def:module Hopa
 <pre><b>val</b> <a id="def:val Hopac.Stream.mapConst" href="#dec:val Hopac.Stream.mapConst">mapConst</a><b>:</b> <i>'y</i> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'y</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a stream that produces the given element each time the given stream produces an element.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.mapIgnore" href="#dec:val Hopac.Stream.mapIgnore">mapIgnore</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b>unit<b>&gt;</b>
+</pre>
+<div class="nested"><p> <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.mapIgnore">mapIgnore</a></code> is equivalent to <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.mapConst">mapConst</a>&nbsp;()</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.groupByJob" href="#dec:val Hopac.Stream.groupByJob">groupByJob</a><b>:</b> (<i>'k</i> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b><i>'y</i><b>&gt;</b>)
              <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'k</i><b>&gt;</b>)
              <b>-&gt;</b> Stream<b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -2157,6 +2213,15 @@ timeout<b>:</b> <b>+---</b>x    <b>+---</b>x<b>---</b>x<b>---</b>x  <b>+---</b>x
 <pre><b>val</b> <a id="def:val Hopac.Stream.iter" href="#dec:val Hopac.Stream.iter">iter</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a job that iterates over all the elements of the given stream. <code><a href="#def:val Hopac.Stream.iter">iter</a>&nbsp;xs</code> is equivalent to <code><a href="#def:val Hopac.Stream.iterFun">iterFun</a>&nbsp;id&nbsp;xs</code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.subscribeJob" href="#dec:val Hopac.Stream.subscribeJob">subscribeJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #<a href="#def:type Hopac.Job">Job</a><b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> unit
+</pre>
+<div class="nested"><p> <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.subscribeJob">subscribeJob</a>&nbsp;x2uJ</code> is equivalent to <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.iterJob">iterJob</a>&nbsp;x2uJ&nbsp;<b>|&gt;</b>&nbsp;queue</code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.subscribeFun" href="#dec:val Hopac.Stream.subscribeFun">subscribeFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> unit
+</pre>
+<div class="nested"><p> <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.subscribeFun">subscribeFun</a>&nbsp;x2u</code> is equivalent to <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.iterFun">iterFun</a>&nbsp;x2u&nbsp;<b>|&gt;</b>&nbsp;queue</code>.</div>
+<pre><b>val</b> <a id="def:val Hopac.Stream.subscribe" href="#dec:val Hopac.Stream.subscribe">subscribe</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> unit
+</pre>
+<div class="nested"><p> <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.subscribe">subscribe</a></code> is equivalent to <code>xs&nbsp;<b>|&gt;</b>&nbsp;<a href="#def:val Hopac.Stream.iter">iter</a>&nbsp;<b>|&gt;</b>&nbsp;queue</code>.</div>
 <pre><b>val</b> <a id="def:val Hopac.Stream.count" href="#dec:val Hopac.Stream.count">count</a><b>:</b> <a href="#def:type Hopac.Stream.Stream">Stream</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type Hopac.Job">Job</a><b>&lt;</b>int64<b>&gt;</b>
 </pre>
 <div class="nested"><p> Returns a job that computes the length of the given stream.</div>
