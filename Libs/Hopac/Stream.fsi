@@ -964,7 +964,8 @@ module Stream =
   /// read.  See also: `indefinitely`.
   val values: Stream<'x> -> Alt<'x>
 
-  /// Eagerly reduces the given stream using the given job.
+  /// Eagerly reduces the given stream using the given job.  See also:
+  /// `foldBack`.
   val foldJob: ('s -> 'x -> #Job<'s>) -> 's -> Stream<'x> -> Job<'s>
 
   /// Eagerly reduces the given stream using the given function.
@@ -977,6 +978,28 @@ module Stream =
   /// `foldFromFun s sx2s xs` is equivalent to `foldFun sx2s s xs` and is often
   /// syntactically more convenient to use.
   val foldFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Job<'s>
+
+  /// Performs a lazy backwards fold over the stream.  See also: `foldJob`.
+#if DOC
+  ///
+  /// `foldBack` is a fundamental function on streams.  Consider that `foldBack
+  /// cons xs nil` is equivalent to `xs`.  Many other stream functions can be
+  /// implemented using `foldBack`.  For example, `mapJob` could be defined
+  /// using `foldBack` as follows:
+  ///
+  ///> let mapJob x2yJ xs =
+  ///>   foldBack (fun x s -> x2yJ x >>=* fun y -> cons y s) xs nil
+  ///
+  /// Reference implementation:
+  ///
+  ///> let rec foldBack x2s2sJ xs s =
+  ///>   xs >>=* function Nil -> s
+  ///>                  | Cons (x, xs) -> x2s2sJ x (foldBack x2s2sJ xs s)
+#endif
+  val foldBack: ('x -> Promise<'s> -> 'sJ)
+             -> Stream<'x>
+             -> 'sJ
+             -> Promise<'s> when 'sJ :> Job<'s>
 
   /// Returns a job that iterates the given job constructor over the given
   /// stream.

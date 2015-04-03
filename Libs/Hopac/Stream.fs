@@ -486,6 +486,9 @@ module Stream =
   let foldFromJob s f xs = foldJob f s xs
   let foldFromFun s f xs = foldFun f s xs
 
+  let rec foldBack x2s2sJ xs s =
+    xs >>=* function Nil -> s | Cons (x, xs) -> x2s2sJ x (foldBack x2s2sJ xs s)
+
   let count xs = foldFun (fun s _ -> s+1L) 0L xs
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
