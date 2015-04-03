@@ -307,6 +307,15 @@ module Stream =
   /// job.
 #if DOC
   ///
+  /// For example, `mapJob` could be defined via `unfoldJob` as follows:
+  ///
+  ///> let mapJob x2yJ xs =
+  ///>   xs
+  ///>   |> unfoldJob (fun xs ->
+  ///>      xs >>= function Nil -> Job.result None
+  ///>                    | Cons (x, xs) ->
+  ///>                      x2yJ x |>> fun y -> Some (y, xs))
+  ///
   /// Reference implementation:
   ///
   ///> let rec unfoldJob f s =
