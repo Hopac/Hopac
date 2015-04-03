@@ -25,10 +25,11 @@ module Stream =
   /// observable sequences are push based.
   ///
   /// Probably the most notable advantage of observable sequences over choice
-  /// streams is that observables support disposables via their subscription
-  /// protocol.  Choice streams do not have a subscription protocol and cannot
-  /// support disposables in the exact same manner.  However, `onCloseJob` and
-  /// `doFinalizeJob` provide similar functionality.
+  /// streams is that observables support disposables via their all-or-nothing
+  /// subscription protocol.  Choice streams do not have a subscription protocol
+  /// (elements are requested one at a time) and cannot support disposables in
+  /// the exact same manner.  However, `onCloseJob` and `doFinalizeJob` provide
+  /// similar functionality.
   ///
   /// On the other hand, choice streams offer several advantages over observable
   /// sequences:
@@ -199,9 +200,9 @@ module Stream =
     /// the variable will not be modified.  See also: `updateJob`.
     val updateFun: MVar<'x> -> ('x -> 'x) -> Job<unit>
 
-    /// Creates a job that updates the value of the variable with the given
-    /// job in a serialized fashion.  If the function raises an exception, the
-    /// variable will not be modified.  See also: `updateFun`.
+    /// Creates a job that updates the value of the variable with the given job
+    /// in a serialized fashion.  If the job raises an exception, the variable
+    /// will not be modified.  See also: `updateFun`.
     val updateJob: MVar<'x> -> ('x -> #Job<'x>) -> Job<unit>
 
     /// Returns the generated stream, including the current value of the
@@ -470,6 +471,10 @@ module Stream =
   ///> zip xs (tail xs)
   ///
   /// is a stream of consecutive pairs from the stream `xs`.
+  ///
+  /// Note that `zip` consumes the same number of elements from both given
+  /// streams.  If one of the streams accumulates elements faster than the other
+  /// stream, there will be an effective space leak.
 #endif
   val zip: Stream<'x> -> Stream<'y> -> Stream<'x * 'y>
 
