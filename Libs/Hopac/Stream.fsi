@@ -26,10 +26,10 @@ module Stream =
   ///
   /// Probably the most notable advantage of observable sequences over choice
   /// streams is that observables support disposables via their all-or-nothing
-  /// subscription protocol.  Choice streams do not have a subscription protocol
-  /// (elements are requested one at a time) and cannot support disposables in
-  /// the exact same manner.  However, `onCloseJob` and `doFinalizeJob` provide
-  /// similar functionality.
+  /// subscription protocol.  Choice streams cannot support disposables in the
+  /// exact same manner, because elements are requested asynchronously one at a
+  /// time and choice streams do not have a subscription protocol.  However,
+  /// `onCloseJob` and `doFinalizeJob` provide similar functionality.
   ///
   /// On the other hand, choice streams offer several advantages over observable
   /// sequences:
@@ -44,28 +44,32 @@ module Stream =
   ///
   /// - Basically all operations on ordinary lazy streams can be implemented on
   /// and are meaningful on choice streams.  The same is not true of observable
-  /// sequences, because they are eager/strict and do not compose the same way.
+  /// sequences, because they do not compose the same way.  Many trivial choice
+  /// stream combinators, such as `foldBack` and `tails`, can be either
+  /// impossible or very challenging to specify and implement meaningfully for
+  /// observable sequences.
+  ///
+  /// - Choice streams allow for the use of asynchronous programming at any
+  /// point.  Most higher-order choice stream combinators taking have both an
+  /// asynchronous `Job` and a synchronous `Fun` form.  For example, `iterJob`
+  /// waits for the asynchronous job to finish before consuming the next value
+  /// from the stream.  The `Subscribe` operation of observables cannot support
+  /// such behavior, because `OnNext` calls are synchronous.
   ///
   /// - Choice streams are consistent in that every consumer of a stream gets
-  /// the exact same sequence of values.  There is no need for `Connect` and
-  /// `Publish` like with observable sequences.  Many trivial choice stream
-  /// combinators, such as `tails`, can be very challenging, if not impossible,
-  /// to specify and implement meaningfully for observable sequences.
+  /// the exact same sequence of values unlike with observable sequences.  In
+  /// other words, choice streams are immutable and elements are not discarded
+  /// implicitly.  There is no need for `Connect` and `Publish` or `Replay` like
+  /// with observable sequences.
   ///
-  /// - Choice streams allow the use of asynchronous programming at any point.
-  /// For example, `iterJob` waits for the asynchronous job to finish before
-  /// consuming the next value from the stream.  The `Subscribe` operation of
-  /// observables cannot support such behavior, because `OnNext` calls are
-  /// synchronous.
-  ///
-  /// - Choice streams allow values to be generated both lazily in response to
-  /// consumers, see the fibonacci example in `delay`, and eagerly in response
-  /// to producers, see `shift`.  Observable sequences can only be generated
-  /// eagerly in response to producers.  The fibonacci example cannot be
-  /// expressed using observable sequences, because an observable sequence would
-  /// enumerate the fibonacci sequence eagerly, and combinators like `afterEach`
-  /// and `beforeEach` cannot be implemented for observable sequences, because
-  /// observables do not have a protocol for requesting elements one by one.
+  /// - The asynchronous one element at a time model of choice streams allows
+  /// for a basic form of backpressure or the flow of synchronization from
+  /// consumers to producers.  This allows for many new operations to expressed.
+  /// For example, `keepPreceding1` and `keepFollowing1` cannot be implemented
+  /// for observable sequences.  Operations such as `afterEach` and `beforeEach`
+  /// have semantics that are pull based and lazy and cannot be implemented for
+  /// observable sequences.  Operations such as `pullOn`, or `zip` in disguise,
+  /// have new uses.
   ///
   /// All of the above advantages are strongly related and result from the pull
   /// based nature of choice streams.  Pull semantics puts the consumer in
@@ -73,7 +77,7 @@ module Stream =
   ///
   /// While the most common operations are very easy to implement on choice
   /// streams, some operations perhaps require more intricate programming than
-  /// with push based models.  For example, `groupByFun` and `shift`, that
+  /// with push based models.  For example, `groupByFun` and `shift`, which
   /// corresponds to `Delay` in Rx, are non-trivial, although both
   /// implementations are actually much shorter than their .Net Rx counterparts.
 #endif
@@ -91,7 +95,7 @@ module Stream =
   ///
   /// to produce a stream of button clicks.  The `Stream.Src.tap` function
   /// returns the generated stream, which can then be manipulated using stream
-  /// combinators.
+  /// combinators.  See also: `ofObservableOnMain`.
   ///
   /// Here is a silly example.  We could write a stream combinator that counts
   /// the number of events within a given timeout period:
@@ -143,7 +147,7 @@ module Stream =
     val tap: Src<'x> -> Stream<'x>
 
   /// Represents a mutable variable, called a stream variable, that generates a
-  /// stream of values as a side-effect.
+  /// stream of values as a side-effect.  See also: `MVar<'x>`.
 #if DOC
   ///
   /// The difference between a stream variable and a stream source is that a
@@ -226,9 +230,9 @@ module Stream =
 
   // Introducing streams
 
-  /// An empty or closed choice stream.
-  ///
-  /// `nil` is equivalent to `Promise.Now.withValue Nil`.
+  /// An empty or closed choice stream.  `nil` is also the identity element for
+  /// the `merge` and `append` combinators.  `nil` is equivalent to
+  /// `Promise.Now.withValue Nil`.
   val inline nil<'x> : Stream<'x>
 
   /// `cons x xs` constructs a choice stream whose first value is `x` and the
@@ -273,7 +277,9 @@ module Stream =
 #endif
   val inline delay: (unit -> #Job<Cons<'x>>) -> Stream<'x>
 
-  /// A choice stream that never produces any values and never closes.
+  /// A choice stream that never produces any values and never closes.  While
+  /// perhaps rarely used, this is theoretically important as the identity
+  /// element for the `switch` and `amb` combinators.
   val inline never<'x> : Stream<'x>
 
   /// Constructs a choice stream that is closed with an error.
@@ -554,7 +560,7 @@ module Stream =
   // Joining streams
 
   /// Of the two given streams, returns the stream that first produces an
-  /// element or is closed.  See also: `ambMap`.
+  /// element or is closed.  See also: `ambMap`, `never`.
 #if DOC
   ///
   /// Reference implementation:
@@ -565,7 +571,7 @@ module Stream =
 
   /// Returns a stream that produces elements from both of the given streams so
   /// that elements from the streams are interleaved non-deterministically in
-  /// the returned stream.  See also: `mergeMap`.
+  /// the returned stream.  See also: `mergeMap`, `nil`.
 #if DOC
   ///
   /// Reference implementation:
@@ -579,14 +585,15 @@ module Stream =
 
   /// Concatenates the given two streams.  In other words, returns a stream that
   /// first produces all the elements from first stream and then all the
-  /// elements from the second stream.  If the first stream is infinite, no
-  /// elements are produced from the second stream.  See also: `appendMap`.
+  /// elements from the second stream.  If the first stream is infinite,
+  /// `append` should not be used, because no elements would be produced from
+  /// the second stream.  See also: `appendMap`, `nil`.
   val append: Stream<'x> -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that produces elements from the first stream as long as
   /// the second stream produces no elements.  As soon as the second stream
   /// produces an element, the returned stream only produces elements from the
-  /// second stream.  See also: `switchTo`, `switchMap`.
+  /// second stream.  See also: `switchTo`, `switchMap`, `never`.
 #if DOC
   ///
   ///>  first: a b    c   d
@@ -601,13 +608,13 @@ module Stream =
 #endif
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
-  /// `switchTo xs ys` is equivalent to `switch ys xs`.
+  /// `switchTo lhs rhs` is equivalent to `switch rhs lhs`.
 #if DOC
   ///
   /// `switchTo` is designed to be used in pipelines:
   ///
-  ///> xs
-  ///> |> switchTo ys
+  ///> firstStream
+  ///> |> switchTo otherStream
 #endif
   val switchTo: Stream<'x> -> Stream<'x> -> Stream<'x>
 
@@ -814,6 +821,10 @@ module Stream =
   /// is similar to
   ///
   ///> live |> samplesAfter ticks
+  ///
+  /// However, a lazified stream, assuming there is enough CPU time to consume
+  /// elements from the live stream, never internally holds to an arbitrary
+  /// number of stream conses.
   ///
   /// `pullOn ts xs` is equivalent to `zipWithFun (fun _ x -> x) ts xs`.
 #endif
@@ -1028,7 +1039,7 @@ module Stream =
   val iterFun: ('x -> unit) -> Stream<'x> -> Job<unit>
 
   /// Returns a job that iterates over all the elements of the given stream.
-  /// `iter xs` is equivalent to `iterFun id xs`.
+  /// `iter xs` is equivalent to `iterFun ignore xs`.
   val iter: Stream<'x> -> Job<unit>
 
   /// `xs |> subscribeJob x2uJ` is equivalent to `xs |> iterJob x2uJ |> queue`.
