@@ -115,8 +115,7 @@ module Stream =
   ///> Stream.combineLatest n1s n2s
   ///> |> Stream.chooseFun (fun (n1, n2) ->
   ///>    if n1 > 0 && n2 > 0 then Some () else None)
-  ///> |> Stream.iterFun (fun () -> printfn "That was fast!")
-  ///> |> queue
+  ///> |> Stream.subscribeFun (fun () -> printfn "That was fast!")
   ///
   /// Note that there are no special hidden mechanisms involved in the
   /// implementation of stream sources.  You can easily implement similar
@@ -1023,7 +1022,7 @@ module Stream =
              -> Promise<'s> when 'sJ :> Job<'s>
 
   /// Returns a job that iterates the given job constructor over the given
-  /// stream.
+  /// stream.  See also: `subscribeJob`.
 #if DOC
   ///
   /// Reference implementation:
@@ -1035,11 +1034,11 @@ module Stream =
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>
 
   /// Returns a job that iterates the given function over the given stream.  See
-  /// also: `iterJob`.
+  /// also: `iterJob`, `subscribeFun`.
   val iterFun: ('x -> unit) -> Stream<'x> -> Job<unit>
 
   /// Returns a job that iterates over all the elements of the given stream.
-  /// `iter xs` is equivalent to `iterFun ignore xs`.
+  /// `iter xs` is equivalent to `iterFun ignore xs`.  See also: `subscribe`.
   val iter: Stream<'x> -> Job<unit>
 
   /// `xs |> subscribeJob x2uJ` is equivalent to `xs |> iterJob x2uJ |> queue`.
