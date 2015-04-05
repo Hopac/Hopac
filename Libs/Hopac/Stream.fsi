@@ -115,7 +115,7 @@ module Stream =
   ///> Stream.combineLatest n1s n2s
   ///> |> Stream.chooseFun (fun (n1, n2) ->
   ///>    if n1 > 0 && n2 > 0 then Some () else None)
-  ///> |> Stream.subscribeFun (fun () -> printfn "That was fast!")
+  ///> |> Stream.consumeFun (fun () -> printfn "That was fast!")
   ///
   /// Note that there are no special hidden mechanisms involved in the
   /// implementation of stream sources.  You can easily implement similar
@@ -1022,7 +1022,7 @@ module Stream =
              -> Promise<'s> when 'sJ :> Job<'s>
 
   /// Returns a job that iterates the given job constructor over the given
-  /// stream.  See also: `subscribeJob`.
+  /// stream.  See also: `consumeJob`.
 #if DOC
   ///
   /// Reference implementation:
@@ -1034,21 +1034,21 @@ module Stream =
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>
 
   /// Returns a job that iterates the given function over the given stream.  See
-  /// also: `iterJob`, `subscribeFun`.
+  /// also: `iterJob`, `consumeFun`.
   val iterFun: ('x -> unit) -> Stream<'x> -> Job<unit>
 
   /// Returns a job that iterates over all the elements of the given stream.
-  /// `iter xs` is equivalent to `iterFun ignore xs`.  See also: `subscribe`.
+  /// `iter xs` is equivalent to `iterFun ignore xs`.  See also: `consume`.
   val iter: Stream<'x> -> Job<unit>
 
-  /// `xs |> subscribeJob x2uJ` is equivalent to `xs |> iterJob x2uJ |> queue`.
-  val subscribeJob: ('x -> #Job<unit>) -> Stream<'x> -> unit
+  /// `xs |> consumeJob x2uJ` is equivalent to `xs |> iterJob x2uJ |> queue`.
+  val consumeJob: ('x -> #Job<unit>) -> Stream<'x> -> unit
 
-  /// `xs |> subscribeFun x2u` is equivalent to `xs |> iterFun x2u |> queue`.
-  val subscribeFun: ('x -> unit) -> Stream<'x> -> unit
+  /// `xs |> consumeFun x2u` is equivalent to `xs |> iterFun x2u |> queue`.
+  val consumeFun: ('x -> unit) -> Stream<'x> -> unit
 
-  /// `xs |> subscribe` is equivalent to `xs |> iter |> queue`.
-  val subscribe: Stream<'x> -> unit
+  /// `xs |> consume` is equivalent to `xs |> iter |> queue`.
+  val consume: Stream<'x> -> unit
 
   /// Returns a job that computes the length of the given stream.
   val count: Stream<'x> -> Job<int64>

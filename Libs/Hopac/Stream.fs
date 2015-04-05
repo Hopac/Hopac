@@ -497,9 +497,9 @@ module Stream =
     xs >>= function Cons (x, xs) -> f x ; iterFun f xs | Nil -> Job.unit ()
   let rec iter (xs: Stream<_>) : Job<unit> =
     xs >>= function Cons (_, xs) -> iter xs | Nil -> Job.unit ()
-  let subscribeJob f xs = iterJob f xs |> queue
-  let subscribeFun f xs = iterFun f xs |> queue
-  let subscribe xs = iter xs |> queue
+  let consumeJob f xs = iterJob f xs |> queue
+  let consumeFun f xs = iterFun f xs |> queue
+  let consume xs = iter xs |> queue
 
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray<_>()
