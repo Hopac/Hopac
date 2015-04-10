@@ -1,4 +1,27 @@
-﻿#### 0.0.0.44 - 02.03.2015
+﻿#### 0.0.0.45 - 10.04.2015
+* Added basic `Stream.buffer` combinator.
+* Renamed `Stream.subscribe*` to `Stream.consume*` to better describe semantics.
+* Doc refinements.
+* Added `Stream.pullOn`, `Stream.skipWhileJob`, `Stream.skipWhileFun`, `Stream.pullOn`, `Stream.foldBack`, `Stream.mapIgnore`, 
+`Stream.ambAll`, `Stream.appendAll`, `Stream.mergeAll` and `Stream.switchAll`
+* Fixed to start reading the serialized variable immediately as documented.
+* Added `Stream.subscribe*` as a shorthand for `Stream.iter* |> queue`.
+* Added mutable `Stream.Property<'x>` that generates property change notifications for e.g. WPF data binding.
+* Added `doFinalizeJob` and `doFinalizeFun`.
+* Experimental wrapper for streams that tracks space safety via phantom types.
+* Changed `groupByJob` and `groupByFun` to take an additional function/job for forming new groups.
+* Added `Stream.tailsMapFun` and `Stream.initsMapFun` these are useful for lifting the `Stream.tails` and `Stream.inits` functions.
+* Added `keepFollowing1` and renamed `keepLatest` to `keepPreceding` to make the naming more symmetric although the concepts of "following" and "preceding" aren't really fully symmetric (unless you allow time travel).
+* A slightly more performant implementation of `keepLatestFuns`.
+* Renamed from `lazify` to `keepLatest`.
+* Lazification of live streams.
+* Rethinking timing and throttling operations.
+* Generalized `joinWith` and `mapJoin`.
+* There is no sleep, only `timeOut`.
+* Added ability to directly bind observables in job computation expressions.
+* Removed superfluous methods from `Async.OnWithSchedulerBuilder`.
+
+#### 0.0.0.44 - 02.03.2015
 * Fixed to properly remove waiter in case it timed out rather than was signalled.
 * Signal when top timed changes to improve timer accuracy.
 * Add a test of the job computation builder.
