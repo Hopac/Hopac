@@ -474,6 +474,10 @@ module Stream =
                -> Stream<'x>
                -> Stream<'y> when 'k: equality
 
+  /// Converts a stream of elements into a stream of non-overlapping buffers of
+  /// at most given number of elements.
+  val buffer: int -> Stream<'x> -> Stream<array<'x>>
+
   /// Returns a stream of pairs of elements from the given pair of streams.  No
   /// elements from either stream are skipped and each element is used only
   /// once.  In `zip xs ys`, the `xs` stream is examined first.  See also:

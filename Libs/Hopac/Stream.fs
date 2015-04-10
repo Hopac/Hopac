@@ -729,6 +729,21 @@ module Stream =
 
   let afterTimeSpan ts = once (timeOut ts)
 
+  let inline lastBuffer i b tail =
+    if 0 < i then consj (Array.sub b 0 i) tail else upcast tail
+  let rec buffer' i (b: array<_>) xs =
+    Job.tryIn xs
+     <| function Cons (x, xs) ->
+                 b.[i] <- x
+                 let i = i + 1
+                 if i < b.Length then buffer' i b xs else
+                 consj b (buffer' 0 (Array.zeroCreate b.Length) xs |> memo)
+               | Nil -> lastBuffer i b nil
+     <| fun e -> lastBuffer i b (error e)
+  let buffer (n: int) xs =
+    if n < 1 then failwith "buffer: n < 1" else
+    buffer' 0 (Array.zeroCreate n) xs |> memo
+
   let values (xs: Stream<'x>) : Alt<'x> =
     let vs = Ch<_>()
     let (inc, dec) =
