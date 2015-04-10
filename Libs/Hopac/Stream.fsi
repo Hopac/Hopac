@@ -548,11 +548,11 @@ module Stream =
   ///
   /// Reference implementation:
   ///
-  ///>  let distinctUntilChanged xs =
-  ///>    append (head xs)
-  ///>     (zip xs (tail xs)
-  ///>      |> chooseFun (fun (x0, x1) ->
-  ///>         if x0 <> x1 then Some x1 else None))
+  ///> let distinctUntilChanged xs =
+  ///>   append (head xs)
+  ///>    (zip xs (tail xs)
+  ///>     |> chooseFun (fun (x0, x1) ->
+  ///>        if x0 <> x1 then Some x1 else None))
 #endif
   val distinctUntilChanged: Stream<'x> -> Stream<'x> when 'x: equality
 
