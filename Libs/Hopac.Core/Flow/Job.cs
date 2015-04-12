@@ -180,38 +180,36 @@ namespace Hopac {
     }
 
     ///
-    public abstract class JobTryInBase<X, Y> : Job<Y> {
+    public abstract class JobTryInCont<X, Y> : Cont<X> {
+      internal Cont<Y> yK;
       ///
       public abstract Job<Y> DoIn(X x);
       ///
       public abstract Job<Y> DoExn(Exception e);
-
-      internal sealed class ContTryIn : Cont<X> {
-        private JobTryInBase<X, Y> yJ;
-        private Cont<Y> yK;
-        internal ContTryIn(JobTryInBase<X, Y> yJ, Cont<Y> yK) {
-          this.yJ = yJ;
-          this.yK = yK;
-        }
-        internal override Proc GetProc(ref Worker wr) {
+      internal override Proc GetProc(ref Worker wr) {
           return Handler.GetProc(ref wr, ref yK);
-        }
-        internal override void DoHandle(ref Worker wr, Exception e) {
-          var yK = this.yK;
-          wr.Handler = yK;
-          yJ.DoExn(e).DoJob(ref wr, yK);
-        }
-        internal override void DoWork(ref Worker wr) {
-          var yK = this.yK;
-          wr.Handler = yK;
-          yJ.DoIn(this.Value).DoJob(ref wr, yK);
-        }
-        internal override void DoCont(ref Worker wr, X x) {
-          var yK = this.yK;
-          wr.Handler = yK;
-          yJ.DoIn(x).DoJob(ref wr, yK);
-        }
       }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        var yK = this.yK;
+        wr.Handler = yK;
+        this.DoExn(e).DoJob(ref wr, yK);
+      }
+      internal override void DoWork(ref Worker wr) {
+        var yK = this.yK;
+        wr.Handler = yK;
+        this.DoIn(this.Value).DoJob(ref wr, yK);
+      }
+      internal override void DoCont(ref Worker wr, X x) {
+        var yK = this.yK;
+        wr.Handler = yK;
+        this.DoIn(x).DoJob(ref wr, yK);
+      }
+    }
+
+    ///
+    public abstract class JobTryInBase<X, Y> : Job<Y> {
+      ///
+      public abstract JobTryInCont<X, Y> DoCont();
     }
 
     ///
@@ -221,7 +219,8 @@ namespace Hopac {
       [MethodImpl(AggressiveInlining.Flag)]
       public Job<Y> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        var xK = new ContTryIn(this, yK);
+        var xK = this.DoCont();
+        xK.yK = yK;
         wr.Handler = xK;
         xJ.DoJob(ref wr, xK);
       }
@@ -232,7 +231,8 @@ namespace Hopac {
       ///
       public abstract Job<X> DoDelay();
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        var xK = new ContTryIn(this, yK);
+        var xK = this.DoCont();
+        xK.yK = yK;
         wr.Handler = xK;
         DoDelay().DoJob(ref wr, xK);
       }

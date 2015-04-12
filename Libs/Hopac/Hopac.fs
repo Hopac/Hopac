@@ -975,14 +975,16 @@ module Job =
 
   let inline tryIn (xJ: Job<'x>) (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =
     {new JobTryIn<'x, 'y> () with
-      override yJ'.DoIn (x) = upcast x2yJ x
-      override yJ'.DoExn (e) = upcast e2yJ e}.InternalInit(xJ)
+      override yJ'.DoCont () = {new JobTryInCont<_, _> () with
+        override yJ'.DoIn (x) = upcast x2yJ x
+        override yJ'.DoExn (e) = upcast e2yJ e}}.InternalInit(xJ)
 
   let inline tryInDelay (u2xJ: unit -> #Job<'x>) (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =
     {new JobTryInDelay<'x, 'y> () with
       override yJ'.DoDelay () = upcast u2xJ ()
-      override yJ'.DoIn (x) = upcast x2yJ x
-      override yJ'.DoExn (e) = upcast e2yJ e} :> Job<_>
+      override yJ'.DoCont () = {new JobTryInCont<_, _> () with
+       override yJ'.DoIn (x) = upcast x2yJ x
+       override yJ'.DoExn (e) = upcast e2yJ e}} :> Job<_>
 
   let inline tryWith (xJ: Job<'x>) (e2xJ: exn -> #Job<'x>) =
     JobTryWith<'x> (xJ, fun e -> upcast e2xJ e) :> Job<_>
