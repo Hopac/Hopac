@@ -209,7 +209,8 @@ let main argv =
       |> Stream.keepPreceding1
       |> Stream.consumeJob (fun model -> onMain {
          let n = Map.toSeq model |> Seq.filter (snd >> isActive) |> Seq.length
-         main.NumberOfItems.Text <- sprintf "%d items left" n })
+         main.NumberOfItems.Text <-
+           sprintf "%d item%s left" n (if n=1 then "" else "s") })
 
       // This updates the button to clear all completed items.
       Stream.MVar.tap modelMVar
@@ -217,8 +218,7 @@ let main argv =
       |> Stream.consumeJob (fun model -> onMain {
          let n = Map.toSeq model |> Seq.filter (snd >> isCompleted) |> Seq.length
          main.ClearCompleted.Visibility <-
-           if n=0 then Visibility.Hidden else Visibility.Visible
-         main.ClearCompleted.Content <- sprintf "Clear completed %d" n })
+           if n=0 then Visibility.Hidden else Visibility.Visible })
 
       // This removes all completed items when the ClearCompleted button is
       // clicked.
