@@ -9,7 +9,10 @@ Other languages that provide similar or related models include
 [Go](https://golang.org/).  Racket's model is also inspired by CML.  Clojure's
 core.async and Go can be seen as providing a subset of the functionality
 provided by CML.  In particular, they lack the higher-order events and negative
-acknowledgments of CML.
+acknowledgments of CML.  If you are intimately familiar with core.async or Go,
+you might find the proof-of-concept implementation of CML style events on top of
+core.async in the [poc.cml](https://github.com/VesaKarvonen/poc.cml) project
+interesting.
 
 The book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml)
