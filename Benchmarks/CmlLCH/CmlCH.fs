@@ -4,7 +4,6 @@ open System
 open System.Diagnostics
 open Hopac
 open Hopac.Infixes
-open Hopac.Extra
 open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 
