@@ -95,7 +95,7 @@ let projects =
           ProjectFile = projectFile })
 
 // Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" (fun _ ->
+Target "AssemblyInfo" <| fun _ ->
     projects
     |> List.iter (fun project ->
         [ Attribute.Title project.Name
@@ -108,30 +108,27 @@ Target "AssemblyInfo" (fun _ ->
         |>
         match project.Type with
         | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")
-        | CSharp -> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs")
-    )
-)
+        | CSharp -> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
 
-Target "Clean" (fun _ ->
+Target "Clean" <| fun _ ->
     CleanDirs [buildDir; "temp"; nugetDir]
-)
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
 
-Target "Build" (fun _ ->
+Target "Build" <| fun _ ->
     projects
     |> List.map (fun project -> project.ProjectFile)
     |> MSBuildRelease "bin" "Rebuild"
-    |> ignore)
+    |> ignore
 
 // --------------------------------------------------------------------------------------
 // Build NuGet packages
 
-Target "NuGet" (fun _ ->
+Target "NuGet" <| fun _ ->
     let nugetlibDir = nugetDir @@ "lib/net45"
     CleanDir nugetlibDir
     CopyDir nugetlibDir "bin" (fun file -> file.Contains "FSharp.Core." |> not)
@@ -150,16 +147,14 @@ Target "NuGet" (fun _ ->
             Publish = hasBuildParam "nugetkey"
             Dependencies = [] })
         (".nuget" @@ project + ".nuspec")
-)
 
-Target "Release" (fun _ ->
+Target "Release" <| fun _ ->
     StageAll ""
     Git.Commit.Commit "" (sprintf "Bump version to %s" release.NugetVersion)
     Branches.push ""
 
     Branches.tag "" release.NugetVersion
     Branches.pushTag "" "origin" release.NugetVersion
-)
 
 Target "BuildPackage" DoNothing
 
