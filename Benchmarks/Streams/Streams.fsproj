@@ -16,7 +16,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
@@ -36,6 +35,8 @@
     <Externalconsole>true</Externalconsole>
     <Tailcalls>true</Tailcalls>
     <Prefer32Bit>false</Prefer32Bit>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '11.0'">
@@ -65,7 +66,6 @@
   <ItemGroup>
     <Reference Include="FSharp.Core">
       <HintPath>..\..\packages\FSharp.Core.3.1.2.1\lib\net40\FSharp.Core.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -73,34 +73,27 @@
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj">
       <Name>Hopac.Core</Name>
-      <Project>{92ac6198-fa63-4458-afec-2bfbb2b0d914}</Project>
-      <Private>True</Private>
+      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj">
       <Name>Hopac.Platform.Net</Name>
-      <Project>{b285aeb6-fc96-4212-b7a2-6b73597ce607}</Project>
-      <Private>True</Private>
+      <Project>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
       <Name>Hopac</Name>
-      <Project>{898d8fe3-c9be-4115-9a13-7615af27c048}</Project>
-      <Private>True</Private>
+      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
     </ProjectReference>
     <Reference Include="System.Reactive.Core">
       <HintPath>..\..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Reactive.Interfaces">
       <HintPath>..\..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Reactive.Linq">
       <HintPath>..\..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Reactive.PlatformServices">
       <HintPath>..\..\packages\Rx-PlatformServices.2.2.5\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
-      <Private>True</Private>
     </Reference>
   </ItemGroup>
 </Project>
