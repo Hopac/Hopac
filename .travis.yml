@@ -1,17 +1,20 @@
-language: objective-c
+# first class nowadays: http://docs.travis-ci.com/user/languages/csharp/
+language: csharp
+
+mono:
+ - beta
+ - latest
+ - 4.0.0
+ - 3.12.0
+
+solution: Hopac.sln
 
 notifications:
-  email: false
+  email: true
 
 env:
   global:
     - EnableNuGetPackageRestore=true
-  matrix:
-    - MONO_VERSION=3.10.0
-
-install:
-  - wget "http://download.mono-project.com/archive/${MONO_VERSION}/macos-10-x86/MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg"
-  - sudo installer -pkg "MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg" -target /
 
 script:
   - ./build.sh
