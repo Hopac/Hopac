@@ -2,13 +2,12 @@
 
 set -e
 
-nuget restore Hopac.sln -Verbosity quiet
+if [ ! -f packages/FAKE/tools/Fake.exe ] ; then
+    nuget install FAKE -OutputDirectory packages -ExcludeVersion
+fi
 
-function build () {
-    xbuild /nologo /verbosity:quiet /p:Configuration=$2 $1
-}
+if [ ! -f packages/SourceLink.Fake/tools/SourceLink.fsx ] ; then
+    nuget install SourceLink.Fake -OutputDirectory packages -ExcludeVersion
+fi
 
-build Hopac.sln Debug
-build Hopac.sln Release
-#build Hopac-Xamarin.sln Debug
-#build Hopac-Xamarin.sln Release
+mono packages/FAKE/tools/FAKE.exe build.fsx "$*"
