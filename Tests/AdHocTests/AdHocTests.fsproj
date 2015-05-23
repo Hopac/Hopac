@@ -18,7 +18,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>bin\Debug\</OutputPath>
@@ -40,6 +39,7 @@
     <DocumentationFile>bin\Release\AdHocTests.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnon:1182</OtherFlags>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -73,8 +73,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj">
       <Name>Hopac.Platform.Net</Name>
-      <Project>{b285aeb6-fc96-4212-b7a2-6b73597ce607}</Project>
-      <Private>True</Private>
+      <Project>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
       <Name>Hopac</Name>
@@ -82,11 +81,9 @@
     </ProjectReference>
     <Reference Include="FsCheck">
       <HintPath>..\..\packages\FsCheck.1.0.4\lib\net45\FsCheck.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\..\packages\FSharp.Core.3.1.2.1\lib\net40\FSharp.Core.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
