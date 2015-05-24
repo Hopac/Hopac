@@ -1,4 +1,9 @@
-﻿#### 0.0.0.45 - 10.04.2015
+﻿#### 0.0.0.46 - 24.05.2015
+* Changed to use `FSharp.Core` from NuGet.
+* Removed PCL profiles.
+* Fixed potential leak with `Job.tryIn` and `Job.tryInDelay`.
+
+#### 0.0.0.45 - 10.04.2015
 * Added basic `Stream.buffer` combinator.
 * Renamed `Stream.subscribe*` to `Stream.consume*` to better describe semantics.
 * Doc refinements.
