@@ -145,7 +145,7 @@ Target "NuGet" <| fun _ ->
             OutputPath = nugetDir
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = [("FSharp.Core", "3.1.2.1")]})
+            Dependencies = getDependencies "Libs/Hopac/packages.config"})
         (".nuget" @@ project + ".nuspec")
 
 Target "Release" <| fun _ ->
