@@ -47,6 +47,7 @@ namespace Hopac {
       if (0 <= waiter) {
         var ev = sr.Events[waiter];
         sr.WaiterStack = ev.Next;
+        Debug.Assert(0 <= sr.NumActive);
         sr.NumActive += 1;
         ev.Set();
       }
@@ -64,6 +65,7 @@ namespace Hopac {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Inc(Scheduler sr) {
       Enter(sr);
+      Debug.Assert(0 <= sr.NumActive);
       sr.NumActive += 1;
       Exit(sr);
     }
@@ -72,6 +74,7 @@ namespace Hopac {
     internal static void UnsafeDec(Scheduler sr) {
       var numActive = sr.NumActive - 1;
       sr.NumActive = numActive;
+      Debug.Assert(0 <= sr.NumActive);
       if (0 == numActive && 0 != sr.NumPulseWaiters) {
         Monitor.Enter(sr);
         Monitor.PulseAll(sr);
@@ -97,6 +100,8 @@ namespace Hopac {
       if (ev.IsSet) {
         ev.Reset();
       } else {
+        Debug.Assert(0 <= sr.NumActive);
+        sr.NumActive += 1;
         int i = sr.WaiterStack;
         int me = ev.Me;
         if (i == me) {
@@ -152,6 +157,7 @@ namespace Hopac {
       sr.WorkStack = work;
       sr.NumWorkStack += n;
       sr.NumActive -= 1;
+      Debug.Assert(0 <= sr.NumActive);
       UnsafeSignal(sr);
       Exit(sr);
     }
