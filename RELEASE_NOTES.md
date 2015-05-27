@@ -1,4 +1,7 @@
-﻿#### 0.0.0.46 - 24.05.2015
+﻿#### 0.0.0.47 - 27.05.2015
+* Fixed a bug in counting the number of active worker threads, which is only used by `Scheduler.wait`.
+
+#### 0.0.0.46 - 24.05.2015
 * Changed to use `FSharp.Core` from NuGet.
 * Removed PCL profiles.
 * Fixed potential leak with `Job.tryIn` and `Job.tryInDelay`.
