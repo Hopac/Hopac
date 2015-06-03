@@ -25,9 +25,9 @@ module BufferedChViaPick =
        | [] ->
          insCh ^=> fun x -> loop [x]
        | x::xs ->
-             remCh *<- x ^=> fun () -> loop xs
+             remCh *<-- x ^=> fun () -> loop xs
          <|> insCh       ^=> fun x  -> loop (buf @ [x])
     Job.server (loop []) >>%
     {InsCh=insCh; RemCh=remCh}
-  let insert b x = b.InsCh *<- x
+  let insert b x = b.InsCh *<-- x
   let remove b = b.RemCh

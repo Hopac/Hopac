@@ -2109,26 +2109,26 @@ type EmbeddedJobBuilder () =
 
 module Infixes =
   open Alt.Infixes
-  let inline ( *<- ) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
-  let inline ( *<+ ) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
-  let inline ( *<+-> ) qCh rCh2n2q = Alt.withNackJob <| fun nack ->
+  let inline ( *<-- ) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
+  let inline ( *<-+ ) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
+  let inline ( *<-+/--> ) qCh rCh2n2q = Alt.withNackJob <| fun nack ->
     let rCh = Ch<_> ()
-    qCh *<+ rCh2n2q rCh nack >>%
+    qCh *<-+ rCh2n2q rCh nack >>%
     rCh
-  let inline ( *<-=> ) qCh rI2q = Alt.prepareFun <| fun () ->
+  let inline ( *<--/=-> ) qCh rI2q = Alt.prepareFun <| fun () ->
     let rI = IVar<_> ()
-    qCh *<- rI2q rI ^=>.
+    qCh *<-- rI2q rI ^=>.
     rI
-  let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
-  let inline ( *<=! ) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
-  let inline ( *<<= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
-  let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
-  let inline (<--) xCh x = xCh *<- x
-  let inline (<-+) xCh x = xCh *<+ x
-  let inline (<-=) xI x = xI *<= x
-  let inline (<-=!) xI e = xI *<=! e
-  let inline (<<-=) xM x = xM *<<= x
-  let inline (<<-+) xMb x = xMb *<<+ x
+  let inline ( *<-= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
+  let inline ( *<-=! ) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
+  let inline ( *<<-= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
+  let inline ( *<<-+ ) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
+  let inline (<--) xCh x = xCh *<-- x
+  let inline (<-+) xCh x = xCh *<-+ x
+  let inline (<-=) xI x = xI *<-= x
+  let inline (<-=!) xI e = xI *<-=! e
+  let inline (<<-=) xM x = xM *<<-= x
+  let inline (<<-+) xMb x = xMb *<<-+ x
 
 /////////////////////////////////////////////////////////////////////////
 

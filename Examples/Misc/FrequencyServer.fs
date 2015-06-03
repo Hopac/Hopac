@@ -19,12 +19,12 @@ type FrequencyServer = {
 let allocate s = Alt.withNackJob <| fun nack ->
   Proc.self () >>= fun self ->
   let replyCh = Ch ()
-  s.allocCh *<+ (self, nack, replyCh) >>%
+  s.allocCh *<-+ (self, nack, replyCh) >>%
   replyCh
 
 let deallocate s freq =
   Proc.self () >>= fun self ->
-  s.deallocCh *<- (self, freq)
+  s.deallocCh *<-- (self, freq)
 
 let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
   let self = {allocCh = Ch (); deallocCh = Ch ()}
@@ -38,7 +38,7 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
     if e.MoveNext () then
       let freq = e.Current
       e.Dispose ()
-      replyCh *<- freq ^-> fun () ->
+      replyCh *<-- freq ^-> fun () ->
            free.Remove freq |> ignore
            allocated.Add (proc, freq) |> ignore
       <|> nack

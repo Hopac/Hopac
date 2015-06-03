@@ -36,7 +36,7 @@ module IMap =
          ()
     flushed
     |> Seq.iterJob (fun kvI ->
-       kvI.Value *<= None)
+       kvI.Value *<-= None)
 
   let fill kvM k v = Job.delay <| fun () ->
     let k2vI = kvM.Map
@@ -51,7 +51,7 @@ module IMap =
      | (true, vI) ->
        if IVar.Now.isFull vI then
          failwithf "Tried to fill item %A twice." k
-       vI *<= Some v
+       vI *<-= Some v
 
   let query kvM k =
     match kvM.Closed with
