@@ -15,27 +15,27 @@ module EagerSeq =
     let empty () = {EagerSeq = IVar.Now.createFull None}
     let singleton x = {EagerSeq = IVar.Now.createFull (Some (x, empty ()))}
 
-  let inline node () = {EagerSeq = ivar ()}
+  let inline node () = {EagerSeq = IVar ()}
 
   let collectJob (x2ySJ: 'x -> Job<EagerSeq<'y>>) (xs: EagerSeq<'x>) = Job.delay <| fun () ->
     let rec loopXs xs rs =
       Job.tryIn xs
        <| function
-           | None -> rs <-= None
+           | None -> rs *<= None
            | Some (x, xs) ->
              Job.tryInDelay <| fun () -> x2ySJ x
               <| fun ys -> loopYs xs.EagerSeq ys.EagerSeq rs
-              <| fun e -> rs <-=! e
-       <| fun e -> rs <-=! e
+              <| fun e -> rs *<=! e
+       <| fun e -> rs *<=! e
     and loopYs xs ys rs =
       Job.tryIn ys
        <| function
            | None -> loopXs xs rs
            | Some (y, ys) ->
              let rs' = node ()
-             rs <-= Some (y, rs') >>= fun () ->
+             rs *<= Some (y, rs') >>= fun () ->
              loopYs xs ys.EagerSeq rs'.EagerSeq
-       <| fun e -> rs <-=! e
+       <| fun e -> rs *<=! e
     let rs = node ()
     Job.queue (loopXs xs.EagerSeq rs.EagerSeq) >>% rs
 
@@ -52,13 +52,13 @@ module EagerSeq =
       Job.tryIn (xs |>> function None -> None
                                | Some (x, xs) -> Some (x2yO x, xs))
        <| function
-           | None -> ys <-= None
+           | None -> ys *<= None
            | Some (None, xs) -> loop xs.EagerSeq ys
            | Some (Some y, xs) ->
              let ys' = node ()
-             ys <-= Some (y, ys') >>= fun () ->
+             ys *<= Some (y, ys') >>= fun () ->
              loop xs.EagerSeq ys'.EagerSeq
-       <| fun e -> ys <-=! e
+       <| fun e -> ys *<=! e
     let ys = node ()
     Job.queue (loop xs.EagerSeq ys.EagerSeq) >>% ys
 
@@ -68,13 +68,13 @@ module EagerSeq =
                   | None -> Job.result None
                   | Some (x, xs) -> x2yOJ x |>> fun yO -> Some (yO, xs))
        <| function
-           | None -> ys <-= None
+           | None -> ys *<= None
            | Some (None, xs) -> loop xs.EagerSeq ys
            | Some (Some y, xs) ->
              let ys' = node ()
-             ys <-= Some (y, ys') >>= fun () ->
+             ys *<= Some (y, ys') >>= fun () ->
              loop xs.EagerSeq ys'.EagerSeq
-       <| fun e -> ys <-=! e
+       <| fun e -> ys *<=! e
     let ys = node ()
     Job.queue (loop xs.EagerSeq ys.EagerSeq) >>% ys
 
@@ -88,11 +88,11 @@ module EagerSeq =
       match xO with
        | None ->
          match exn with
-          | null -> xs <-= None
-          | e -> xs <-=! e
+          | null -> xs *<= None
+          | e -> xs *<=! e
        | Some x ->
          let xs' = node ()
-         xs <-= Some (x, xs') >>= fun () ->
+         xs *<= Some (x, xs') >>= fun () ->
          loop xs'.EagerSeq
     let xs = node ()
     Job.queue (loop xs.EagerSeq) >>% xs
@@ -101,12 +101,12 @@ module EagerSeq =
     let rec loop xs =
       Job.tryIn xoJ
        <| function
-           | None -> xs <-= None
+           | None -> xs *<= None
            | Some x ->
              let xs' = node ()
-             xs <-= Some (x, xs') >>= fun () ->
+             xs *<= Some (x, xs') >>= fun () ->
              loop xs'.EagerSeq
-       <| fun e -> xs <-=! e
+       <| fun e -> xs *<=! e
     let xs = node ()
     Job.queue (loop xs.EagerSeq) >>% xs
 
@@ -148,12 +148,12 @@ module EagerSeq =
        | None ->
          match exn with
           | null ->
-            xs <-= None
+            xs *<= None
           | e ->
-            xs <-=! e
+            xs *<=! e
        | Some (x, s) ->
          let xs' = node ()
-         xs <-= Some (x, xs') >>= fun () ->
+         xs *<= Some (x, xs') >>= fun () ->
          loop s xs'.EagerSeq
     let xs = node ()
     Job.queue (loop s xs.EagerSeq) >>% xs
@@ -162,11 +162,11 @@ module EagerSeq =
     let rec loop s xs =
       Job.tryInDelay <| fun () -> s2xsOJ s
        <| function
-           | None -> xs <-= None
+           | None -> xs *<= None
            | Some (x, s) ->
              let xs' = node ()
-             xs <-= Some (x, xs') >>= fun () ->
+             xs *<= Some (x, xs') >>= fun () ->
              loop s xs'.EagerSeq
-       <| fun e -> xs <-=! e
+       <| fun e -> xs *<=! e
     let xs = node ()
     Job.queue (loop s xs.EagerSeq) >>% xs

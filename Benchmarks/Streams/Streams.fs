@@ -20,8 +20,8 @@ module Stream =
     xs |>> function Cons (x, _) -> x | _ -> failwith "Nil"
 
   let fix (xs2xs: Stream<'x> -> Stream<'x>) : Stream<'x> =
-    let xs = ivar ()
-    Job.delay (fun () -> xs2xs xs) >>=* fun xs' -> xs <-= xs' >>. xs
+    let xs = IVar ()
+    Job.delay (fun () -> xs2xs xs) >>=* fun xs' -> xs *<= xs' >>. xs
 
   let ints n =
     generateFun 0

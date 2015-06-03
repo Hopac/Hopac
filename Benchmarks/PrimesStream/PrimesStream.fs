@@ -196,23 +196,23 @@ module HopacCh =
     let rec sieve natsIn =
       natsIn >>= fun prime ->
       primesOut prime >>= fun () ->
-      Stream.imp
-       (Stream.filterFun
-         (fun x -> x % prime <> 0)
-         natsIn) >>= sieve
-    Job.server (Stream.imp (Stream.iterateFun 2 (fun x -> x+1)) >>= sieve)
+      natsIn
+      |> Stream.filterFun (fun x -> x % prime <> 0)
+      |> Stream.imp
+      >>= sieve
+    Stream.iterateFun 2 (fun x -> x+1) |> Stream.imp >>= sieve |> Job.server
 
   let primes n = Job.delay <| fun () ->
     let before = GC.GetTotalMemory true
     Stream.imp sieve >>= fun primes ->
     let result = Array.zeroCreate n
     let last = n-1
-    Job.forUpTo 0 last (fun i ->
-      primes |>> fun p ->
-      result.[i] <- p
-      if i = last then
-        printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)) >>%
-    result
+    Job.forUpTo 0 last <| fun i ->
+         primes |>> fun p ->
+         result.[i] <- p
+         if i = last then
+           printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
+    >>% result
 
   let run n =
     printf "HopacCh:       "

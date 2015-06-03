@@ -9,11 +9,16 @@ namespace Hopac {
 
   /// <summary>Represents a write once variable.</summary>
   public class IVar<T> : Promise<T> {
-    /// Internal implementation detail.
+    /// <summary>Creates a new write once variable.</summary>
+    [MethodImpl(AggressiveInlining.Flag)]
     public IVar() { this.State = Running; }
-    /// Internal implementation detail.
+
+    /// <summary>Creates a new write once variable with the given value.</summary>
+    [MethodImpl(AggressiveInlining.Flag)]
     public IVar(T t) : base(t) { }
-    /// Internal implementation detail.
+
+    /// <summary>Creates a new write once variable with the given failure exception.</summary>
+    [MethodImpl(AggressiveInlining.Flag)]
     public IVar(Exception e) : base(e) { }
 
     /// Internal implementation detail.

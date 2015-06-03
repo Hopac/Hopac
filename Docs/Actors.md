@@ -195,7 +195,7 @@ module HopacModel =
     | Give of Actor<unit> * 'x
   type Ch<'x> = C of Actor<Msg<'x>>
   let unC (C x) = x
-  let ch () : Ch<'x> =
+  let Ch () : Ch<'x> =
     let givers = Queue<Actor<unit> * 'x>()
     let takers = Queue<Actor<unit> * ref<option<'x>>>()
     let rec loop () =

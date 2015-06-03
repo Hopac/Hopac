@@ -16,20 +16,20 @@ module BoundedMb =
         failwithf "Negative capacity"
       else
         Job.thunk <| fun () ->
-        let theCh = ch ()
+        let theCh = Ch ()
         {putCh = theCh; takeCh = theCh}
     else
       Job.delay <| fun () ->
-      let self = {putCh = ch (); takeCh = ch ()}
+      let self = {putCh = Ch (); takeCh = Ch ()}
       let queue = Queue<_>()
-      let put = self.putCh |>>? queue.Enqueue
-      let take () = self.takeCh <-- queue.Peek () |>>? (queue.Dequeue >> ignore)
+      let put = self.putCh ^-> queue.Enqueue
+      let take () = self.takeCh *<- queue.Peek () ^-> (queue.Dequeue >> ignore)
       let proc = Job.delay <| fun () ->
         match queue.Count with
          | 0 -> put
          | n when n = capacity -> take ()
-         | _ -> take () <|>? put
+         | _ -> take () <|> put
       Job.foreverServer proc >>% self
 
-  let put xB x = xB.putCh <-- x
+  let put xB x = xB.putCh *<- x
   let take xB = xB.takeCh :> Alt<_>

@@ -11,4 +11,4 @@ module BufferedChViaPick =
   type Buffer<'a>
   val create: unit -> Job<Buffer<'a>>
   val insert: Buffer<'a> -> 'a -> Alt<unit>
-  val remove: Buffer<'a> -> Job<'a>
+  val remove: Buffer<'a> -> Alt<'a>

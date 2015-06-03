@@ -12,7 +12,7 @@ namespace Hopac {
     internal readonly Queue<T> Values;
     internal Cont<T> Takers;
 
-    /// <summary>Constructs a new empty mailbox.</summary>
+    /// <summary>Creates a new empty mailbox.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public Mailbox() {
       Values = new Queue<T>();

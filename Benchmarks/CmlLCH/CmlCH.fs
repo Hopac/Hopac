@@ -19,18 +19,18 @@ module EgPaper =
     let inline make kind var op =
       Alt.withNackJob <| fun nack ->
       show "T" kind var
-      Job.start (nack |>> fun () -> show "A" kind var) |>> fun () ->
-      (op |>>? fun _ -> show "D" kind var)
+      Job.start (nack |>> fun () -> show "A" kind var) >>%
+      op ^-> fun _ -> show "D" kind var
     Job.delay <| fun () ->
-    let x = ch ()
-    let y = ch ()
-    let z = ch ()
-    Job.queue (make "+" "x" (x <-- ()) <|>?
-               make "+" "y" (y <-- ())) >>= fun () ->
-    Job.queue (make "-" "y" y <|>?
-               make "-" "z" z) >>= fun () ->
-    Job.queue (make "-" "x" x) >>= fun () ->
-    Job.queue (make "+" "z" (z <-- ()))
+    let x = Ch ()
+    let y = Ch ()
+    let z = Ch ()
+    Job.queue (make "+" "x" (x *<- ()) <|>
+               make "+" "y" (y *<- ())) >>.
+    Job.queue (make "-" "y" y <|>
+               make "-" "z" z) >>.
+    Job.queue (make "-" "x" x) >>.
+    Job.queue (make "+" "z" (z *<- ()))
 
   let run n =
     printf "EgPaper %8d: " n
@@ -40,20 +40,17 @@ module EgPaper =
     printf "%fs\n" d.TotalSeconds
 
 module SwapCh =
-  type SwapChannel<'a> = Ch<'a * Ch<'a>>
+  type SwapChannel<'a> = Ch<'a * IVar<'a>>
 
-  let swapch () = ch ()
+  let swapch () = Ch ()
 
   let swap sCh outMsg =
-    (sCh >>=? fun (inMsg, outCh) ->
-     outCh <-- outMsg >>% inMsg) <|>?
-    (Alt.delay <| fun () ->
-     let inCh = ch ()
-     sCh <-- (outMsg, inCh) >>.? inCh)
+        sCh *<-=> fun inI -> (outMsg, inI)
+    <|> sCh ^=> fun (inMsg, outI) -> outI *<= outMsg >>% inMsg
 
   let bench = Job.delay <| fun () ->
     let sCh = swapch ()
-    Job.queue (swap sCh ()) >>= fun () ->
+    swap sCh () |> Job.queue >>.
     swap sCh ()
 
   let run n =
@@ -67,28 +64,28 @@ module BufferedCh =
   type BufferedCh<'a> = Ch<'a> * Ch<'a>
 
   let buff () = Job.delay <| fun () ->
-    let inCh = ch ()
-    let outCh = ch ()
+    let inCh = Ch ()
+    let outCh = Ch ()
     Job.iterateServer ([], [])
      (function
        | ([], []) ->
-         inCh |>> fun x -> ([x], [])
+         inCh ^-> fun x -> ([x], [])
        | ((x::xs) as xxs, ys) ->
-         (inCh |>>? fun y -> (xxs, y::ys)) <|>?
-         (outCh <-- x >>%? (xs, ys)) :> Job<_>
+             inCh ^-> fun y -> (xxs, y::ys)
+         <|> outCh *<- x ^->. (xs, ys)
        | ([], ys) ->
-         Job.result (List.rev ys, [])) >>%
+         Alt.always (List.rev ys, [])) >>%
     (inCh, outCh)
 
-  let send (inCh, _) x = inCh <-- x
+  let send (inCh, _) x = inCh *<- x
   let recv (_, outCh) = outCh :> Job<_>
 
   let bench =
     buff () >>= fun buf ->
-    Job.queue (send buf 1) >>= fun () ->
-    Job.queue (send buf 2) >>= fun () ->
-    Job.queue (Job.Ignore (recv buf)) >>= fun () ->
-    Job.Ignore (recv buf)
+    send buf 1 |> Job.queue >>.
+    send buf 2 |> Job.queue >>.
+    recv buf |> Job.queueIgnore >>.
+    recv buf |> Job.Ignore
 
   let run n =
     printf "BufferedCh %8d: " n

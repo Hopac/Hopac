@@ -374,7 +374,7 @@ let put c x = c.reqCh <-- Put x
 let get c = c.reqCh <-- Get >>. c.replyCh
 
 let create x = Job.delay <| fun () ->
-  let c = {reqCh = ch (); replyCh = ch ()}
+  let c = {reqCh = Ch (); replyCh = Ch ()}
   Job.iterateServer x (fun x ->
    c.reqCh >>= function
     | Get -> c.replyCh <-- x >>% x

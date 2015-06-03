@@ -66,16 +66,16 @@ module ChGive =
     Job.foreverServer
      (inCh >>= fun n ->
       if n <> 0 then
-        outCh <-- n-1
+        outCh *<- (n-1)
       else
-        finishCh <-- name)
+        finishCh *<- name)
 
   let mkChain n finishCh = Job.delay <| fun () ->
-    let ch0 = ch ()
+    let ch0 = Ch ()
     seq {1 .. n}
     |> Seq.foldJob
         (fun chIn i ->
-           let chOut = if i=n then ch0 else ch ()
+           let chOut = if i=n then ch0 else Ch ()
            proc i chIn chOut finishCh >>% chOut)
         ch0
 
@@ -85,14 +85,14 @@ module ChGive =
     let before = GC.GetTotalMemory true
     let _ = run << Job.delay <| fun () ->
       let ps = Array.create p n
-      let finishCh = ch ()
+      let finishCh = Ch ()
       ps
       |> Seq.Con.mapJob (fun n ->
          mkChain n finishCh) >>= fun chs ->
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ch ->
-         ch <-+ m) >>= fun () ->
+         ch *<+ m) >>.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
@@ -104,16 +104,16 @@ module ChSend =
     Job.foreverServer
      (inCh >>= fun n ->
       if n <> 0 then
-        outCh <-+ n-1
+        outCh *<+ (n-1)
       else
-        finishCh <-- name :> Job<_>)
+        finishCh *<- name :> Job<_>)
 
   let mkChain n finishCh = Job.delay <| fun () ->
-    let ch0 = ch ()
+    let ch0 = Ch ()
     seq {1 .. n}
     |> Seq.foldJob
         (fun chIn i ->
-           let chOut = if i=n then ch0 else ch ()
+           let chOut = if i=n then ch0 else Ch ()
            proc i chIn chOut finishCh >>% chOut)
         ch0
 
@@ -123,14 +123,14 @@ module ChSend =
     let before = GC.GetTotalMemory true
     let _ = run << Job.delay <| fun () ->
       let ps = Array.create p n
-      let finishCh = ch ()
+      let finishCh = Ch ()
       ps
       |> Seq.Con.mapJob (fun n ->
          mkChain n finishCh) >>= fun chs ->
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ch ->
-         ch <-+ m) >>= fun () ->
+         ch *<+ m) >>.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
@@ -144,16 +144,16 @@ module MbSend =
     Job.foreverServer
      (inMS >>= fun n ->
       if n <> 0 then
-        outMS <<-+ n-1
+        outMS *<<+ (n-1)
       else
-        finishCh <-- name :> Job<_>)
+        finishCh *<- name :> Job<_>)
 
   let mkChain n finishCh = Job.delay <| fun () ->
-    let ms0 = mb ()
+    let ms0 = Mailbox ()
     seq {1 .. n}
     |> Seq.foldJob
         (fun msIn i ->
-           let msOut = if i=n then ms0 else mb ()
+           let msOut = if i=n then ms0 else Mailbox ()
            proc i msIn msOut finishCh >>% msOut)
         ms0
 
@@ -163,14 +163,14 @@ module MbSend =
     let before = GC.GetTotalMemory true
     let _ = run << Job.delay <| fun () ->
       let ps = Array.create p n
-      let finishCh = ch ()
+      let finishCh = Ch ()
       ps
       |> Seq.Con.mapJob (fun n ->
          mkChain n finishCh) >>= fun chs ->
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ms ->
-         ms <<-+ m) >>= fun () ->
+         ms *<<+ m) >>.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"

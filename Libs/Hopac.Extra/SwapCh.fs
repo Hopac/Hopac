@@ -8,14 +8,12 @@ open Hopac.Alt.Infixes
 open Hopac.Job.Infixes
 
 type SwapCh<'a> =
- | SwapCh of Ch<'a * Ch<'a>>
+ | SwapCh of Ch<'a * IVar<'a>>
 
 module SwapCh =
   module Now =
-    let create () = SwapCh (ch ())
+    let create () = SwapCh (Ch ())
   let create () = Job.thunk Now.create
   let swap (SwapCh sCh) (msgOut: 'a) : Alt<'a> =
-    (sCh >>=? fun (msgIn, outCh) -> outCh <-- msgOut >>% msgIn) <|>?
-    (Alt.delay <| fun () ->
-     let inCh = ch ()
-     sCh <-- (msgOut, inCh) >>.? inCh)
+        sCh ^=> fun (msgIn, outI) -> outI *<= msgOut >>% msgIn
+    <|> sCh *<-=> fun inI -> (msgOut, inI)

@@ -83,14 +83,14 @@ module JQueue =
     printf "JQueue: "
     let timer = Stopwatch.StartNew ()
     run << Job.delay <| fun () ->
-      let selfCh = ch ()
+      let selfCh = Ch ()
       let rec proc n selfCh toCh = Job.delay <| fun () ->
         if n = 0 then
-          toCh <-+ ()
+          toCh *<+ ()
         else
-          let childCh = ch ()
+          let childCh = Ch ()
           Job.queue (proc (n-1) childCh toCh) >>.
-          (childCh <-+ ()) >>.
+          childCh *<+ () >>.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed
@@ -102,14 +102,14 @@ module JStart =
     printf "JStart: "
     let timer = Stopwatch.StartNew ()
     run << Job.delay <| fun () ->
-      let selfCh = ch ()
+      let selfCh = Ch ()
       let rec proc n selfCh toCh = Job.delay <| fun () ->
         if n = 0 then
-          toCh <-+ ()
+          toCh *<+ ()
         else
-          let childCh = ch ()
+          let childCh = Ch ()
           Job.start (proc (n-1) childCh toCh) >>.
-          (childCh <-+ ()) >>.
+          childCh *<+ () >>.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed
@@ -121,14 +121,14 @@ module PStart =
     printf "PStart: "
     let timer = Stopwatch.StartNew ()
     run << Job.delay <| fun () ->
-      let selfCh = ch ()
+      let selfCh = Ch ()
       let rec proc n selfCh toCh = Job.delay <| fun () ->
         if n = 0 then
-          toCh <-+ ()
+          toCh *<+ ()
         else
-          let childCh = ch ()
+          let childCh = Ch ()
           Proc.start (proc (n-1) childCh toCh) >>.
-          (childCh <-+ ()) >>.
+          childCh *<+ () >>.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed
@@ -140,14 +140,14 @@ module PQueue =
     printf "PQueue: "
     let timer = Stopwatch.StartNew ()
     run << Job.delay <| fun () ->
-      let selfCh = ch ()
+      let selfCh = Ch ()
       let rec proc n selfCh toCh = Job.delay <| fun () ->
         if n = 0 then
-          toCh <-+ ()
+          toCh *<+ ()
         else
-          let childCh = ch ()
+          let childCh = Ch ()
           Proc.queue (proc (n-1) childCh toCh) >>.
-          (childCh <-+ ()) >>.
+          childCh *<+ () >>.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed

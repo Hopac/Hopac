@@ -2,8 +2,8 @@ Background reading: [Where is the monad?](http://www.quanttec.com/fparsec/users-
 
  Workflow expression                      | Function expression                | Operator expression
 :---------------------------------------- |:---------------------------------- |:----------------------------
-`let! x = xJ; ...`                        | `xJ |> Job.bind (fun x -> ...)`    | `xJ >>= fun x -> ...`
-`let! x = xJ; return f x`                 | `xJ |> Job.map f`                  | `xJ |>> f`
+`let! x = xJ; ...`                        | `xJ |> Job.bind (fun x -> yJ)`     | `xJ >>= fun x -> yJ`
+`let! x = xJ; return f x`                 | `xJ |> Job.map (fun x -> y)`       | `xJ |>> fun x -> y`
 `let! _ = xJ; return! yJ`                 |                                    | `xJ >>. yJ`
 `let! x = xJ; let! _ = yJ; return x`      |                                    | `xJ .>> yJ`
 `let! _ = xJ; return y`                   |                                    | `xJ >>% y`
@@ -12,16 +12,18 @@ Background reading: [Where is the monad?](http://www.quanttec.com/fparsec/users-
 
  Function expression               | Operator expression
 :--------------------------------- |:-------------------------
-`Alt.choose [xA1; xA2]`            | `xA1 <|>? xA2`
-`Alt.choose [xA1; ...; xAn]`       | `xA1 <|>? ... <|>? xAn`
+`Alt.choose [xA1; xA2]`            | `xA1 <|> xA2`
+`Alt.choose [xA1; ...; xAn]`       | `xA1 <|> ... <|> xAn`
+`xA |> Alt.afterFun (fun x -> y)`  | `xA ^-> fun x -> y`
+`xA |> Alt.afterJob (fun x -> yJ)` | `xA ^=> fun x -> yJ`
 
- Workflow expression       | Function expression
-:------------------------- |:----------------------------------------------------------
-`use x = makeX ; ...`      | `Job.using (makeX) (fun x -> ...)`
-`for x in xs do ...`       | `xs |> Seq.iterJob (fun x -> ...)`
-`while b do ...`           | `Job.whileDo (fun () -> b) (Job.delay (fun () -> ...))`
-`try ... with e -> ...`    | `Job.tryWith (Job.delay (fun () -> ...)) (fun e -> ...)`
-`try ... finally ...`      | `Job.tryFinallyFun (Job.delay (fun () -> ...)) (fun () -> ...)`
+ Workflow expression         | Function expression
+:--------------------------- |:----------------------------------------------------------
+`use x = makeX ; return! yJ` | `Job.using (makeX) <| fun x -> yJ`
+`for x in xs do uJ`          | `xs |> Seq.iterJob (fun x -> uJ)`
+`while b do uJ`              | `Job.whileDoDelay (fun () -> b) (fun () -> uJ)`
+`try xJ with e -> xJ'`       | `Job.tryWithDelay (fun () -> xJ) (fun e -> xJ')`
+`try xJ finally u`           | `Job.tryFinallyFunDelay (fun () -> xJ) (fun () -> u)`
 
  Explicit workflow               | Implicit workflow   | Implicit expression
 :------------------------------- |:------------------- |:-----------------------------
@@ -33,12 +35,12 @@ Background reading: [Where is the monad?](http://www.quanttec.com/fparsec/users-
 
  Function expression    | Operator expression
 :---------------------- |:----------------------
-`Ch.give xCh x`         | `xCh <-- x`
-`Ch.send xCh x`         | `xCh <-+ x`
-`IVar.fill xI x`        | `xI <-= x`
-`IVar.fillFailure xI e` | `xI <-=! e`
-`MVar.fill xM x`        | `xM <<-= x`
-`Mailbox.send xMb x`    | `xMb <<-+ x`
+`Ch.give xCh x`         | `xCh *<- x`
+`Ch.send xCh x`         | `xCh *<+ x`
+`IVar.fill xI x`        | `xI *<= x`
+`IVar.fillFailure xI e` | `xI *<=! e`
+`MVar.fill xM x`        | `xM *<<= x`
+`Mailbox.send xMb x`    | `xMb *<<+ x`
 
  Function/workflow expression    | Operator expression
 :------------------------------- |:----------------------------

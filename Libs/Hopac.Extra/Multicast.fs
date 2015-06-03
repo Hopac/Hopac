@@ -7,9 +7,8 @@ open Hopac.Infixes
 open Hopac.Job.Infixes
 open Hopac.Alt.Infixes
 
-
 type MPort<'a> =
- | MPort of Ch<'a>
+ | MPort of Alt<'a>
 
 type Req<'a> =
  | Multicast of 'a
@@ -26,11 +25,11 @@ module Multicast =
     Next: IVar<Stream<'a>>
   }
 
-  let create () : Job<MChan<'a>> = Job.delay <| fun () ->
-    let mc = {ReqCh = ch (); RepCh = ch ()}
+  let create () = Job.delay <| fun () ->
+    let mc = {ReqCh = Ch (); RepCh = Ch ()}
     let newPort v =
-      let outCh = ch ()
-      let tee v = v >>= fun r -> outCh <-- r.Value >>% r.Next
+      let outCh = Ch ()
+      let tee v = v >>= fun r -> outCh *<- r.Value >>% r.Next
       Job.iterateServer v tee >>%
       MPort outCh
     let server v =
@@ -38,19 +37,13 @@ module Multicast =
        | NewPort ->
          newPort v >>= Ch.give mc.RepCh >>% v
        | Multicast x ->
-         let nV = ivar ()
-         v <-= {Value = x; Next = nV} >>% nV
-    Job.iterateServer (ivar ()) server >>% mc
+         let nV = IVar ()
+         v *<= {Value = x; Next = nV} >>% nV
+    Job.iterateServer (IVar ()) server >>% mc
 
-  let port (mc: MChan<'a>) : Job<MPort<'a>> =
-    mc.ReqCh <-+ NewPort >>.
-    asJob mc.RepCh
-
-  let multicast (mc: MChan<'a>) (x: 'a) : Alt<unit> =
-    mc.ReqCh <-- Multicast x
-
-  let recv (MPort port) =
-    asAlt port
+  let port mc = mc.ReqCh *<+ NewPort >>. mc.RepCh
+  let multicast mc x = mc.ReqCh *<- Multicast x :> Job<_>
+  let recv (MPort port) = port
 
 (*
 type Stream<'x> = {
@@ -59,29 +52,26 @@ type Stream<'x> = {
 }
 
 type MChan<'x> = MChan of MVar<IVar<Stream<'x>>>
-type MPort<'x> = MPort of Ch<'x>
+type MPort<'x> = MPort of Alt<'x>
 
 module Multicast =
   module Now =
-    let create () = MChan (mvarFull (ivar ()))
+    let create () = MChan (MVar (IVar ()))
 
   let create () = Job.thunk Now.create
 
   let port (MChan xMc) =
     MVar.read xMc >>= fun v ->
-    let outCh = ch ()
-    let tee v = v >>= fun r -> outCh <-- r.Value >>% r.Next
-    Job.iterateServer v tee >>%
-    MPort outCh
+    let outCh = Ch ()
+    Job.iterateServer v <| fun v ->
+         v >>= fun r -> outCh *<- r.Value >>% r.Next
+    >>% MPort outCh
 
   let multicast (MChan xMc) x =
     xMc >>= fun v ->
-    let nV = ivar ()
-    (xMc <<-= nV) >>.
-    (v <-= {Value = x; Next = nV})
+    let nV = IVar ()
+    xMc *<<= nV >>.
+    v *<= {Value = x; Next = nV}
 
-  let recv (MPort xMp) = asJob xMp
-
-  module Alt =
-    let recv (MPort xMp) = asAlt xMp
+  let recv (MPort xMp) = xMp
 *)

@@ -260,16 +260,24 @@ module Alt =
     let xK = xAK'.xK
     wr.Handler <- xK ; xA.TryAlt (&wr, xAK'.i, xK, xE)
 
-  let guard (xAJ: Job<#Alt<'x>>) =
+  let prepareJob (u2xAJ: unit -> #Job<#Alt<'x>>) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       u2xAJ().DoJob (&wr, GuardJobCont xK)
+      override xA'.TryAlt (wr, i, xK, xE) =
+       Pick.ClaimAndDoJob (xE.pk, &wr, u2xAJ (), GuardCont (i, xK, xE))}
+  let prepare (xAJ: Job<#Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
        xAJ.DoJob (&wr, GuardJobCont xK)
       override xA'.TryAlt (wr, i, xK, xE) =
        Pick.ClaimAndDoJob (xE.pk, &wr, xAJ, GuardCont (i, xK, xE))}
+  let guard xAJ = prepare xAJ
 
-  let inline delay (u2xA: unit -> #Alt<'x>) =
+  let inline prepareFun (u2xA: unit -> #Alt<'x>) =
     {new AltDelay<'x> () with
       override xA'.Do () = upcast u2xA ()} :> Alt<_>
+  let inline delay u2xA = prepareFun u2xA
 
   let inline random (u2xA: uint64 -> #Alt<'x>) =
     {new AltRandom<'x> () with
@@ -324,13 +332,15 @@ module Alt =
           Pick.Unclaim pk
           xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
 
-  let inline map (x2y: 'x -> 'y) (xA: Alt<'x>) =
+  let inline afterFun (x2y: 'x -> 'y) (xA: Alt<'x>) =
     {new AltMap<'x, 'y> () with
       override yA'.Do (x) = x2y x}.InternalInit(xA)
+  let inline map x2y xA = afterFun x2y xA
 
-  let inline wrap (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) =
+  let inline afterJob (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) =
     {new AltBind<'x, 'y> () with
       override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
+  let inline wrap x2yJ xA = afterJob x2yJ xA
 
   module Infixes =
     let inline either (wr: byref<Worker>) xK (xA1: Alt<_>) (xA2: Alt<_>) =
@@ -347,12 +357,12 @@ module Alt =
        override xE'.TryElse (wr, i) =
         xA2.TryAlt (&wr, i, xK, xE)}.Init(xE.pk))
 
-    let (<|>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
+    let (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) = either &wr xK xA1 xA2
         override xA'.TryAlt (wr, i, xK, xE) = eitherOr &wr i xK xE xA1 xA2}
 
-    let (<~>?) (xA1: Alt<'x>) (xA2: Alt<'x>) =
+    let (<~>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
          if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
@@ -363,15 +373,15 @@ module Alt =
          then eitherOr &wr i xK xE xA1 xA2
          else eitherOr &wr i xK xE xA2 xA1}
 
-    let inline (|>>?) (xA: Alt<'x>) (x2y: 'x -> 'y) =
+    let inline (^->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
       {new AltMap<'x, 'y> () with
         override yA'.Do (x) = x2y x}.InternalInit(xA)
 
-    let inline (>>=?) (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) =
+    let inline (^=>) (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) =
       {new AltBind<'x, 'y> () with
         override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
 
-    let (>>%?) (xA: Alt<_>) (y: 'y) =
+    let (^->.) (xA: Alt<_>) (y: 'y) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          yK.Value <- y
@@ -379,30 +389,40 @@ module Alt =
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, ValueCont (y, yK), yE)}
 
-    let (>>!?) (xA: Alt<_>) (e: exn) =
+    let (^->!) (xA: Alt<_>) (e: exn) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, FailCont (yK, e))
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, FailCont (yK, e), yE)}
+    let (>>!?) xA e = xA ^->! e
 
-    let (>>.?) (xA: Alt<_>) (yJ: Job<'y>) =
+    let (^=>.) (xA: Alt<_>) (yJ: Job<'y>) =
       {new Alt<'y> () with
         override yA'.DoJob (wr, yK) =
          xA.DoJob (&wr, SeqCont (yJ, yK))
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, SeqCont (yJ, yK), yE)}
 
-    let (.>>?) (xA: Alt<'x>) (yJ: Job<_>) =
+    let (.^=>) (xA: Alt<'x>) (yJ: Job<_>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
          xA.DoJob (&wr, SkipCont (xK, yJ))
         override xA'.TryAlt (wr, i, xK, xE) =
          xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
 
-    let (<+>?) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
-      (xA >>=? fun x -> yA |>>? fun y -> (x, y)) <|>?
-      (yA >>=? fun y -> xA |>>? fun x -> (x, y))
+    let (<+>) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
+          xA ^=> fun x -> yA ^-> fun y -> (x, y)
+      <|> yA ^=> fun y -> xA ^-> fun x -> (x, y)
+
+    let (<|>?) xA1 xA2 = xA1 <|> xA2
+    let (<~>?) x y = x <~> y
+    let inline (|>>?) xA x2y = xA ^-> x2y
+    let inline (>>=?) xA x2yJ = xA ^=> x2yJ
+    let (>>%?) xA y = xA ^->. y
+    let (>>.?) xA yJ = xA ^=>. yJ
+    let (.>>?) xA yJ = xA .^=> yJ
+    let (<+>?) xA yA = xA <+> yA
 
   let Ignore (xA: Alt<_>) =
     {new Alt<unit> () with
@@ -1423,7 +1443,7 @@ module Promise =
   module Infixes =
     open Job.Infixes
     open Alt.Infixes
-    let inline (<|>*) xA1 xA2 = xA1 <|>? xA2 |> Now.delay
+    let inline (<|>*) xA1 xA2 = xA1 <|> xA2 |> Now.delay
     let inline (>>=*) xJ x2yJ = xJ >>= x2yJ |> Now.delay
     let inline (>>.*) xJ yJ = xJ >>. yJ |> Now.delay
     let inline (.>>*) xJ yJ = xJ .>> yJ |> Now.delay
@@ -1541,10 +1561,10 @@ module MVar =
   let createFull x = ctor Now.createFull x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-    xM >>=? (x2xy >> fun (x, y) -> fill xM x >>% y)
+    xM ^=> (x2xy >> fun (x, y) -> fill xM x >>% y)
   let inline modifyJob (x2xyJ: 'x -> #Job<'x * 'y>) (xM: MVar<'x>) =
-    xM >>=? (x2xyJ >=> fun (x, y) -> fill xM x >>% y)
-  let inline read (xM: MVar<'x>) = xM >>=? fun x -> fill xM x >>% x
+    xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>% y)
+  let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>% x
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
@@ -2088,12 +2108,27 @@ type EmbeddedJobBuilder () =
 /////////////////////////////////////////////////////////////////////////
 
 module Infixes =
-  let inline (<--) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
-  let inline (<-+) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
-  let inline (<-=) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
-  let inline (<-=!) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
-  let inline (<<-=) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
-  let inline (<<-+) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
+  open Alt.Infixes
+  let inline ( *<- ) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
+  let inline ( *<+ ) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
+  let inline ( *<+-> ) qCh rCh2n2q = Alt.withNackJob <| fun nack ->
+    let rCh = Ch<_> ()
+    qCh *<+ rCh2n2q rCh nack >>%
+    rCh
+  let inline ( *<-=> ) qCh rI2q = Alt.prepareFun <| fun () ->
+    let rI = IVar<_> ()
+    qCh *<- rI2q rI ^=>.
+    rI
+  let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
+  let inline ( *<=! ) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
+  let inline ( *<<= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
+  let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
+  let inline (<--) xCh x = xCh *<- x
+  let inline (<-+) xCh x = xCh *<+ x
+  let inline (<-=) xI x = xI *<= x
+  let inline (<-=!) xI e = xI *<=! e
+  let inline (<<-=) xM x = xM *<<= x
+  let inline (<<-+) xMb x = xMb *<<+ x
 
 /////////////////////////////////////////////////////////////////////////
 
