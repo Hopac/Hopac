@@ -1788,7 +1788,7 @@ module IVar =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a dynamic latch.
+/// Represents a dynamic latch.  Latch is similar to the .Net `CountdownEvent`.
 ///
 /// Latches are used for determining when a finite set of parallel jobs is done.
 /// If the size of the set is known a priori, then the latch can be initialized
