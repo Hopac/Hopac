@@ -84,7 +84,7 @@ mechanism[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 already provides for those.  Because the `put` and `take` operations are
 provided as alternatives, a client can selectively synchronize on any number of
 operations on bounded mailboxes,
-timeouts[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+timeouts[*](https://hopac.github.io/Hopac/Hopac.html#dec:val%20Hopac.Timer.Global.timeOutMillis)
 and other synchronous operations:
 
 ```fsharp
@@ -125,23 +125,24 @@ client-server programming technique.  `put` and `take` requests use separate
 channels.  Depending on the state of the underlying queue, the server responds
 to either only `get`, only `take` or both kinds of requests.  In a simple case
 like this, cancellation is already taken care of by the synchronous nature of
-channels[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).  In a
+channels[*](https://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch).  In a
 more complex scenario, we would make use of the
-`withNackJob`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
+`withNackJob`[*](https://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
 combinator.
 
 Here is a sample interactive session with `BoundedMb`:
 
 ```fsharp
+open Hopac.Alt.Infixes
 > let mb: BoundedMb<int> = BoundedMb.create 1 |> run ;;
 val mb : BoundedMb<int>
 > BoundedMb.put mb 123 |> run ;;
 val it : unit = ()
-> BoundedMb.put mb 321 <|>? timeout 1.0 |> run ;;
+> BoundedMb.put mb 321 <|>? timeOutMillis 10 |> run ;;
 val it : unit = ()
 > BoundedMb.take mb |> run ;;
 val it : int = 123
-> BoundedMb.take mb |>>? printfn "Got %A" <|>? timeout 1.0 |> run ;;
+> BoundedMb.take mb |>>? printfn "Got %A" <|>? timeOutMillis 10 |> run ;;
 val it : unit = ()
 ```
 
