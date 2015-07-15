@@ -148,14 +148,6 @@ Target "NuGet" <| fun _ ->
             Dependencies = getDependencies "Libs/Hopac/packages.config"})
         (".nuget" @@ project + ".nuspec")
 
-Target "Release" <| fun _ ->
-    StageAll ""
-    Git.Commit.Commit "" (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.push ""
-
-    Branches.tag "" release.NugetVersion
-    Branches.pushTag "" "origin" release.NugetVersion
-
 Target "BuildPackage" DoNothing
 
 // --------------------------------------------------------------------------------------
@@ -171,8 +163,5 @@ Target "All" DoNothing
 "All"
   ==> "NuGet"
   ==> "BuildPackage"
-
-"BuildPackage"
-  ==> "Release"
 
 RunTargetOrDefault "All"
