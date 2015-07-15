@@ -223,6 +223,11 @@ namespace Hopac {
         tP.State = HasExn;
 
         WaitQueue.FailReaders(readers, e, ref wr);
+
+        var reader = this.reader;
+        if (null == reader) return;
+        wr.Handler = reader;
+        reader.DoHandle(ref wr, e);
       }
     }
   }
