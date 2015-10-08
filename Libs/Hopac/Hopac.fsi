@@ -1030,6 +1030,10 @@ module Job =
     /// be executed on a Hopac worker thread.
     val inline switchToWorker: unit -> Job<unit>
 
+    /// `isolate u2x` is like `thunk u2x`, but it is ensured that the blocking
+    /// invocation of `u2x` does not prevent scheduling of other work.
+    val inline isolate: (unit -> 'x) -> Job<'x>
+
   /////////////////////////////////////////////////////////////////////////////
 
   /// Operations on the built-in pseudo random number generator (PRNG) of Hopac.

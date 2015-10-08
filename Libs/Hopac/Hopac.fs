@@ -1382,6 +1382,10 @@ module Job =
        | null -> StaticData.Init () ; StaticData.switchToWorker
        | switch -> switch
 
+    let inline isolate (u2x: unit -> 'x) =
+      {new JobIsolate<'x> () with
+        override xJ'.Do () = u2x ()} :> Job<'x>
+
   ///////////////////////////////////////////////////////////////////////
 
   let paranoid (xJ: Job<'x>) =

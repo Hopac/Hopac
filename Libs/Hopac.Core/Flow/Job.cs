@@ -371,6 +371,18 @@ namespace Hopac {
       }
     }
 
+    ///
+    public abstract class JobIsolate<X> : Job<X> {
+      ///
+      public abstract X Do();
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        var work = wr.WorkStack;
+        wr.WorkStack = null;
+        Scheduler.PushAll(wr.Scheduler, work);
+        Cont.Do(xK, ref wr, Do());
+      }
+    }
+
     internal static class Job {
       [MethodImpl(AggressiveInlining.Flag)]
       internal static void Do<T>(Job<T> tJ, ref Worker wr, Cont<T> tK) {
