@@ -75,10 +75,10 @@ module HopacLock =
                 myMeets := !myMeets + 1
                 me.Color <- complement me.Color otherColor
               else
-                resultsMS *<-- !myMeets :> Job<_>
+                resultsMS *<- !myMeets :> Job<_>
             | other ->
               let otherColor = other.Color
-              other.WakeUp *<<-= me.Color |>> fun () ->
+              other.WakeUp *<<= me.Color |>> fun () ->
               myMeets := !myMeets + 1
               me.Color <- complement me.Color otherColor))) >>.
     Seq.foldJob
@@ -110,7 +110,7 @@ module HopacMV =
   let bench (colors: array<Color>) numMeets = Job.delay <| fun () ->
     let resultsMS = Ch ()
     let meetingPlace = MVar ()
-    meetingPlace *<<-= Empty numMeets >>= fun () ->
+    meetingPlace *<<= Empty numMeets >>= fun () ->
     colors
     |> Seq.iterJob (fun myColor ->
        let me = MVar ()
@@ -122,16 +122,16 @@ module HopacMV =
           (meetingPlace >>= function
             | (Empty 0) as state ->
               cont := false
-              meetingPlace *<<-= state >>.
-              resultsMS *<-- !myMeets
+              meetingPlace *<<= state >>.
+              resultsMS *<- !myMeets
             | Empty n ->
-              meetingPlace *<<-= Waiter (n, Chameneos (!myColor, me)) >>.
+              meetingPlace *<<= Waiter (n, Chameneos (!myColor, me)) >>.
               me |>> fun (Chameneos (otherColor, _)) ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor
             | Waiter (n, Chameneos (otherColor, other)) ->
-              other *<<-= Chameneos (!myColor, me) >>.
-              meetingPlace *<<-= Empty (n-1) |>> fun () ->
+              other *<<= Chameneos (!myColor, me) >>.
+              meetingPlace *<<= Empty (n-1) |>> fun () ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor))) >>.
     Seq.foldJob
@@ -170,13 +170,13 @@ module HopacAlt =
         csch.Ch ^=> fun (msgIn, outCh) ->
           let n = System.Threading.Interlocked.Decrement &csch.N
           if n > 0 then
-            outCh *<-= Some msgOut >>% Some msgIn
+            outCh *<= Some msgOut >>% Some msgIn
           elif n = 0 then
-            csch.Done *<-= None >>.
-            outCh *<-= Some msgOut >>% Some msgIn
+            csch.Done *<= None >>.
+            outCh *<= Some msgOut >>% Some msgIn
           else
-            outCh *<-= None >>% None
-        csch.Ch *<--/=-> fun inI -> (msgOut, inI)
+            outCh *<= None >>% None
+        csch.Ch *<-=> fun inI -> (msgOut, inI)
         csch.Done :> Alt<_> |]
 
   module Creature =

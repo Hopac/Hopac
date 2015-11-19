@@ -21,7 +21,7 @@ module Stream =
 
   let fix (xs2xs: Stream<'x> -> Stream<'x>) : Stream<'x> =
     let xs = IVar ()
-    Job.delay (fun () -> xs2xs xs) >>=* fun xs' -> xs *<-= xs' >>. xs
+    Job.delay (fun () -> xs2xs xs) >>=* fun xs' -> xs *<= xs' >>. xs
 
   let ints n =
     generateFun 0
@@ -49,15 +49,6 @@ module BasicBench =
       printfn "Failed with: %A" e
 
   do
-     bench "map" 1000000 <| fun n ->
-       Stream.ints n
-       |> Stream.mapFun (fun i -> i * 2)
-       |> Stream.iter |> run
-
-     bench "map" 1000000 <| fun n ->
-       Stream.ints n
-       |> Stream.mapFun (fun i -> i * 2)
-       |> Stream.iter |> run
 
      bench "keepPreceding1" 10000000 <| fun n ->
        Stream.append (Stream.ints n) (Stream.cons -1 Stream.never)

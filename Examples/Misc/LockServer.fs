@@ -23,10 +23,10 @@ type Server = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-let release s (Lock lock) = s.reqCh *<-- Release lock
+let release s (Lock lock) = s.reqCh *<- Release lock
 
 let acquire s (Lock lock) =
-  s.reqCh *<-+/--> fun replyCh nack -> Acquire (lock, replyCh, nack)
+  s.reqCh *<+-> fun replyCh nack -> Acquire (lock, replyCh, nack)
 
 let withLock s l xJ =
   acquire s l ^=> fun () ->
@@ -50,7 +50,7 @@ let start = Job.delay <| fun () ->
           pending.Enqueue (replyCh, abortAlt)
           Alt.unit ()
         | _ ->
-              replyCh *<-- () ^-> fun () ->
+              replyCh *<- () ^-> fun () ->
                 locks.Add (lock, Queue ())
           <|> abortAlt
      | Release lock ->
@@ -62,7 +62,7 @@ let start = Job.delay <| fun () ->
               Alt.unit ()
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
-              replyCh *<-- () <|> abortAlt ^=> assign
+              replyCh *<- () <|> abortAlt ^=> assign
           assign ()
         | _ ->
           // We just ignore the erroneous release request

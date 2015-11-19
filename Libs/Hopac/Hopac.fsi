@@ -120,7 +120,7 @@ type IAsyncDisposable =
   ///>   let disposeAlt () =
   ///>     requestDisposeIVar ^=> fun () ->
   ///>     ...
-  ///>     completedDisposeIVar *<-= ()
+  ///>     completedDisposeIVar *<= ()
   ///>   ...
   ///>   ... <|> disposeAlt () <|> ...
   ///
@@ -132,20 +132,20 @@ type IAsyncDisposable =
   ///>     ...
   ///>     | RequestDispose ->
   ///>       ...
-  ///>       completedDisposeIVar *<-= ()
+  ///>       completedDisposeIVar *<= ()
   ///>     ...
   ///
   /// In such a case, one can still use the above two variable disposal pattern
   /// by spawning a process that forwards the disposal request to the server
   /// request channel before the server loop is started:
   ///
-  ///> start (requestDisposeIVar >>. requestCh *<-- RequestDispose)
+  ///> start (requestDisposeIVar >>. requestCh *<- RequestDispose)
   ///
   /// Alternatively, it is usually acceptable to simply send an asynchronous
   /// dispose request to the server:
   ///
   ///> override this.DisposeAsync () =
-  ///>   requestCh *<-+ RequestDispose >>.
+  ///>   requestCh *<+ RequestDispose >>.
   ///>   completedDisposeIVar
 #endif
   abstract DisposeAsync: unit -> Job<unit>
@@ -951,7 +951,7 @@ module Job =
   ///>   Job.Scheduler.bind <| fun sr ->
   ///>   let xI = ivar ()
   ///>   doBegin <| AsyncCallback (fun ar ->
-  ///>     Scheduler.start sr (try xI *<-= doEnd ar with e -> xI *<-=! e))
+  ///>     Scheduler.start sr (try xI *<= doEnd ar with e -> xI *<=! e))
   ///>   |> ignore
   ///>   xI
 #endif
@@ -1148,7 +1148,7 @@ module Alt =
   ///
   ///> let once x =
   ///>   let xCh = Ch ()
-  ///>   run (xCh *<-+ x)
+  ///>   run (xCh *<+ x)
   ///>   paranoid xCh
 #endif
   val inline once: 'x -> Alt<'x>
@@ -1238,7 +1238,7 @@ module Alt =
   ///>   server << Job.iterate 0 <| fun oldCounter ->
   ///>     reqCh >>= fun (n, nack, replyCh) ->
   ///>     let newCounter = oldCounter + n
-  ///>     replyCh *<-- newCounter ^->. newCounter <|>
+  ///>     replyCh *<- newCounter ^->. newCounter <|>
   ///>     nack                   ^->. oldCounter
   ///>   reqCh
   ///
@@ -1249,7 +1249,7 @@ module Alt =
   ///
   ///> let incrementBy n : Alt<int> = Alt.withNackJob <| fun nack ->
   ///>   let replyCh = Ch ()
-  ///>   counterServer *<-+ (n, nack, replyCh) >>%
+  ///>   counterServer *<+ (n, nack, replyCh) >>%
   ///>   replyCh
   ///
   /// The client side operation just sends the negative acknowledgment to the
@@ -1570,7 +1570,7 @@ module Timer =
     /// can be released by the timer mechanism.  However, when a timeout is not
     /// part of a non-deterministic choice, e.g.
     ///
-    ///> start (timeOut span >>= fun () -> gotTimeout *<-= ())
+    ///> start (timeOut span >>= fun () -> gotTimeout *<= ())
     ///
     /// no such clean up can be performed.  If there is a possibility that such
     /// timeouts are kept alive beyond their usefulness, it may be possible to
@@ -1636,7 +1636,7 @@ module Ch =
 
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
-  /// offers to take the value.  See also: `*<--`.
+  /// offers to take the value.  See also: `*<-`.
   val inline give: Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates an alternative that, at instantiation time, offers to take a value
@@ -1652,7 +1652,7 @@ module Ch =
   /// Note that channels have been optimized for synchronous operations; an
   /// occasional send can be efficient, but when sends are queued, performance
   /// maybe be significantly worse than with a `Mailbox` optimized for
-  /// buffering.  See also: `*<-+`.
+  /// buffering.  See also: `*<+`.
 #endif
   val inline send: Ch<'x> -> 'x -> Job<unit>
 
@@ -1756,7 +1756,7 @@ module IVar =
   /// naturally follows from the property that there is only one concurrent job
   /// that may ever write to a particular write once variable.  If that is not
   /// the case, then you should likely use some other communication primitive.
-  /// See also: `*<-=`, `tryFill`, `fillFailure`.
+  /// See also: `*<=`, `tryFill`, `fillFailure`.
 #endif
   val inline fill: IVar<'x> -> 'x -> Job<unit>
 
@@ -1778,7 +1778,7 @@ module IVar =
   /// Creates a job that writes the given exception to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.  See also: `*<-=!`, `fill`.
+  /// usage leads to undefined behavior.  See also: `*<=!`, `fill`.
   val inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
   /// Creates an alternative that becomes available after the write once
@@ -1932,7 +1932,7 @@ module MVar =
   /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.  See also: `*<<-=`.
+  /// behavior.  See also: `*<<=`.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that takes the value of the serialized variable and
@@ -2017,7 +2017,7 @@ module Mailbox =
   val create: unit -> Job<Mailbox<'x>>
 
   /// Creates a job that sends the given value to the specified mailbox.  This
-  /// operation never blocks.  See also: `*<<-+`.
+  /// operation never blocks.  See also: `*<<+`.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that becomes available when the mailbox contains at
@@ -2401,7 +2401,7 @@ module Extensions =
     ///>   Job.Scheduler.bind <| fun sr ->
     ///>   let xI = ivar ()
     ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
-    ///>     Scheduler.start sr (try xI *<-= xT.Result with e -> xI *<-=! e)))
+    ///>     Scheduler.start sr (try xI *<= xT.Result with e -> xI *<=! e)))
     ///>   |> ignore
     ///>   xI
 #endif
@@ -2603,67 +2603,67 @@ module Scheduler =
 module Infixes =
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
-  /// offers to take the value.  `xCh *<-- x` is equivalent to `Ch.give xCh x`.
-  val inline ( *<-- ): Ch<'x> -> 'x -> Alt<unit>
+  /// offers to take the value.  `xCh *<- x` is equivalent to `Ch.give xCh x`.
+  val inline ( *<- ): Ch<'x> -> 'x -> Alt<unit>
 
-  [<Obsolete "Use `*<--` rather than `<--`">]
+  [<Obsolete "Use `*<-` rather than `<--`">]
   val inline (<--): Ch<'x> -> 'x -> Alt<unit>
 
   /// Creates a job that sends a value to another job on the given channel.  A
   /// send operation is asynchronous.  In other words, a send operation does not
-  /// wait for another job to give the value to.  `xCh *<-+ x` is equivalent to
+  /// wait for another job to give the value to.  `xCh *<+ x` is equivalent to
   /// `Ch.send xCh x`.
   ///
   /// Note that channels have been optimized for synchronous operations; an
   /// occasional send can be efficient, but when sends are queued, performance
   /// maybe be significantly worse than with a `Mailbox` optimized for
   /// buffering.
-  val inline ( *<-+ ): Ch<'x> -> 'x -> Job<unit>
+  val inline ( *<+ ): Ch<'x> -> 'x -> Job<unit>
 
-  [<Obsolete "Use `*<-+` rather than `<-+`">]
+  [<Obsolete "Use `*<+` rather than `<-+`">]
   val inline (<-+): Ch<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that constructs a query with a reply channel and a
   /// nack, sends it to the query channel and commits on taking the reply from
   /// the reply channel.
-  val inline ( *<-+/--> ): Ch<'q> -> (Ch<'r> -> Promise<unit> -> 'q) -> Alt<'r>
+  val inline ( *<+-> ): Ch<'q> -> (Ch<'r> -> Promise<unit> -> 'q) -> Alt<'r>
 
   /// Creates an alternative that constructs a query with a reply variable,
   /// commits on giving the query and reads the reply variable.
-  val inline ( *<--/=-> ): Ch<'q> -> (IVar<'r> -> 'q) -> Alt<'r>
+  val inline ( *<-=> ): Ch<'q> -> (IVar<'r> -> 'q) -> Alt<'r>
 
   /// Creates a job that writes to the given write once variable.  It is an
   /// error to write to a single `IVar` more than once.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.  `xI *<-= x` is equivalent to `IVar.fill xI x`.
-  val inline ( *<-= ): IVar<'x> -> 'x -> Job<unit>
+  /// behavior.  `xI *<= x` is equivalent to `IVar.fill xI x`.
+  val inline ( *<= ): IVar<'x> -> 'x -> Job<unit>
 
-  [<Obsolete "Use `*<-=` rather than `<-=`">]
+  [<Obsolete "Use `*<=` rather than `<-=`">]
   val inline (<-=): IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes the given exception to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.  `xI *<-=! e` is equivalent to
+  /// usage leads to undefined behavior.  `xI *<=! e` is equivalent to
   /// `IVar.fillFailure xI e`.
-  val inline ( *<-=! ): IVar<'x> -> exn -> Job<unit>
+  val inline ( *<=! ): IVar<'x> -> exn -> Job<unit>
 
-  [<Obsolete "Use `*<-=!` rather than `<-=!`">]
+  [<Obsolete "Use `*<=!` rather than `<-=!`">]
   val inline (<-=!): IVar<'x> -> exn -> Job<unit>
 
   /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.  `xM *<<-= x` is equivalent to `MVar.fill xM x`.
-  val inline ( *<<-= ): MVar<'x> -> 'x -> Job<unit>
+  /// behavior.  `xM *<<= x` is equivalent to `MVar.fill xM x`.
+  val inline ( *<<= ): MVar<'x> -> 'x -> Job<unit>
 
-  [<Obsolete "Use `*<<-=` rather than `<<-=`">]
+  [<Obsolete "Use `*<<=` rather than `<<-=`">]
   val inline (<<-=): MVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that sends the given value to the specified mailbox.  This
-  /// operation never blocks.  `xMb *<<-+ x` is equivalent to `Mailbox.send xMb
+  /// operation never blocks.  `xMb *<<+ x` is equivalent to `Mailbox.send xMb
   /// x`.
-  val inline ( *<<-+ ): Mailbox<'x> -> 'x -> Job<unit>
+  val inline ( *<<+ ): Mailbox<'x> -> 'x -> Job<unit>
 
-  [<Obsolete "Use `*<<-+` rather than `<<-+`">]
+  [<Obsolete "Use `*<<+` rather than `<<-+`">]
   val inline (<<-+): Mailbox<'x> -> 'x -> Job<unit>

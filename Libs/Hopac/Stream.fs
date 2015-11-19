@@ -43,10 +43,10 @@ module Stream =
       if IVar.Now.isFull v then raise <| Exception ("Src closed")
       let v' = Interlocked.CompareExchange (&s.src, w, v)
       if LanguagePrimitives.PhysicalEquality v' v
-      then v *<-= Cons (x, w)
+      then v *<= Cons (x, w)
       else value s x
-    let error s e = Job.delay <| fun () -> s.src *<-=! e // delay required
-    let close s = Job.delay <| fun () -> s.src *<-= Nil // delay required
+    let error s e = Job.delay <| fun () -> s.src *<=! e // delay required
+    let close s = Job.delay <| fun () -> s.src *<= Nil // delay required
     let tap s = s.src :> Promise<_>
 
   let ValueChangedEventArgs =
@@ -64,7 +64,7 @@ module Stream =
         let c = Cons (x, IVar ())
         match Interlocked.Exchange (&var, c) with
          | Cons (_, i) ->
-           (i :?> IVar<_>) *<-= c |> start
+           (i :?> IVar<_>) *<= c |> start
            propertyChangedEvent.Trigger (this, ValueChangedEventArgs)
          | Nil -> imp ()
     member this.Tap () = Promise.Now.withValue var
@@ -77,7 +77,7 @@ module Stream =
     let set v x = Job.delay <| fun () ->
       let c = Cons (x, IVar ())
       match Interlocked.Exchange (&v.var, c) with
-       | Cons (_, i) -> (i :?> IVar<_>) *<-= c
+       | Cons (_, i) -> (i :?> IVar<_>) *<= c
        | Nil -> imp ()
     let tap v = Promise.Now.withValue v.var
 
@@ -88,7 +88,7 @@ module Stream =
     let get xM = MVar.read xM.mvar |>> function Cons (x, _) -> x | Nil -> imp ()
     let inline push xM (i: Promise<_>) x =
       let c = Cons (x, IVar ())
-      (i :?> IVar<_>) *<-= c >>. MVar.fill xM.mvar c
+      (i :?> IVar<_>) *<= c >>. MVar.fill xM.mvar c
     let inline fail xM c e = MVar.fill xM.mvar c >>! e
     let set xM x = xM.mvar >>= function Cons (_, i) -> push xM i x | Nil -> imp ()
     let updateFun xM x2x =
@@ -163,11 +163,11 @@ module Stream =
           if 0 <> Interlocked.CompareExchange (&this.State, 1, 0) then
             this.disp.Dispose ()
     interface IObserver<'x> with
-     override t.OnCompleted () = t.State <- 2; src *<-= Nil |> start
-     override t.OnError (e) = t.State <- 2; src *<-=! e |> start
+     override t.OnCompleted () = t.State <- 2; src *<= Nil |> start
+     override t.OnError (e) = t.State <- 2; src *<=! e |> start
      override t.OnNext (x) =
        let nxt = IVar<_> ()
-       src *<-= Cons (x, nxt) |> start
+       src *<= Cons (x, nxt) |> start
        src <- nxt
 
   type Guard<'x> (subr: Subscriber<'x>) =
@@ -282,8 +282,8 @@ module Stream =
   let switchMap x2ys xs = mapJoin switch' x2ys xs
 
   let rec taker evt skipper xs =
-         evt ^=> fun _ -> Job.start (xs >>= fun t -> skipper *<-= t) >>% Nil
-    <|>* xs ^=> function Nil -> skipper *<-= Nil >>% Nil
+         evt ^=> fun _ -> Job.start (xs >>= fun t -> skipper *<= t) >>% Nil
+    <|>* xs ^=> function Nil -> skipper *<= Nil >>% Nil
                        | Cons (x, xs) -> consj x (taker evt skipper xs)
   let takeAndSkipUntil evt xs =
     let skipper = IVar () in (taker evt skipper xs, skipper :> Stream<_>)
@@ -358,7 +358,7 @@ module Stream =
 
   type GcSignal (v: IVar<_>) =
     member gcs.Suppress () = GC.SuppressFinalize gcs
-    override gcs.Finalize () = v *<-= () |> start
+    override gcs.Finalize () = v *<= () |> start
 
   let keepPrecedingFuns (fns: KeepPrecedingFuns<_, _>) xs =
     let gc = IVar ()
@@ -370,16 +370,16 @@ module Stream =
             let newTail = IVar ()
             let oldTail = !tail
             tail := newTail
-            oldTail *<-= Cons (y, newTail) >>. gotNone xs
+            oldTail *<= Cons (y, newTail) >>. gotNone xs
       <|> xs ^=> function Cons (x, xs) -> gotSome (fns.Next (y, x)) xs
-                        | Nil -> !tail *<-= Nil
+                        | Nil -> !tail *<= Nil
        :> Job<_>
     and gotNone xs = gc
                  <|> xs ^=> function Cons (x, xs) -> gotSome (fns.First x) xs
-                                   | Nil -> !tail *<-= Nil
-    Job.tryWith (gotNone xs) (fun e -> !tail *<-=! e) |> start
+                                   | Nil -> !tail *<= Nil
+    Job.tryWith (gotNone xs) (fun e -> !tail *<=! e) |> start
     let gcs = GcSignal (gc)
-    let req = req *<-+ 0
+    let req = req *<+ 0
     let rec recur xs =
       req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
                              | Nil -> gcs.Suppress () ; Nil
@@ -408,16 +408,16 @@ module Stream =
                                   let newTail = IVar ()
                                   let oldTail = !tail
                                   tail := newTail
-                                  oldTail *<-= Cons (x, newTail) >>. noReq xs
-                                | Nil -> !tail *<-= Nil
+                                  oldTail *<= Cons (x, newTail) >>. noReq xs
+                                | Nil -> !tail *<= Nil
     and noReq xs = gc
                <|> req ^=> fun _ -> gotReq xs
                <|> xs ^=> function Cons (_, xs) -> noReq xs
-                                 | Nil -> !tail *<-= Nil
+                                 | Nil -> !tail *<= Nil
                 :> Job<_>
-    Job.tryWith (noReq xs) (fun e -> !tail *<-=! e) |> start
+    Job.tryWith (noReq xs) (fun e -> !tail *<=! e) |> start
     let gcs = GcSignal (gc)
-    let req = req *<-+ 0
+    let req = req *<+ 0
     let rec recur xs =
       req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
                              | Nil -> gcs.Suppress () ; Nil
@@ -520,7 +520,7 @@ module Stream =
                         | Nil -> onCompleted ()
        :> Job<_>
     Job.tryWith (off xs) onError >>. Job.foreverIgnore cmd |> server
-    (cmd *<-+ 1, cmd *<-+ -1)
+    (cmd *<+ 1, cmd *<+ -1)
 
   type Shift<'y, 'x> =
     | Value of 'y * 'x
@@ -530,9 +530,9 @@ module Stream =
   let shift t (xs: Stream<'x>) : Stream<'x> =
     let es = Ch<Shift<Promise<_>, 'x>> ()
     let (inc, dec) =
-      pull xs <| fun x -> Promise.start t >>= fun p -> es *<-+ Value (p, x)
-              <| fun () -> es *<-+ Completed
-              <| fun e -> es *<-+ Error e
+      pull xs <| fun x -> Promise.start t >>= fun p -> es *<+ Value (p, x)
+              <| fun () -> es *<+ Completed
+              <| fun e -> es *<+ Error e
     let es = inc >>. es
     let rec ds () =
       es >>=* function
@@ -602,7 +602,7 @@ module Stream =
     let closes = Ch ()
     let raised e =
       key2br.Values
-      |> Seq.iterJob (fun g -> g.var *<-=! e) >>. !main *<-=! e >>! e
+      |> Seq.iterJob (fun g -> g.var *<=! e) >>. !main *<=! e >>! e
     let rec wrap self xs newK oldK oldC =
            xs ^-> function Cons (x, xs) -> Cons (x, self xs) | Nil -> Nil
       <|>* let rec serve ss =
@@ -616,7 +616,7 @@ module Stream =
                                  let i = g.var
                                  let n = IVar ()
                                  g.var <- n
-                                 i *<-= Cons (s, n) >>. oldK serve ss k s n
+                                 i *<= Cons (s, n) >>. oldK serve ss k s n
                                | Nothing ->
                                  let i' = IVar ()
                                  let i = Alt.always (Cons (s, i'))
@@ -625,23 +625,23 @@ module Stream =
                                  let i' = IVar ()
                                  let m = !main
                                  main := i'
-                                 let close = closes *<-+ g
+                                 let close = closes *<+ g
                                  Job.tryInDelay
                                   <| fun () -> newGroup k close <| wrapBr k i
                                   <| fun y ->
-                                       m *<-= Cons (y, i') >>. newK serve ss y i'
+                                       m *<= Cons (y, i') >>. newK serve ss y i'
                                   <| raised
                          <| raised
                       | Nil ->
                         key2br.Values
-                        |> Seq.iterJob (fun g -> g.var *<-= Nil) >>.
-                        !main *<-= Nil >>% Nil
+                        |> Seq.iterJob (fun g -> g.var *<= Nil) >>.
+                        !main *<= Nil >>% Nil
                   <| raised
              <|> closes ^=> fun g ->
                    match key2br.TryGetValue g.key with
                     | Just g' when obj.ReferenceEquals (g', g) ->
                       key2br.Remove g.key |> ignore
-                      g.var *<-= Nil >>. oldC serve ss g.key
+                      g.var *<= Nil >>. oldC serve ss g.key
                     | _ -> serve ss
               :> Job<_> in
            baton ^=> serve
@@ -649,12 +649,12 @@ module Stream =
       wrap (wrapBr k) xs
        <| fun serve ss _ _ -> serve ss
        <| fun serve ss k' x xs ->
-            if k = k' then baton *<<-= ss >>% Cons (x, wrapBr k xs) else serve ss
+            if k = k' then baton *<<= ss >>% Cons (x, wrapBr k xs) else serve ss
        <| fun serve ss k' ->
-            if k = k' then baton *<<-= ss >>% Nil else serve ss
+            if k = k' then baton *<<= ss >>% Nil else serve ss
     let rec wrapMain xs =
       wrap wrapMain xs
-       <| fun _ ss y i -> baton *<<-= ss >>% Cons (y, wrapMain i)
+       <| fun _ ss y i -> baton *<<= ss >>% Cons (y, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
        <| fun serve ss _ -> serve ss
     wrapMain (!main)

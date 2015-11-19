@@ -29,7 +29,7 @@ module Multicast =
     let mc = {ReqCh = Ch (); RepCh = Ch ()}
     let newPort v =
       let outCh = Ch ()
-      let tee v = v >>= fun r -> outCh *<-- r.Value >>% r.Next
+      let tee v = v >>= fun r -> outCh *<- r.Value >>% r.Next
       Job.iterateServer v tee >>%
       MPort outCh
     let server v =
@@ -38,11 +38,11 @@ module Multicast =
          newPort v >>= Ch.give mc.RepCh >>% v
        | Multicast x ->
          let nV = IVar ()
-         v *<-= {Value = x; Next = nV} >>% nV
+         v *<= {Value = x; Next = nV} >>% nV
     Job.iterateServer (IVar ()) server >>% mc
 
-  let port mc = mc.ReqCh *<-+ NewPort >>. mc.RepCh
-  let multicast mc x = mc.ReqCh *<-- Multicast x :> Job<_>
+  let port mc = mc.ReqCh *<+ NewPort >>. mc.RepCh
+  let multicast mc x = mc.ReqCh *<- Multicast x :> Job<_>
   let recv (MPort port) = port
 
 (*
@@ -64,14 +64,14 @@ module Multicast =
     MVar.read xMc >>= fun v ->
     let outCh = Ch ()
     Job.iterateServer v <| fun v ->
-         v >>= fun r -> outCh *<-- r.Value >>% r.Next
+         v >>= fun r -> outCh *<- r.Value >>% r.Next
     >>% MPort outCh
 
   let multicast (MChan xMc) x =
     xMc >>= fun v ->
     let nV = IVar ()
-    xMc *<<-= nV >>.
-    v *<-= {Value = x; Next = nV}
+    xMc *<<= nV >>.
+    v *<= {Value = x; Next = nV}
 
   let recv (MPort xMp) = xMp
 *)

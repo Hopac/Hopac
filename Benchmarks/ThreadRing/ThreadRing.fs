@@ -66,9 +66,9 @@ module ChGive =
     Job.foreverServer
      (inCh >>= fun n ->
       if n <> 0 then
-        outCh *<-- (n-1)
+        outCh *<- (n-1)
       else
-        finishCh *<-- name)
+        finishCh *<- name)
 
   let mkChain n finishCh = Job.delay <| fun () ->
     let ch0 = Ch ()
@@ -92,7 +92,7 @@ module ChGive =
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ch ->
-         ch *<-+ m) >>.
+         ch *<+ m) >>.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
@@ -104,9 +104,9 @@ module ChSend =
     Job.foreverServer
      (inCh >>= fun n ->
       if n <> 0 then
-        outCh *<-+ (n-1)
+        outCh *<+ (n-1)
       else
-        finishCh *<-- name :> Job<_>)
+        finishCh *<- name :> Job<_>)
 
   let mkChain n finishCh = Job.delay <| fun () ->
     let ch0 = Ch ()
@@ -130,7 +130,7 @@ module ChSend =
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ch ->
-         ch *<-+ m) >>.
+         ch *<+ m) >>.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
@@ -144,9 +144,9 @@ module MbSend =
     Job.foreverServer
      (inMS >>= fun n ->
       if n <> 0 then
-        outMS *<<-+ (n-1)
+        outMS *<<+ (n-1)
       else
-        finishCh *<-- name :> Job<_>)
+        finishCh *<- name :> Job<_>)
 
   let mkChain n finishCh = Job.delay <| fun () ->
     let ms0 = Mailbox ()
@@ -170,7 +170,7 @@ module MbSend =
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ms ->
-         ms *<<-+ m) >>.
+         ms *<<+ m) >>.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"

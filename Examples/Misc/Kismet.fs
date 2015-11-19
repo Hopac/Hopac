@@ -19,7 +19,7 @@ module GameTime =
   let internal timerReqCh : Ch<Ticks * IVar<unit>> = Ch ()
 
   let atTime (atTime: Ticks) : Alt<unit> =
-    timerReqCh *<--/=-> fun replyI -> (atTime, replyI)
+    timerReqCh *<-=> fun replyI -> (atTime, replyI)
 
   let timeOut (afterTicks: Ticks) : Alt<unit> =
     assert (0L <= afterTicks)
@@ -31,7 +31,7 @@ module GameTime =
   let internal timeReqServer =
     timerReqCh >>= fun (atTime, replyI) ->
     if currentTime <= atTime then
-      replyI *<-= ()
+      replyI *<= ()
     else
       let replyIs =
         match requests.TryGetValue atTime with
@@ -49,7 +49,7 @@ module GameTime =
      | (true, replyIs) ->
        requests.Remove currentTime |> ignore
        replyIs
-       |> Seq.iterJob (fun replyI -> replyI *<-= ())
+       |> Seq.iterJob (fun replyI -> replyI *<= ())
      | _ ->
        Job.unit ()
 
@@ -76,7 +76,7 @@ let setup () = job {
   // ...
   do! CompareBool bMoved
                   ch_1
-                  (fun x -> ch_2 *<-- x :> Job<_>)
+                  (fun x -> ch_2 *<- x :> Job<_>)
                   (fun _ -> Job.unit ())
       |> Job.foreverServer
   do! Delay (ref 314L)

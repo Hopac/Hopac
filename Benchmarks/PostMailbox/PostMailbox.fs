@@ -43,7 +43,7 @@ module MbSend =
          do! Job.foreverServer
               (mMb |>> fun msg ->
                if msg = max then ping.Set ())
-         do! data |> Array.iterJob (fun i -> mMb *<<-+ i)
+         do! data |> Array.iterJob (fun i -> mMb *<<+ i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -88,7 +88,7 @@ module ChGive =
          do! Job.foreverServer
               (mb |>> fun msg ->
                if msg = max then ping.Set ())
-         do! data |> Array.iterJob (fun i -> mb *<-- i)
+         do! data |> Array.iterJob (fun i -> mb *<- i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -111,7 +111,7 @@ module ChSend =
          do! Job.foreverServer
               (mb |>> fun msg ->
                if msg = max then ping.Set ())
-         do! data |> Array.iterJob (fun i -> mb *<-+ i)
+         do! data |> Array.iterJob (fun i -> mb *<+ i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()

@@ -13,7 +13,7 @@ module Stream =
 
   let inline imp (mk: Out<_> -> #Job<unit>) = Job.delay <| fun () ->
     let ch = Ch ()
-    mk (fun x -> ch *<-- x :> Job<_>) >>% (ch :> Alt<_>)
+    mk (fun x -> ch *<- x :> Job<_>) >>% (ch :> Alt<_>)
 
   let filterFun x2b (xIn: In<_>) (xOut: Out<_>) =
     Job.foreverServer

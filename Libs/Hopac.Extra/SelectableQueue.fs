@@ -30,7 +30,7 @@ module SelectableQueue =
       let (pred, cancel, replyCh) = reqNode.Value
       let cancelAlt = cancel ^-> fun () -> reqs.Remove reqNode
       let giveAlt (msgNode: LinkedListNode<_>) =
-        replyCh *<-- msgNode.Value ^-> fun () ->
+        replyCh *<- msgNode.Value ^-> fun () ->
         reqs.Remove reqNode
         msgs.Remove msgNode
       match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
@@ -39,5 +39,5 @@ module SelectableQueue =
     sendAlt <|> takeAlt <|> Alt.choose (Seq.map prepare (nodes reqs))
     |> Job.foreverServer >>% q
 
-  let send q x = q.SendCh *<-+ x
-  let take q p = q.TakeCh *<-+/--> fun replyCh nack -> (p, nack, replyCh)
+  let send q x = q.SendCh *<+ x
+  let take q p = q.TakeCh *<+-> fun replyCh nack -> (p, nack, replyCh)
