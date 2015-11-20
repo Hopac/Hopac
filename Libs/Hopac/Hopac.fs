@@ -272,12 +272,10 @@ module Alt =
        xAJ.DoJob (&wr, GuardJobCont xK)
       override xA'.TryAlt (wr, i, xK, xE) =
        Pick.ClaimAndDoJob (xE.pk, &wr, xAJ, GuardCont (i, xK, xE))}
-  let guard xAJ = prepare xAJ
 
   let inline prepareFun (u2xA: unit -> #Alt<'x>) =
     {new AltDelay<'x> () with
       override xA'.Do () = upcast u2xA ()} :> Alt<_>
-  let inline delay u2xA = prepareFun u2xA
 
   let inline random (u2xA: uint64 -> #Alt<'x>) =
     {new AltRandom<'x> () with
@@ -286,9 +284,6 @@ module Alt =
   let inline withNackJob (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
     {new AltWithNackJob<_, _> () with
       override xA'.Do (nack) = upcast nack2xAJ nack} :> Alt<_>
-
-  let inline withNack (nack2xAJ: Promise<unit> -> #Job<#Alt<'x>>) =
-    withNackJob nack2xAJ
 
   let inline withNackFun (nack2xA: Promise<unit> -> #Alt<'x>) =
     {new AltWithNackFun<_> () with
@@ -313,9 +308,6 @@ module Alt =
           Pick.Unclaim pk
           xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
 
-  let wrapAbort (uJ: Job<unit>) (xA: Alt<'x>) : Alt<'x> =
-    wrapAbortJob uJ xA
-
   let wrapAbortFun (u2u: unit -> unit) (xA: Alt<'x>) : Alt<'x> =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
@@ -335,12 +327,10 @@ module Alt =
   let inline afterFun (x2y: 'x -> 'y) (xA: Alt<'x>) =
     {new AltMap<'x, 'y> () with
       override yA'.Do (x) = x2y x}.InternalInit(xA)
-  let inline map x2y xA = afterFun x2y xA
 
   let inline afterJob (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) =
     {new AltBind<'x, 'y> () with
       override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
-  let inline wrap x2yJ xA = afterJob x2yJ xA
 
   module Infixes =
     let inline either (wr: byref<Worker>) xK (xA1: Alt<_>) (xA2: Alt<_>) =
@@ -395,7 +385,6 @@ module Alt =
          xA.DoJob (&wr, FailCont (yK, e))
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, FailCont (yK, e), yE)}
-    let (>>!?) xA e = xA ^->! e
 
     let (^=>.) (xA: Alt<_>) (yJ: Job<'y>) =
       {new Alt<'y> () with
@@ -415,13 +404,23 @@ module Alt =
           xA ^=> fun x -> yA ^-> fun y -> (x, y)
       <|> yA ^=> fun y -> xA ^-> fun x -> (x, y)
 
+    [<Obsolete "Use `<|>` rather than `<|>?`">]
     let (<|>?) xA1 xA2 = xA1 <|> xA2
+    [<Obsolete "Use `<~>` rather than `<~>?`">]
     let (<~>?) x y = x <~> y
-    let inline (|>>?) xA x2y = xA ^-> x2y
+    [<Obsolete "Use `^=>` rather than `>>=?`">]
     let inline (>>=?) xA x2yJ = xA ^=> x2yJ
-    let (>>%?) xA y = xA ^->. y
+    [<Obsolete "Use `^=>.` rather than `>>.?`">]
     let (>>.?) xA yJ = xA ^=>. yJ
+    [<Obsolete "Use `.^=>` rather than `.>>?`">]
     let (.>>?) xA yJ = xA .^=> yJ
+    [<Obsolete "Use `^->` rather than `|>>?`">]
+    let inline (|>>?) xA x2y = xA ^-> x2y
+    [<Obsolete "Use `^->.` rather than `>>%?`">]
+    let (>>%?) xA y = xA ^->. y
+    [<Obsolete "Use `^->!` rather than `>>!?`">]
+    let (>>!?) xA e = xA ^->! e
+    [<Obsolete "Use `<+>` rather than `<+>?`">]
     let (<+>?) xA yA = xA <+> yA
 
   let Ignore (xA: Alt<_>) =
@@ -562,6 +561,19 @@ module Alt =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) = xA.DoJob (&wr, xK)
       override xA'.TryAlt (wr, i, xK, xE) = xA.TryAlt (&wr, i, xK, xE)}
+
+  [<Obsolete "Use `prepare` rather than `guard`">]
+  let guard xAJ = prepare xAJ
+  [<Obsolete "Use `prepareFun` rather than `delay`">]
+  let inline delay u2xA = prepareFun u2xA
+  [<Obsolete "Use `withNackJob` rather than `withNack`.">]
+  let inline withNack nack2xAJ = withNackJob nack2xAJ
+  [<Obsolete "Use `wrapAbortJob` rather than `wrapAbort`.">]
+  let wrapAbort uJ xA = wrapAbortJob uJ xA
+  [<Obsolete "Use `afterJob` rather than `wrap`">]
+  let inline wrap x2yJ xA = afterJob x2yJ xA
+  [<Obsolete "Use `afterFun` rather than `map`">]
+  let inline map x2y xA = afterFun x2y xA
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -924,30 +936,22 @@ module Job =
       {new JobBind<'x, 'y> () with
         override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xJ)
 
-    let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) : Job<'z> =
-      x2yJ x >>= y2zJ
-
-    let (>>.) (xJ: Job<_>) (yJ: Job<'y>) =
+    let (>>=.) (xJ: Job<_>) (yJ: Job<'y>) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
          xJ.DoJob (&wr, SeqCont (yJ, yK))}
 
-    let (.>>) (xJ: Job<'x>) (yJ: Job<_>) =
-      {new Job<'x> () with
-        override xJ'.DoJob (wr, xK) =
-         xJ.DoJob (&wr, SkipCont (xK, yJ))}
-
-    let inline (|>>) (xJ: Job<'x>) (x2y: 'x -> 'y) =
+    let inline (>>-) (xJ: Job<'x>) (x2y: 'x -> 'y) =
       {new JobMap<'x, 'y> () with
         override yJ'.Do (x) = x2y x}.InternalInit(xJ)
 
-    let (>>%) (xJ: Job<_>) (y: 'y) =
+    let (>>-.) (xJ: Job<_>) (y: 'y) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK) =
          yK.Value <- y
          xJ.DoJob (&wr, DropCont yK)}
 
-    let (>>!) (xJ: Job<_>) (e: exn) =
+    let (>>-!) (xJ: Job<_>) (e: exn) =
       {new Job<'y> () with
         override yJ'.DoJob (wr, yK_) =
          xJ.DoJob (&wr, {new Cont_State<_, _> () with
@@ -955,6 +959,9 @@ module Job =
           override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.State, &wr, e)
           override xK'.DoWork (wr) = Handler.DoHandle (xK'.State, &wr, e)
           override xK'.DoCont (wr, _) = Handler.DoHandle (xK'.State, &wr, e)}.Init(yK_))}
+
+    let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) : Job<'z> =
+      x2yJ x >>= y2zJ
 
     type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
       inherit Cont<'y> ()
@@ -990,6 +997,20 @@ module Job =
               xK'.State <- null
               xJ.DoJob (&wr, xK')}.Init(xJ))
          yJ.DoJob (&wr, yK')}
+
+    [<Obsolete "`.>>` is to be removed">]
+    let (.>>) (xJ: Job<'x>) (yJ: Job<_>) =
+      {new Job<'x> () with
+        override xJ'.DoJob (wr, xK) =
+         xJ.DoJob (&wr, SkipCont (xK, yJ))}
+    [<Obsolete "Use `>>=.` rather than `>>.`">]
+    let (>>.) xJ yJ = xJ >>=. yJ
+    [<Obsolete "Use `>>-` rather than `|>>`">]
+    let inline (|>>) xJ x2y = xJ >>- x2y
+    [<Obsolete "Use `>>-.` rather than `>>%`">]
+    let (>>%) xJ y = xJ >>-. y
+    [<Obsolete "Use `>>-!` rather than `>>!`">]
+    let (>>!) xJ e = xJ >>-! e
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -1445,11 +1466,21 @@ module Promise =
     open Alt.Infixes
     let inline (<|>*) xA1 xA2 = xA1 <|> xA2 |> Now.delay
     let inline (>>=*) xJ x2yJ = xJ >>= x2yJ |> Now.delay
-    let inline (>>.*) xJ yJ = xJ >>. yJ |> Now.delay
+    let inline (>>=*.) xJ yJ = xJ >>=. yJ |> Now.delay
+    let inline (>>-*) xJ x2y = xJ >>- x2y |> Now.delay
+    let inline (>>-*.) xJ y = xJ >>-. y |> Now.delay
+    let inline (>>-*!) xJ e = xJ >>-! e |> Now.delay
+
+    [<Obsolete "Use `>>=*.` rather than `>>.*`">]
+    let inline (>>.*) xJ yJ = xJ >>=*. yJ
+    [<Obsolete "`.>>*` is to be removed">]
     let inline (.>>*) xJ yJ = xJ .>> yJ |> Now.delay
-    let inline (|>>*) xJ x2y = xJ |>> x2y |> Now.delay
-    let inline (>>%*) xJ y = xJ >>% y |> Now.delay
-    let inline (>>!*) xJ e = xJ >>! e |> Now.delay
+    [<Obsolete "Use `>>-*` rather than `|>>*`">]
+    let inline (|>>*) xJ x2y = xJ >>-* x2y
+    [<Obsolete "Use `>>-*.` rather than `>>%*`">]
+    let inline (>>%*) xJ y = xJ >>-*. y
+    [<Obsolete "Use `>>-*!` rather than `>>!*`">]
+    let inline (>>!*) xJ e = xJ >>-*! e
   let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
@@ -1561,10 +1592,10 @@ module MVar =
   let createFull x = ctor Now.createFull x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-    xM ^=> (x2xy >> fun (x, y) -> fill xM x >>% y)
+    xM ^=> (x2xy >> fun (x, y) -> fill xM x >>-. y)
   let inline modifyJob (x2xyJ: 'x -> #Job<'x * 'y>) (xM: MVar<'x>) =
-    xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>% y)
-  let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>% x
+    xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>-. y)
+  let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>-. x
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
 /////////////////////////////////////////////////////////////////////////
@@ -1885,7 +1916,7 @@ module Extensions =
        | ctxt -> ctxt.Post ((fun _ -> f x), null)
 
     let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
-      Alt.withNack <| fun nack ->
+      Alt.withNackJob <| fun nack ->
       {new Job<Alt<'x>> () with
         override xJ'.DoJob (wr, xAK) =
          let sr = wr.Scheduler
@@ -2075,7 +2106,7 @@ type JobBuilder () =
     Task.bindJob (uT, u2xJ)
   member inline job.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xJ >>= x2yJ
-  member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>. xJ
+  member inline job.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>=. xJ
   member inline job.Delay (u2xJ: unit -> Job<'x>) : Job<'x> = Job.delay u2xJ
   member inline job.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
     Seq.iterJob x2uJ xs
@@ -2113,7 +2144,7 @@ module Infixes =
   let inline ( *<+ ) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   let inline ( *<+-> ) qCh rCh2n2q = Alt.withNackJob <| fun nack ->
     let rCh = Ch<_> ()
-    qCh *<+ rCh2n2q rCh nack >>%
+    qCh *<+ rCh2n2q rCh nack >>-.
     rCh
   let inline ( *<-=> ) qCh rI2q = Alt.prepareFun <| fun () ->
     let rI = IVar<_> ()
@@ -2123,11 +2154,18 @@ module Infixes =
   let inline ( *<=! ) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
   let inline ( *<<= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
+
+  [<Obsolete "Use `*<-` rather than `<--`">]
   let inline (<--) xCh x = xCh *<- x
+  [<Obsolete "Use `*<+` rather than `<-+`">]
   let inline (<-+) xCh x = xCh *<+ x
+  [<Obsolete "Use `*<=` rather than `<-=`">]
   let inline (<-=) xI x = xI *<= x
+  [<Obsolete "Use `*<=!` rather than `<-=!`">]
   let inline (<-=!) xI e = xI *<=! e
+  [<Obsolete "Use `*<<=` rather than `<<-=`">]
   let inline (<<-=) xM x = xM *<<= x
+  [<Obsolete "Use `*<<+` rather than `<<-+`">]
   let inline (<<-+) xMb x = xMb *<<+ x
 
 /////////////////////////////////////////////////////////////////////////
@@ -2143,7 +2181,7 @@ module Latch =
     let l = Now.create 1
     Job.tryFinallyJob
       (Job.delayWith l2xJ l)
-      (decrement l >>. l)
+      (decrement l >>=. l)
   let holding (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
     Now.increment l
     Job.tryFinallyJob xJ (decrement l)

@@ -80,8 +80,8 @@ module HopacJob =
     let rec sieve nats =
       let prime = nats.Value
       {Value = prime;
-       Next = nats.Next >>= filter (fun x -> x % prime <> 0) |>> sieve}
-    iterate (fun x -> x+1) 2 |>> sieve
+       Next = nats.Next >>= filter (fun x -> x % prime <> 0) >>- sieve}
+    iterate (fun x -> x+1) 2 >>- sieve
 
   let primes n = Job.delay <| fun () ->
     let before = GC.GetTotalMemory true
@@ -124,8 +124,8 @@ module HopacPromise =
       let prime = nats.Value
       {Value = prime;
        Next =
-        Promise.Now.delay (nats.Next >>= filter (fun x -> x % prime <> 0) |>> sieve)}
-    iterate (fun x -> x+1) 2 |>> sieve
+        Promise.Now.delay (nats.Next >>= filter (fun x -> x % prime <> 0) >>- sieve)}
+    iterate (fun x -> x+1) 2 >>- sieve
 
   let primes n = Job.delay <| fun () ->
     let before = GC.GetTotalMemory true
@@ -208,11 +208,11 @@ module HopacCh =
     let result = Array.zeroCreate n
     let last = n-1
     Job.forUpTo 0 last <| fun i ->
-         primes |>> fun p ->
-         result.[i] <- p
-         if i = last then
-           printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
-    >>% result
+          primes >>- fun p ->
+          result.[i] <- p
+          if i = last then
+            printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
+    >>-. result
 
   let run n =
     printf "HopacCh:       "
@@ -289,7 +289,7 @@ module Async =
 
   let inline result x = async.Return x
   let inline (>>=) x f = async.Bind (x, f)
-  let inline (|>>) x f = async.Bind (x, f >> result)
+  let inline (>>-) x f = async.Bind (x, f >> result)
 
   let rec iterate (step: 'a -> 'a) (init: 'a) : Async<Stream<_>> = async {
     return {Value = init;
@@ -307,8 +307,8 @@ module Async =
     let rec sieve nats =
       let prime = nats.Value
       {Value = prime;
-       Next = nats.Next >>= filter (fun x -> x % prime <> 0) |>> sieve}
-    iterate (fun x -> x+1) 2 |>> sieve
+       Next = nats.Next >>= filter (fun x -> x % prime <> 0) >>- sieve}
+    iterate (fun x -> x+1) 2 >>- sieve
 
   let primes n = async {
     let before = GC.GetTotalMemory true

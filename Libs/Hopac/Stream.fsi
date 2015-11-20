@@ -319,7 +319,7 @@ module Stream =
   ///>   |> unfoldJob (fun xs ->
   ///>      xs >>= function Nil -> Job.result None
   ///>                    | Cons (x, xs) ->
-  ///>                      x2yJ x |>> fun y -> Some (y, xs))
+  ///>                      x2yJ x >>- fun y -> Some (y, xs))
   ///
   /// Reference implementation:
   ///

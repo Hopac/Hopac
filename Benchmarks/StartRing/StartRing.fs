@@ -89,8 +89,8 @@ module JQueue =
           toCh *<+ ()
         else
           let childCh = Ch ()
-          Job.queue (proc (n-1) childCh toCh) >>.
-          childCh *<+ () >>.
+          Job.queue (proc (n-1) childCh toCh) >>=.
+          childCh *<+ () >>=.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed
@@ -108,8 +108,8 @@ module JStart =
           toCh *<+ ()
         else
           let childCh = Ch ()
-          Job.start (proc (n-1) childCh toCh) >>.
-          childCh *<+ () >>.
+          Job.start (proc (n-1) childCh toCh) >>=.
+          childCh *<+ () >>=.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed
@@ -127,8 +127,8 @@ module PStart =
           toCh *<+ ()
         else
           let childCh = Ch ()
-          Proc.start (proc (n-1) childCh toCh) >>.
-          childCh *<+ () >>.
+          Proc.start (proc (n-1) childCh toCh) >>=.
+          childCh *<+ () >>=.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed
@@ -146,8 +146,8 @@ module PQueue =
           toCh *<+ ()
         else
           let childCh = Ch ()
-          Proc.queue (proc (n-1) childCh toCh) >>.
-          childCh *<+ () >>.
+          Proc.queue (proc (n-1) childCh toCh) >>=.
+          childCh *<+ () >>=.
           selfCh
       proc n selfCh selfCh
     let d = timer.Elapsed

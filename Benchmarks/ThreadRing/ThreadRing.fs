@@ -76,7 +76,7 @@ module ChGive =
     |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else Ch ()
-           proc i chIn chOut finishCh >>% chOut)
+           proc i chIn chOut finishCh >>-. chOut)
         ch0
 
   let run n m p =
@@ -92,7 +92,7 @@ module ChGive =
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ch ->
-         ch *<+ m) >>.
+         ch *<+ m) >>=.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
@@ -114,7 +114,7 @@ module ChSend =
     |> Seq.foldJob
         (fun chIn i ->
            let chOut = if i=n then ch0 else Ch ()
-           proc i chIn chOut finishCh >>% chOut)
+           proc i chIn chOut finishCh >>-. chOut)
         ch0
 
   let run n m p =
@@ -130,7 +130,7 @@ module ChSend =
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ch ->
-         ch *<+ m) >>.
+         ch *<+ m) >>=.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"
@@ -154,7 +154,7 @@ module MbSend =
     |> Seq.foldJob
         (fun msIn i ->
            let msOut = if i=n then ms0 else Mailbox ()
-           proc i msIn msOut finishCh >>% msOut)
+           proc i msIn msOut finishCh >>-. msOut)
         ms0
 
   let run n m p =
@@ -170,7 +170,7 @@ module MbSend =
       printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
       chs
       |> Seq.Con.iterJob (fun ms ->
-         ms *<<+ m) >>.
+         ms *<<+ m) >>=.
       Seq.Con.mapJob (fun _ -> finishCh) (seq {1 .. p})
     let d = timer.Elapsed
     printf "%9.0f m/s - %fs\n"

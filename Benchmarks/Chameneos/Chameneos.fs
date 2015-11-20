@@ -71,18 +71,18 @@ module HopacLock =
                   other) >>= function
             | null ->
               if !cont then
-                me.WakeUp |>> fun otherColor ->
+                me.WakeUp >>- fun otherColor ->
                 myMeets := !myMeets + 1
                 me.Color <- complement me.Color otherColor
               else
                 resultsMS *<- !myMeets :> Job<_>
             | other ->
               let otherColor = other.Color
-              other.WakeUp *<<= me.Color |>> fun () ->
+              other.WakeUp *<<= me.Color >>- fun () ->
               myMeets := !myMeets + 1
-              me.Color <- complement me.Color otherColor))) >>.
+              me.Color <- complement me.Color otherColor))) >>=.
     Seq.foldJob
-     (fun sum _ -> resultsMS |>> fun n -> sum+n)
+     (fun sum _ -> resultsMS >>- fun n -> sum+n)
      0
      (seq {1 .. colors.Length})
 
@@ -122,20 +122,20 @@ module HopacMV =
           (meetingPlace >>= function
             | (Empty 0) as state ->
               cont := false
-              meetingPlace *<<= state >>.
+              meetingPlace *<<= state >>=.
               resultsMS *<- !myMeets
             | Empty n ->
-              meetingPlace *<<= Waiter (n, Chameneos (!myColor, me)) >>.
-              me |>> fun (Chameneos (otherColor, _)) ->
+              meetingPlace *<<= Waiter (n, Chameneos (!myColor, me)) >>=.
+              me >>- fun (Chameneos (otherColor, _)) ->
               myMeets := !myMeets + 1
               myColor := complement (!myColor) otherColor
             | Waiter (n, Chameneos (otherColor, other)) ->
-              other *<<= Chameneos (!myColor, me) >>.
-              meetingPlace *<<= Empty (n-1) |>> fun () ->
+              other *<<= Chameneos (!myColor, me) >>=.
+              meetingPlace *<<= Empty (n-1) >>- fun () ->
               myMeets := !myMeets + 1
-              myColor := complement (!myColor) otherColor))) >>.
+              myColor := complement (!myColor) otherColor))) >>=.
     Seq.foldJob
-     (fun sum _ -> resultsMS |>> fun n -> sum+n)
+     (fun sum _ -> resultsMS >>- fun n -> sum+n)
      0
      (seq {1 .. colors.Length})
 
@@ -170,12 +170,12 @@ module HopacAlt =
         csch.Ch ^=> fun (msgIn, outCh) ->
           let n = System.Threading.Interlocked.Decrement &csch.N
           if n > 0 then
-            outCh *<= Some msgOut >>% Some msgIn
+            outCh *<= Some msgOut >>-. Some msgIn
           elif n = 0 then
-            csch.Done *<= None >>.
-            outCh *<= Some msgOut >>% Some msgIn
+            csch.Done *<= None >>=.
+            outCh *<= Some msgOut >>-. Some msgIn
           else
-            outCh *<= None >>% None
+            outCh *<= None >>-. None
         csch.Ch *<-=> fun inI -> (msgOut, inI)
         csch.Done :> Alt<_> |]
 
@@ -193,7 +193,7 @@ module HopacAlt =
     let! place = CountedSwapCh.create numMeets
     return! colors
             |> Seq.Con.mapJob (Creature.run (CountedSwapCh.swap place))
-            |>> Seq.sum
+            >>- Seq.sum
   }
 
   let run numMeets =

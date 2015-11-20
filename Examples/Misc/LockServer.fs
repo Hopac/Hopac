@@ -68,4 +68,4 @@ let start = Job.delay <| fun () ->
           // We just ignore the erroneous release request
           Alt.unit ()
   |> Job.foreverServer
-  >>% s
+  >>-. s

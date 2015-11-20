@@ -29,7 +29,7 @@ module BoundedMb =
          | 0 -> put
          | n when n = capacity -> take ()
          | _ -> take () <|> put
-      Job.foreverServer proc >>% self
+      Job.foreverServer proc >>-. self
 
   let put xB x = xB.putCh *<- x
   let take xB = xB.takeCh :> Alt<_>

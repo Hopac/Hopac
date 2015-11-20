@@ -21,15 +21,15 @@ module HopacReq =
   let put (c: Cell<'a>) (x: 'a) =
     c.reqCh *<- Put x
 
-  let get (c: Cell<'a>) : Job<'a> = c.reqCh *<+ Get >>. c.replyCh
+  let get (c: Cell<'a>) : Job<'a> = c.reqCh *<+ Get >>=. c.replyCh
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {reqCh = Ch (); replyCh = Ch ()}
     Job.iterateServer x <| fun x ->
-         c.reqCh >>= function
-          | Get   -> c.replyCh *<+ x >>% x
-          | Put x -> Job.result x
-    >>% c
+          c.reqCh >>= function
+           | Get   -> c.replyCh *<+ x >>-. x
+           | Put x -> Job.result x
+    >>-. c
 
   let run nCells nJobs nUpdates =
     printf "HopacReq: "
@@ -38,8 +38,9 @@ module HopacReq =
     let before = GC.GetTotalMemory true
     run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
-            cell i |>> fun cell -> cells.[i] <- cell
-      do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
+            cell i >>- fun cell -> cells.[i] <- cell
+      do printf "%4d b/c "
+           (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
       return!
         seq {1 .. nJobs}
         |> Seq.map (fun _ ->
@@ -70,16 +71,16 @@ module HopacDyn =
 
   let get (c: Cell<'a>) : Job<'a> = Job.delay <| fun () ->
     let replyIv = IVar ()
-    c.reqCh *<+ Get replyIv >>.
+    c.reqCh *<+ Get replyIv >>=.
     replyIv
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let reqCh = Ch ()
     Job.iterateServer x <| fun x ->
-         reqCh >>= function
-          | Get replyIv -> replyIv *<= x >>% x
-          | Put x -> Job.result x
-    >>% {reqCh = reqCh}
+          reqCh >>= function
+           | Get replyIv -> replyIv *<= x >>-. x
+           | Put x -> Job.result x
+    >>-. {reqCh = reqCh}
 
   let run nCells nJobs nUpdates =
     printf "HopacDyn: "
@@ -88,8 +89,9 @@ module HopacDyn =
     let before = GC.GetTotalMemory true
     run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
-            cell i |>> fun cell -> cells.[i] <- cell
-      do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
+            cell i >>- fun cell -> cells.[i] <- cell
+      do printf "%4d b/c "
+           (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
       return!
         seq {1 .. nJobs}
         |> Seq.map (fun _ ->
@@ -118,8 +120,8 @@ module HopacAlt =
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let c = {getCh = Ch (); putCh = Ch ()}
     Job.iterateServer x <| fun x ->
-         c.putCh <|> c.getCh *<- x ^->. x
-    >>% c
+          c.putCh <|> c.getCh *<- x ^->. x
+    >>-. c
 
   let run nCells nJobs nUpdates =
     printf "HopacAlt: "
@@ -128,8 +130,9 @@ module HopacAlt =
     let before = GC.GetTotalMemory true
     run <| job {
       do! Job.forUpTo 0 (nCells-1) <| fun i ->
-            cell i |>> fun cell -> cells.[i] <- cell
-      do printf "%4d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
+            cell i >>- fun cell -> cells.[i] <- cell
+      do printf "%4d b/c "
+           (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
       return!
         seq {1 .. nJobs}
         |> Seq.map (fun _ ->

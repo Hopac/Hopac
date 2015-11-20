@@ -2,7 +2,8 @@
 
 module FrequencyServer
 
-// Example inspired by an example in the book Erlang Programming by Cesarini and Thompson.
+// Example inspired by an example in the book Erlang Programming by Cesarini and
+// Thompson.
 
 open System.Collections.Generic
 open Hopac
@@ -19,7 +20,7 @@ type FrequencyServer = {
 let allocate s = Alt.withNackJob <| fun nack ->
   Proc.self () >>= fun self ->
   let replyCh = Ch ()
-  s.allocCh *<+ (self, nack, replyCh) >>%
+  s.allocCh *<+ (self, nack, replyCh) >>-.
   replyCh
 
 let deallocate s freq =
@@ -65,5 +66,5 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
   let someFree = alloc <|> noneFree
 
   Job.iterateServer () <| fun () ->
-       if 0 < free.Count then someFree else noneFree
-  >>% self
+        if 0 < free.Count then someFree else noneFree
+  >>-. self

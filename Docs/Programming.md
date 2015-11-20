@@ -315,7 +315,7 @@ have a number of reasons for this:
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
 * There are many very commonly used monadic combinators,
-  e.g. `|>>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
+  e.g. `>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
   and
   `>>%`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E%),
   that do not have a corresponding workflow builder function and notation and
@@ -799,14 +799,14 @@ let rec fib n = Job.delay <| fun () ->
   if n < 2L then
     Job.result n
   else
-    fib (n-2L) <&> fib (n-1L) |>> fun (x, y) ->
+    fib (n-2L) <&> fib (n-1L) >>- fun (x, y) ->
     x + y
 ```
 
 The above implementation makes use of the combinators
 `<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
 and
-`|>>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
+`>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
 whose meanings can be specified in terms of
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and
@@ -815,7 +815,7 @@ as follows:
 
 ```fsharp
 let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
-let (|>>) xJ x2y = xJ >>= fun x -> result (x2y x)
+let (>>-) xJ x2y = xJ >>= fun x -> result (x2y x)
 ```
 
 Note that the semantics of `<&>` are entirely sequential and as a whole the
@@ -844,7 +844,7 @@ let rec fib n = Job.delay <| fun () ->
   if n < 2L then
     Job.result n
   else
-    fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
+    fib (n-2L) <*> fib (n-1L) >>- fun (x, y) ->
     x + y
 ```
 
@@ -992,7 +992,7 @@ let rec mergeSortJob xs = Job.delay <| fun () ->
    | ([], ys) -> Job.result ys
    | (xs, []) -> Job.result xs
    | (xs, ys) ->
-     mergeSortJob xs <*> mergeSortJob ys |>> fun (xs, ys) ->
+     mergeSortJob xs <*> mergeSortJob ys >>- fun (xs, ys) ->
      merge xs ys
 ```
 
@@ -1022,7 +1022,7 @@ let mergeSortJob threshold xs = Job.delay <| fun () ->
     else
       let (xs, ys) = split xs
       let n = n/2
-      mergeSortJob n xs <*> mergeSortJob n ys |>> fun (xs, ys) ->
+      mergeSortJob n xs <*> mergeSortJob n ys >>- fun (xs, ys) ->
       merge xs ys
   mergeSortJob (List.length xs) xs
 ```
@@ -1165,7 +1165,7 @@ operation is similar to the bind `>>=`
 [*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 operation on jobs and allows one to extend an alternative so that further
 operations are performed after the alternative has been committed to.  Similarly
-to corresponding operations on jobs, several shortcut operators, such as `|>>?`
+to corresponding operations on jobs, several shortcut operators, such as `>>-?`
 [*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.|%3E%3E?)
 and `>>%?`
 [*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E%?),
@@ -1395,8 +1395,8 @@ acknowledgment alternative becomes available.  Consider the following example:
 ```fsharp
 let verbose alt = Alt.withNackJob <| fun nack ->
   printf "Instantiated and "
-  Job.start (nack |>> fun () -> printfn "aborted.") >>%
-  (alt |>>? fun x -> printfn "committed to." ; x)
+  Job.start (nack >>- fun () -> printfn "aborted.") >>%
+  (alt >>-? fun x -> printfn "committed to." ; x)
 ```
 
 The above implements an alternative constructor that simply prints out what
@@ -1566,7 +1566,7 @@ let start = Job.delay <| fun () ->
           pending.Enqueue (replyCh, abortAlt)
           Job.unit ()
         | _ ->
-          Alt.choose [Ch.give replyCh () |>>? fun () ->
+          Alt.choose [Ch.give replyCh () >>-? fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->

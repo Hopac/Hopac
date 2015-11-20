@@ -37,7 +37,7 @@ module EagerSeq =
              loopYs xs ys.EagerSeq rs'.EagerSeq
        <| fun e -> rs *<=! e
     let rs = node ()
-    Job.queue (loopXs xs.EagerSeq rs.EagerSeq) >>% rs
+    Job.queue (loopXs xs.EagerSeq rs.EagerSeq) >>-. rs
 
   let rec tryPickFun (x2yO: 'x -> option<'y>) (xs: EagerSeq<'x>) =
     xs.EagerSeq >>= function
@@ -49,7 +49,7 @@ module EagerSeq =
 
   let chooseFun (x2yO: 'x -> option<'y>) (xs: EagerSeq<'x>) = Job.delay <| fun () ->
     let rec loop xs ys =
-      Job.tryIn (xs |>> function None -> None
+      Job.tryIn (xs >>- function None -> None
                                | Some (x, xs) -> Some (x2yO x, xs))
        <| function
            | None -> ys *<= None
@@ -60,13 +60,13 @@ module EagerSeq =
              loop xs.EagerSeq ys'.EagerSeq
        <| fun e -> ys *<=! e
     let ys = node ()
-    Job.queue (loop xs.EagerSeq ys.EagerSeq) >>% ys
+    Job.queue (loop xs.EagerSeq ys.EagerSeq) >>-. ys
 
   let chooseJob (x2yOJ: 'x -> Job<option<'y>>) (xs: EagerSeq<'x>) = Job.delay <| fun () ->
     let rec loop xs ys =
       Job.tryIn (xs >>= function
                   | None -> Job.result None
-                  | Some (x, xs) -> x2yOJ x |>> fun yO -> Some (yO, xs))
+                  | Some (x, xs) -> x2yOJ x >>- fun yO -> Some (yO, xs))
        <| function
            | None -> ys *<= None
            | Some (None, xs) -> loop xs.EagerSeq ys
@@ -76,7 +76,7 @@ module EagerSeq =
              loop xs.EagerSeq ys'.EagerSeq
        <| fun e -> ys *<=! e
     let ys = node ()
-    Job.queue (loop xs.EagerSeq ys.EagerSeq) >>% ys
+    Job.queue (loop xs.EagerSeq ys.EagerSeq) >>-. ys
 
   let filterFun x2b xs =
     chooseFun (fun x -> if x2b x then Some x else None) xs
@@ -95,7 +95,7 @@ module EagerSeq =
          xs *<= Some (x, xs') >>= fun () ->
          loop xs'.EagerSeq
     let xs = node ()
-    Job.queue (loop xs.EagerSeq) >>% xs
+    Job.queue (loop xs.EagerSeq) >>-. xs
 
   let generateJob (xoJ: Job<option<'x>>) = Job.delay <| fun () ->
     let rec loop xs =
@@ -108,7 +108,7 @@ module EagerSeq =
              loop xs'.EagerSeq
        <| fun e -> xs *<=! e
     let xs = node ()
-    Job.queue (loop xs.EagerSeq) >>% xs
+    Job.queue (loop xs.EagerSeq) >>-. xs
 
   let rec iterFun (x2u: 'x -> unit) (xs: EagerSeq<'x>) =
     xs.EagerSeq >>= function None -> Job.unit ()
@@ -123,7 +123,7 @@ module EagerSeq =
     chooseFun (fun x -> x2y x |> Some) xs
 
   let mapJob (x2yJ: 'x -> Job<'y>) xs =
-    chooseJob (fun x -> x2yJ x |>> Some) xs
+    chooseJob (fun x -> x2yJ x >>- Some) xs
 
   let ofSeq (xs: seq<'x>) = Job.delay <| fun () ->
     Job.using (xs.GetEnumerator ()) <| fun xs ->
@@ -156,7 +156,7 @@ module EagerSeq =
          xs *<= Some (x, xs') >>= fun () ->
          loop s xs'.EagerSeq
     let xs = node ()
-    Job.queue (loop s xs.EagerSeq) >>% xs
+    Job.queue (loop s xs.EagerSeq) >>-. xs
 
   let unfoldJob (s2xsOJ: 's -> Job<option<'x * 's>>) (s: 's) = Job.delay <| fun () ->
     let rec loop s xs =
@@ -169,4 +169,4 @@ module EagerSeq =
              loop s xs'.EagerSeq
        <| fun e -> xs *<=! e
     let xs = node ()
-    Job.queue (loop s xs.EagerSeq) >>% xs
+    Job.queue (loop s xs.EagerSeq) >>-. xs

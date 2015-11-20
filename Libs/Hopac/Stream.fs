@@ -85,11 +85,11 @@ module Stream =
 
   module MVar =
     let create x = {mvar = MVar (Cons (x, IVar ()))}
-    let get xM = MVar.read xM.mvar |>> function Cons (x, _) -> x | Nil -> imp ()
+    let get xM = MVar.read xM.mvar >>- function Cons (x, _) -> x | Nil -> imp ()
     let inline push xM (i: Promise<_>) x =
       let c = Cons (x, IVar ())
-      (i :?> IVar<_>) *<= c >>. MVar.fill xM.mvar c
-    let inline fail xM c e = MVar.fill xM.mvar c >>! e
+      (i :?> IVar<_>) *<= c >>=. MVar.fill xM.mvar c
+    let inline fail xM c e = MVar.fill xM.mvar c >>-! e
     let set xM x = xM.mvar >>= function Cons (_, i) -> push xM i x | Nil -> imp ()
     let updateFun xM x2x =
       xM.mvar >>= function
@@ -130,8 +130,8 @@ module Stream =
   let rec onCloseJob (uJ: Job<unit>) xs =
     Job.tryIn xs
        <| function Cons (x, xs) -> consj x (onCloseJob uJ xs)
-                 | Nil -> uJ >>% Nil
-       <| fun e -> uJ >>! e
+                 | Nil -> uJ >>-. Nil
+       <| fun e -> uJ >>-! e
     |> memo
   let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
 
@@ -173,7 +173,7 @@ module Stream =
   type Guard<'x> (subr: Subscriber<'x>) =
     override this.Finalize () = subr.Dispose ()
 
-  let rec guard g xs = xs |>>* function Cons (x, xs) -> Cons (x, guard g xs)
+  let rec guard g xs = xs >>-* function Cons (x, xs) -> Cons (x, guard g xs)
                                       | Nil -> GC.SuppressFinalize g; Nil
 
   let ofObservableOn ctxt (xO: IObservable<'x>) : Stream<'x> =
@@ -205,9 +205,9 @@ module Stream =
          override this.Dispose () =
           lock subs <| fun () -> subs.Remove xS |> ignore}}
 
-  let rec indefinitely xJ = xJ |>>* fun x -> Cons (x, indefinitely xJ)
+  let rec indefinitely xJ = xJ >>-* fun x -> Cons (x, indefinitely xJ)
 
-  let once xJ = xJ |>>* fun x -> Cons (x, nil)
+  let once xJ = xJ >>-* fun x -> Cons (x, nil)
 
   let rec chooseJob' x2yOJ = function
     | Cons (x, xs) ->
@@ -239,14 +239,14 @@ module Stream =
   and filterFun x2b xs = xs >>=* filterFun' x2b
 
   let rec mapJob x2yJ xs =
-    xs >>=* function Cons (x, xs) -> x2yJ x |>> fun y -> Cons (y, mapJob x2yJ xs)
+    xs >>=* function Cons (x, xs) -> x2yJ x >>- fun y -> Cons (y, mapJob x2yJ xs)
                    | Nil -> nilj
   let rec mapFun x2y xs =
-    xs |>>* function Cons (x, xs) -> Cons (x2y x, mapFun x2y xs) | Nil -> Nil
+    xs >>-* function Cons (x, xs) -> Cons (x2y x, mapFun x2y xs) | Nil -> Nil
   let rec mapConst y xs =
-    xs |>>* function Cons (_, xs) -> Cons (y, mapConst y xs) | Nil -> Nil
+    xs >>-* function Cons (_, xs) -> Cons (y, mapConst y xs) | Nil -> Nil
   let rec mapIgnore xs =
-    xs |>>* function Cons (_, xs) -> Cons ((), mapIgnore xs) | Nil -> Nil
+    xs >>-* function Cons (_, xs) -> Cons ((), mapIgnore xs) | Nil -> Nil
 
   let amb' (ls: Stream<_>) (rs: Stream<_>) = ls <|> rs
   let amb ls rs = amb' ls rs |> memo
@@ -282,8 +282,8 @@ module Stream =
   let switchMap x2ys xs = mapJoin switch' x2ys xs
 
   let rec taker evt skipper xs =
-         evt ^=> fun _ -> Job.start (xs >>= fun t -> skipper *<= t) >>% Nil
-    <|>* xs ^=> function Nil -> skipper *<= Nil >>% Nil
+         evt ^=> fun _ -> Job.start (xs >>= fun t -> skipper *<= t) >>-. Nil
+    <|>* xs ^=> function Nil -> skipper *<= Nil >>-. Nil
                        | Cons (x, xs) -> consj x (taker evt skipper xs)
   let takeAndSkipUntil evt xs =
     let skipper = IVar () in (taker evt skipper xs, skipper :> Stream<_>)
@@ -294,7 +294,7 @@ module Stream =
   let skipUntil evt xs = skipUntil' evt xs |> memo
 
   let switchTo rs ls = switch ls rs
-  let takeUntil (evt: Alt<_>) xs = switch xs (evt >>%* Nil)
+  let takeUntil (evt: Alt<_>) xs = switch xs (evt >>-*. Nil)
 
   let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =
     Job.tryIn xs (function Cons (x, xs) -> consj x (catch e2xs xs) | Nil -> nilj)
@@ -342,7 +342,7 @@ module Stream =
 
   let rec ignoreWhile1 timeout = function
     | Cons (x, xs) ->
-      Promise.start timeout |>> fun timer ->
+      Promise.start timeout >>- fun timer ->
       Cons (x, ignoreWhile0 timeout timer xs |> memo)
     | Nil -> nilj
   and ignoreWhile0 timeout timer xs =
@@ -370,7 +370,7 @@ module Stream =
             let newTail = IVar ()
             let oldTail = !tail
             tail := newTail
-            oldTail *<= Cons (y, newTail) >>. gotNone xs
+            oldTail *<= Cons (y, newTail) >>=. gotNone xs
       <|> xs ^=> function Cons (x, xs) -> gotSome (fns.Next (y, x)) xs
                         | Nil -> !tail *<= Nil
        :> Job<_>
@@ -381,8 +381,8 @@ module Stream =
     let gcs = GcSignal (gc)
     let req = req *<+ 0
     let rec recur xs =
-      req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
-                             | Nil -> gcs.Suppress () ; Nil
+      req >>=. xs >>-* function Cons (x, xs) -> Cons (x, recur xs)
+                              | Nil -> gcs.Suppress () ; Nil
     !tail |> recur
 
   let keepPreceding maxCount xs =
@@ -408,7 +408,7 @@ module Stream =
                                   let newTail = IVar ()
                                   let oldTail = !tail
                                   tail := newTail
-                                  oldTail *<= Cons (x, newTail) >>. noReq xs
+                                  oldTail *<= Cons (x, newTail) >>=. noReq xs
                                 | Nil -> !tail *<= Nil
     and noReq xs = gc
                <|> req ^=> fun _ -> gotReq xs
@@ -419,8 +419,8 @@ module Stream =
     let gcs = GcSignal (gc)
     let req = req *<+ 0
     let rec recur xs =
-      req >>. xs |>>* function Cons (x, xs) -> Cons (x, recur xs)
-                             | Nil -> gcs.Suppress () ; Nil
+      req >>=. xs >>-* function Cons (x, xs) -> Cons (x, recur xs)
+                              | Nil -> gcs.Suppress () ; Nil
     !tail |> recur
 
   let rec skipWhileJob' x2bJ = function
@@ -435,11 +435,11 @@ module Stream =
 
   let rec takeWhileJob x2bJ xs =
     xs >>=* function Cons (x, xs) ->
-                     x2bJ x |>> fun b ->
+                     x2bJ x >>- fun b ->
                      if b then Cons (x, takeWhileJob x2bJ xs) else Nil
                    | Nil -> nilj
   let rec takeWhileFun x2b xs =
-    xs |>>* function Cons (x, xs) ->
+    xs >>-* function Cons (x, xs) ->
                      if x2b x then Cons (x, takeWhileFun x2b xs) else Nil
                    | Nil -> Nil
 
@@ -458,29 +458,29 @@ module Stream =
   let combineLatest (xs: Stream<_>) (ys: Stream<_>) =
     ysxxs0 ys xs <|>* xsyys0 xs ys
 
-  let rec pullOnT xs = function Cons (_, ts) -> xs |>> pullOnX ts | Nil -> nilj
+  let rec pullOnT xs = function Cons (_, ts) -> xs >>- pullOnX ts | Nil -> nilj
   and pullOnX ts = function Cons (x, xs) -> Cons (x, pullOn ts xs) | Nil -> Nil
   and pullOn ts xs = ts >>=* pullOnT xs
 
-  let rec zipX ys = function Cons (x, xs) -> ys |>> zipY x xs | Nil -> nilj
+  let rec zipX ys = function Cons (x, xs) -> ys >>- zipY x xs | Nil -> nilj
   and zipY x xs = function Cons (y, ys) -> Cons ((x, y), zip xs ys) | Nil -> Nil
   and zip xs ys = xs >>=* zipX ys
   let rec zipWithFunXY xy2z x xs = function
     | Cons (y, ys) -> Cons (xy2z x y, zipWithFun xy2z xs ys)
     | Nil -> Nil
   and zipWithFunX xy2z ys = function
-    | Cons (x, xs) -> ys |>> zipWithFunXY xy2z x xs
+    | Cons (x, xs) -> ys >>- zipWithFunXY xy2z x xs
     | Nil -> nilj
   and zipWithFun xy2z xs ys = xs >>=* zipWithFunX xy2z ys
 
   let rec scanJob' f s = function
-    | Cons (x, xs) -> f s x |>> fun s -> Cons (s, xs >>=* scanJob' f s)
+    | Cons (x, xs) -> f s x >>- fun s -> Cons (s, xs >>=* scanJob' f s)
     | Nil -> nilj
   let scanJob f s (xs: Stream<_>) = cons s (xs >>=* scanJob' f s)
   let rec scanFun' sx2s s = function
-    | Cons (x, xs) -> let s = sx2s s x in Cons (s, xs |>>* scanFun' sx2s s)
+    | Cons (x, xs) -> let s = sx2s s x in Cons (s, xs >>-* scanFun' sx2s s)
     | Nil -> Nil
-  let scanFun sx2s s (xs: Stream<_>) = cons s (xs |>>* scanFun' sx2s s)
+  let scanFun sx2s s (xs: Stream<_>) = cons s (xs >>-* scanFun' sx2s s)
   let inline scanFromJob s f xs = scanJob f s xs
   let inline scanFromFun s f xs = scanFun f s xs
 
@@ -498,7 +498,7 @@ module Stream =
   let count xs = foldFun (fun s _ -> s+1L) 0L xs
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
-    xs >>= function Cons (x, xs) -> f x >>. iterJob f xs | Nil -> Job.unit ()
+    xs >>= function Cons (x, xs) -> f x >>=. iterJob f xs | Nil -> Job.unit ()
   let rec iterFun f xs =
     xs >>= function Cons (x, xs) -> f x ; iterFun f xs | Nil -> Job.unit ()
   let rec iter (xs: Stream<_>) : Job<unit> =
@@ -509,17 +509,17 @@ module Stream =
 
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray ()
-    iterFun ys.Add xs >>% ys
+    iterFun ys.Add xs >>-. ys
 
   let inline pull xs onValue onCompleted onError =
     let cmd = Ch<int> ()
     let rec off xs = cmd >>= on xs
     and on xs n =
           cmd ^=> fun d -> let n = n+d in if n = 0 then off xs else on xs n
-      <|> xs ^=> function Cons (x, xs) -> onValue x >>. on xs n
+      <|> xs ^=> function Cons (x, xs) -> onValue x >>=. on xs n
                         | Nil -> onCompleted ()
        :> Job<_>
-    Job.tryWith (off xs) onError >>. Job.foreverIgnore cmd |> server
+    Job.tryWith (off xs) onError >>=. Job.foreverIgnore cmd |> server
     (cmd *<+ 1, cmd *<+ -1)
 
   type Shift<'y, 'x> =
@@ -533,25 +533,26 @@ module Stream =
       pull xs <| fun x -> Promise.start t >>= fun p -> es *<+ Value (p, x)
               <| fun () -> es *<+ Completed
               <| fun e -> es *<+ Error e
-    let es = inc >>. es
+    let es = inc >>=. es
     let rec ds () =
       es >>=* function
-       | Value (yJ, x) -> Job.tryFinallyJob (yJ >>% Cons (x, ds ())) dec
+       | Value (yJ, x) -> Job.tryFinallyJob (yJ >>-. Cons (x, ds ())) dec
        | Completed -> nilj
        | Error e -> raise e
     ds ()
 
   let rec delayEach yJ xs =
-    xs >>=* function Cons (x, xs) -> yJ >>% Cons (x, delayEach yJ xs)
+    xs >>=* function Cons (x, xs) -> yJ >>-. Cons (x, delayEach yJ xs)
                    | Nil -> nilj
 
   let rec afterEach' yJ = function
     | Cons (x, xs) ->
-      Promise.start yJ |>> fun p -> Cons (x, p >>. xs >>=* afterEach' yJ)
+      Promise.start yJ >>- fun p -> Cons (x, p >>=. xs >>=* afterEach' yJ)
     | Nil -> nilj
   and afterEach yJ (xs: Stream<_>) = xs >>=* afterEach' yJ
   let rec beforeEach yJ xs =
-    yJ >>. xs |>>* function Cons (x, xs) -> Cons (x, beforeEach yJ xs) | Nil -> Nil
+    yJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach yJ xs)
+                           | Nil -> Nil
 
   let distinctByJob x2kJ xs = filterJob (x2kJ >> Job.map (HashSet<_>().Add)) xs
   let distinctByFun x2k xs = filterFun (x2k >> HashSet<_>().Add) xs
@@ -561,21 +562,22 @@ module Stream =
       if b then xs >>= ducwj eqJ x else consj x (xs >>=* ducwj eqJ x)
     | Nil -> nilj
   let distinctUntilChangedWithJob eqJ (xs: Stream<_>) =
-    xs |>>* function Cons (x, xs) -> Cons (x, xs >>=* ducwj eqJ x) | Nil -> Nil
+    xs >>-* function Cons (x, xs) -> Cons (x, xs >>=* ducwj eqJ x) | Nil -> Nil
 
   let rec ducwf eq x' = function
     | Cons (x, xs) ->
       if eq x' x then xs >>= ducwf eq x else consj x (xs >>=* ducwf eq x)
     | Nil -> nilj
   let distinctUntilChangedWithFun eq (xs: Stream<_>) =
-    xs |>>* function Cons (x, xs) -> Cons (x, xs >>=* ducwf eq x) | Nil -> Nil
+    xs >>-* function Cons (x, xs) -> Cons (x, xs >>=* ducwf eq x) | Nil -> Nil
 
   let rec ducbj x2kJ k' = function
     | Cons (x, xs) -> x2kJ x >>= fun k ->
       if k = k' then xs >>= ducbj x2kJ k else consj x (xs >>=* ducbj x2kJ k)
     | Nil -> nilj
   let distinctUntilChangedByJob x2kJ (xs: Stream<_>) =
-    xs >>=* function Cons (x, xs) -> x2kJ x |>> fun k -> Cons (x, xs >>=* ducbj x2kJ k)
+    xs >>=* function Cons (x, xs) ->
+                     x2kJ x >>- fun k -> Cons (x, xs >>=* ducbj x2kJ k)
                    | Nil -> nilj
 
   let rec ducbf x2k k' = function
@@ -584,13 +586,13 @@ module Stream =
       if k = k' then xs >>= ducbf x2k k else consj x (xs >>=* ducbf x2k k)
     | Nil -> nilj
   let distinctUntilChangedByFun x2k (xs: Stream<_>) =
-    xs |>>* function Cons (x, xs) -> Cons (x, xs >>=* ducbf x2k (x2k x)) | Nil -> Nil
+    xs >>-* function Cons (x, xs) -> Cons (x, xs >>=* ducbf x2k (x2k x)) | Nil -> Nil
 
   let rec duc' x' = function
     | Cons (x, xs) -> if x' = x then xs >>= duc' x else consj x (xs >>=* duc' x)
     | Nil -> nilj
   let distinctUntilChanged (xs: Stream<_>) =
-    xs |>>* function Cons (x, xs) -> Cons (x, xs >>=* duc' x) | Nil -> Nil
+    xs >>-* function Cons (x, xs) -> Cons (x, xs >>=* duc' x) | Nil -> Nil
 
   type Group<'k, 'x> = {key: 'k; mutable var: IVar<Cons<'x>>}
   let groupByJob (newGroup: 'k -> Job<unit> -> Stream<'x> -> #Job<'y>)
@@ -602,7 +604,7 @@ module Stream =
     let closes = Ch ()
     let raised e =
       key2br.Values
-      |> Seq.iterJob (fun g -> g.var *<=! e) >>. !main *<=! e >>! e
+      |> Seq.iterJob (fun g -> g.var *<=! e) >>=. !main *<=! e >>-! e
     let rec wrap self xs newK oldK oldC =
            xs ^-> function Cons (x, xs) -> Cons (x, self xs) | Nil -> Nil
       <|>* let rec serve ss =
@@ -616,7 +618,7 @@ module Stream =
                                  let i = g.var
                                  let n = IVar ()
                                  g.var <- n
-                                 i *<= Cons (s, n) >>. oldK serve ss k s n
+                                 i *<= Cons (s, n) >>=. oldK serve ss k s n
                                | Nothing ->
                                  let i' = IVar ()
                                  let i = Alt.always (Cons (s, i'))
@@ -629,19 +631,19 @@ module Stream =
                                  Job.tryInDelay
                                   <| fun () -> newGroup k close <| wrapBr k i
                                   <| fun y ->
-                                       m *<= Cons (y, i') >>. newK serve ss y i'
+                                       m *<= Cons (y, i') >>=. newK serve ss y i'
                                   <| raised
                          <| raised
                       | Nil ->
                         key2br.Values
-                        |> Seq.iterJob (fun g -> g.var *<= Nil) >>.
-                        !main *<= Nil >>% Nil
+                        |> Seq.iterJob (fun g -> g.var *<= Nil) >>=.
+                        !main *<= Nil >>-. Nil
                   <| raised
              <|> closes ^=> fun g ->
                    match key2br.TryGetValue g.key with
                     | Just g' when obj.ReferenceEquals (g', g) ->
                       key2br.Remove g.key |> ignore
-                      g.var *<= Nil >>. oldC serve ss g.key
+                      g.var *<= Nil >>=. oldC serve ss g.key
                     | _ -> serve ss
               :> Job<_> in
            baton ^=> serve
@@ -649,12 +651,12 @@ module Stream =
       wrap (wrapBr k) xs
        <| fun serve ss _ _ -> serve ss
        <| fun serve ss k' x xs ->
-            if k = k' then baton *<<= ss >>% Cons (x, wrapBr k xs) else serve ss
+            if k = k' then baton *<<= ss >>-. Cons (x, wrapBr k xs) else serve ss
        <| fun serve ss k' ->
-            if k = k' then baton *<<= ss >>% Nil else serve ss
+            if k = k' then baton *<<= ss >>-. Nil else serve ss
     let rec wrapMain xs =
       wrap wrapMain xs
-       <| fun _ ss y i -> baton *<<= ss >>% Cons (y, wrapMain i)
+       <| fun _ ss y i -> baton *<<= ss >>-. Cons (y, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
        <| fun serve ss _ -> serve ss
     wrapMain (!main)
@@ -671,20 +673,20 @@ module Stream =
   let rec take' xs = function
     | 0L -> nil
     | n -> let n = n-1L
-           xs |>>* function Cons (x, xs) -> Cons (x, take' xs n) | Nil -> Nil
+           xs >>-* function Cons (x, xs) -> Cons (x, take' xs n) | Nil -> Nil
   let take n xs = if n < 0L then failwith "take: n < 0L" else take' xs n
 
   let head (xs: Stream<_>) =
-    xs |>>* function Cons (x, _) -> Cons (x, nil) | Nil -> Nil
+    xs >>-* function Cons (x, _) -> Cons (x, nil) | Nil -> Nil
   let tail (xs: Stream<_>) =
     xs >>=* function Cons (_, xs) -> xs :> Job<_> | Nil -> nilj
-  let rec tails' = function Cons (_, xs) -> Cons (xs, xs |>>* tails')
+  let rec tails' = function Cons (_, xs) -> Cons (xs, xs >>-* tails')
                           | Nil -> Nil
-  let tails xs = cons xs (xs |>>* tails')
+  let tails xs = cons xs (xs >>-* tails')
   let rec tailsMapFun' xs2y = function
-    | Cons (_, xs) -> Cons (xs2y xs, xs |>>* tailsMapFun' xs2y)
+    | Cons (_, xs) -> Cons (xs2y xs, xs >>-* tailsMapFun' xs2y)
     | Nil -> Nil
-  let tailsMapFun xs2y xs = cons (xs2y xs) (xs |>>* tailsMapFun' xs2y)
+  let tailsMapFun xs2y xs = cons (xs2y xs) (xs >>-* tailsMapFun' xs2y)
 
   let last (s: Stream<_>) = memo << Job.delay <| fun () ->
     let rec lp (r: Job<_>) s =
@@ -701,7 +703,7 @@ module Stream =
     scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> xs2y (take n xs))
 
   let rec unfoldJob f s =
-    f s |>>* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
+    f s >>-* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
   let rec unfoldFun f s = thunk <| fun () ->
     match f s with None -> Nil | Some (x, s) -> Cons (x, unfoldFun f s)
 
@@ -720,7 +722,7 @@ module Stream =
      override this.Next s = s2s s
      override this.Select s = s2x s}
 
-  let rec iterateJob' f x = f x |>>* fun x -> Cons (x, iterateJob' f x)
+  let rec iterateJob' f x = f x >>-* fun x -> Cons (x, iterateJob' f x)
   let iterateJob x2xJ x = cons x (iterateJob' x2xJ x)
 
   let rec it f x = thunk <| fun _ -> let x = f x in Cons (x, it f x)
@@ -733,7 +735,7 @@ module Stream =
     dtos
     |> mapJob (fun dto ->
        let ts = dto - DateTimeOffset.Now
-       if ts.Ticks <= 0L then Job.result dto else timeOut ts >>% dto)
+       if ts.Ticks <= 0L then Job.result dto else timeOut ts >>-. dto)
   let afterDateTimeOffset dto = afterDateTimeOffsets (one dto)
 
   let afterTimeSpan ts = once (timeOut ts)
@@ -758,8 +760,8 @@ module Stream =
     let (inc, dec) =
       pull xs (Choice1Of2 >> Ch.send vs) Job.unit (Choice2Of2 >> Ch.send vs)
     Alt.wrapAbortJob dec
-     <| Alt.prepare (inc >>% vs) ^=> function Choice1Of2 x -> dec >>% x
-                                            | Choice2Of2 e -> raise e
+     <| Alt.prepare (inc >>-. vs) ^=> function Choice1Of2 x -> dec >>-. x
+                                             | Choice2Of2 e -> raise e
 
   let rec sumWhileFun plus zero u2b xs = delay <| fun () ->
     if u2b () then plus (xs, sumWhileFun plus zero u2b xs) else zero ()

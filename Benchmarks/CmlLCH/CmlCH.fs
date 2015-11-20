@@ -19,17 +19,17 @@ module EgPaper =
     let inline make kind var op =
       Alt.withNackJob <| fun nack ->
       show "T" kind var
-      Job.start (nack |>> fun () -> show "A" kind var) >>%
+      Job.start (nack >>- fun () -> show "A" kind var) >>-.
       op ^-> fun _ -> show "D" kind var
     Job.delay <| fun () ->
     let x = Ch ()
     let y = Ch ()
     let z = Ch ()
     Job.queue (make "+" "x" (x *<- ()) <|>
-               make "+" "y" (y *<- ())) >>.
+               make "+" "y" (y *<- ())) >>=.
     Job.queue (make "-" "y" y <|>
-               make "-" "z" z) >>.
-    Job.queue (make "-" "x" x) >>.
+               make "-" "z" z) >>=.
+    Job.queue (make "-" "x" x) >>=.
     Job.queue (make "+" "z" (z *<- ()))
 
   let run n =
@@ -46,11 +46,11 @@ module SwapCh =
 
   let swap sCh outMsg =
         sCh *<-=> fun inI -> (outMsg, inI)
-    <|> sCh ^=> fun (inMsg, outI) -> outI *<= outMsg >>% inMsg
+    <|> sCh ^=> fun (inMsg, outI) -> outI *<= outMsg >>-. inMsg
 
   let bench = Job.delay <| fun () ->
     let sCh = swapch ()
-    swap sCh () |> Job.queue >>.
+    swap sCh () |> Job.queue >>=.
     swap sCh ()
 
   let run n =
@@ -74,7 +74,7 @@ module BufferedCh =
              inCh ^-> fun y -> (xxs, y::ys)
          <|> outCh *<- x ^->. (xs, ys)
        | ([], ys) ->
-         Alt.always (List.rev ys, [])) >>%
+         Alt.always (List.rev ys, [])) >>-.
     (inCh, outCh)
 
   let send (inCh, _) x = inCh *<- x
@@ -82,9 +82,9 @@ module BufferedCh =
 
   let bench =
     buff () >>= fun buf ->
-    send buf 1 |> Job.queue >>.
-    send buf 2 |> Job.queue >>.
-    recv buf |> Job.queueIgnore >>.
+    send buf 1 |> Job.queue >>=.
+    send buf 2 |> Job.queue >>=.
+    recv buf |> Job.queueIgnore >>=.
     recv buf |> Job.Ignore
 
   let run n =

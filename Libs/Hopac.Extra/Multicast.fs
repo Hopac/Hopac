@@ -29,19 +29,19 @@ module Multicast =
     let mc = {ReqCh = Ch (); RepCh = Ch ()}
     let newPort v =
       let outCh = Ch ()
-      let tee v = v >>= fun r -> outCh *<- r.Value >>% r.Next
-      Job.iterateServer v tee >>%
+      let tee v = v >>= fun r -> outCh *<- r.Value >>-. r.Next
+      Job.iterateServer v tee >>-.
       MPort outCh
     let server v =
       mc.ReqCh >>= function
        | NewPort ->
-         newPort v >>= Ch.give mc.RepCh >>% v
+         newPort v >>= Ch.give mc.RepCh >>-. v
        | Multicast x ->
          let nV = IVar ()
-         v *<= {Value = x; Next = nV} >>% nV
-    Job.iterateServer (IVar ()) server >>% mc
+         v *<= {Value = x; Next = nV} >>-. nV
+    Job.iterateServer (IVar ()) server >>-. mc
 
-  let port mc = mc.ReqCh *<+ NewPort >>. mc.RepCh
+  let port mc = mc.ReqCh *<+ NewPort >>=. mc.RepCh
   let multicast mc x = mc.ReqCh *<- Multicast x :> Job<_>
   let recv (MPort port) = port
 

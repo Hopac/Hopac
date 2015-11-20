@@ -39,7 +39,7 @@ module ChMsg =
   let add (CA inCh) (n: int64) = inCh *<- Add n
   let getAndReset (CA inCh) : Job<int64> = Job.delay <| fun () ->
     let replyVar = IVar ()
-    inCh *<+ GetAndReset replyVar >>.
+    inCh *<+ GetAndReset replyVar >>=.
     replyVar
 
   let run numPerThread =
@@ -83,7 +83,7 @@ module MbMsg =
   let add (CA inMb) (n: int64) = Mailbox.Global.send inMb (Add n)
   let getAndReset (CA inMb) : Job<int64> = Job.delay <| fun () ->
     let replyVar = IVar ()
-    inMb *<<+ GetAndReset replyVar >>.
+    inMb *<<+ GetAndReset replyVar >>=.
     replyVar
 
   let run numPerThread =

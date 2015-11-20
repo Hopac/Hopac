@@ -41,7 +41,7 @@ module MbSend =
     let mMb = Mailbox ()
     do run <| job {
          do! Job.foreverServer
-              (mMb |>> fun msg ->
+              (mMb >>- fun msg ->
                if msg = max then ping.Set ())
          do! data |> Array.iterJob (fun i -> mMb *<<+ i)
        }
@@ -64,7 +64,7 @@ module MbSendNow =
     let mMb = Mailbox ()
     Job.Global.server
      (Job.forever
-       (mMb |>> fun msg ->
+       (mMb >>- fun msg ->
         if msg = max then ping.Set ()))
     data |> Array.iter (fun i -> Mailbox.Global.send mMb i)
     let d1 = timer.Elapsed
@@ -86,7 +86,7 @@ module ChGive =
     let mb = Ch ()
     do run <| job {
          do! Job.foreverServer
-              (mb |>> fun msg ->
+              (mb >>- fun msg ->
                if msg = max then ping.Set ())
          do! data |> Array.iterJob (fun i -> mb *<- i)
        }
@@ -109,7 +109,7 @@ module ChSend =
     let mb = Ch ()
     do run <| job {
          do! Job.foreverServer
-              (mb |>> fun msg ->
+              (mb >>- fun msg ->
                if msg = max then ping.Set ())
          do! data |> Array.iterJob (fun i -> mb *<+ i)
        }
@@ -132,7 +132,7 @@ module ChSendNow =
     let ch = Ch ()
     Job.Global.server
      (Job.forever
-       (ch |>> fun msg ->
+       (ch >>- fun msg ->
         if msg = max then ping.Set ()))
     data |> Array.iter (fun i -> Ch.Global.send ch i)
     let d1 = timer.Elapsed

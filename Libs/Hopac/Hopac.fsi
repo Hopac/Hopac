@@ -104,7 +104,7 @@ type IAsyncDisposable =
   /// A typical correct disposal pattern could look something like this:
   ///
   ///> override this.DisposeAsync () =
-  ///>   IVar.tryFill requestDisposeIVar () >>.
+  ///>   IVar.tryFill requestDisposeIVar () >>=.
   ///>   completedDisposeIVar
   ///
   /// The above first signals the server to dispose by filling a synchronous
@@ -139,13 +139,13 @@ type IAsyncDisposable =
   /// by spawning a process that forwards the disposal request to the server
   /// request channel before the server loop is started:
   ///
-  ///> start (requestDisposeIVar >>. requestCh *<- RequestDispose)
+  ///> start (requestDisposeIVar >>=. requestCh *<- RequestDispose)
   ///
   /// Alternatively, it is usually acceptable to simply send an asynchronous
   /// dispose request to the server:
   ///
   ///> override this.DisposeAsync () =
-  ///>   requestCh *<+ RequestDispose >>.
+  ///>   requestCh *<+ RequestDispose >>=.
   ///>   completedDisposeIVar
 #endif
   abstract DisposeAsync: unit -> Job<unit>
@@ -184,7 +184,7 @@ type IAsyncDisposable =
 /// Note that the `Job` module provides more combinators for constructing jobs.
 /// For example, the F# workflow notation does not support `Job.tryFinallyJob`
 /// and `Job.tryIn` is easier to use correctly than `try ... with ...`
-/// expressions.  Operators such as `|>>` and `>>%` and operations such as
+/// expressions.  Operators such as `>>-` and `>>-.` and operations such as
 /// `Job.iterate` and `Job.forever` are frequently useful and may improve
 /// performance.
 #endif
@@ -521,15 +521,15 @@ module Job =
 
   /// Creates a job that calls the given function with the given value to
   /// compute the result of the job.  `lift x2y x` is equivalent to `result x
-  /// |>> x2y`.  Note that `x2y x |> result` is not the same.
+  /// >>- x2y`.  Note that `x2y x |> result` is not the same.
   val inline lift: ('x -> 'y) -> 'x -> Job<'y>
 
   /// Creates a job that invokes the given thunk to compute the result of the
-  /// job.  `thunk u2x` is equivalent to `result () |>> u2x`.
+  /// job.  `thunk u2x` is equivalent to `result () >>- u2x`.
   val inline thunk: (unit -> 'x) -> Job<'x>
 
   /// Creates a job like the given job except that the result of the job will be
-  /// `()`.  `Ignore xJ` is equivalent to `xJ |>> ignore`.
+  /// `()`.  `Ignore xJ` is equivalent to `xJ >>- ignore`.
   val Ignore: Job<_> -> Job<unit>
 
   //////////////////////////////////////////////////////////////////////////////
@@ -550,7 +550,7 @@ module Job =
   val inline join: Job<#Job<'x>> -> Job<'x>
 
   /// Creates a job that runs the given job and maps the result of the job with
-  /// the given function.  This is the same as `|>>` with the arguments flipped.
+  /// the given function.  This is the same as `>>-` with the arguments flipped.
   val inline map: ('x -> 'y) -> Job<'x> -> Job<'y>
 
   /// Creates a job that immediately terminates the current job.  See also:
@@ -579,32 +579,28 @@ module Job =
     /// be run.  This is the same as `bind` with the arguments flipped.
     val inline (>>=): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
 
+    /// Creates a job that runs the given two jobs and returns the result of the
+    /// second job.  `xJ >>=. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
+    val (>>=.): Job<_> -> Job<'y> -> Job<'y>
+
+    /// Creates a job that runs the given job and maps the result of the job
+    /// with the given function.  `xJ >>- x2y` is an optimized version of `xJ
+    /// >>= (x2y >> result)`.  This is the same as `map` with the arguments
+    /// flipped.
+    val inline (>>-): Job<'x> -> ('x -> 'y) -> Job<'y>
+
+    /// Creates a job that runs the given job and then returns the given value.
+    /// `xJ >>-. y` is an optimized version of `xJ >>= fun _ -> result y`.
+    val (>>-.): Job<_> -> 'y -> Job<'y>
+
+    /// Creates a job that runs the given job and then raises the given
+    /// exception.  `xJ >>-! e` is equivalent to `xJ >>= fun _ -> raise e`.
+    val (>>-!): Job<_> -> exn -> Job<_>
+
     /// Creates a job that is the composition of the given two jobs.  `(x2yJ >=>
     /// y2zJ) x` is equivalent to `x2yJ x >>= y2zJ` and is much like the `>>`
     /// operator on ordinary functions.
     val inline (>=>): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Job<'z>
-
-    /// Creates a job that runs the given two jobs and returns the result of the
-    /// second job.  `xJ >>. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
-    val (>>.): Job<_> -> Job<'y> -> Job<'y>
-
-    /// Creates a job that runs the given two jobs and returns the result of the
-    /// first job.  `xJ .>> yJ` is equivalent to `xJ >>= fun x -> yJ >>% x`.
-    val (.>>): Job<'x> -> Job<_> -> Job<'x>
-
-    /// Creates a job that runs the given job and maps the result of the job
-    /// with the given function.  `xJ |>> x2y` is an optimized version of `xJ
-    /// >>= (x2y >> result)`.  This is the same as `map` with the arguments
-    /// flipped.
-    val inline (|>>): Job<'x> -> ('x -> 'y) -> Job<'y>
-
-    /// Creates a job that runs the given job and then returns the given value.
-    /// `xJ >>% y` is an optimized version of `xJ >>= fun _ -> result y`.
-    val (>>%): Job<_> -> 'y -> Job<'y>
-
-    /// Creates a job that runs the given job and then raises the given
-    /// exception.  `xJ >>! e` is equivalent to `xJ >>= fun _ -> raise e`.
-    val (>>!): Job<_> -> exn -> Job<_>
 
     /// Creates a job that runs the given two jobs and then returns a pair of
     /// their results.  `xJ <&> yJ` is equivalent to `xJ >>= fun x -> yJ >>= fun
@@ -629,6 +625,19 @@ module Job =
     /// to be started as two separate jobs.
 #endif
     val (<*>): Job<'x> -> Job<'y> -> Job<'x * 'y>
+
+    /// Creates a job that runs the given two jobs and returns the result of the
+    /// first job.  `xJ .>> yJ` is equivalent to `xJ >>= fun x -> yJ >>-. x`.
+    [<Obsolete "`.>>` is to be removed">]
+    val (.>>): Job<'x> -> Job<_> -> Job<'x>
+    [<Obsolete "Use `>>=.` rather than `>>.`">]
+    val (>>.): Job<_> -> Job<'y> -> Job<'y>
+    [<Obsolete "Use `>>-` rather than `|>>`">]
+    val inline (|>>): Job<'x> -> ('x -> 'y) -> Job<'y>
+    [<Obsolete "Use `>>-.` rather than `>>%`">]
+    val (>>%): Job<_> -> 'y -> Job<'y>
+    [<Obsolete "Use `>>-!` rather than `>>!`">]
+    val (>>!): Job<_> -> exn -> Job<_>
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -693,8 +702,8 @@ module Job =
   ///
   ///> let tryFinallyJob xJ uJ =
   ///>   tryIn xJ
-  ///>    <| fun x -> uJ >>% x
-  ///>    <| fun e -> uJ >>! e
+  ///>    <| fun x -> uJ >>-. x
+  ///>    <| fun e -> uJ >>-! e
 #endif
   val tryFinallyJob: Job<'x> -> Job<unit> -> Job<'x>
 
@@ -820,7 +829,7 @@ module Job =
   ///> let whileDo u2b uJ = Job.delay <| fun () ->
   ///>   let rec loop () =
   ///>     if u2b () then
-  ///>       uJ >>= fun () -> loop ()
+  ///>       uJ >>= loop
   ///>     else
   ///>       Job.unit ()
   ///>   loop ()
@@ -900,7 +909,7 @@ module Job =
   ///>   let xs = ResizeArray<_>()
   ///>   Job.using (xJs.GetEnumerator ()) <| fun xJs ->
   ///>   Job.whileDoDelay xJs.MoveNext (fun () ->
-  ///>     xJs.Current |>> xs.Add) >>%
+  ///>     xJs.Current >>- xs.Add) >>-.
   ///>   xs
 
 #endif
@@ -1180,9 +1189,6 @@ module Alt =
   /// given job.  `guard xAJ` is equivalent to `prepareJob <| fun () -> xAJ`.
   val prepare: Job<#Alt<'x>> -> Alt<'x>
 
-  [<Obsolete "Use `prepare` rather than `guard`">]
-  val guard: Job<#Alt<'x>> -> Alt<'x>
-
   /// Creates an alternative that is computed at instantiation time with the
   /// given thunk.
   ///
@@ -1196,9 +1202,6 @@ module Alt =
   ///> let prepareFun u2xA = prepareJob (u2xA >> result)
 #endif
   val inline prepareFun: (unit -> #Alt<'x>) -> Alt<'x>
-
-  [<Obsolete "Use `prepareFun` rather than `delay`">]
-  val inline delay: (unit -> #Alt<'x>) -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
   /// the given function, which will be called with a pseudo random 64-bit
@@ -1249,7 +1252,7 @@ module Alt =
   ///
   ///> let incrementBy n : Alt<int> = Alt.withNackJob <| fun nack ->
   ///>   let replyCh = Ch ()
-  ///>   counterServer *<+ (n, nack, replyCh) >>%
+  ///>   counterServer *<+ (n, nack, replyCh) >>-.
   ///>   replyCh
   ///
   /// The client side operation just sends the negative acknowledgment to the
@@ -1265,9 +1268,6 @@ module Alt =
   /// `withNackJob` alternative is never instantiated.
 #endif
   val inline withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
-
-  [<Obsolete "`withNack` has been renamed as `withNackJob`.">]
-  val inline withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 
   /// `withNackFun n2xA` is equivalent to `withNackJob (Job.lift n2xA)`.
   val inline withNackFun: (Promise<unit> -> #Alt<'x>) -> Alt<'x>
@@ -1286,7 +1286,7 @@ module Alt =
   ///
   ///> let wrapAbortJob (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
   ///>   Alt.withNackJob <| fun nack ->
-  ///>   Job.start (nack >>. abortAct) >>% evt
+  ///>   Job.start (nack >>=. abortAct) >>-. evt
   ///
   /// Historical note: Originally Concurrent ML only provided a corresponding
   /// combinator named `wrapAbort`.  Later Concurrent ML changed to provide only
@@ -1296,9 +1296,6 @@ module Alt =
   /// terms of `wrapAbort`.
 #endif
   val wrapAbortJob: Job<unit> -> Alt<'x> -> Alt<'x>
-
-  [<Obsolete "`wrapAbort` has been renamed as `wrapAbortJob`.">]
-  val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
 
   /// `wrapAbortFun u2u xA` is equivalent to `wrapAbortJob (Job.thunk u2u) xA`.
   val wrapAbortFun: (unit -> unit) -> Alt<'x> -> Alt<'x>
@@ -1364,15 +1361,9 @@ module Alt =
 #endif
   val inline afterJob: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
 
-  [<Obsolete "Use `afterJob` rather than `wrap`">]
-  val inline wrap: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
-
   /// `xA |> map x2y` is equivalent to `xA |> wrap (x2y >> result)`.  This is
   /// the same as `^->` with the arguments flipped.
   val inline afterFun: ('x -> 'y) -> Alt<'x> -> Alt<'y>
-
-  [<Obsolete "Use `afterFun` rather than `map`">]
-  val inline map: ('x -> 'y) -> Alt<'x> -> Alt<'y>
 
   /// `Ignore xA` is equivalent to `xA ^-> fun _ -> ()`.
   val Ignore: Alt<_> -> Alt<unit>
@@ -1395,9 +1386,6 @@ module Alt =
 #endif
     val (<|>): Alt<'x> -> Alt<'x> -> Alt<'x>
 
-    [<Obsolete "Use `<|>` rather than `<|>?`">]
-    val (<|>?): Alt<'x> -> Alt<'x> -> Alt<'x>
-
     /// `xA1 <~> xA2` is like `xA1 <|> xA2` except that the order in which
     /// `xA1` and `xA2` are considered is determined at random every time the
     /// alternative is used.  See also: `chooser`.
@@ -1410,48 +1398,27 @@ module Alt =
 #endif
     val (<~>): Alt<'x> -> Alt<'x> -> Alt<'x>
 
-    [<Obsolete "Use `<~>` rather than `<~>?`">]
-    val (<~>?): Alt<'x> -> Alt<'x> -> Alt<'x>
-
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given
     /// alternative has been committed to.  This is the same as `wrap` with the
     /// arguments flipped.
     val inline (^=>): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
 
-    [<Obsolete "Use `^=>` rather than `>>=?`">]
-    val inline (>>=?): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
-
     /// `xA ^=>. yJ` is equivalent to `xA ^=> fun _ -> yJ`.
     val (^=>.): Alt<_> -> Job<'y> -> Alt<'y>
 
-    [<Obsolete "Use `^=>.` rather than `>>.?`">]
-    val (>>.?): Alt<_> -> Job<'y> -> Alt<'y>
-
-    /// `xA .^=> yJ` is equivalent to `xA ^=> fun x -> yJ >>% x`.
+    /// `xA .^=> yJ` is equivalent to `xA ^=> fun x -> yJ >>-. x`.
     val (.^=>): Alt<'x> -> Job<_> -> Alt<'x>
-
-    [<Obsolete "Use `.^=>` rather than `.>>?`">]
-    val (.>>?): Alt<'x> -> Job<_> -> Alt<'x>
 
     /// `xA ^-> x2y` is equivalent to `xA ^=> (x2y >> result)`.  This is the
     /// same as `map` with the arguments flipped.
     val inline (^->): Alt<'x> -> ('x -> 'y) -> Alt<'y>
 
-    [<Obsolete "Use `^->` rather than `|>>?`">]
-    val inline (|>>?): Alt<'x> -> ('x -> 'y) -> Alt<'y>
-
     /// `xA ^->. y` is equivalent to `xA ^-> fun _ -> y`.
     val (^->.): Alt<_> -> 'y -> Alt<'y>
 
-    [<Obsolete "Use `^->.` rather than `>>%?`">]
-    val (>>%?): Alt<_> -> 'y -> Alt<'y>
-
     /// `xA ^->! e` is equivalent to `xA ^-> fun _ -> raise e`.
     val (^->!): Alt<_> -> exn -> Alt<_>
-
-    [<Obsolete "Use `^->!` rather than `>>!?`">]
-    val (>>!?): Alt<_> -> exn -> Alt<_>
 
     /// An alternative that is equivalent to first committing to either one of
     /// the given alternatives and then committing to the other alternative.
@@ -1460,6 +1427,22 @@ module Alt =
     /// synchronization protocol like with the so called Transactional Events.
     val (<+>): Alt<'a> -> Alt<'b> -> Alt<'a * 'b>
 
+    [<Obsolete "Use `<|>` rather than `<|>?`">]
+    val (<|>?): Alt<'x> -> Alt<'x> -> Alt<'x>
+    [<Obsolete "Use `<~>` rather than `<~>?`">]
+    val (<~>?): Alt<'x> -> Alt<'x> -> Alt<'x>
+    [<Obsolete "Use `^=>` rather than `>>=?`">]
+    val inline (>>=?): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
+    [<Obsolete "Use `^=>.` rather than `>>.?`">]
+    val (>>.?): Alt<_> -> Job<'y> -> Alt<'y>
+    [<Obsolete "Use `.^=>` rather than `.>>?`">]
+    val (.>>?): Alt<'x> -> Job<_> -> Alt<'x>
+    [<Obsolete "Use `^->` rather than `|>>?`">]
+    val inline (|>>?): Alt<'x> -> ('x -> 'y) -> Alt<'y>
+    [<Obsolete "Use `^->.` rather than `>>%?`">]
+    val (>>%?): Alt<_> -> 'y -> Alt<'y>
+    [<Obsolete "Use `^->!` rather than `>>!?`">]
+    val (>>!?): Alt<_> -> exn -> Alt<_>
     [<Obsolete "Use `<+>` rather than `<+>?`">]
     val (<+>?): Alt<'a> -> Alt<'b> -> Alt<'a * 'b>
 
@@ -1504,8 +1487,8 @@ module Alt =
   ///
   ///> let tryFinallyJob xA uJ =
   ///>   tryIn xA
-  ///>    <| fun x -> uJ >>% x
-  ///>    <| fun e -> uJ >>! e
+  ///>    <| fun x -> uJ >>-. x
+  ///>    <| fun e -> uJ >>-! e
 #endif
   val tryFinallyJob: Alt<'x> -> Job<unit> -> Alt<'x>
 
@@ -1517,6 +1500,19 @@ module Alt =
   /// operation is provided for debugging purposes.  You can always break
   /// abstractions using reflection.  See also: `Job.paranoid`.
   val paranoid: Alt<'x> -> Alt<'x>
+
+  [<Obsolete "Use `prepare` rather than `guard`">]
+  val guard: Job<#Alt<'x>> -> Alt<'x>
+  [<Obsolete "Use `prepareFun` rather than `delay`">]
+  val inline delay: (unit -> #Alt<'x>) -> Alt<'x>
+  [<Obsolete "Use `withNackJob` rather than `withNack`.">]
+  val inline withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
+  [<Obsolete "Use `wrapAbortJob` rather than `wrapAbort`.">]
+  val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
+  [<Obsolete "Use `afterJob` rather than `wrap`">]
+  val inline wrap: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
+  [<Obsolete "Use `afterFun` rather than `map`">]
+  val inline map: ('x -> 'y) -> Alt<'x> -> Alt<'y>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1947,7 +1943,7 @@ module MVar =
   /// Reference implementation:
   ///
   ///> let modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-  ///>   xM ^=> (x2xy >> fun (x, y) -> fill xM x >>% y)
+  ///>   xM ^=> (x2xy >> fun (x, y) -> fill xM x >>-. y)
 #endif
   val inline modifyFun: ('x -> 'x * 'y) -> MVar<'x> -> Alt<'y>
 
@@ -1963,7 +1959,7 @@ module MVar =
   /// Reference implementation:
   ///
   ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
-  ///>   xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>% y)
+  ///>   xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>-. y)
 #endif
   val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Alt<'y>
 
@@ -1973,7 +1969,7 @@ module MVar =
   ///
   /// Reference implementation:
   ///
-  ///> let read xM = take xM ^=> fun x -> fill xM x >>% x
+  ///> let read xM = take xM ^=> fun x -> fill xM x >>-. x
 #endif
   val inline read: MVar<'x> -> Alt<'x>
 
@@ -2083,19 +2079,27 @@ module Promise =
     /// A memoizing version of `>>=`.
     val inline (>>=*): Job<'x> -> ('x -> #Job<'y>) -> Promise<'y>
 
-    /// A memoizing version of `>>.`.
+    /// A memoizing version of `>>=.`.
+    val inline (>>=*.): Job<_> -> Job<'y> -> Promise<'y>
+
+    /// A memoizing version of `>>-`.
+    val inline (>>-*): Job<'x> -> ('x -> 'y) -> Promise<'y>
+
+    /// A memoizing version of `>>-.`.
+    val inline (>>-*.): Job<_> -> 'y -> Promise<'y>
+
+    /// A memoizing version of `>>-!`.
+    val inline (>>-*!): Job<_> -> exn -> Promise<_>
+
+    [<Obsolete "Use `>>=*.` rather than `>>.*`">]
     val inline (>>.*): Job<_> -> Job<'y> -> Promise<'y>
-
-    /// A memoizing version of `.>>`.
+    [<Obsolete "`.>>*` is to be removed">]
     val inline (.>>*): Job<'x> -> Job<_> -> Promise<'x>
-
-    /// A memoizing version of `|>>`.
+    [<Obsolete "Use `>>-*` rather than `|>>*`">]
     val inline (|>>*): Job<'x> -> ('x -> 'y) -> Promise<'y>
-
-    /// A memoizing version of `>>%`.
+    [<Obsolete "Use `>>-*.` rather than `>>%*`">]
     val inline (>>%*): Job<_> -> 'y -> Promise<'y>
-
-    /// A memoizing version of `>>!`.
+    [<Obsolete "Use `>>-*!` rather than `>>!*`">]
     val inline (>>!*): Job<_> -> exn -> Promise<_>
 
   /// Creates a job that creates a promise, whose value is computed with the
@@ -2158,7 +2162,7 @@ module Extensions =
   module Array =
     /// Sequentially maps the given job constructor to the elements of the array
     /// and returns an array of the results.  `Array.mapJob x2yJ xs` is an
-    /// optimized version of `Seq.mapJob x2yJ xs |>> fun ys -> ys.ToArray ()`.
+    /// optimized version of `Seq.mapJob x2yJ xs >>- fun ys -> ys.ToArray ()`.
     val mapJob: ('x -> #Job<'y>) -> array<'x> -> Job<array<'y>>
 
     /// Sequentially iterates the given job constructor over the given array.
@@ -2201,8 +2205,8 @@ module Extensions =
     ///>   let ys = ResizeArray<_>()
     ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
     ///>   Job.whileDoDelay xs.MoveNext <| fun () ->
-    ///>        x2yJ xs.Current |>> ys.Add
-    ///>   >>% ys
+    ///>        x2yJ xs.Current >>- ys.Add
+    ///>   >>-. ys
 #endif
     val mapJob: ('x -> #Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
 
@@ -2606,9 +2610,6 @@ module Infixes =
   /// offers to take the value.  `xCh *<- x` is equivalent to `Ch.give xCh x`.
   val inline ( *<- ): Ch<'x> -> 'x -> Alt<unit>
 
-  [<Obsolete "Use `*<-` rather than `<--`">]
-  val inline (<--): Ch<'x> -> 'x -> Alt<unit>
-
   /// Creates a job that sends a value to another job on the given channel.  A
   /// send operation is asynchronous.  In other words, a send operation does not
   /// wait for another job to give the value to.  `xCh *<+ x` is equivalent to
@@ -2619,9 +2620,6 @@ module Infixes =
   /// maybe be significantly worse than with a `Mailbox` optimized for
   /// buffering.
   val inline ( *<+ ): Ch<'x> -> 'x -> Job<unit>
-
-  [<Obsolete "Use `*<+` rather than `<-+`">]
-  val inline (<-+): Ch<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that constructs a query with a reply channel and a
   /// nack, sends it to the query channel and commits on taking the reply from
@@ -2638,9 +2636,6 @@ module Infixes =
   /// behavior.  `xI *<= x` is equivalent to `IVar.fill xI x`.
   val inline ( *<= ): IVar<'x> -> 'x -> Job<unit>
 
-  [<Obsolete "Use `*<=` rather than `<-=`">]
-  val inline (<-=): IVar<'x> -> 'x -> Job<unit>
-
   /// Creates a job that writes the given exception to the given write once
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
@@ -2648,22 +2643,26 @@ module Infixes =
   /// `IVar.fillFailure xI e`.
   val inline ( *<=! ): IVar<'x> -> exn -> Job<unit>
 
-  [<Obsolete "Use `*<=!` rather than `<-=!`">]
-  val inline (<-=!): IVar<'x> -> exn -> Job<unit>
-
   /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.  `xM *<<= x` is equivalent to `MVar.fill xM x`.
   val inline ( *<<= ): MVar<'x> -> 'x -> Job<unit>
 
-  [<Obsolete "Use `*<<=` rather than `<<-=`">]
-  val inline (<<-=): MVar<'x> -> 'x -> Job<unit>
-
   /// Creates a job that sends the given value to the specified mailbox.  This
   /// operation never blocks.  `xMb *<<+ x` is equivalent to `Mailbox.send xMb
   /// x`.
   val inline ( *<<+ ): Mailbox<'x> -> 'x -> Job<unit>
 
+  [<Obsolete "Use `*<-` rather than `<--`">]
+  val inline (<--): Ch<'x> -> 'x -> Alt<unit>
+  [<Obsolete "Use `*<+` rather than `<-+`">]
+  val inline (<-+): Ch<'x> -> 'x -> Job<unit>
+  [<Obsolete "Use `*<=` rather than `<-=`">]
+  val inline (<-=): IVar<'x> -> 'x -> Job<unit>
+  [<Obsolete "Use `*<=!` rather than `<-=!`">]
+  val inline (<-=!): IVar<'x> -> exn -> Job<unit>
+  [<Obsolete "Use `*<<=` rather than `<<-=`">]
+  val inline (<<-=): MVar<'x> -> 'x -> Job<unit>
   [<Obsolete "Use `*<<+` rather than `<<-+`">]
   val inline (<<-+): Mailbox<'x> -> 'x -> Job<unit>

@@ -37,7 +37,7 @@ module SelectableQueue =
        | None         -> cancelAlt
        | Some msgNode -> cancelAlt <|> giveAlt msgNode
     sendAlt <|> takeAlt <|> Alt.choose (Seq.map prepare (nodes reqs))
-    |> Job.foreverServer >>% q
+    |> Job.foreverServer >>-. q
 
   let send q x = q.SendCh *<+ x
   let take q p = q.TakeCh *<+-> fun replyCh nack -> (p, nack, replyCh)

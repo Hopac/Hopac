@@ -92,7 +92,7 @@ module Alts =
   // User definable ------------------------------------------------------------
 
   let scanJob (sx2sJ: 's -> 'x -> Job<'s>) (s: 's) (xO: Alts<'x>) : Alts<'s> =
-    let inline sx2ssOJ s x = sx2sJ s x |>> fun s -> (s, Some s)
+    let inline sx2ssOJ s x = sx2sJ s x >>- fun s -> (s, Some s)
     processJob (sx2ssOJ s) sx2ssOJ xO
 
   let chooseJob (x2yOJ: 'x -> Job<option<'y>>) (xO: Alts<'x>) : Alts<'y> =
@@ -100,7 +100,7 @@ module Alts =
     processJob x2syOJ (fun _ -> x2syOJ) xO
 
   let mapJob (x2yJ: 'x -> Job<'y>) (xO: Alts<'x>) : Alts<'y> =
-    chooseJob (fun x -> x2yJ x |>> Some) xO
+    chooseJob (fun x -> x2yJ x >>- Some) xO
 
   let scanFun (sx2s: 's -> 'x -> 's) (s: 's) (xO: Alts<'x>) : Alts<'s> =
     scanJob (fun s x -> sx2s s x |> Job.result) s xO

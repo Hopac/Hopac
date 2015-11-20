@@ -13,7 +13,7 @@ module Stream =
 
   let inline imp (mk: Out<_> -> #Job<unit>) = Job.delay <| fun () ->
     let ch = Ch ()
-    mk (fun x -> ch *<- x :> Job<_>) >>% (ch :> Alt<_>)
+    mk (fun x -> ch *<- x :> Job<_>) >>-. (ch :> Alt<_>)
 
   let filterFun x2b (xIn: In<_>) (xOut: Out<_>) =
     Job.foreverServer
@@ -26,10 +26,10 @@ module Stream =
       if b then xOut x else Job.unit ())
 
   let iterateFun x x2x (xOut: Out<_>) =
-    Job.iterateServer x (fun x -> xOut x >>% x2x x)
+    Job.iterateServer x (fun x -> xOut x >>-. x2x x)
 
   let iterateJob x (x2xJ: _ -> #Job<_>) (xOut: Out<_>) =
-    Job.iterateServer x (fun x -> xOut x >>. x2xJ x)
+    Job.iterateServer x (fun x -> xOut x >>=. x2xJ x)
 
   let mapFun x2y (xIn: In<_>) (yOut: Out<_>) =
     Job.foreverServer (xIn >>= (x2y >> yOut))
