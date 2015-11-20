@@ -90,7 +90,8 @@ module Stream =
       let c = Cons (x, IVar ())
       (i :?> IVar<_>) *<= c >>=. MVar.fill xM.mvar c
     let inline fail xM c e = MVar.fill xM.mvar c >>-! e
-    let set xM x = xM.mvar >>= function Cons (_, i) -> push xM i x | Nil -> imp ()
+    let set xM x = xM.mvar >>= function Cons (_, i) -> push xM i x
+                                      | Nil -> imp ()
     let updateFun xM x2x =
       xM.mvar >>= function
        | Cons (x, i) as c -> tryAp x2x x (push xM i) (fail xM c)
@@ -139,7 +140,8 @@ module Stream =
     override this.Finalize () = start uJ
   let doFinalizeJob (uJ: Job<unit>) xs =
     let finalize = FinalizeJob (uJ)
-    onCloseJob (Job.delay <| fun () -> GC.SuppressFinalize finalize ; Job.start uJ) xs
+    onCloseJob
+     (Job.delay <| fun () -> GC.SuppressFinalize finalize ; Job.start uJ) xs
   let doFinalizeFun u2u xs = doFinalizeJob (Job.thunk u2u) xs
 
   let inline post (ctxt: SynchronizationContext) op =
@@ -239,7 +241,8 @@ module Stream =
   and filterFun x2b xs = xs >>=* filterFun' x2b
 
   let rec mapJob x2yJ xs =
-    xs >>=* function Cons (x, xs) -> x2yJ x >>- fun y -> Cons (y, mapJob x2yJ xs)
+    xs >>=* function Cons (x, xs) ->
+                     x2yJ x >>- fun y -> Cons (y, mapJob x2yJ xs)
                    | Nil -> nilj
   let rec mapFun x2y xs =
     xs >>-* function Cons (x, xs) -> Cons (x2y x, mapFun x2y xs) | Nil -> Nil
@@ -290,14 +293,16 @@ module Stream =
 
   let rec skipUntil' evt xs =
         evt ^=>. xs
-    <|> xs ^=> function Cons (_, xs) -> skipUntil' evt xs :> Job<_> | Nil -> nilj
+    <|> xs ^=> function Cons (_, xs) -> skipUntil' evt xs :> Job<_>
+                      | Nil -> nilj
   let skipUntil evt xs = skipUntil' evt xs |> memo
 
   let switchTo rs ls = switch ls rs
   let takeUntil (evt: Alt<_>) xs = switch xs (evt >>-*. Nil)
 
   let rec catch (e2xs: _ -> #Stream<_>) (xs: Stream<_>) =
-    Job.tryIn xs (function Cons (x, xs) -> consj x (catch e2xs xs) | Nil -> nilj)
+    Job.tryIn xs (function Cons (x, xs) -> consj x (catch e2xs xs)
+                         | Nil -> nilj)
      e2xs |> memo
 
   let rec debounceGot1 timeout x xs =
@@ -315,7 +320,8 @@ module Stream =
     <|> xs ^=> function Cons (x, xs) -> samplesBefore1 ts x xs | Nil -> nilj
      :> Job<_>
   and samplesBefore1 ts x xs =
-        ts ^=> function Cons (_, ts) -> consj x (samplesBefore ts xs) | Nil -> nilj
+        ts ^=> function Cons (_, ts) -> consj x (samplesBefore ts xs)
+                      | Nil -> nilj
     <|> xs ^=> function Cons (x, xs) -> samplesBefore1 ts x xs | Nil -> nilj
      :> Job<_>
   and samplesBefore ts xs = samplesBefore0 ts xs |> memo
@@ -326,7 +332,8 @@ module Stream =
      :> Job<_>
   and samplesAfter1 ts xs =
         ts ^=> function Cons (_, ts) -> samplesAfter1 ts xs | Nil -> nilj
-    <|> xs ^=> function Cons (x, xs) -> consj x (samplesAfter ts xs) | Nil -> nilj
+    <|> xs ^=> function Cons (x, xs) -> consj x (samplesAfter ts xs)
+                      | Nil -> nilj
      :> Job<_>
   and samplesAfter ts xs = samplesAfter0 ts xs |> memo
 
@@ -586,7 +593,8 @@ module Stream =
       if k = k' then xs >>= ducbf x2k k else consj x (xs >>=* ducbf x2k k)
     | Nil -> nilj
   let distinctUntilChangedByFun x2k (xs: Stream<_>) =
-    xs >>-* function Cons (x, xs) -> Cons (x, xs >>=* ducbf x2k (x2k x)) | Nil -> Nil
+    xs >>-* function Cons (x, xs) -> Cons (x, xs >>=* ducbf x2k (x2k x))
+                   | Nil -> Nil
 
   let rec duc' x' = function
     | Cons (x, xs) -> if x' = x then xs >>= duc' x else consj x (xs >>=* duc' x)
@@ -631,7 +639,7 @@ module Stream =
                                  Job.tryInDelay
                                   <| fun () -> newGroup k close <| wrapBr k i
                                   <| fun y ->
-                                       m *<= Cons (y, i') >>=. newK serve ss y i'
+                                      m *<= Cons (y, i') >>=. newK serve ss y i'
                                   <| raised
                          <| raised
                       | Nil ->
@@ -712,7 +720,8 @@ module Stream =
     abstract Next: 's -> 's
     abstract Select: 's -> 'x
   let rec generateFuns' s (g: GenerateFuns<_, _>) = thunk <| fun () ->
-    let s = g.Next s in if g.While s then Cons (g.Select s, generateFuns' s g) else Nil
+    let s = g.Next s
+    if g.While s then Cons (g.Select s, generateFuns' s g) else Nil
   let generateFuns s (g: GenerateFuns<_, _>) = thunk <| fun () ->
     if g.While s then Cons (g.Select s, generateFuns' s g) else Nil
 

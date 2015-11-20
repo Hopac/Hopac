@@ -393,13 +393,6 @@ module Alt =
         override yA'.TryAlt (wr, i, yK, yE) =
          xA.TryAlt (&wr, i, SeqCont (yJ, yK), yE)}
 
-    let (.^=>) (xA: Alt<'x>) (yJ: Job<_>) =
-      {new Alt<'x> () with
-        override xA'.DoJob (wr, xK) =
-         xA.DoJob (&wr, SkipCont (xK, yJ))
-        override xA'.TryAlt (wr, i, xK, xE) =
-         xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
-
     let (<+>) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
           xA ^=> fun x -> yA ^-> fun y -> (x, y)
       <|> yA ^=> fun y -> xA ^-> fun x -> (x, y)
@@ -412,8 +405,13 @@ module Alt =
     let inline (>>=?) xA x2yJ = xA ^=> x2yJ
     [<Obsolete "Use `^=>.` rather than `>>.?`">]
     let (>>.?) xA yJ = xA ^=>. yJ
-    [<Obsolete "Use `.^=>` rather than `.>>?`">]
-    let (.>>?) xA yJ = xA .^=> yJ
+    [<Obsolete "`.>>?` is to be removed">]
+    let (.>>?) (xA: Alt<'x>) (yJ: Job<_>) =
+      {new Alt<'x> () with
+        override xA'.DoJob (wr, xK) =
+         xA.DoJob (&wr, SkipCont (xK, yJ))
+        override xA'.TryAlt (wr, i, xK, xE) =
+         xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
     [<Obsolete "Use `^->` rather than `|>>?`">]
     let inline (|>>?) xA x2y = xA ^-> x2y
     [<Obsolete "Use `^->.` rather than `>>%?`">]
@@ -963,6 +961,9 @@ module Job =
     let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) : Job<'z> =
       x2yJ x >>= y2zJ
 
+    let inline (>->) (x2yJ: 'x -> #Job<'y>) (y2z: 'y -> 'z) (x: 'x) : Job<'z> =
+      x2yJ x >>- y2z
+
     type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
       inherit Cont<'y> ()
       override yK'.GetProc (wr) = xyK.GetProc (&wr)
@@ -1470,6 +1471,8 @@ module Promise =
     let inline (>>-*) xJ x2y = xJ >>- x2y |> Now.delay
     let inline (>>-*.) xJ y = xJ >>-. y |> Now.delay
     let inline (>>-*!) xJ e = xJ >>-! e |> Now.delay
+    let inline (>=>*) x2yJ y2zJ x = x2yJ x >>=* y2zJ
+    let inline (>->*) x2yJ y2z x = x2yJ x >>-* y2z
 
     [<Obsolete "Use `>>=*.` rather than `>>.*`">]
     let inline (>>.*) xJ yJ = xJ >>=*. yJ
