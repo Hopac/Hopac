@@ -501,6 +501,9 @@ module Stream =
 
   let rec foldBack x2s2sJ xs s =
     xs >>=* function Nil -> s | Cons (x, xs) -> x2s2sJ x (foldBack x2s2sJ xs s)
+  let rec foldFromBack s s2x2sJ xs =
+    xs >>=* function Nil -> s
+                   | Cons (x, xs) -> s2x2sJ (foldFromBack s s2x2sJ xs) x
 
   let count xs = foldFun (fun s _ -> s+1L) 0L xs
 

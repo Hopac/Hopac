@@ -1014,16 +1014,34 @@ module Stream =
   ///> let mapJob x2yJ xs =
   ///>   foldBack (fun x s -> x2yJ x >>=* fun y -> cons y s) xs nil
   ///
+  /// Note that `foldFromBack` allows the same to written more concisely.
+  ///
   /// Reference implementation:
   ///
   ///> let rec foldBack x2s2sJ xs s =
   ///>   xs >>=* function Nil -> s
-  ///>                  | Cons (x, xs) -> x2s2sJ x (foldBack x2s2sJ xs s)
+  ///>                  | Cons (x, xs) -> x2s2sJ x <| foldBack x2s2sJ xs s
 #endif
   val foldBack: ('x -> Promise<'s> -> 'sJ)
              -> Stream<'x>
              -> 'sJ
              -> Promise<'s> when 'sJ :> Job<'s>
+
+  /// `foldFromBack s s2x2sJ xs` is equivalent to `foldBack (flip s2x2sJ) xs s`
+  /// and is often syntactically more convenient to use.
+#if DOC
+  ///
+  /// For example, here is how one could write `mapJob` using `foldFromBack`:
+  ///
+  ///> let mapJob x2yJ =
+  ///>   foldFromBack nil <| fun s -> x2yJ >=>* flip cons s
+  ///
+  /// Contrast the above to how the same can be written using `foldBack`.
+#endif
+  val foldFromBack: 'sJ
+                 -> (Promise<'s> -> 'x -> 'sJ)
+                 -> Stream<'x>
+                 -> Promise<'s> when 'sJ :> Job<'s>
 
   /// Returns a job that iterates the given job constructor over the given
   /// stream.  See also: `consumeJob`.
