@@ -2,6 +2,8 @@
 
 namespace Hopac
 
+open System
+
 [<AutoOpen>]
 module TopLevel =
   type Stream<'x> = Stream.Stream<'x>
@@ -21,14 +23,20 @@ module TopLevel =
   let inline asAlt (xA: Alt<'x>) = xA
   let inline asJob (xJ: Job<'x>) = xJ
 
-  let inline ch () = Ch<'x> ()
-  let inline mb () = Mailbox<'x> ()
-  let inline ivar () = IVar<'x> ()
-  let inline ivarFull x = IVar.Now.createFull x
-  let inline mvar () = MVar<'x> ()
-  let inline mvarFull x = MVar.Now.createFull x
-
   let inline timeOut x = Timer.Global.timeOut x
   let inline timeOutMillis x = Timer.Global.timeOutMillis x
 
   let inline memo x = Promise.Now.delay x
+
+  [<Obsolete "Use `Ch ()` rather than `ch ()`.">]
+  let inline ch () = Ch<'x> ()
+  [<Obsolete "Use `Mailbox ()` rather than `mb ()`.">]
+  let inline mb () = Mailbox<'x> ()
+  [<Obsolete "Use `IVar ()` rather than `ivar ()`.">]
+  let inline ivar () = IVar<'x> ()
+  [<Obsolete "Use `IVar (x)` rather than `ivarFull ()`.">]
+  let inline ivarFull x = IVar.Now.createFull x
+  [<Obsolete "Use `MVar ()` rather than `mvar ()`.">]
+  let inline mvar () = MVar<'x> ()
+  [<Obsolete "Use `MVar (x)` rather than `mvarFull x`.">]
+  let inline mvarFull x = MVar.Now.createFull x
