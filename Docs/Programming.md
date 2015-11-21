@@ -1102,7 +1102,7 @@ If the alternative cannot be performed immediately, e.g. no other job has
 offered to take a value on the channel, the job is blocked until the alternative
 becomes available.
 
-#### Choose and after
+### Choose and after
 
 If all we had was primitive alternatives there would be no point in the whole
 mechanism.  What makes alternatives useful is that they can be composed in
