@@ -375,10 +375,11 @@ let get c = c.reqCh *<- Get >>=. c.replyCh
 
 let create x = Job.delay <| fun () ->
   let c = {reqCh = Ch (); replyCh = Ch ()}
-  Job.iterateServer x (fun x ->
-   c.reqCh >>= function
-    | Get -> c.replyCh *<- x >>-. x
-    | Put x -> Job.result x) >>-. c
+  Job.iterateServer x <| fun x ->
+        c.reqCh >>= function
+          | Get -> c.replyCh *<- x >>-. x
+          | Put x -> Job.result x
+  >>-. c
 ```
 
 In this document, we will use type ascriptions so that one see the types without
