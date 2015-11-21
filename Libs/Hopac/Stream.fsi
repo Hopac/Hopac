@@ -50,7 +50,7 @@ module Stream =
   /// observable sequences.
   ///
   /// - Choice streams allow for the use of asynchronous programming at any
-  /// point.  Most higher-order choice stream combinators taking have both an
+  /// point.  Most higher-order choice stream combinators have both an
   /// asynchronous `Job` and a synchronous `Fun` form.  For example, `iterJob`
   /// waits for the asynchronous job to finish before consuming the next value
   /// from the stream.  The `Subscribe` operation of observables cannot support
