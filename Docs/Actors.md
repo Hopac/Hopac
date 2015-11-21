@@ -275,7 +275,7 @@ mailbox and starts a job with that mailbox:
 ```fsharp
 let actor (body: Mailbox<'m> -> Job<unit>) : Job<Actor<'m>> = Job.delay <| fun () ->
   let mA = mb ()
-  Job.start (body mA) >>% mA
+  Job.start (body mA) >>-. mA
 ```
 
 Within the body of an actor, the actor can simply receive messages from the

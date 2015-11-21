@@ -64,8 +64,8 @@ module Multicast =
     MVar.read xMc >>= fun v ->
     let outCh = Ch ()
     Job.iterateServer v <| fun v ->
-         v >>= fun r -> outCh *<- r.Value >>% r.Next
-    >>% MPort outCh
+          v >>= fun r -> outCh *<- r.Value >>-. r.Next
+    >>-. MPort outCh
 
   let multicast (MChan xMc) x =
     xMc >>= fun v ->
