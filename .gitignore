@@ -3,10 +3,11 @@
 *.userprefs
 *~
 .\#*
+.fake
 \#*\#
 bin
+build_PRIVATE.cmd
 gh-pages
+nuget
 obj
 packages
-nuget
-build_PRIVATE.cmd
