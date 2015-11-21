@@ -1178,7 +1178,7 @@ module Alt =
   val raises: exn -> Alt<_>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given job.  See also: `prepareFun`, `withNackJob`.
+  /// given job.  See also: `*<-=>`, `prepareFun`, `withNackJob`.
 #if DOC
   ///
   /// `prepareJob` allows client-server protocols that do not require the server
@@ -1201,12 +1201,12 @@ module Alt =
   val prepare: Job<#Alt<'x>> -> Alt<'x>
 
   /// Creates an alternative that is computed at instantiation time with the
-  /// given thunk.
+  /// given thunk.  See also: `*<-=>`, `prepareJob`.
+#if DOC
   ///
   /// `prepareFun` is an optimized weaker form of `prepareJob` that can be used
   /// when no concurrent operations beyond the returned alternative are required
   /// by the encapsulated request protocol.
-#if DOC
   ///
   /// Reference implementation:
   ///
@@ -1221,7 +1221,7 @@ module Alt =
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job constructed with a negative acknowledgment alternative.  See
-  /// also: `withNackFun`, `prepareJob`.
+  /// also: `*<+->`, `withNackFun`, `prepareJob`.
 #if DOC
   ///
   /// `withNackJob` allows client-server protocols that do require the server to
@@ -1265,6 +1265,8 @@ module Alt =
   ///>   let replyCh = Ch ()
   ///>   counterServer *<+ (n, nack, replyCh) >>-.
   ///>   replyCh
+  ///
+  /// Note that the above can be expressed more concisely using `*<+->`.
   ///
   /// The client side operation just sends the negative acknowledgment to the
   /// server as a part of the request.  It is essential that a synchronous
@@ -2639,11 +2641,37 @@ module Infixes =
 
   /// Creates an alternative that constructs a query with a reply channel and a
   /// nack, sends it to the query channel and commits on taking the reply from
-  /// the reply channel.
+  /// the reply channel.  `*<+->` captures the most common use case of
+  /// `Alt.withNackJob`.  See also: `*<-=>`.
+#if DOC
+  ///
+  /// Here is the `incrementBy` function from the example in `Alt.withNackJob`
+  /// expressed using `*<+->`:
+  ///
+  ///> let incrementBy n =
+  ///>   counterServer *<+-> fun replyCh nack -> (n, nack, replyCh)
+  ///
+  /// Reference implementation:
+  ///
+  ///> let ( *<+-> ) qCh rCh2n2q = Alt.withNackJob <| fun nack ->
+  ///>   let rCh = Ch<_> ()
+  ///>   qCh *<+ rCh2n2q rCh nack >>-.
+  ///>   rCh
+#endif
   val inline ( *<+-> ): Ch<'q> -> (Ch<'r> -> Promise<unit> -> 'q) -> Alt<'r>
 
   /// Creates an alternative that constructs a query with a reply variable,
-  /// commits on giving the query and reads the reply variable.
+  /// commits on giving the query and reads the reply variable.  `*<-=>`
+  /// captures the most common use case of `Alt.prepareFun`.  See also: `*<+->`.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let ( *<-=> ) qCh rI2q = Alt.prepareFun <| fun () ->
+  ///>   let rI = IVar<_> ()
+  ///>   qCh *<- rI2q rI ^=>.
+  ///>   rI
+#endif
   val inline ( *<-=> ): Ch<'q> -> (IVar<'r> -> 'q) -> Alt<'r>
 
   /// Creates a job that writes to the given write once variable.  It is an
