@@ -479,10 +479,10 @@ for that purpose.  Using `iterate` we would write:
 ```fsharp
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
-  Job.server
-   (Job.iterate x <| fun x ->
-    Alt.choose [Ch.take c.putCh
-                Ch.give c.getCh x ^->. x]) >>-. c
+  Job.server << Job.iterate x <| fun x ->
+        Alt.choose [Ch.take c.putCh
+                    Ch.give c.getCh x ^->. x]
+  >>-. c
 ```
 
 The above also makes use of the function
@@ -1398,14 +1398,14 @@ acknowledgment alternative becomes available.  Consider the following example:
 let verbose alt = Alt.withNackJob <| fun nack ->
   printf "Instantiated and "
   Job.start (nack >>- fun () -> printfn "aborted.") >>-.
-  (alt ^-> fun x -> printfn "committed to." ; x)
+  alt ^-> fun x -> printfn "committed to." ; x
 ```
 
 The above implements an alternative constructor that simply prints out what
 happens.  Let's consider three interactions using a `verbose` alternative.
 
 ```fsharp
-> run (Alt.choose [verbose (Alt.always 1); Alt.always 2]) ;;
+> run <| Alt.choose [verbose <| Alt.always 1; Alt.always 2] ;;
 Instantiated and committed to.
 val it : int = 1
 ```
@@ -1414,7 +1414,7 @@ In the first case above, a verbose alternative is instantiated and committed to.
 The negative acknowledgment is created, but does not become enabled.
 
 ```fsharp
-> run (Alt.choose [verbose (Alt.never ()); Alt.always 2]) ;;
+> run <| Alt.choose [verbose <| Alt.never (); Alt.always 2] ;;
 Instantiated and aborted.
 val it : int = 2
 ```
@@ -1423,7 +1423,7 @@ In the second case above, a verbose alternative is instantiated and aborted as
 the second alternative is committed to.
 
 ```fsharp
-> run (Alt.choose [Alt.always 1; verbose (Alt.always 2)]) ;;
+> run <| Alt.choose [Alt.always 1; verbose <| Alt.always 2] ;;
 val it : int = 1
 ```
 
