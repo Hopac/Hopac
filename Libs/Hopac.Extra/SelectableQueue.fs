@@ -8,13 +8,12 @@ open Hopac.Alt.Infixes
 open Hopac.Infixes
 open Hopac.Job.Infixes
 
-type SelectableQueue<'a> = {
-  SendCh: Ch<'a>
-  TakeCh: Ch<('a -> bool) * Promise<unit> * Ch<'a>>
-}
+type SelectableQueue<'a> =
+  {SendCh: Ch<'a>
+   TakeCh: Ch<('a -> bool) * Promise<unit> * Ch<'a>>}
 
 module SelectableQueue =
-  let nodes (q: LinkedList<'a>) =
+  let nodes (q: LinkedList<_>) =
     seq {let node = ref q.First
          while null <> !node do
            yield !node
