@@ -49,10 +49,10 @@ let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNackJob <| fun nack ->
   let op = async {
       try
         let! x = xA
-        do rI <-= x |> start
+        do rI *<= x |> start
         // do printfn "Success"
       with e ->
-        do rI <-=! e |> start
+        do rI *<=! e |> start
         // do printfn "Failure"
     }
   Async.Start (op, cancellationToken = tokenSource.Token)
