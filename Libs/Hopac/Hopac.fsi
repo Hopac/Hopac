@@ -2105,7 +2105,9 @@ module Promise =
     val inline ( >>-*! ): Job<_> -> exn -> Promise<_>
 
     /// A memoizing version of `>=>`.
-    val inline ( >=>* ): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Promise<'z>
+    val inline ( >=>* ): ('x -> #Job<'y>)
+               -> ('y -> #Job<'z>)
+               -> 'x -> Promise<'z>
 
     /// A memoizing version of `>->`.
     val inline ( >->* ): ('x -> #Job<'y>) -> ('y -> 'z) -> 'x -> Promise<'z>
@@ -2354,7 +2356,8 @@ module Extensions =
 
       member inline TryWith: Async<'x> * (exn -> Async<'x>) -> Async<'x>
 
-      member inline Using: 'x * ('x -> Async<'y>) -> Async<'y> when 'x :> IDisposable
+      member inline Using: 'x * ('x -> Async<'y>)
+                 -> Async<'y> when 'x :> IDisposable
 
       member inline While: (unit -> bool) * Async<unit> -> Async<unit>
 

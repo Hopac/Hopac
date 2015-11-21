@@ -10,16 +10,16 @@ open System.Threading
 open System.Threading.Tasks
 open Hopac.Core
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 type Void = Void
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 type IAsyncDisposable =
   abstract DisposeAsync: unit -> Job<unit>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 [<AutoOpen>]
 module Util =
@@ -45,7 +45,8 @@ module Util =
       override yJ'.DoJob (wr, yK) =
        yK.DoCont (&wr, x2y x)}
 
-  type TryInCont<'x, 'x2yJ, 'y, 'e2yJ> when 'x2yJ :> Job<'y> and 'e2yJ :> Job<'y> =
+  type TryInCont<'x, 'x2yJ, 'y, 'e2yJ> when 'x2yJ :> Job<'y>
+                                        and 'e2yJ :> Job<'y> =
     inherit Cont<'x>
     val x2yJ: 'x -> 'x2yJ
     val e2yJ: exn -> 'e2yJ
@@ -197,7 +198,7 @@ module Util =
       if 0 = Pick.PickAndSetNacks (xE.pk, &wr, i) then
         Handler.DoHandle (xK, &wr, e)
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module IVar =
   module Now =
@@ -211,12 +212,13 @@ module IVar =
 
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
-  let inline tryFill (xI: IVar<'x>) (x: 'x) = IVar<'x>.TryFill (xI, x) :> Job<unit>
+  let inline tryFill (xI: IVar<'x>) (x: 'x) =
+    IVar<'x>.TryFill (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
     IVar<'x>.FillFailure (xI, e) :> Job<unit>
   let inline read (xI: IVar<'x>) = xI :> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Alt =
   let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
@@ -342,7 +344,12 @@ module Alt =
            xE'.State1 <- null
            xA2.TryAlt (&wr, i, xK, xE')}.Init(xA2))
 
-    let inline eitherOr (wr: byref<Worker>) i xK (xE: Else) (xA1: Alt<_>) (xA2: Alt<_>) =
+    let inline eitherOr (wr: byref<Worker>)
+                        i
+                        xK
+                        (xE: Else)
+                        (xA1: Alt<_>)
+                        (xA2: Alt<_>) =
       xA1.TryAlt (&wr, i, xK, {new Else () with
        override xE'.TryElse (wr, i) =
         xA2.TryAlt (&wr, i, xK, xE)}.Init(xE.pk))
@@ -433,14 +440,15 @@ module Alt =
       override xA'.DoJob (wr, xK) =
        let xAs = xAs.GetEnumerator ()
        if xAs.MoveNext () then
-         xAs.Current.TryAlt (&wr, 0, xK, {new Pick_State<IEnumerator<#Alt<_>>> () with
-          override xE'.TryElse (wr, i) =
-           let xAs = xE'.State1
-           if xAs.MoveNext () then
-             xAs.Current.TryAlt (&wr, i, xK, xE')
-           else
-             xAs.Dispose ()
-             xE'.State1 <- null}.Init(xAs))
+         xAs.Current.TryAlt
+          (&wr, 0, xK, {new Pick_State<IEnumerator<#Alt<_>>> () with
+           override xE'.TryElse (wr, i) =
+            let xAs = xE'.State1
+            if xAs.MoveNext () then
+              xAs.Current.TryAlt (&wr, i, xK, xE')
+            else
+              xAs.Dispose ()
+              xE'.State1 <- null}.Init(xAs))
        else
          xAs.Dispose ()
       override xA'.TryAlt (wr, i, xK, xE) =
@@ -490,15 +498,16 @@ module Alt =
       override xA'.DoJob (wr, xK) =
        let xAs = Seq.toArray xAs
        if 0 < xAs.Length then
-         (shuffle &wr xAs 0).TryAlt (&wr, 0, xK, {new Pick_State<_, array<#Alt<_>>> () with
-          override xE'.TryElse (wr, i) =
-           let j = xE'.State1
-           let xAs = xE'.State2
-           if j < xAs.Length then
-             xE'.State <- j+1
-             (shuffle &wr xAs j).TryAlt (&wr, i, xK, xE')
-           else
-             xE'.State2 <- null}.Init(1, xAs))
+         (shuffle &wr xAs 0).TryAlt
+          (&wr, 0, xK, {new Pick_State<_, array<#Alt<_>>> () with
+           override xE'.TryElse (wr, i) =
+            let j = xE'.State1
+            let xAs = xE'.State2
+            if j < xAs.Length then
+              xE'.State <- j+1
+              (shuffle &wr xAs j).TryAlt (&wr, i, xK, xE')
+            else
+              xE'.State2 <- null}.Init(1, xAs))
       override xA'.TryAlt (wr, i, xK, xE) =
        let xAs = Seq.toArray xAs
        if 0 < xAs.Length then
@@ -573,7 +582,7 @@ module Alt =
   [<Obsolete "Use `afterFun` rather than `map`">]
   let inline map x2y xA = afterFun x2y xA
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Scheduler =
   open System.Reflection
@@ -687,7 +696,7 @@ module Scheduler =
   let kill (sr: Scheduler) =
     Scheduler.Kill sr
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 [<AutoOpen>]
 module Global =
@@ -707,9 +716,7 @@ module Global =
          StaticData.writeLine.Invoke "WARNING: You are using single-threaded \
           workstation garbage collection, which means that parallel programs \
           cannot scale.  Please configure your program to use server garbage \
-          collection.  See \
-          http://msdn.microsoft.com/en-us/library/ms229357%%28v=vs.110%%29.aspx \
-          for details.\n"
+          collection."
        let sr = Scheduler.create Scheduler.Global.create
        StaticData.globalScheduler <- sr
        Monitor.Exit t
@@ -742,7 +749,7 @@ module Global =
      | null -> reallyInitGlobalTimer ()
      | tr -> tr
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Ch =
   module Now =
@@ -759,7 +766,7 @@ module Ch =
   let inline give (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
   let inline take (xCh: Ch<'x>) = xCh :> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Mailbox =
   module Now =
@@ -773,7 +780,7 @@ module Mailbox =
     MailboxSend<'x> (xMb, x) :> Job<unit>
   let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Job =
   module Global =
@@ -786,7 +793,7 @@ module Job =
     let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
     let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let inline delay (u2xJ: unit -> #Job<'x>) =
     {new JobDelay<'x> () with
@@ -837,18 +844,22 @@ module Job =
   let inline forUpToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
     {new JobFor<_, _, _> () with
       override uJ'.Init (i) =
-        let i' = i0 in if i' <= i1 then i <- i' + 1; upcast i2xJ i' else null
+        let i' = i0
+        if i' <= i1 then i <- i' + 1; upcast i2xJ i' else null
       override uJ'.Next (_, i) =
-        let i' = i  in if i' <= i1 then i <- i' + 1; upcast i2xJ i' else null} :> Job<unit>
+        let i' = i
+        if i' <= i1 then i <- i' + 1; upcast i2xJ i' else null} :> Job<unit>
   let inline forUpTo i0 i1 (i2uJ: int -> #Job<unit>) =
     forUpToIgnore i0 i1 i2uJ
 
   let inline forDownToIgnore (i0: int) (i1: int) (i2xJ: int -> #Job<_>) =
     {new JobFor<_, _, _> () with
       override uJ.Init (i) =
-        let i' = i0 in if i' >= i1 then i <- i' - 1; upcast i2xJ i0 else null
+        let i' = i0
+        if i' >= i1 then i <- i' - 1; upcast i2xJ i0 else null
       override uJ.Next (_, i) =
-        let i' = i  in if i' >= i1 then i <- i' - 1; upcast i2xJ i' else null} :> Job<unit>
+        let i' = i
+        if i' >= i1 then i <- i' - 1; upcast i2xJ i' else null} :> Job<unit>
   let inline forDownTo i0 i1 (i2uJ: int -> #Job<unit>) =
     forDownToIgnore i0 i1 i2uJ
 
@@ -870,7 +881,8 @@ module Job =
     {new JobRun<'y> () with
       override yJ'.Do (yK) =
         {new ContIterate<'x, 'y> () with
-          override xK'.Do (x) = upcast x2xJ x}.InternalInit (x, yK) :> Work} :> Job<_>
+          override xK'.Do (x) =
+            upcast x2xJ x}.InternalInit (x, yK) :> Work} :> Job<_>
 
   let inline whileDoDelay (cond: unit -> bool) (u2xJ: unit -> #Job<'x>) =
     {new JobWhileDoDelay<'x> () with
@@ -911,7 +923,7 @@ module Job =
   let inline whenDo (b: bool) (uJ: Job<unit>) =
     if b then uJ else unit ()
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   module Random =
     let inline bind (u2xJ: uint64 -> #Job<'x>) =
@@ -927,7 +939,7 @@ module Job =
        | null -> StaticData.Init () ; StaticData.random
        | random -> random
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   module Infixes =
     let inline (>>=) (xJ: Job<'x>) (x2yJ: 'x -> #Job<'y>) =
@@ -956,12 +968,13 @@ module Job =
           override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
           override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.State, &wr, e)
           override xK'.DoWork (wr) = Handler.DoHandle (xK'.State, &wr, e)
-          override xK'.DoCont (wr, _) = Handler.DoHandle (xK'.State, &wr, e)}.Init(yK_))}
+          override xK'.DoCont (wr, _) =
+            Handler.DoHandle (xK'.State, &wr, e)}.Init(yK_))}
 
-    let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) : Job<'z> =
+    let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) =
       x2yJ x >>= y2zJ
 
-    let inline (>->) (x2yJ: 'x -> #Job<'y>) (y2z: 'y -> 'z) (x: 'x) : Job<'z> =
+    let inline (>->) (x2yJ: 'x -> #Job<'y>) (y2z: 'y -> 'z) (x: 'x) =
       x2yJ x >>- y2z
 
     type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
@@ -975,7 +988,8 @@ module Job =
       inherit Cont<'x> ()
       override xK'.GetProc (wr) = xyK.GetProc (&wr)
       override xK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
-      override xK'.DoWork (wr) = yJ.DoJob (&wr, PairCont2<'x, 'y> (xK'.Value, xyK))
+      override xK'.DoWork (wr) =
+        yJ.DoJob (&wr, PairCont2<'x, 'y> (xK'.Value, xyK))
       override xK'.DoCont (wr, x) = yJ.DoJob (&wr, PairCont2<'x, 'y> (x, xyK))
 
     let (<&>) (xJ: Job<'x>) (yJ: Job<'y>) =
@@ -1013,15 +1027,17 @@ module Job =
     [<Obsolete "Use `>>-!` rather than `>>!`">]
     let (>>!) xJ e = xJ >>-! e
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
-  let inline tryIn (xJ: Job<'x>) (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =
+  let inline tryIn xJ (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =
     {new JobTryIn<'x, 'y> () with
       override yJ'.DoCont () = {new JobTryInCont<_, _> () with
         override yJ'.DoIn (x) = upcast x2yJ x
         override yJ'.DoExn (e) = upcast e2yJ e}}.InternalInit(xJ)
 
-  let inline tryInDelay (u2xJ: unit -> #Job<'x>) (x2yJ: 'x -> #Job<'y>) (e2yJ: exn -> #Job<'y>) =
+  let inline tryInDelay (u2xJ: unit -> #Job<'x>)
+                        (x2yJ: 'x -> #Job<'y>)
+                        (e2yJ: exn -> #Job<'y>) =
     {new JobTryInDelay<'x, 'y> () with
       override yJ'.DoDelay () = upcast u2xJ ()
       override yJ'.DoCont () = {new JobTryInCont<_, _> () with
@@ -1111,7 +1127,7 @@ module Job =
        wr.Handler <- xK'
        xJ.DoJob (&wr, xK')}
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let startIgnore (xJ: Job<'x>) =
     {new Job<unit> () with
@@ -1173,7 +1189,7 @@ module Job =
   let inline startWithFinalizer fJ (uJ: Job<unit>) =
     startWithFinalizerIgnore fJ uJ
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let foreverServer (xJ: Job<unit>) =
     {new Job<unit> () with
@@ -1185,9 +1201,10 @@ module Job =
     {new JobStart () with
       override uJ'.Do () =
        {new ContIterate<'x, unit> () with
-         override xK'.Do (x) = upcast x2xJ x}.InternalInit(x, null) :> Work} :> Job<_>
+         override xK'.Do (x) =
+           upcast x2xJ x}.InternalInit(x, null) :> Work} :> Job<_>
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let seqCollect (xJs: seq<#Job<'x>>) =
     {new Job<ResizeArray<'x>> () with
@@ -1278,7 +1295,9 @@ module Job =
         | exns -> exns
      exns.Add e
      ConCollect<'x, 'y>.Done (cc', &wr)
-    static member OutsideDoHandle (cc': ConCollect<'x, 'y>, wr: byref<Worker>, e) =
+    static member OutsideDoHandle (cc': ConCollect<'x, 'y>,
+                                   wr: byref<Worker>,
+                                   e) =
      cc'.Lock.Enter (&wr, {new Work () with
       override wk.GetProc (_) = raise <| NotImplementedException ()
       override wk.DoHandle (_, _) = raise <| NotImplementedException ()
@@ -1361,7 +1380,9 @@ module Job =
         | exns -> exns
      exns.Add e
      Monitor.Exit self
-    static member OutsideDoHandle (self: ConIgnore<'x>, wr: byref<Worker>, e: exn) =
+    static member OutsideDoHandle (self: ConIgnore<'x>,
+                                   wr: byref<Worker>,
+                                   e: exn) =
      ConIgnore<'x>.AddExn (self, e)
      ConIgnore<'x>.Dec (self, &wr)
     override self.GetProc (wr) = self.uK.GetProc (&wr)
@@ -1380,7 +1401,8 @@ module Job =
          ConIgnore.Inc join
          Worker.PushNew (&wr, {new Cont_State<_, Job<_>> () with
           override xK'.GetProc (wr) = join.uK.GetProc (&wr)
-          override xK'.DoHandle (wr, e) = ConIgnore.OutsideDoHandle (join, &wr, e)
+          override xK'.DoHandle (wr, e) =
+            ConIgnore.OutsideDoHandle (join, &wr, e)
           override xK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
           override xK'.DoWork (wr) =
            match xK'.State with
@@ -1393,7 +1415,7 @@ module Job =
        join.xs <- null
        ConIgnore.Done (join, &wr)}
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let inline fromBeginEnd (doBegin: AsyncCallback * obj -> IAsyncResult)
                           (doEnd: IAsyncResult -> 'x) =
@@ -1407,7 +1429,7 @@ module Job =
       override xJ'.DoBegin (acb, s) = doBegin (acb, s)
       override xJ'.DoEnd (iar) = doEnd iar} :> Job<_>
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   module Scheduler =
     let inline bind (s2xJ: Scheduler -> #Job<'x>) =
@@ -1428,13 +1450,13 @@ module Job =
       {new JobIsolate<'x> () with
         override xJ'.Do () = u2x ()} :> Job<'x>
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let paranoid (xJ: Job<'x>) =
     {new Job<'x> () with
       override xJ'.DoJob (wr, xK) = xJ.DoJob (&wr, xK)}
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Promise =
   let start (xJ: Job<'x>) =
@@ -1486,7 +1508,7 @@ module Promise =
     let inline (>>!*) xJ e = xJ >>-*! e
   let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Proc =
   let startIgnore (xJ: Job<_>) =
@@ -1521,7 +1543,7 @@ module Proc =
 
   let inline join (p: Proc) = p :> Alt<unit>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Timer =
   module Global =
@@ -1562,7 +1584,7 @@ module Timer =
     let timeOut (span: System.TimeSpan) = timeOutTicks span.Ticks
     let timeOutMillis (ms: int) = timeOutTicks (int64 ms * 10000L)
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Lock =
   module Now =
@@ -1583,7 +1605,7 @@ module Cond =
     val create: unit -> Cond
 #endif
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module MVar =
   open Job.Infixes
@@ -1601,7 +1623,7 @@ module MVar =
   let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>-. x
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Extensions =
   open Job
@@ -1760,7 +1782,8 @@ module Extensions =
              ConIgnore.Inc join
              Worker.PushNew (&wr, {new Cont_State<_, _, _ -> #Job<_>> () with
               override yK'.GetProc (wr) = join.uK.GetProc (&wr)
-              override yK'.DoHandle (wr, e) = ConIgnore.OutsideDoHandle (join, &wr, e)
+              override yK'.DoHandle (wr, e) =
+                ConIgnore.OutsideDoHandle (join, &wr, e)
               override yK'.DoCont (wr, _) = ConIgnore.Dec (join, &wr)
               override yK'.DoWork (wr) =
                let x2yJ = yK'.State2
@@ -1780,8 +1803,8 @@ module Extensions =
 
       let mapJob (x2yJ: 'x -> #Job<'y>) (xs: seq<'x>) =
         {new Job<ResizeArray<'y>> () with
-          override ysJ'.DoJob (wr, ysK_) =
-           ysK_.Value <- ResizeArray<_> ()
+          override ysJ'.DoJob (wr, ysK) =
+           ysK.Value <- ResizeArray<_> ()
            let cc' = {new ConCollect<'x, 'y> () with
              override cc'.DoWork (wr) =
               let mutable nth = 0
@@ -1791,37 +1814,38 @@ module Extensions =
                 cc'.Lock.ExitAndEnter (&wr, cc')
                 cc'.ysK.Value.Add Unchecked.defaultof<_>
                 let i = Util.dec &nth
-                Worker.PushNew (&wr, {new Cont_State<_, _, _, _ -> #Job<_>> () with
-                 override yK'.GetProc (wr) = cc'.ysK.GetProc (&wr)
-                 override yK'.DoHandle (wr, e) =
-                  ConCollect<'x, 'y>.OutsideDoHandle (cc', &wr, e)
-                 override yK'.DoCont (wr, y) =
-                  yK'.Value <- y
-                  yK'.State2 <- ~~~ yK'.State2
-                  cc'.Lock.Enter (&wr, yK')
-                 override yK'.DoWork (wr) =
-                  let x2yJ = yK'.State3
-                  match x2yJ :> obj with
-                   | null ->
-                     let i = yK'.State2
-                     if i < 0 then
-                       yK'.State2 <- ~~~ i
-                       cc'.Lock.Enter (&wr, yK')
-                     else
-                       cc'.ysK.Value.[i] <- yK'.Value
-                       ConCollect<'x, 'y>.Done (cc', &wr)
-                   | _ ->
-                     let x = yK'.State1
-                     yK'.State3 <- Unchecked.defaultof<_>
-                     yK'.State1 <- Unchecked.defaultof<_>
-                     (x2yJ x).DoJob (&wr, yK')}.Init(x, i, x2yJ))
+                Worker.PushNew
+                 (&wr, {new Cont_State<_, _, _, _ -> #Job<_>> () with
+                  override yK'.GetProc (wr) = cc'.ysK.GetProc (&wr)
+                  override yK'.DoHandle (wr, e) =
+                   ConCollect<'x, 'y>.OutsideDoHandle (cc', &wr, e)
+                  override yK'.DoCont (wr, y) =
+                   yK'.Value <- y
+                   yK'.State2 <- ~~~ yK'.State2
+                   cc'.Lock.Enter (&wr, yK')
+                  override yK'.DoWork (wr) =
+                   let x2yJ = yK'.State3
+                   match x2yJ :> obj with
+                    | null ->
+                      let i = yK'.State2
+                      if i < 0 then
+                        yK'.State2 <- ~~~ i
+                        cc'.Lock.Enter (&wr, yK')
+                      else
+                        cc'.ysK.Value.[i] <- yK'.Value
+                        ConCollect<'x, 'y>.Done (cc', &wr)
+                    | _ ->
+                      let x = yK'.State1
+                      yK'.State3 <- Unchecked.defaultof<_>
+                      yK'.State1 <- Unchecked.defaultof<_>
+                      (x2yJ x).DoJob (&wr, yK')}.Init(x, i, x2yJ))
               xs.Dispose ()
               cc'.xs <- null
-              ConCollect<'x, 'y>.Done (cc', &wr)}.Init(xs.GetEnumerator (), ysK_)
+              ConCollect<'x, 'y>.Done (cc', &wr)}.Init(xs.GetEnumerator (), ysK)
            wr.Handler <- cc'
            cc'.Lock.Enter (&wr, cc')}
 
-  ///////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   open Job.Infixes
 
@@ -2046,13 +2070,15 @@ module Extensions =
       match this.dispose with
        | null -> ()
        | disp -> Async.passOn this.context () disp.Dispose
-    static member inline Commit (this: ObserveOnce<'x>, onCommit: unit -> unit) =
+    static member inline Commit (this: ObserveOnce<'x>,
+                                 onCommit: unit -> unit) =
       if 2 <> this.State then
         this.State <- 2
         ObserveOnce<'x>.DisposeHere this
         if 0 = Pick.DoPickOpt this.pk then
           onCommit ()
-    static member inline Post (this: ObserveOnce<'x>, observable: IObservable<'x>) =
+    static member inline Post (this: ObserveOnce<'x>,
+                               observable: IObservable<'x>) =
       if 0 = this.State then
         Async.passOn this.context () <| fun () ->
         this.dispose <- observable.Subscribe this
@@ -2093,7 +2119,7 @@ module Extensions =
     member this.onceAltOnMain = this.onceAltOn (Async.getMain ())
     member this.onceAlt = this.onceAltOn null
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 open Extensions
 open Job.Infixes
@@ -2139,7 +2165,7 @@ type EmbeddedJobBuilder () =
   inherit JobBuilder ()
   member this.Run (xJ: Job<'x>) : EmbeddedJob<'x> = EmbeddedJob<'x> (xJ)
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Infixes =
   open Alt.Infixes
@@ -2154,9 +2180,11 @@ module Infixes =
     qCh *<- rI2q rI ^=>.
     rI
   let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
-  let inline ( *<=! ) (xI: IVar<'x>) (e: exn) = IVar<'x>.FillFailure (xI, e) :> Job<unit>
+  let inline ( *<=! ) (xI: IVar<'x>) (e: exn) =
+    IVar<'x>.FillFailure (xI, e) :> Job<unit>
   let inline ( *<<= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
-  let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) = MailboxSend<'x> (xMb, x) :> Job<unit>
+  let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) =
+    MailboxSend<'x> (xMb, x) :> Job<unit>
 
   [<Obsolete "Use `*<-` rather than `<--`">]
   let inline (<--) xCh x = xCh *<- x
@@ -2171,7 +2199,7 @@ module Infixes =
   [<Obsolete "Use `*<<+` rather than `<<-+`">]
   let inline (<<-+) xMb x = xMb *<<+ x
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module Latch =
   module Now =
