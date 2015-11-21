@@ -1162,7 +1162,7 @@ module Alt =
   ///
   ///> let once x =
   ///>   let xCh = Ch ()
-  ///>   run (xCh *<+ x)
+  ///>   run <| xCh *<+ x
   ///>   paranoid xCh
 #endif
   val inline once: 'x -> Alt<'x>
