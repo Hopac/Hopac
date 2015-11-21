@@ -24,20 +24,20 @@ module SelectableQueue =
     let q = {SendCh = Ch (); TakeCh = Ch ()}
     let msgs = LinkedList<'a>()
     let reqs = LinkedList<('a -> bool) * Promise<unit> * Ch<'a>>()
-    let sendAlt = q.SendCh ^-> fun m -> msgs.AddLast (LinkedListNode<_>(m))
-    let takeAlt = q.TakeCh ^-> fun r -> reqs.AddLast (LinkedListNode<_>(r))
-    let prepare (reqNode: LinkedListNode<_>) =
-      let (pred, cancel, replyCh) = reqNode.Value
-      let cancelAlt = cancel ^-> fun () -> reqs.Remove reqNode
-      let giveAlt (msgNode: LinkedListNode<_>) =
-        replyCh *<- msgNode.Value ^-> fun () ->
-        reqs.Remove reqNode
-        msgs.Remove msgNode
-      match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
-       | None         -> cancelAlt
-       | Some msgNode -> cancelAlt <|> giveAlt msgNode
-    sendAlt <|> takeAlt <|> Alt.choose (Seq.map prepare (nodes reqs))
-    |> Job.foreverServer >>-. q
+     in nodes reqs
+        |> Seq.map (fun (reqNode: LinkedListNode<_>) ->
+           let (pred, cancel, replyCh) = reqNode.Value
+           let cancelAlt = cancel ^-> fun () -> reqs.Remove reqNode
+           match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
+            | None         -> cancelAlt
+            | Some msgNode -> cancelAlt
+                          <|> replyCh *<- msgNode.Value ^-> fun () ->
+                                reqs.Remove reqNode
+                                msgs.Remove msgNode)
+        |> Alt.choose
+    <|> q.SendCh ^-> (LinkedListNode >> msgs.AddLast)
+    <|> q.TakeCh ^-> (LinkedListNode >> reqs.AddLast)
+     |> Job.foreverServer >>-. q
 
   let send q x = q.SendCh *<+ x
   let take q p = q.TakeCh *<+-> fun replyCh nack -> (p, nack, replyCh)
