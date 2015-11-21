@@ -18,13 +18,13 @@ module GameTime =
 
   let internal timerReqCh : Ch<Ticks * IVar<unit>> = Ch ()
 
-  let atTime (atTime: Ticks) : Alt<unit> =
+  let atTime atTime =
     timerReqCh *<-=> fun replyI -> (atTime, replyI)
 
-  let timeOut (afterTicks: Ticks) : Alt<unit> =
+  let timeOut afterTicks =
     assert (0L <= afterTicks)
     Alt.prepareFun <| fun () ->
-    atTime (currentTime + afterTicks)
+    atTime <| currentTime + afterTicks
 
   let internal requests = Dictionary<Ticks, ResizeArray<IVar<unit>>> ()
 
@@ -59,8 +59,8 @@ let CompareBool comparand input onTrue onFalse =
 
 let Delay duration start stop finished aborted =
   start >>= fun x ->
-  choose [stop                         ^=> aborted
-          GameTime.timeOut (!duration) ^=> fun () -> finished x]
+      stop                       ^=> aborted
+  <|> GameTime.timeOut !duration ^=> fun () -> finished x
 
 let Set value target input output =
   input >>= fun x ->
@@ -74,16 +74,16 @@ let setup () = job {
   // ...
   let bMoved = ref false
   // ...
-  do! CompareBool bMoved
-                  ch_1
-                  (fun x -> ch_2 *<- x :> Job<_>)
-                  (fun _ -> Job.unit ())
+  do! CompareBool <| bMoved
+                  <| ch_1
+                  <| fun x -> ch_2 *<- x :> Job<_>
+                  <| fun _ -> Job.unit ()
       |> Job.foreverServer
-  do! Delay (ref 314L)
-            ch_2
-            (Alt.never ())
-            (Ch.give ch_3)
-            (fun _ -> Job.unit ())
+  do! Delay <| ref 314L
+            <| ch_2
+            <| Alt.never ()
+            <| Ch.give ch_3
+            <| fun _ -> Job.unit ()
       |> Job.foreverServer
   // ...
 }
