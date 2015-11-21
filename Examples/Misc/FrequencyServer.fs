@@ -33,37 +33,33 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
   let free = HashSet<_>(frequencies)
   let allocated = HashSet<_>()
 
-  let alloc =
-    self.allocCh ^=> fun (proc, nack, replyCh) ->
-    let mutable e = free.GetEnumerator ()
-    if e.MoveNext () then
-      let freq = e.Current
-      e.Dispose ()
-      replyCh *<- freq ^-> fun () ->
-           free.Remove freq |> ignore
-           allocated.Add (proc, freq) |> ignore
-      <|> nack
-    else
-      e.Dispose ()
-      Alt.unit ()
-
   let deallocate proc freq =
     if allocated.Remove (proc, freq) then
       free.Add freq |> ignore
     // We just ignore spurious deallocations.
 
-  let dealloc =
-    self.deallocCh ^-> fun (proc, freq) ->
-    deallocate proc freq
+  let noneFree =
+        allocated
+        |> Seq.map (fun (proc, freq) ->
+           proc ^-> fun () -> deallocate proc freq)
+        |> Alt.choose
+    <|> self.deallocCh ^-> fun (proc, freq) ->
+          deallocate proc freq
 
-  let join =
-    allocated
-    |> Seq.map (fun (proc, freq) ->
-       proc ^-> fun () -> deallocate proc freq)
-    |> Alt.choose
-
-  let noneFree = dealloc <|> join
-  let someFree = alloc <|> noneFree
+  let someFree =
+        noneFree
+    <|> self.allocCh ^=> fun (proc, nack, replyCh) ->
+          let mutable e = free.GetEnumerator ()
+          if e.MoveNext () then
+            let freq = e.Current
+            e.Dispose ()
+            replyCh *<- freq ^-> fun () ->
+                 free.Remove freq |> ignore
+                 allocated.Add (proc, freq) |> ignore
+            <|> nack
+          else
+            e.Dispose ()
+            Alt.unit ()
 
   Job.iterateServer () <| fun () ->
         if 0 < free.Count then someFree else noneFree
