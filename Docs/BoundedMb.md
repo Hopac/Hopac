@@ -182,7 +182,7 @@ module BoundedMb =
       match queue.Count with
        | 0 -> put ()
        | n when n = capacity -> take ()
-       | _ -> Alt.choose [take (); put ()] // <|>? is a bit faster
+       | _ -> Alt.choose [take (); put ()] // <|> is a bit faster
     Job.foreverServer proc >>= fun () ->
     Job.result self
   let put xB x = Ch.give xB.putCh x
