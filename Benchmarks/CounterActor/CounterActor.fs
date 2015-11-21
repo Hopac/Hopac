@@ -22,7 +22,7 @@ module ChMsg =
    | CA of Ch<Msg>
 
   let create : Job<CounterActor> = job {
-    let inCh = ch ()
+    let inCh = Ch ()
     let state = ref 0L
     do! Job.foreverServer
          (inCh >>= function
@@ -32,14 +32,14 @@ module ChMsg =
            | GetAndReset replyVar ->
              let was = !state
              state := 0L
-             replyVar <-= was)
+             replyVar *<= was)
     return CA inCh
   }
 
-  let add (CA inCh) (n: int64) = inCh <-- Add n
+  let add (CA inCh) (n: int64) = inCh *<- Add n
   let getAndReset (CA inCh) : Job<int64> = Job.delay <| fun () ->
-    let replyVar = ivar ()
-    inCh <-+ GetAndReset replyVar >>.
+    let replyVar = IVar ()
+    inCh *<+ GetAndReset replyVar >>=.
     replyVar
 
   let run numPerThread =
@@ -66,7 +66,7 @@ module MbMsg =
    | CA of Mailbox<Msg>
 
   let create : Job<CounterActor> = job {
-    let inMb = mb ()
+    let inMb = Mailbox ()
     let state = ref 0L
     do! Job.foreverServer
          (inMb >>= function
@@ -76,14 +76,14 @@ module MbMsg =
            | GetAndReset replyVar ->
              let was = !state
              state := 0L
-             replyVar <-= was)
+             replyVar *<= was)
     return CA inMb
   }
 
   let add (CA inMb) (n: int64) = Mailbox.Global.send inMb (Add n)
   let getAndReset (CA inMb) : Job<int64> = Job.delay <| fun () ->
-    let replyVar = ivar ()
-    inMb <<-+ GetAndReset replyVar >>.
+    let replyVar = IVar ()
+    inMb *<<+ GetAndReset replyVar >>=.
     replyVar
 
   let run numPerThread =

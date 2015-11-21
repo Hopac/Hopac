@@ -23,15 +23,13 @@ type Server = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-let release s (Lock lock) = s.reqCh <-- Release lock
+let release s (Lock lock) = s.reqCh *<- Release lock
 
-let acquire s (Lock lock) = Alt.withNackJob <| fun nack ->
-  let replyCh = ch ()
-  s.reqCh <-+ Acquire (lock, replyCh, nack) >>%
-  replyCh
+let acquire s (Lock lock) =
+  s.reqCh *<+-> fun replyCh nack -> Acquire (lock, replyCh, nack)
 
 let withLock s l xJ =
-  acquire s l >>=? fun () ->
+  acquire s l ^=> fun () ->
   Job.tryFinallyJob xJ (release s l)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,18 +42,17 @@ module Now =
 
 let start = Job.delay <| fun () ->
   let locks = Dictionary<int64, Queue<Ch<unit> * Alt<unit>>>()
-  let s = {unique = 0L; reqCh = ch ()}
-  Job.foreverServer
-   (s.reqCh >>= function
+  let s = {unique = 0L; reqCh = Ch ()}
+  s.reqCh >>= function
      | Acquire (lock, replyCh, abortAlt) ->
        match locks.TryGetValue lock with
         | (true, pending) ->
           pending.Enqueue (replyCh, abortAlt)
           Alt.unit ()
         | _ ->
-          Alt.choosy [|replyCh <-- () |>>? fun () ->
-                         locks.Add (lock, Queue<_>())
-                       abortAlt|]
+              replyCh *<- () ^-> fun () ->
+                locks.Add (lock, Queue ())
+          <|> abortAlt
      | Release lock ->
        match locks.TryGetValue lock with
         | (true, pending) ->
@@ -65,9 +62,10 @@ let start = Job.delay <| fun () ->
               Alt.unit ()
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
-              Alt.choosy [|replyCh <-- ()
-                           abortAlt >>=? assign|]
+              replyCh *<- () <|> abortAlt ^=> assign
           assign ()
         | _ ->
           // We just ignore the erroneous release request
-          Alt.unit ()) >>% s
+          Alt.unit ()
+  |> Job.foreverServer
+  >>-. s

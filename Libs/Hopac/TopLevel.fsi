@@ -111,29 +111,6 @@ module TopLevel =
   /// syntactic alternative to using a type ascription or an `upcast`.
   val inline asJob: Job<'x> -> Job<'x>
 
-  /// Creates a new channel.  This is the same function as `Ch.Now.create`.
-  val inline ch: unit -> Ch<'x>
-
-  /// Creates a new mailbox.  This is the same function as
-  /// `Mailbox.Now.create`.
-  val inline mb: unit -> Mailbox<'x>
-
-  /// Creates a new write once variable.  This is the same function as
-  /// `IVar.Now.create`.
-  val inline ivar: unit -> IVar<'x>
-
-  /// Creates a new write once variable with the given value.  This is the same
-  /// function as `IVar.Now.createFull`.
-  val inline ivarFull: 'x -> IVar<'x>
-
-  /// Creates a serialized variable that is initially empty.  This is the same
-  /// function as `MVar.Now.create`.
-  val inline mvar: unit -> MVar<'x>
-
-  /// Creates a new serialized variable that initially contains the given value.
-  /// This is the same function as `MVar.Now.createFull`.
-  val inline mvarFull: 'x -> MVar<'x>
-
   /// Creates a timeout for the specified time span.  This is the same function
   /// as `Timer.Global.timeOut`.
   val inline timeOut: TimeSpan -> Alt<unit>
@@ -146,3 +123,16 @@ module TopLevel =
   /// an attempt is made to read the promise.  This is the same function as
   /// `Promise.Now.delay`.
   val inline memo: Job<'x> -> Promise<'x>
+
+  [<Obsolete "Use `Ch ()` rather than `ch ()`.">]
+  val inline ch: unit -> Ch<'x>
+  [<Obsolete "Use `Mailbox ()` rather than `mb ()`.">]
+  val inline mb: unit -> Mailbox<'x>
+  [<Obsolete "Use `IVar ()` rather than `ivar ()`.">]
+  val inline ivar: unit -> IVar<'x>
+  [<Obsolete "Use `IVar (x)` rather than `ivarFull ()`.">]
+  val inline ivarFull: 'x -> IVar<'x>
+  [<Obsolete "Use `MVar ()` rather than `mvar ()`.">]
+  val inline mvar: unit -> MVar<'x>
+  [<Obsolete "Use `MVar (x)` rather than `mvarFull x`.">]
+  val inline mvarFull: 'x -> MVar<'x>

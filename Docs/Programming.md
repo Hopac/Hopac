@@ -65,9 +65,9 @@ open it up a bit.
   They can be bound to variables, passed to and returned from functions and can
   even be sent from one job to another.
 * **Higher-order** means that primitive alternatives can be combined and
-  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
   with user defined procedures to
-  build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+  build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
   more
   complex[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
   alternatives that encapsulate concurrent client-server protocols.
@@ -315,9 +315,9 @@ have a number of reasons for this:
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
 * There are many very commonly used monadic combinators,
-  e.g. `|>>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
+  e.g. `>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-)
   and
-  `>>%`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E%),
+  `>>-.`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-.),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary
@@ -350,7 +350,7 @@ let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
        server x
      | Put x ->
        server x
-  Job.start (server x) >>% c
+  Job.start (server x) >>-. c
 ```
 
 As you can see above, I've used
@@ -369,16 +369,17 @@ Using those shortcuts, and dropping unnecessary type ascriptions, we can write
 the above cell example as:
 
 ```fsharp
-let put c x = c.reqCh <-- Put x
+let put c x = c.reqCh *<- Put x
 
-let get c = c.reqCh <-- Get >>. c.replyCh
+let get c = c.reqCh *<- Get >>=. c.replyCh
 
 let create x = Job.delay <| fun () ->
-  let c = {reqCh = ch (); replyCh = ch ()}
-  Job.iterateServer x (fun x ->
-   c.reqCh >>= function
-    | Get -> c.replyCh <-- x >>% x
-    | Put x -> Job.result x) >>% c
+  let c = {reqCh = Ch (); replyCh = Ch ()}
+  Job.iterateServer x <| fun x ->
+        c.reqCh >>= function
+          | Get -> c.replyCh *<- x >>-. x
+          | Put x -> Job.result x
+  >>-. c
 ```
 
 In this document, we will use type ascriptions so that one see the types without
@@ -445,9 +446,9 @@ The `cell` constructor then creates the channels and starts the server loop:
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
   let rec server x =
-    Alt.choose [Ch.take c.putCh   >>=? fun x -> server x
-                Ch.give c.getCh x >>=? fun () -> server x]
-  Job.start (server x) >>% c
+    Alt.choose [Ch.take c.putCh   ^=> fun x -> server x
+                Ch.give c.getCh x ^=> fun () -> server x]
+  Job.start (server x) >>-. c
 ```
 
 In the server loop, the above implementation uses
@@ -458,12 +459,12 @@ alternatives[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt):
 * The first alternative
   takes[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
   a value on the `putCh` channel from a client and
-  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
   loops.
 * The second alternative
   gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
   a value on the `getCh` channel to a client and
-  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
   loops.
 
 What this basically means is that the server makes an offer to perform the
@@ -478,10 +479,10 @@ for that purpose.  Using `iterate` we would write:
 ```fsharp
 let cell x = Job.delay <| fun () ->
   let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
-  Job.server
-   (Job.iterate x <| fun x ->
-    Alt.choose [Ch.take c.putCh
-                Ch.give c.getCh x >>%? x]) >>% c
+  Job.server << Job.iterate x <| fun x ->
+        Alt.choose [Ch.take c.putCh
+                    Ch.give c.getCh x ^->. x]
+  >>-. c
 ```
 
 The above also makes use of the function
@@ -582,8 +583,8 @@ let Delay (duration: ref<TimeSpan>)
           (finished: 'x -> Job<unit>)
           (aborted: 'y -> Job<unit>) : Job<unit> =
   start >>= fun x ->
-  Alt.choose [stop                >>=? fun y -> aborted y
-              timeOut (!duration) >>=? fun () -> finished x]
+  Alt.choose [stop                ^=> fun y -> aborted y
+              timeOut (!duration) ^=> fun () -> finished x]
 ```
 
 The `Delay` function creates a job that first binds the `start` alternative.  It
@@ -720,10 +721,10 @@ mechanism:
   do! timeOut (TimeSpan.FromSeconds 0.5)
   let! j2 = Promise.start (hello "Hello, from another job!")
   do! Alt.choose
-       [Promise.read j1 >>=? fun () ->
+       [Promise.read j1 ^=> fun () ->
           printfn "First job finished first."
           Promise.read j2
-        Promise.read j2 >>=? fun () ->
+        Promise.read j2 ^=> fun () ->
           printfn "Second job finished first."
           Promise.read j1]
 } ;;
@@ -799,14 +800,14 @@ let rec fib n = Job.delay <| fun () ->
   if n < 2L then
     Job.result n
   else
-    fib (n-2L) <&> fib (n-1L) |>> fun (x, y) ->
+    fib (n-2L) <&> fib (n-1L) >>- fun (x, y) ->
     x + y
 ```
 
 The above implementation makes use of the combinators
-`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%26%3E)
 and
-`|>>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.|%3E%3E)
+`>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-)
 whose meanings can be specified in terms of
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and
@@ -815,7 +816,7 @@ as follows:
 
 ```fsharp
 let (<&>) xJ yJ = xJ >>= fun x -> yJ >>= fun y -> result (x, y)
-let (|>>) xJ x2y = xJ >>= fun x -> result (x2y x)
+let (>>-) xJ x2y = xJ >>= fun x -> result (x2y x)
 ```
 
 Note that the semantics of `<&>` are entirely sequential and as a whole the
@@ -835,16 +836,16 @@ computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
 combinator
-`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C&%3E)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%26%3E)
 to the parallel pair combinator
-`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C*%3E):
+`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%2A%3E):
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
   if n < 2L then
     Job.result n
   else
-    fib (n-2L) <*> fib (n-1L) |>> fun (x, y) ->
+    fib (n-2L) <*> fib (n-1L) >>- fun (x, y) ->
     x + y
 ```
 
@@ -992,7 +993,7 @@ let rec mergeSortJob xs = Job.delay <| fun () ->
    | ([], ys) -> Job.result ys
    | (xs, []) -> Job.result xs
    | (xs, ys) ->
-     mergeSortJob xs <*> mergeSortJob ys |>> fun (xs, ys) ->
+     mergeSortJob xs <*> mergeSortJob ys >>- fun (xs, ys) ->
      merge xs ys
 ```
 
@@ -1022,7 +1023,7 @@ let mergeSortJob threshold xs = Job.delay <| fun () ->
     else
       let (xs, ys) = split xs
       let n = n/2
-      mergeSortJob n xs <*> mergeSortJob n ys |>> fun (xs, ys) ->
+      mergeSortJob n xs <*> mergeSortJob n ys >>- fun (xs, ys) ->
       merge xs ys
   mergeSortJob (List.length xs) xs
 ```
@@ -1101,7 +1102,7 @@ If the alternative cannot be performed immediately, e.g. no other job has
 offered to take a value on the channel, the job is blocked until the alternative
 becomes available.
 
-### Choose and Wrap
+### Choose and after
 
 If all we had was primitive alternatives there would be no point in the whole
 mechanism.  What makes alternatives useful is that they can be composed in
@@ -1133,8 +1134,8 @@ such as:
 ```fsharp
 do! dialog.Show
 let! answer = Alt.choose [
-       dialog.Yes.Pressed >>=? fun () -> Job.result true
-       dialog.No.Pressed  >>=? fun () -> Job.result false
+       dialog.Yes.Pressed ^=> fun () -> Job.result true
+       dialog.No.Pressed  ^=> fun () -> Job.result false
      ]
 if answer then
   // Perform action on Yes.
@@ -1142,12 +1143,12 @@ else
   // Perform action on No.
 ```
 
-The operations `Alt.choose` and `>>=?`, also known as *wrap*, have the following
-signatures:
+The operations `Alt.choose` and `^=>`, called *after*, and also known as *wrap*
+in Concurrent ML, have the following signatures:
 
 ```fsharp
 val choose: seq<#Alt<'x>> -> Alt<'x>
-val (>>=?): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
+val (^=>): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
 ```
 
 The `Alt.choose`
@@ -1159,27 +1160,28 @@ job is blocked, waiting for any one of the alternatives to become available.
 When one of the alternatives in the disjunction becomes available, the
 alternative is committed to and the other alternatives are canceled.
 
-The wrap `>>=?`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
-operation is similar to the bind `>>=`
+The after `^=>`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+operation is somewhat similar to the bind `>>=`
 [*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 operation on jobs and allows one to extend an alternative so that further
 operations are performed after the alternative has been committed to.  Similarly
-to corresponding operations on jobs, several shortcut operators, such as `|>>?`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.|%3E%3E?)
-and `>>%?`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E%?),
-are provided in addition to `>>=?` on alternatives.
+to corresponding operations on jobs, several commonly useful operators, such as
+`^->`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E-%3E)
+and `^->.`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E-%3E.),
+are provided in addition to `^=>` on alternatives.
 
 In this case we use the ability to simply map the button messages to a boolean
 value for further processing.  We could also just continue processing in the
-wrapper:
+after operation:
 
 ```fsharp
 do! Alt.choose [
-      dialog.Yes.Pressed >>=? fun () ->
+      dialog.Yes.Pressed ^=> fun () ->
         // Perform action on Yes.
-      dialog.No.Pressed  >>=? fun () ->
+      dialog.No.Pressed  ^=> fun () ->
         // Perform action on No.
     ]
 ```
@@ -1187,19 +1189,19 @@ do! Alt.choose [
 Using selective communication in this way feels and works much like using
 ordinary conditional statements.
 
-A key point in the types of the `choose` and `>>=?` operations is that they
+A key point in the types of the `choose` and `^=>` operations is that they
 create new alternatives and those alternatives are first-class values just like
 the primitive `give` and `take` alternatives on channels.  For the common case
 of simply combining just two
-alternatives the operation `<|>?`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C|%3E?)
+alternatives the operation `<|>`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C%7C%3E)
 is provided.  Its semantics can be described as follows:
 
 ```fsharp
-let (<|>?) a1 a2 = choose [a1; a2]
+let (<|>) a1 a2 = choose [a1; a2]
 ```
 
-The binary choice `<|>?` operation can be, and is, implemented internally as a
+The binary choice `<|>` operation can be, and is, implemented internally as a
 slightly more efficient special case (avoiding the construction of the
 sequence).
 
@@ -1208,24 +1210,24 @@ of alternatives that is computed dynamically.  Languages that have a special
 purpose `select` statement typically only allow the program to synchronize on a
 set of events that is specified statically in the program text.
 
-### Guards
+### Prepare
 
-The wrap combinator `>>=?`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3E%3E=?)
+The after combinator `^=>`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
 allows post-commit actions to be added to an alternative.  Hopac also provides
-the `guard`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+the `prepareJob`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
 combinator that allows an alternative to be computed at instantiation time.
 
 ```fsharp
-val guard: Job<#Alt<'x>> -> Alt<'x>
+val prepareJob: (unit -> #Job<#Alt<'x>>) -> Alt<'x>
 ```
 
-The idea of the `guard` combinator is that it allows one to encapsulate a
+The idea of the `prepareJob` combinator is that it allows one to encapsulate a
 protocol for interacting with a concurrent server as an abstract selective
 operation.  The way a client and a server typically interact is that the client
 sends the server a message and then waits for a reply from the server.  What is
-necessary is that the guard combinator allows one to package the operations of
+necessary is that the prepare combinator allows one to package the operations of
 constructing the message, sending it to the server and then waiting for the
 reply in a form that can then be invoked an arbitrary number of times.
 
@@ -1281,14 +1283,14 @@ let timerReqCh : Ch<Ticks * Ch<unit>> = Ch.Now.create ()
 Via the channel, a client can send a request to the server to send back a
 message on a channel allocated for the request at the specified time.  To send
 the request and allocate a new channel for the server's reply, we'll use the
-`guard` combinator.  The following `atTime` function creates an alternative
+`prepareJob` combinator.  The following `atTime` function creates an alternative
 that *encapsulates the whole protocol* for interacting with the time server:
 
 ```fsharp
 let atTime (atTime: Ticks) : Alt<unit> =
-  Alt.guard << Job.delay <| fun () ->
+  Alt.prepareJob <| fun () ->
   let replyCh : Ch<unit> = Ch.Now.create ()
-  Ch.send timerReqCh (atTime, replyCh) >>%
+  Ch.send timerReqCh (atTime, replyCh) >>-.
   Ch.take replyCh
 ```
 
@@ -1369,8 +1371,8 @@ That concludes the implementation of the time server itself.
 
 ### Negative Acknowledgments
 
-In the previous section the `guard`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+In the previous section the `prepareJob`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
 combinator was used to encapsulate the protocol for interacting with the custom
 timer server.  This worked because the service provided by the time server is
 idempotent.  If a client makes a request to the time server and later aborts the
@@ -1385,25 +1387,25 @@ combinator:
 val withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 ```
 
-The `withNackJob` combinator is like `guard` in that it allows an alternative to
-be computed at instantiation time.  Additionally, `withNackJob` creates a
-*negative acknowledgment alternative*, which is actually represented as a
-promise, that it gives to the encapsulated alternative constructor.  If the
+The `withNackJob` combinator is like `prepareJob` in that it allows an
+alternative to be computed at instantiation time.  Additionally, `withNackJob`
+creates a *negative acknowledgment alternative*, which is actually represented
+as a promise, that it gives to the encapsulated alternative constructor.  If the
 constructed alternative is ultimately not committed to, the negative
 acknowledgment alternative becomes available.  Consider the following example:
 
 ```fsharp
 let verbose alt = Alt.withNackJob <| fun nack ->
   printf "Instantiated and "
-  Job.start (nack |>> fun () -> printfn "aborted.") >>%
-  (alt |>>? fun x -> printfn "committed to." ; x)
+  Job.start (nack >>- fun () -> printfn "aborted.") >>-.
+  alt ^-> fun x -> printfn "committed to." ; x
 ```
 
 The above implements an alternative constructor that simply prints out what
 happens.  Let's consider three interactions using a `verbose` alternative.
 
 ```fsharp
-> run (Alt.choose [verbose (Alt.always 1); Alt.always 2]) ;;
+> run <| Alt.choose [verbose <| Alt.always 1; Alt.always 2] ;;
 Instantiated and committed to.
 val it : int = 1
 ```
@@ -1412,7 +1414,7 @@ In the first case above, a verbose alternative is instantiated and committed to.
 The negative acknowledgment is created, but does not become enabled.
 
 ```fsharp
-> run (Alt.choose [verbose (Alt.never ()); Alt.always 2]) ;;
+> run <| Alt.choose [verbose <| Alt.never (); Alt.always 2] ;;
 Instantiated and aborted.
 val it : int = 2
 ```
@@ -1421,7 +1423,7 @@ In the second case above, a verbose alternative is instantiated and aborted as
 the second alternative is committed to.
 
 ```fsharp
-> run (Alt.choose [Alt.always 1; verbose (Alt.always 2)]) ;;
+> run <| Alt.choose [Alt.always 1; verbose <| Alt.always 2] ;;
 val it : int = 1
 ```
 
@@ -1456,10 +1458,10 @@ alternative within a selective communication.  A client could, for example, try
 to obtain one of several locks and proceed accordingly:
 
 ```fsharp
-Alt.choose [acquire server lockA >>=? fun () ->
+Alt.choose [acquire server lockA ^=> fun () ->
               (* critical section A *)
               release server lockA
-            acquire server lockB >>=? fun () ->
+            acquire server lockB ^=> fun () ->
               (* critical section B *)
               release server lockB]
 ```
@@ -1467,8 +1469,8 @@ Alt.choose [acquire server lockA >>=? fun () ->
 Or a client could use a timeout to avoid waiting indefinitely for a lock:
 
 ```fsharp
-Alt.choose [acquire server lock >>=? (* critical section *)
-            timeOut duration >>=? (* do something else *)]
+Alt.choose [acquire server lock ^=> (* critical section *)
+            timeOut duration ^=> (* do something else *)]
 ```
 
 What is important here is that the `acquire` alternative must work correctly
@@ -1528,7 +1530,7 @@ The `acquire` operation is where we'll use `withNackJob`:
 ```fsharp
 let acquire s (Lock lock) = Alt.withNackJob <| fun abortAlt ->
   let replyCh = Ch.Now.create ()
-  Ch.send s.reqCh (Acquire (lock, replyCh, abortAlt)) >>%
+  Ch.send s.reqCh (Acquire (lock, replyCh, abortAlt)) >>-.
   Ch.take replyCh
 ```
 
@@ -1546,8 +1548,8 @@ the same alternative and it will work correctly:
 
 ```fsharp
 let acq = acquire s l
-do! Alt.choose [acq >>=? /* ... */
-                acq >>=? /* ... */]
+do! Alt.choose [acq ^=> /* ... */
+                acq ^=> /* ... */]
 ```
 
 What remains is the implementation of the server itself.  We again make use of
@@ -1566,7 +1568,7 @@ let start = Job.delay <| fun () ->
           pending.Enqueue (replyCh, abortAlt)
           Job.unit ()
         | _ ->
-          Alt.choose [Ch.give replyCh () |>>? fun () ->
+          Alt.choose [Ch.give replyCh () ^-> fun () ->
                         locks.Add (lock, Queue<_>())
                       abortAlt]
      | Release lock ->
@@ -1579,11 +1581,11 @@ let start = Job.delay <| fun () ->
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
               Alt.choose [Ch.give replyCh ()
-                          abortAlt >>=? assign]
+                          abortAlt ^=> assign]
           assign ()
         | _ ->
           // We just ignore the erroneous release request
-          Job.unit ()) >>% s
+          Job.unit ()) >>-. s
 ```
 
 As usual, the above server is implemented as a job that loops indefinitely
@@ -1600,7 +1602,7 @@ acquires a lock, executes some job and then releases the lock:
 
 ```fsharp
 let withLock (s: Server) (l: Lock) (xJ: Job<'x>) : Alt<'x> =
-  acquire s l >>=? fun () ->
+  acquire s l ^=> fun () ->
   Job.tryFinallyJob xJ (release s l)
 ```
 

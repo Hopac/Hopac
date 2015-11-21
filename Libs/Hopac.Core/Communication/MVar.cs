@@ -18,12 +18,11 @@ namespace Hopac {
     internal const int Full = 1;
     internal const int Locked = 2;
 
-    /// <summary>Creates an initially empty MVar.</summary>
+    /// <summary>Creates a new serialized variable.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public MVar() { }
 
-    /// <summary>Creates an MVar initially filled with the given
-    /// value.</summary>
+    /// <summary>Creates a new serialized variable that is initially filled with the given value.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public MVar(T x) {
       this.Value = x;

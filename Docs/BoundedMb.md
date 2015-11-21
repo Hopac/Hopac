@@ -89,9 +89,9 @@ and other synchronous operations:
 
 ```fsharp
 Alt.choose [
-  timeout >>=? ...
-  BoundedMb.put xMb1 x >>=? ...
-  BoundedMb.take xMb2 >>=? ...
+  timeout ^=> ...
+  BoundedMb.put xMb1 x ^=> ...
+  BoundedMb.take xMb2 ^=> ...
 ]
 ```
 
@@ -108,15 +108,15 @@ module BoundedMb =
   let create capacity = Job.delay <| fun () ->
     let self = {putCh = ch (); takeCh = ch ()}
     let queue = Queue<_>()
-    let put () = self.putCh |>>? queue.Enqueue
-    let take () = self.takeCh <-- queue.Peek () |>>? (queue.Dequeue >> ignore)
+    let put () = self.putCh ^-> queue.Enqueue
+    let take () = self.takeCh *<- queue.Peek () ^-> (queue.Dequeue >> ignore)
     let proc = Job.delay <| fun () ->
       match queue.Count with
        | 0 -> put ()
        | n when n = capacity -> take ()
-       | _ -> take () <|>? put ()
-    Job.foreverServer proc >>% self
-  let put xB x = xB.putCh <-- x
+       | _ -> take () <|> put ()
+    Job.foreverServer proc >>-. self
+  let put xB x = xB.putCh *<- x
   let take xB = xB.takeCh :> Alt<_>
 ```
 
@@ -138,11 +138,11 @@ open Hopac.Alt.Infixes
 val mb : BoundedMb<int>
 > BoundedMb.put mb 123 |> run ;;
 val it : unit = ()
-> BoundedMb.put mb 321 <|>? timeOutMillis 10 |> run ;;
+> BoundedMb.put mb 321 <|> timeOutMillis 10 |> run ;;
 val it : unit = ()
 > BoundedMb.take mb |> run ;;
 val it : int = 123
-> BoundedMb.take mb |>>? printfn "Got %A" <|>? timeOutMillis 10 |> run ;;
+> BoundedMb.take mb ^-> printfn "Got %A" <|> timeOutMillis 10 |> run ;;
 val it : unit = ()
 ```
 
@@ -182,7 +182,7 @@ module BoundedMb =
       match queue.Count with
        | 0 -> put ()
        | n when n = capacity -> take ()
-       | _ -> Alt.choose [take (); put ()] // <|>? is a bit faster
+       | _ -> Alt.choose [take (); put ()] // <|> is a bit faster
     Job.foreverServer proc >>= fun () ->
     Job.result self
   let put xB x = Ch.give xB.putCh x

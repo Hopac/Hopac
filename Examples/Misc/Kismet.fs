@@ -16,17 +16,14 @@ module GameTime =
   type Ticks = int64
   let mutable internal currentTime : Ticks = 0L
 
-  let internal timerReqCh : Ch<Ticks * IVar<unit>> = ch ()
+  let internal timerReqCh : Ch<Ticks * IVar<unit>> = Ch ()
 
   let atTime (atTime: Ticks) : Alt<unit> =
-    Alt.guard << Job.delay <| fun () ->
-    let replyI = ivar ()
-    timerReqCh <-+ (atTime, replyI) >>%
-    IVar.read replyI
+    timerReqCh *<-=> fun replyI -> (atTime, replyI)
 
   let timeOut (afterTicks: Ticks) : Alt<unit> =
     assert (0L <= afterTicks)
-    Alt.delay <| fun () ->
+    Alt.prepareFun <| fun () ->
     atTime (currentTime + afterTicks)
 
   let internal requests = Dictionary<Ticks, ResizeArray<IVar<unit>>> ()
@@ -34,7 +31,7 @@ module GameTime =
   let internal timeReqServer =
     timerReqCh >>= fun (atTime, replyI) ->
     if currentTime <= atTime then
-      replyI <-= ()
+      replyI *<= ()
     else
       let replyIs =
         match requests.TryGetValue atTime with
@@ -52,7 +49,7 @@ module GameTime =
      | (true, replyIs) ->
        requests.Remove currentTime |> ignore
        replyIs
-       |> Seq.iterJob (fun replyI -> replyI <-= ())
+       |> Seq.iterJob (fun replyI -> replyI *<= ())
      | _ ->
        Job.unit ()
 
@@ -62,8 +59,8 @@ let CompareBool comparand input onTrue onFalse =
 
 let Delay duration start stop finished aborted =
   start >>= fun x ->
-  choose [stop                         >>=? aborted
-          GameTime.timeOut (!duration) >>=? fun () -> finished x]
+  choose [stop                         ^=> aborted
+          GameTime.timeOut (!duration) ^=> fun () -> finished x]
 
 let Set value target input output =
   input >>= fun x ->
@@ -71,15 +68,15 @@ let Set value target input output =
   output x
 
 let setup () = job {
-  let ch_1 = ch ()
-  let ch_2 = ch ()
-  let ch_3 = ch ()
+  let ch_1 = Ch ()
+  let ch_2 = Ch ()
+  let ch_3 = Ch ()
   // ...
   let bMoved = ref false
   // ...
   do! CompareBool bMoved
                   ch_1
-                  (fun x -> ch_2 <-- x :> Job<_>)
+                  (fun x -> ch_2 *<- x :> Job<_>)
                   (fun _ -> Job.unit ())
       |> Job.foreverServer
   do! Delay (ref 314L)

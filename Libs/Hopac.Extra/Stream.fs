@@ -12,8 +12,8 @@ module Stream =
   type Out<'x> = 'x -> Job<unit>
 
   let inline imp (mk: Out<_> -> #Job<unit>) = Job.delay <| fun () ->
-    let ch = ch ()
-    mk (fun x -> ch <-- x :> Job<_>) >>% (ch :> Alt<_>)
+    let ch = Ch ()
+    mk (fun x -> ch *<- x :> Job<_>) >>-. (ch :> Alt<_>)
 
   let filterFun x2b (xIn: In<_>) (xOut: Out<_>) =
     Job.foreverServer
@@ -26,10 +26,10 @@ module Stream =
       if b then xOut x else Job.unit ())
 
   let iterateFun x x2x (xOut: Out<_>) =
-    Job.iterateServer x (fun x -> xOut x >>% x2x x)
+    Job.iterateServer x (fun x -> xOut x >>-. x2x x)
 
   let iterateJob x (x2xJ: _ -> #Job<_>) (xOut: Out<_>) =
-    Job.iterateServer x (fun x -> xOut x >>. x2xJ x)
+    Job.iterateServer x (fun x -> xOut x >>=. x2xJ x)
 
   let mapFun x2y (xIn: In<_>) (yOut: Out<_>) =
     Job.foreverServer (xIn >>= (x2y >> yOut))
@@ -38,7 +38,7 @@ module Stream =
     Job.foreverServer (xIn >>= (x2yJ >=> yOut))
 
   let sumWithFun xy2z (xIn: In<_>) (yIn: In<_>) (zOut: Out<_>) =
-    Job.foreverServer (xIn <+>? yIn >>= fun (x, y) -> zOut (xy2z x y))
+    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> zOut (xy2z x y))
 
   let sumWithJob (xy2zJ: _ -> _ -> #Job<_>) xIn yIn (zOut: Out<_>) =
-    Job.foreverServer (xIn <+>? yIn >>= fun (x, y) -> xy2zJ x y >>= zOut)
+    Job.foreverServer (xIn <+> yIn >>= fun (x, y) -> xy2zJ x y >>= zOut)

@@ -14,12 +14,12 @@ module Literal =
     let timer = Stopwatch.StartNew ()
     let _ =
       run <| job {
-        let iCh = ch ()
+        let iCh = Ch ()
         let rec writer i = job {
           if i = 0 then
-            return! iCh <-- 0
+            return! iCh *<- 0
           else
-            do! iCh <-- i
+            do! iCh *<- i
             return! writer (i-1)
         }
         let rec reader sum = job {
@@ -41,9 +41,9 @@ module Tweaked =
     let timer = Stopwatch.StartNew ()
     let _ =
       run <| job {
-        let iCh = ch ()
+        let iCh = Ch ()
         let rec writer i =
-          iCh <-- i >>= fun () ->
+          iCh *<- i >>= fun () ->
           if i = 0 then
             Job.unit ()
           else

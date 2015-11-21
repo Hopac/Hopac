@@ -12,8 +12,8 @@ type OutCh<'a> = OutCh of Ch<'a>
 module DirCh =
   module Now =
     let create () =
-      let xCh = ch ()
+      let xCh = Ch ()
       (InCh xCh, OutCh xCh)
   let create () = Job.thunk Now.create
   let take (InCh ch) = asAlt ch
-  let give (OutCh ch) x = ch <-- x
+  let give (OutCh ch) x = ch *<- x

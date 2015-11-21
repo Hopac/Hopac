@@ -243,4 +243,4 @@ module Stream =
     Stream.initsMapFun (Stream >> xs2y) xs |> Stream
 
   let inline decon (Stream xs: Stream<'l, _>) : Alt<option<'x * Stream<'l, _>>> =
-    xs |>>? function Stream.Cons (x, xs) -> Some (x, Stream xs) | Stream.Nil -> None
+    xs ^-> function Stream.Cons (x, xs) -> Some (x, Stream xs) | Stream.Nil -> None

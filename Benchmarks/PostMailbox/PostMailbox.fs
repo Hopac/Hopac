@@ -38,12 +38,12 @@ module MbSend =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mMb = mb ()
+    let mMb = Mailbox ()
     do run <| job {
          do! Job.foreverServer
-              (mMb |>> fun msg ->
+              (mMb >>- fun msg ->
                if msg = max then ping.Set ())
-         do! data |> Array.iterJob (fun i -> mMb <<-+ i)
+         do! data |> Array.iterJob (fun i -> mMb *<<+ i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -61,10 +61,10 @@ module MbSendNow =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mMb = mb ()
+    let mMb = Mailbox ()
     Job.Global.server
      (Job.forever
-       (mMb |>> fun msg ->
+       (mMb >>- fun msg ->
         if msg = max then ping.Set ()))
     data |> Array.iter (fun i -> Mailbox.Global.send mMb i)
     let d1 = timer.Elapsed
@@ -83,12 +83,12 @@ module ChGive =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mb = ch ()
+    let mb = Ch ()
     do run <| job {
          do! Job.foreverServer
-              (mb |>> fun msg ->
+              (mb >>- fun msg ->
                if msg = max then ping.Set ())
-         do! data |> Array.iterJob (fun i -> mb <-- i)
+         do! data |> Array.iterJob (fun i -> mb *<- i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -106,12 +106,12 @@ module ChSend =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let mb = ch ()
+    let mb = Ch ()
     do run <| job {
          do! Job.foreverServer
-              (mb |>> fun msg ->
+              (mb >>- fun msg ->
                if msg = max then ping.Set ())
-         do! data |> Array.iterJob (fun i -> mb <-+ i)
+         do! data |> Array.iterJob (fun i -> mb *<+ i)
        }
     let d1 = timer.Elapsed
     ping.Wait ()
@@ -129,10 +129,10 @@ module ChSendNow =
     let timer = Stopwatch.StartNew ()
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
-    let ch = ch ()
+    let ch = Ch ()
     Job.Global.server
      (Job.forever
-       (ch |>> fun msg ->
+       (ch >>- fun msg ->
         if msg = max then ping.Set ()))
     data |> Array.iter (fun i -> Ch.Global.send ch i)
     let d1 = timer.Elapsed

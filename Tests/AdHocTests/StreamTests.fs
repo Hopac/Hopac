@@ -12,7 +12,7 @@ open Hopac.Infixes
 
 module Stream =
   let ofList (xs: list<_>) = Stream.ofSeq xs
-  let toList xs = Stream.toSeq xs |>> List.ofSeq
+  let toList xs = Stream.toSeq xs >>- List.ofSeq
   let onList f xs = ofList xs |> f |> toList |> run
   let onList2 f xs ys = f (ofList xs) (ofList ys) |> toList |> run
 

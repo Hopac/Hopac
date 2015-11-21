@@ -1,5 +1,4 @@
-﻿// Copyright (C) by Housemarque, Inc.
-
+﻿
 module Fibonacci
 
 /////////////////////////////////////////////////////////////////////////
@@ -58,7 +57,7 @@ module SerialOpt =
       Job.result n
     else
       fib (n-2L) >>= fun x ->
-      fib (n-1L) |>> fun y ->
+      fib (n-1L) >>- fun y ->
       x + y
 
   let run n =
@@ -96,7 +95,7 @@ module ParallelPro =
     else
       fib (n-2L) |> Promise.start >>= fun xP ->
       fib (n-1L) >>= fun y ->
-      xP |>> fun x ->
+      xP >>- fun x ->
       x + y
 
   let run n =
@@ -114,7 +113,7 @@ module ParallelOpt =
     if n < 2L then
       Job.result n
     else
-      fib (n-2L) <*> Job.delayWith fib (n-1L) |>> fun (x, y) ->
+      fib (n-2L) <*> Job.delayWith fib (n-1L) >>- fun (x, y) ->
       x + y
 
   let run n =
@@ -194,13 +193,13 @@ module FibNck =
     else
       Promise.queue (fibWithNack (n-2L) cancel) >>= fun xP ->
       Promise.start (fibWithNack (n-1L) cancel) >>= fun yP ->
-      (xP >>=? fun x -> (yP |>>? fun y -> x+y) <|>? cancel) <|>?
-      (yP >>=? fun y -> (xP |>>? fun x -> x+y) <|>? cancel) <|>?
-      cancel
+          cancel
+      <|> xP ^=> fun x -> cancel <|> yP ^-> fun y -> x+y
+      <|> yP ^=> fun y -> cancel <|> xP ^-> fun x -> x+y
 
   let fib n =
     Alt.withNackJob <| fun nack ->
-    Promise.start (fibWithNack n (nack >>%? 0L))
+    Promise.start (fibWithNack n (nack ^->. 0L))
 
   let run n =
     printf "FibNck: "

@@ -49,19 +49,19 @@ let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNackJob <| fun nack ->
   let op = async {
       try
         let! x = xA
-        do rI <-= x |> start
+        do rI *<= x |> start
         // do printfn "Success"
       with e ->
-        do rI <-=! e |> start
+        do rI *<=! e |> start
         // do printfn "Failure"
     }
   Async.Start (op, cancellationToken = tokenSource.Token)
   nack
-  |>> fun () ->
+  >>- fun () ->
         tokenSource.Cancel ()
         // printfn "Cancel"
         dispose ()
-  |> Job.start >>%
+  |> Job.start >>-.
   Alt.tryFinallyFun rI dispose
 ```
 
@@ -114,9 +114,9 @@ operations created with `fetchAlt` also work with timeouts:
 ```fsharp
 let runWithTimeout seconds =
   Alt.choose [
-    fetchAlt ("MSDN", "http://msdn.microsoft.com/") |>>? fun s ->
+    fetchAlt ("MSDN", "http://msdn.microsoft.com/") ^-> fun s ->
       printfn "%s before timeout." s
-    timeOut (TimeSpan.FromSeconds seconds) |>>? fun () ->
+    timeOut (TimeSpan.FromSeconds seconds) ^-> fun () ->
       printfn "timeout!" ]
   |> run
 ```

@@ -15,17 +15,17 @@ module ChGive =
     let timer = Stopwatch.StartNew ()
     seq {1 .. numPairs}
     |> Seq.Con.iterJob (fun _ ->
-       let chPing = ch ()
+       let chPing = Ch ()
        let msgPing = Msg chPing
-       let chPong = ch ()
+       let chPong = Ch ()
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-- msgPing) >>.
-       (chPing <-- msgPong) >>.
+         chPong *<- msgPing) >>=.
+       chPing *<- msgPong >>=.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-- msgPong) >>.
+         chPing *<- msgPong) >>=.
        Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
@@ -41,17 +41,17 @@ module ChGiSe =
     let timer = Stopwatch.StartNew ()
     seq {1 .. numPairs}
     |> Seq.Con.iterJob (fun _ ->
-       let chPing = ch ()
+       let chPing = Ch ()
        let msgPing = Msg chPing
-       let chPong = ch ()
+       let chPong = Ch ()
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-- msgPing) >>.
-       (chPing <-+ Msg chPong) >>.
+         chPong *<- msgPing) >>=.
+       chPing *<+ Msg chPong >>=.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-+ msgPong) >>.
+         chPing *<+ msgPong) >>=.
        Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
@@ -67,17 +67,17 @@ module ChSeGi =
     let timer = Stopwatch.StartNew ()
     seq {1 .. numPairs}
     |> Seq.Con.iterJob (fun _ ->
-       let chPing = ch ()
+       let chPing = Ch ()
        let msgPing = Msg chPing
-       let chPong = ch ()
+       let chPong = Ch ()
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-+ msgPing) >>.
-       (chPing <-- Msg chPong) >>.
+         chPong *<+ msgPing) >>=.
+       chPing *<- Msg chPong >>=.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-- msgPong) >>.
+         chPing *<- msgPong) >>=.
        Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
@@ -93,17 +93,17 @@ module ChSend =
     let timer = Stopwatch.StartNew ()
     seq {1 .. numPairs}
     |> Seq.Con.iterJob (fun _ ->
-       let chPing = ch ()
+       let chPing = Ch ()
        let msgPing = Msg chPing
-       let chPong = ch ()
+       let chPong = Ch ()
        let msgPong = Msg chPong
        Job.foreverServer
         (chPing >>= fun (Msg chPong) ->
-         chPong <-+ msgPing) >>.
-       (chPing <-+ msgPong) >>.
+         chPong *<+ msgPing) >>=.
+       chPing *<+ msgPong >>=.
        Job.forN (numPingPongsPerPair-1)
         (chPong >>= fun (Msg chPing) ->
-         chPing <-+ msgPong) >>.
+         chPing *<+ msgPong) >>=.
        Job.Ignore chPong)
     |> run
     let d = timer.Elapsed
@@ -119,17 +119,17 @@ module MbSend =
     let timer = Stopwatch.StartNew ()
     seq {1 .. numPairs}
     |> Seq.Con.iterJob (fun _ ->
-       let mbPing = mb ()
+       let mbPing = Mailbox ()
        let msgPing = Msg mbPing
-       let mbPong = mb ()
+       let mbPong = Mailbox ()
        let msgPong = Msg mbPong
        Job.foreverServer
         (mbPing >>= fun (Msg mbPong) ->
-         mbPong <<-+ msgPing) >>.
-       (mbPing <<-+ msgPong) >>.
+         mbPong *<<+ msgPing) >>=.
+       mbPing *<<+ msgPong >>=.
        Job.forN (numPingPongsPerPair-1)
         (mbPong >>= fun (Msg mbPing) ->
-         mbPing <<-+ msgPong) >>.
+         mbPing *<<+ msgPong) >>=.
        Job.Ignore mbPong)
     |> run
     let d = timer.Elapsed
