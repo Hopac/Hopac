@@ -65,9 +65,9 @@ open it up a bit.
   They can be bound to variables, passed to and returned from functions and can
   even be sent from one job to another.
 * **Higher-order** means that primitive alternatives can be combined and
-  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^=>)
+  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
   with user defined procedures to
-  build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+  build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
   more
   complex[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
   alternatives that encapsulate concurrent client-server protocols.
@@ -306,7 +306,7 @@ workflow builder like we did in the previous section.  The other way is to
 directly use the monadic combinators,
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and bind,
-`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.>>=),
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=),
 that the workflow builder abstracts away.  I personally mostly prefer using the
 monadic combinators with an occasional excursion with the workflow notation.  I
 have a number of reasons for this:
@@ -315,9 +315,9 @@ have a number of reasons for this:
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
 * There are many very commonly used monadic combinators,
-  e.g. `>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.>>-)
+  e.g. `>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-)
   and
-  `>>-.`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.>>-.),
+  `>>-.`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-.),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary
@@ -458,12 +458,12 @@ alternatives[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt):
 * The first alternative
   takes[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
   a value on the `putCh` channel from a client and
-  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^=>)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
   loops.
 * The second alternative
   gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
   a value on the `getCh` channel to a client and
-  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^=>)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
   loops.
 
 What this basically means is that the server makes an offer to perform the
@@ -804,13 +804,13 @@ let rec fib n = Job.delay <| fun () ->
 ```
 
 The above implementation makes use of the combinators
-`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.<&>)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%26%3E)
 and
-`>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.>>-)
+`>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-)
 whose meanings can be specified in terms of
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and
-`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.>>=)
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 as follows:
 
 ```fsharp
@@ -835,9 +835,9 @@ computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
 combinator
-`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.<&>)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%26%3E)
 to the parallel pair combinator
-`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.<*>):
+`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%2A%3E):
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
@@ -1101,7 +1101,7 @@ If the alternative cannot be performed immediately, e.g. no other job has
 offered to take a value on the channel, the job is blocked until the alternative
 becomes available.
 
-#### Choose and Wrap ####
+#### Choose and after
 
 If all we had was primitive alternatives there would be no point in the whole
 mechanism.  What makes alternatives useful is that they can be composed in
@@ -1142,8 +1142,8 @@ else
   // Perform action on No.
 ```
 
-The operations `Alt.choose` and `^=>`, also known as *wrap*, have the following
-signatures:
+The operations `Alt.choose` and `^=>`, called *after*, and also known as *wrap*
+in Concurrent ML, have the following signatures:
 
 ```fsharp
 val choose: seq<#Alt<'x>> -> Alt<'x>
@@ -1159,21 +1159,22 @@ job is blocked, waiting for any one of the alternatives to become available.
 When one of the alternatives in the disjunction becomes available, the
 alternative is committed to and the other alternatives are canceled.
 
-The wrap `^=>`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^=>)
-operation is similar to the bind `>>=`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.>>=)
+The after `^=>`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+operation is somewhat similar to the bind `>>=`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
 operation on jobs and allows one to extend an alternative so that further
 operations are performed after the alternative has been committed to.  Similarly
-to corresponding operations on jobs, several shortcut operators, such as `^->`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^->)
+to corresponding operations on jobs, several commonly useful operators, such as
+`^->`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E-%3E)
 and `^->.`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^->.),
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E-%3E.),
 are provided in addition to `^=>` on alternatives.
 
 In this case we use the ability to simply map the button messages to a boolean
 value for further processing.  We could also just continue processing in the
-wrapper:
+after operation:
 
 ```fsharp
 do! Alt.choose [
@@ -1192,7 +1193,7 @@ create new alternatives and those alternatives are first-class values just like
 the primitive `give` and `take` alternatives on channels.  For the common case
 of simply combining just two
 alternatives the operation `<|>`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.<|>)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C%7C%3E)
 is provided.  Its semantics can be described as follows:
 
 ```fsharp
@@ -1208,24 +1209,24 @@ of alternatives that is computed dynamically.  Languages that have a special
 purpose `select` statement typically only allow the program to synchronize on a
 set of events that is specified statically in the program text.
 
-### Guards
+### Prepare
 
-The wrap combinator `^=>`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.^=>)
+The after combinator `^=>`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
 allows post-commit actions to be added to an alternative.  Hopac also provides
-the `guard`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+the `prepareJob`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
 combinator that allows an alternative to be computed at instantiation time.
 
 ```fsharp
-val guard: Job<#Alt<'x>> -> Alt<'x>
+val prepareJob: (unit -> #Job<#Alt<'x>>) -> Alt<'x>
 ```
 
-The idea of the `guard` combinator is that it allows one to encapsulate a
+The idea of the `prepareJob` combinator is that it allows one to encapsulate a
 protocol for interacting with a concurrent server as an abstract selective
 operation.  The way a client and a server typically interact is that the client
 sends the server a message and then waits for a reply from the server.  What is
-necessary is that the guard combinator allows one to package the operations of
+necessary is that the prepare combinator allows one to package the operations of
 constructing the message, sending it to the server and then waiting for the
 reply in a form that can then be invoked an arbitrary number of times.
 
@@ -1281,12 +1282,12 @@ let timerReqCh : Ch<Ticks * Ch<unit>> = Ch.Now.create ()
 Via the channel, a client can send a request to the server to send back a
 message on a channel allocated for the request at the specified time.  To send
 the request and allocate a new channel for the server's reply, we'll use the
-`guard` combinator.  The following `atTime` function creates an alternative
+`prepareJob` combinator.  The following `atTime` function creates an alternative
 that *encapsulates the whole protocol* for interacting with the time server:
 
 ```fsharp
 let atTime (atTime: Ticks) : Alt<unit> =
-  Alt.guard << Job.delay <| fun () ->
+  Alt.prepareJob <| fun () ->
   let replyCh : Ch<unit> = Ch.Now.create ()
   Ch.send timerReqCh (atTime, replyCh) >>-.
   Ch.take replyCh
@@ -1369,8 +1370,8 @@ That concludes the implementation of the time server itself.
 
 ### Negative Acknowledgments
 
-In the previous section the `guard`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.guard)
+In the previous section the `prepareJob`
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
 combinator was used to encapsulate the protocol for interacting with the custom
 timer server.  This worked because the service provided by the time server is
 idempotent.  If a client makes a request to the time server and later aborts the
@@ -1385,10 +1386,10 @@ combinator:
 val withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
 ```
 
-The `withNackJob` combinator is like `guard` in that it allows an alternative to
-be computed at instantiation time.  Additionally, `withNackJob` creates a
-*negative acknowledgment alternative*, which is actually represented as a
-promise, that it gives to the encapsulated alternative constructor.  If the
+The `withNackJob` combinator is like `prepareJob` in that it allows an
+alternative to be computed at instantiation time.  Additionally, `withNackJob`
+creates a *negative acknowledgment alternative*, which is actually represented
+as a promise, that it gives to the encapsulated alternative constructor.  If the
 constructed alternative is ultimately not committed to, the negative
 acknowledgment alternative becomes available.  Consider the following example:
 

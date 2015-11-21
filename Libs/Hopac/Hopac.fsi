@@ -1091,8 +1091,8 @@ module Job =
 /// and Concurrent ML, selective synchronous operations are not limited to
 /// primitive message passing operations (see `Ch.give` and `Ch.take`), but are
 /// instead first-class values (see `choose`) and can be extended with
-/// user-defined code (see `wrap` and `withNackJob`) allowing the encapsulation
-/// of concurrent protocols as selective synchronous operations.
+/// user-defined code (see `afterJob` and `withNackJob`) allowing the
+/// encapsulation of concurrent protocols as selective synchronous operations.
 ///
 /// The idea of alternatives is to allow one to introduce new selective
 /// synchronous operations to be used with non-determinic choice aka `choose`.
@@ -1359,15 +1359,15 @@ module Alt =
   /// committed to.  This is the same as `^=>` with the arguments flipped.
 #if DOC
   ///
-  /// Note that although this operator has a type similar to a monadic bind
-  /// operation, alternatives do not form a monad (with the `always` alternative
-  /// constructor).  So called Transactional Events do form a monad, but require
-  /// a more complex synchronization protocol.
+  /// Note that although this operator has a type somewhat similar to a monadic
+  /// bind operation, alternatives do not form a monad (with the `always`
+  /// alternative constructor).  So called Transactional Events do form a monad,
+  /// but require a more complex synchronization protocol.
 #endif
   val inline afterJob: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
 
-  /// `xA |> map x2y` is equivalent to `xA |> wrap (x2y >> result)`.  This is
-  /// the same as `^->` with the arguments flipped.
+  /// `xA |> afterFun x2y` is equivalent to `xA |> afterJob (x2y >> result)`.
+  /// This is the same as `^->` with the arguments flipped.
   val inline afterFun: ('x -> 'y) -> Alt<'x> -> Alt<'y>
 
   /// `Ignore xA` is equivalent to `xA ^-> fun _ -> ()`.
@@ -1405,15 +1405,15 @@ module Alt =
 
     /// Creates an alternative whose result is passed to the given job
     /// constructor and processed with the resulting job after the given
-    /// alternative has been committed to.  This is the same as `wrap` with the
-    /// arguments flipped.
+    /// alternative has been committed to.  This is the same as `afterJob` with
+    /// the arguments flipped.
     val inline ( ^=> ): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
 
     /// `xA ^=>. yJ` is equivalent to `xA ^=> fun _ -> yJ`.
     val ( ^=>. ): Alt<_> -> Job<'y> -> Alt<'y>
 
     /// `xA ^-> x2y` is equivalent to `xA ^=> (x2y >> result)`.  This is the
-    /// same as `map` with the arguments flipped.
+    /// same as `afterFun` with the arguments flipped.
     val inline ( ^-> ): Alt<'x> -> ('x -> 'y) -> Alt<'y>
 
     /// `xA ^->. y` is equivalent to `xA ^-> fun _ -> y`.
