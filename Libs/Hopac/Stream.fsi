@@ -299,7 +299,7 @@ module Stream =
   ///
   /// Reference implementation:
   ///
-  ///> let rec indefinitely xJ = xJ >>=* fun x -> cons x (indefinitely xJ)
+  ///> let rec indefinitely xJ = xJ >>=* fun x -> cons x <| indefinitely xJ
 #endif
   val indefinitely: Job<'x> -> Stream<'x>
 
@@ -325,7 +325,7 @@ module Stream =
   ///
   ///> let rec unfoldJob f =
   ///>   f >=>* function None -> nil
-  ///>                 | Some (x, s) -> cons x (unfoldJob f s)
+  ///>                 | Some (x, s) -> cons x <| unfoldJob f s
 #endif
   val unfoldJob: ('s -> #Job<option<'x * 's>>) -> ('s -> Stream<'x>)
 
@@ -352,7 +352,7 @@ module Stream =
   ///
   /// Reference implementation:
   ///
-  ///> let rec iterateJob f x = cons x (f x >>=* iterateJob f)
+  ///> let rec iterateJob f x = f x >>=* iterateJob f |> cons x
 #endif
   val iterateJob: ('x -> #Job<'x>) -> 'x -> Stream<'x>
 
@@ -402,7 +402,7 @@ module Stream =
   ///>   xs >>=* function Nil -> nil
   ///>                  | Cons (x, xs) ->
   ///>                    f x >>=* function None -> chooseJob f xs
-  ///>                                    | Some y -> cons y (chooseJob f xs)
+  ///>                                    | Some y -> cons y <| chooseJob f xs
 #endif
   val chooseJob: ('x -> #Job<option<'y>>) -> Stream<'x> -> Stream<'y>
 
@@ -430,7 +430,7 @@ module Stream =
   ///> let rec mapJob f xs =
   ///>   xs >>=* function Nil -> nil
   ///>                  | Cons (x, xs) ->
-  ///>                    f x >>=* fun y -> cons y (mapJob f xs)
+  ///>                    f x >>=* fun y -> cons y <| mapJob f xs
 #endif
   val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
@@ -486,7 +486,7 @@ module Stream =
   ///
   /// For example,
   ///
-  ///> zip xs (tail xs)
+  ///> zip xs <| tail xs
   ///
   /// is a stream of consecutive pairs from the stream `xs`.
   ///
@@ -505,9 +505,10 @@ module Stream =
 #if DOC
   ///
   ///> let rec scanJob f s xs =
-  ///>   cons s (xs >>=* function Nil -> nil
-  ///>                          | Cons (x, xs) ->
-  ///>                            f s x >>=* fun s -> scanJob f s xs)
+  ///>   xs >>=* function Nil -> nil
+  ///>                  | Cons (x, xs) ->
+  ///>                    f s x >>=* fun s -> scanJob f s xs
+  ///>   |> cons s
 #endif
   val scanJob: ('s -> 'x -> #Job<'s>) -> 's -> Stream<'x> -> Stream<'s>
 
@@ -581,7 +582,7 @@ module Stream =
   ///
   ///> let rec mergeSwap ls rs =
   ///>   ls ^=> function Nil -> rs
-  ///>                 | Cons (l, ls) -> cons l (merge rs ls)
+  ///>                 | Cons (l, ls) -> cons l <| merge rs ls
   ///> and merge ls rs = mergeSwap ls rs <|>* mergeSwap rs ls
 #endif
   val merge: Stream<'x> -> Stream<'x> -> Stream<'x>
@@ -606,8 +607,9 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec switch ls rs =
-  ///>   rs <|>* ls ^=> function Nil -> rs
-  ///>                         | Cons (l, ls) -> cons l (switch ls rs))
+  ///>        rs
+  ///>   <|>* ls ^=> function Nil -> rs
+  ///>                      | Cons (l, ls) -> cons l <| switch ls rs
 #endif
   val switch: Stream<'x> -> Stream<'x> -> Stream<'x>
 
@@ -637,7 +639,7 @@ module Stream =
   /// Joins all the streams together with `switch`.
   val switchAll: Stream<#Stream<'x>> -> Stream<'x>
 
-  /// `mapJoin j f xs` is equivalent to `joinWith j (mapFun f xs)`.
+  /// `mapJoin j f xs` is equivalent to `joinWith j <| mapFun f xs`.
   val inline mapJoin: ('y -> Stream<'z> -> #Job<Cons<'z>>) -> ('x -> 'y) -> Stream<'x> -> Stream<'z>
 
   /// Maps and joins all the streams together with `amb`.  This corresponds to
@@ -665,20 +667,20 @@ module Stream =
 
   /// `skip n xs` returns a stream without the first `n` elements of the given
   /// stream.  If the given stream is shorter than `n`, then the returned stream
-  /// will be empty.  Note that if `n` is non-negative, then `append (take n xs)
-  /// (skip n xs)` is equivalent to `xs`.
+  /// will be empty.  Note that if `n` is non-negative, then `append <| take n
+  /// xs <| skip n xs` is equivalent to `xs`.
   val skip: int64 -> Stream<'x> -> Stream<'x>
 
   /// `take n` returns a stream that has the first `n` elements of the given
   /// stream.  If the given stream is shorter than `n`, then `take n` is the
-  /// identity function.  Note that if `n` is non-negative, then `append (take n
-  /// xs) (skip n xs)` is equivalent to `xs`.
+  /// identity function.  Note that if `n` is non-negative, then `append <| take
+  /// n xs <| skip n xs` is equivalent to `xs`.
   val take: int64 -> Stream<'x> -> Stream<'x>
 
   /// Returns a stream that discards elements from the given stream until the
   /// given alternative is committed to after which the remainder of the given
-  /// stream is produced.  Note that `append (takeUntil evt xs) (skipUntil evt
-  /// xs)` may not be equivalent to `xs`, because there is an inherent
+  /// stream is produced.  Note that `append <| takeUntil evt xs <| skipUntil
+  /// evt xs` may not be equivalent to `xs`, because there is an inherent
   /// race-condition.  See also: `takeAndSkipUntil`.
   val skipUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
@@ -691,9 +693,9 @@ module Stream =
 
   /// Returns a stream that produces elements from the given stream until the
   /// given alternative is committed to after which the returned stream is
-  /// closed.  Note that `append (takeUntil evt xs) (skipUntil evt xs)` may not
-  /// be equivalent to `xs`, because there is an inherent race-condition.  See
-  /// also: `takeAndSkipUntil`.
+  /// closed.  Note that `append <| takeUntil evt xs <| skipUntil evt xs` may
+  /// not be equivalent to `xs`, because there is an inherent race-condition.
+  /// See also: `takeAndSkipUntil`.
   val takeUntil: Alt<_> -> Stream<'x> -> Stream<'x>
 
   /// Returns the stream without the maximal prefix of elements that satisfy the
@@ -1003,7 +1005,7 @@ module Stream =
   val foldFromFun: 's -> ('s -> 'x -> 's) -> Stream<'x> -> Job<'s>
 
   /// Performs a lazy backwards fold over the stream.  See also: `foldJob`,
-  /// `unfoldJob`.
+  /// `unfoldJob`, `foldFromBack`.
 #if DOC
   ///
   /// `foldBack` is a fundamental function on streams.  Consider that `foldBack
@@ -1077,12 +1079,12 @@ module Stream =
 
   /// Returns a stream containing only the first element of the given stream.
   /// If the given stream is closed, the result stream will also be closed.
-  /// Note that `append (head xs) (tail xs)` is equivalent to `xs`.
+  /// Note that `append <| head xs <| tail xs` is equivalent to `xs`.
   val head: Stream<'x> -> Stream<'x>
 
   /// Returns a stream just like the given stream except without the first
   /// element.  If the given stream is closed, the result stream will also be
-  /// closed.  Note that `append (head xs) (tail xs)` is equivalent to `xs`.
+  /// closed.  Note that `append <| head xs <| tail xs` is equivalent to `xs`.
   val tail: Stream<'x> -> Stream<'x>
 
   /// Returns a stream of all final segments of the given stream from longest to
@@ -1092,8 +1094,9 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec tails xs =
-  ///>   cons xs (xs >>=* function Nil -> nil
-  ///>                           | Cons (_, xs) -> tails xs)
+  ///>   xs >>=* function Nil -> nil
+  ///>                  | Cons (_, xs) -> tails xs
+  ///>   |> cons xs
 #endif
   val tails: Stream<'x> -> Stream<Stream<'x>>
 
@@ -1101,13 +1104,13 @@ module Stream =
   val tailsMapFun: (Stream<'x> -> 'y) -> Stream<'x> -> Stream<'y>
 
   /// Returns a stream containing the last element of the given stream.  If the
-  /// given stream is closed, a closed stream is returned.  Note that `append
-  /// (init xs) (last xs)` is equivalent to `xs`.
+  /// given stream is closed, a closed stream is returned.  Note that `append <|
+  /// init xs <| last xs` is equivalent to `xs`.
   val last: Stream<'x> -> Stream<'x>
 
   /// Returns a stream with all the elements of the given stream except the last
   /// element.  If the stream is closed, a closed stream is returned.  Note that
-  /// `append (init xs) (last xs)` is equivalent to `xs`.
+  /// `append <| init xs <| last xs` is equivalent to `xs`.
   val init: Stream<'x> -> Stream<'x>
 
   /// Returns a stream of all initial segments of the given stream from shortest

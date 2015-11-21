@@ -139,7 +139,7 @@ type IAsyncDisposable =
   /// by spawning a process that forwards the disposal request to the server
   /// request channel before the server loop is started:
   ///
-  ///> start (requestDisposeIVar >>=. requestCh *<- RequestDispose)
+  ///> requestDisposeIVar >>=. requestCh *<- RequestDispose |> start
   ///
   /// Alternatively, it is usually acceptable to simply send an asynchronous
   /// dispose request to the server:
@@ -350,7 +350,7 @@ module Proc =
 ///
 /// It can be run, for example, by using the global scheduler:
 ///
-///> > run (fib 30L) ;;
+///> > fib 30L |> run ;;
 ///> val it : int = 832040L
 ///
 /// If you ran the above above examples, you just did the equivalent of running
@@ -686,7 +686,9 @@ module Job =
   ///
   /// Reference implementation:
   ///
-  ///> let tryFinallyFun xJ u2u = tryFinallyJob xJ (thunk u2u)
+  ///> let tryFinallyFun xJ u2u =
+  ///>   tryFinallyJob xJ
+  ///>    <| thunk u2u
 #endif
   val tryFinallyFun: Job<'x> -> (unit -> unit) -> Job<'x>
 
@@ -746,7 +748,8 @@ module Job =
   /// Reference implementation:
   ///
   ///> let usingAsync (x: 'x when 'x :> IAsyncDisposable) x2yJ =
-  ///>   tryFinallyJob (delayWith x2yJ x) (x.DisposeAsync ())
+  ///>   tryFinallyJob <| delayWith x2yJ x
+  ///>    <| x.DisposeAsync ()
 #endif
   val usingAsync: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IAsyncDisposable
 
@@ -756,7 +759,10 @@ module Job =
   ///
   /// Reference implementation:
   ///
-  ///> let catch xJ = tryIn xJ (lift Choice1Of2) (lift Choice2Of2)
+  ///> let catch xJ =
+  ///>   tryIn xJ
+  ///>    <| lift Choice1Of2
+  ///>    <| lift Choice2Of2
 #endif
   val catch: Job<'x> -> Job<Choice<'x, exn>>
 
@@ -911,11 +917,11 @@ module Job =
   /// Reference implementation:
   ///
   ///> let seqCollect (xJs: seq<Job<'x>>) = Job.delay <| fun () ->
-  ///>   let xs = ResizeArray<_>()
-  ///>   Job.using (xJs.GetEnumerator ()) <| fun xJs ->
-  ///>   Job.whileDoDelay xJs.MoveNext (fun () ->
-  ///>     xJs.Current >>- xs.Add) >>-.
-  ///>   xs
+  ///>   let xs = ResizeArray<_> ()
+  ///>   Job.using <| xJs.GetEnumerator () <| fun xJs ->
+  ///>   Job.whileDoDelay xJs.MoveNext <| fun () ->
+  ///>         xJs.Current >>- xs.Add
+  ///>   >>-. xs
 
 #endif
   val seqCollect: seq<#Job<'x>> -> Job<ResizeArray<'x>>
@@ -927,9 +933,9 @@ module Job =
   /// Reference implementation:
   ///
   ///> let seqIgnore (uJs: seq<#Job<unit>>) = Job.delay <| fun () ->
-  ///>   Job.using (uJs.GetEnumerator ()) <| fun uJs ->
-  ///>   Job.whileDoDelay uJs.MoveNext (fun () ->
-  ///>     uJs.Current)
+  ///>   Job.using <| uJs.GetEnumerator () <| fun uJs ->
+  ///>   Job.whileDoDelay uJs.MoveNext <| fun () ->
+  ///>     uJs.Current
 #endif
   val seqIgnore: seq<#Job<_>> -> Job<unit>
 
@@ -963,7 +969,7 @@ module Job =
   ///
   ///> let fromBeginEnd doBegin doEnd =
   ///>   Job.Scheduler.bind <| fun sr ->
-  ///>   let xI = ivar ()
+  ///>   let xI = IVar ()
   ///>   doBegin <| AsyncCallback (fun ar ->
   ///>     Scheduler.start sr (try xI *<= doEnd ar with e -> xI *<=! e))
   ///>   |> ignore
@@ -1022,7 +1028,7 @@ module Job =
     /// current scheduler:
     ///
     ///> let opAsJob input = Job.Scheduler.bind <| fun scheduler ->
-    ///>   let resultIVar = ivar ()
+    ///>   let resultIVar = IVar ()
     ///>   let handleWith fill result =
     ///>     fill resultIVar result |> Scheduler.start scheduler
     ///>   ioWithCallback input
@@ -1162,7 +1168,7 @@ module Alt =
   ///
   ///> let once x =
   ///>   let xCh = Ch ()
-  ///>   run <| xCh *<+ x
+  ///>   xCh *<+ x |> run
   ///>   paranoid xCh
 #endif
   val inline once: 'x -> Alt<'x>
@@ -1291,7 +1297,8 @@ module Alt =
   ///
   ///> let wrapAbortJob (abortAct: Job<unit>) (evt: Alt<'x>) : Alt<'x> =
   ///>   Alt.withNackJob <| fun nack ->
-  ///>   Job.start (nack >>=. abortAct) >>-. evt
+  ///>   nack >>=. abortAct |> Job.start >>-.
+  ///>   evt
   ///
   /// Historical note: Originally Concurrent ML only provided a corresponding
   /// combinator named `wrapAbort`.  Later Concurrent ML changed to provide only
@@ -1314,7 +1321,7 @@ module Alt =
   /// Reference implementation:
   ///
   ///> let choose xAs = Alt.prepareFun <| fun () ->
-  ///>   Seq.foldBack (<|>) xAs (never ())
+  ///>   Seq.foldBack (<|>) xAs <| never ()
   ///
   /// Above, `Seq.foldBack` has the obvious meaning.  Alternatively we could
   /// define `xA1 <|> xA2` to be equivalent to `choose [xA1; xA2]` and consider
@@ -1474,7 +1481,9 @@ module Alt =
   ///
   /// Reference implementation:
   ///
-  ///> let tryFinallyFun xA u2u = tryFinallyJob xA (Job.thunk u2u)
+  ///> let tryFinallyFun xA u2u =
+  ///>   tryFinallyJob xA
+  ///>    <| Job.thunk u2u
 #endif
   val tryFinallyFun: Alt<'x> -> (unit -> unit) -> Alt<'x>
 
@@ -1537,14 +1546,12 @@ module Timer =
     /// time you need a timeout with a specific time span.  For example, you can
     /// create a timeout for one second
     ///
-    ///> let after1s = timeOut (TimeSpan.FromSeconds 1.0)
+    ///> let after1s = timeOut <| TimeSpan.FromSeconds 1.0
     ///
     /// and then use that timeout many times
     ///
-    ///> choose [
-    ///>   makeRequest ^=> fun rp -> ...
-    ///>   after1s     ^=> fun () -> ...
-    ///> ]
+    ///>     makeRequest ^=> fun rp -> ...
+    ///> <|> after1s     ^=> fun () -> ...
     ///
     /// Timeouts, like other alternatives, can also directly be used as job
     /// level operations.  For example, using the above definition of `after1s`
@@ -1558,7 +1565,7 @@ module Timer =
     /// therefore important to note that a server loop
     ///
     ///> let rec serverLoop ... =
-    ///>   ... <|> (timeOut ... ^=> ... serverLoop ...) <|> ...
+    ///>   ... <|> timeOut ... ^=> ... serverLoop ... <|> ...
     ///
     /// that always waits for a timeout is held live by the timeout.  Such
     /// servers need to support an explicit kill protocol.
@@ -1569,15 +1576,16 @@ module Timer =
     /// can be released by the timer mechanism.  However, when a timeout is not
     /// part of a non-deterministic choice, e.g.
     ///
-    ///> start (timeOut span >>= fun () -> gotTimeout *<= ())
+    ///> timeOut span >>=. gotTimeout *<= () |> start
     ///
     /// no such clean up can be performed.  If there is a possibility that such
     /// timeouts are kept alive beyond their usefulness, it may be possible to
     /// arrange for the timeouts to be released by making them part of a
     /// non-deterministic choice:
     ///
-    ///> start (timeOut span ^=> IVar.tryFill gotTimeoutOrDoneOtherwise <|>
-    ///>        gotTimeoutOrDoneOtherwise)
+    ///>     timeOut span ^=> IVar.tryFill gotTimeoutOrDoneOtherwise
+    ///> <|> gotTimeoutOrDoneOtherwise
+    ///>  |> start
     ///
     /// The idea is that the `gotTimeoutOrDoneOtherwise` is filled, using
     /// `IVar.tryFill` as soon as the timeout is no longer useful.  This allows
@@ -1585,8 +1593,8 @@ module Timer =
 #endif
     val timeOut: TimeSpan -> Alt<unit>
 
-    /// `timeOutMillis n` is equivalent to `timeOut (TimeSpan.FromMilliseconds
-    /// (float n))`.
+    /// `timeOutMillis n` is equivalent to `timeOut << TimeSpan.FromMilliseconds
+    /// <| float n`.
     val timeOutMillis: int -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2193,7 +2201,7 @@ module Extensions =
     /// Reference implementation:
     ///
     ///> let iterJob x2uJ (xs: seq<'x>) = Job.delay <| fun () ->
-    ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
+    ///>   Job.using <| xs.GetEnumerator () <| fun xs ->
     ///>   Job.whileDoDelay xs.MoveNext <| fun () ->
     ///>     x2uJ xs.Current
 #endif
@@ -2212,7 +2220,7 @@ module Extensions =
     ///
     ///> let mapJob x2yJ (xs: seq<'x>) = Job.delay <| fun () ->
     ///>   let ys = ResizeArray<_>()
-    ///>   Job.using (xs.GetEnumerator ()) <| fun xs ->
+    ///>   Job.using <| xs.GetEnumerator () <| fun xs ->
     ///>   Job.whileDoDelay xs.MoveNext <| fun () ->
     ///>         x2yJ xs.Current >>- ys.Add
     ///>   >>-. ys
@@ -2226,7 +2234,7 @@ module Extensions =
     /// Reference implementation:
     ///
     ///> let foldJob xy2xJ x (ys: seq<'y>) = Job.delay <| fun () ->
-    ///>   Job.using (ys.GetEnumerator ()) <| fun ys ->
+    ///>   Job.using <| ys.GetEnumerator () <| fun ys ->
     ///>   let rec loop x =
     ///>     if ys.MoveNext () then
     ///>       xy2xJ x ys.Current >>= loop
@@ -2411,7 +2419,7 @@ module Extensions =
     ///
     ///> let awaitJob (xT: Task<'x>) =
     ///>   Job.Scheduler.bind <| fun sr ->
-    ///>   let xI = ivar ()
+    ///>   let xI = IVar ()
     ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
     ///>     Scheduler.start sr (try xI *<= xT.Result with e -> xI *<=! e)))
     ///>   |> ignore
