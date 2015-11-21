@@ -1033,7 +1033,7 @@ module Stream =
   ///
   ///> let rec iterJob x2uJ xs =
   ///>   xs >>= function Nil -> Job.unit ()
-  ///>                 | Cons (x, xs) -> x2uJ x >>. iterJob x2uJ xs
+  ///>                 | Cons (x, xs) -> x2uJ x >>=. iterJob x2uJ xs
 #endif
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>
 
