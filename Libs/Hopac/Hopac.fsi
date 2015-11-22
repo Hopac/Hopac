@@ -2248,6 +2248,10 @@ module Extensions =
 #endif
     val foldJob: ('x -> 'y -> #Job<'x>) -> 'x -> seq<'y> -> Job<'x>
 
+    /// `foldFromJob x x2y2xJ ys` is equivalent to `foldJob x2y2xJ x ys` and is
+    /// often syntactically more convenient.
+    val inline foldFromJob: 'x -> ('x -> 'y -> #Job<'x>) -> seq<'y> -> Job<'x>
+
     /// Operations for processing sequences using concurrent jobs.
     module Con =
       /// Iterates the given job constructor over the given sequence, runs the

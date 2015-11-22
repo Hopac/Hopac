@@ -1770,6 +1770,8 @@ module Extensions =
            ys.Dispose ()
            Cont.Do (xK, &wr, x)}
 
+    let inline foldFromJob x x2y2xJ ys = foldJob x2y2xJ x ys
+
     module Con =
       let iterJobIgnore (x2yJ: 'x -> #Job<_>) (xs: seq<'x>) =
         {new Job<unit> () with
