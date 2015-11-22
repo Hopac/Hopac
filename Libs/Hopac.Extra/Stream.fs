@@ -4,8 +4,6 @@ namespace Hopac.Extra
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
 
 module Stream =
   type In<'x> = Alt<'x>

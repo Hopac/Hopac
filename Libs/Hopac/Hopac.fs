@@ -198,47 +198,6 @@ module Util =
       if 0 = Pick.PickAndSetNacks (xE.pk, &wr, i) then
         Handler.DoHandle (xK, &wr, e)
 
-////////////////////////////////////////////////////////////////////////////////
-
-module IVar =
-  module Now =
-    let inline create () = IVar<'x> ()
-    let inline createFull (x: 'x) = IVar<'x> (x)
-    let inline createFailure (e: exn) = IVar<'x> (e)
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let isFull (xI: IVar<'x>) = xI.Full
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let get (xI: IVar<'x>) : 'x = xI.Get ()
-
-  let create () = ctor Now.create ()
-  let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
-  let inline tryFill (xI: IVar<'x>) (x: 'x) =
-    IVar<'x>.TryFill (xI, x) :> Job<unit>
-  let inline fillFailure (xI: IVar<'x>) (e: exn) =
-    IVar<'x>.FillFailure (xI, e) :> Job<unit>
-  let inline read (xI: IVar<'x>) = xI :> Alt<'x>
-
-////////////////////////////////////////////////////////////////////////////////
-
-module Alt =
-  let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
-
-  let inline unit () =
-    match StaticData.unit with
-     | null -> StaticData.Init () ; StaticData.unit
-     | unit -> unit
-
-  let inline never () = Never<_>() :> Alt<_>
-
-  let inline zero () =
-    match StaticData.zero with
-     | null -> StaticData.Init () ; StaticData.zero :> Alt<_>
-     | zero -> zero :> Alt<_>
-
-  let inline once x = Once<'x> (x) :> Alt<'x>
-
-  let raises e = Raises (e) :> Alt<_>
-
   type GuardCont<'x, 'xA> when 'xA :> Alt<'x> =
    inherit Cont<'xA>
    val i: int
@@ -261,6 +220,254 @@ module Alt =
     Pick.Unclaim xE.pk
     let xK = xAK'.xK
     wr.Handler <- xK ; xA.TryAlt (&wr, xAK'.i, xK, xE)
+
+////////////////////////////////////////////////////////////////////////////////
+
+module IVar =
+  module Now =
+    let inline create () = IVar<'x> ()
+    let inline createFull (x: 'x) = IVar<'x> (x)
+    let inline createFailure (e: exn) = IVar<'x> (e)
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let isFull (xI: IVar<'x>) = xI.Full
+    [<MethodImpl(MethodImplOptions.NoInlining)>]
+    let get (xI: IVar<'x>) : 'x = xI.Get ()
+
+  let create () = ctor Now.create ()
+  let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
+  let inline tryFill (xI: IVar<'x>) (x: 'x) =
+    IVar<'x>.TryFill (xI, x) :> Job<unit>
+  let inline fillFailure (xI: IVar<'x>) (e: exn) =
+    IVar<'x>.FillFailure (xI, e) :> Job<unit>
+  let inline read (xI: IVar<'x>) = xI :> Alt<'x>
+
+////////////////////////////////////////////////////////////////////////////////
+
+module Infixes =
+  let inline (>>=) (xJ: Job<'x>) (x2yJ: 'x -> #Job<'y>) =
+    {new JobBind<'x, 'y> () with
+      override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xJ)
+
+  let (>>=.) (xJ: Job<_>) (yJ: Job<'y>) =
+    {new Job<'y> () with
+      override yJ'.DoJob (wr, yK) =
+       xJ.DoJob (&wr, SeqCont (yJ, yK))}
+
+  let inline (>>-) (xJ: Job<'x>) (x2y: 'x -> 'y) =
+    {new JobMap<'x, 'y> () with
+      override yJ'.Do (x) = x2y x}.InternalInit(xJ)
+
+  let (>>-.) (xJ: Job<_>) (y: 'y) =
+    {new Job<'y> () with
+      override yJ'.DoJob (wr, yK) =
+       yK.Value <- y
+       xJ.DoJob (&wr, DropCont yK)}
+
+  let (>>-!) (xJ: Job<_>) (e: exn) =
+    {new Job<'y> () with
+      override yJ'.DoJob (wr, yK_) =
+       xJ.DoJob (&wr, {new Cont_State<_, _> () with
+        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
+        override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.State, &wr, e)
+        override xK'.DoWork (wr) = Handler.DoHandle (xK'.State, &wr, e)
+        override xK'.DoCont (wr, _) =
+          Handler.DoHandle (xK'.State, &wr, e)}.Init(yK_))}
+
+  let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) =
+    x2yJ x >>= y2zJ
+
+  let inline (>->) (x2yJ: 'x -> #Job<'y>) (y2z: 'y -> 'z) (x: 'x) =
+    x2yJ x >>- y2z
+
+  type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
+    inherit Cont<'y> ()
+    override yK'.GetProc (wr) = xyK.GetProc (&wr)
+    override yK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+    override yK'.DoWork (wr) = xyK.DoCont (&wr, (x, yK'.Value))
+    override yK'.DoCont (wr, y) = xyK.DoCont (&wr, (x, y))
+
+  type PairCont<'x, 'y> (yJ: Job<'y>, xyK: Cont<'x * 'y>) =
+    inherit Cont<'x> ()
+    override xK'.GetProc (wr) = xyK.GetProc (&wr)
+    override xK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
+    override xK'.DoWork (wr) =
+      yJ.DoJob (&wr, PairCont2<'x, 'y> (xK'.Value, xyK))
+    override xK'.DoCont (wr, x) = yJ.DoJob (&wr, PairCont2<'x, 'y> (x, xyK))
+
+  let (<&>) (xJ: Job<'x>) (yJ: Job<'y>) =
+    {new Job<'x * 'y> () with
+      override xyJ'.DoJob (wr, xyK) =
+       xJ.DoJob (&wr, PairCont (yJ, xyK))}
+
+  let (<*>) (xJ: Job<'x>) (yJ: Job<'y>) =
+    {new Job<'x * 'y> () with
+      override xyJ'.DoJob (wr, xyK) =
+       let yK' = ParTuple<'x, 'y> (xyK)
+       Worker.PushNew (&wr, {new Cont_State<_, Job<'x>> () with
+        override xK'.GetProc (wr) = yK'.GetProc (&wr)
+        override xK'.DoHandle (wr, e) = yK'.DoHandle (&wr, e)
+        override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
+        override xK'.DoWork (wr) =
+         match xK'.State with
+          | null -> yK'.DoOtherCont (&wr, xK'.Value)
+          | xJ ->
+            xK'.State <- null
+            xJ.DoJob (&wr, xK')}.Init(xJ))
+       yJ.DoJob (&wr, yK')}
+
+  let inline either (wr: byref<Worker>) xK (xA1: Alt<_>) (xA2: Alt<_>) =
+    xA1.TryAlt (&wr, 0, xK, {new Pick_State<Alt<'x>> () with
+     override xE'.TryElse (wr, i) =
+      match xE'.State1 with
+       | null -> ()
+       | xA2 ->
+         xE'.State1 <- null
+         xA2.TryAlt (&wr, i, xK, xE')}.Init(xA2))
+
+  let inline eitherOr (wr: byref<Worker>)
+                      i
+                      xK
+                      (xE: Else)
+                      (xA1: Alt<_>)
+                      (xA2: Alt<_>) =
+    xA1.TryAlt (&wr, i, xK, {new Else () with
+     override xE'.TryElse (wr, i) =
+      xA2.TryAlt (&wr, i, xK, xE)}.Init(xE.pk))
+
+  let (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) = either &wr xK xA1 xA2
+      override xA'.TryAlt (wr, i, xK, xE) = eitherOr &wr i xK xE xA1 xA2}
+
+  let (<~>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
+       then either &wr xK xA1 xA2
+       else either &wr xK xA2 xA1
+      override xA'.TryAlt (wr, i, xK, xE) =
+       if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
+       then eitherOr &wr i xK xE xA1 xA2
+       else eitherOr &wr i xK xE xA2 xA1}
+
+  let inline (^->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
+    {new AltMap<'x, 'y> () with
+      override yA'.Do (x) = x2y x}.InternalInit(xA)
+
+  let inline (^=>) (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) =
+    {new AltBind<'x, 'y> () with
+      override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
+
+  let (^->.) (xA: Alt<_>) (y: 'y) =
+    {new Alt<'y> () with
+      override yA'.DoJob (wr, yK) =
+       yK.Value <- y
+       xA.DoJob (&wr, DropCont yK)
+      override yA'.TryAlt (wr, i, yK, yE) =
+       xA.TryAlt (&wr, i, ValueCont (y, yK), yE)}
+
+  let (^->!) (xA: Alt<_>) (e: exn) =
+    {new Alt<'y> () with
+      override yA'.DoJob (wr, yK) =
+       xA.DoJob (&wr, FailCont (yK, e))
+      override yA'.TryAlt (wr, i, yK, yE) =
+       xA.TryAlt (&wr, i, FailCont (yK, e), yE)}
+
+  let (^=>.) (xA: Alt<_>) (yJ: Job<'y>) =
+    {new Alt<'y> () with
+      override yA'.DoJob (wr, yK) =
+       xA.DoJob (&wr, SeqCont (yJ, yK))
+      override yA'.TryAlt (wr, i, yK, yE) =
+       xA.TryAlt (&wr, i, SeqCont (yJ, yK), yE)}
+
+  let (<+>) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
+        xA ^=> fun x -> yA ^-> fun y -> (x, y)
+    <|> yA ^=> fun y -> xA ^-> fun x -> (x, y)
+
+  let inline memo (xJ: Job<'x>) = Promise<'x> (xJ)
+  let inline (<|>*) xA1 xA2 = xA1 <|> xA2 |> memo
+  let inline (>>=*) xJ x2yJ = xJ >>= x2yJ |> memo
+  let inline (>>=*.) xJ yJ = xJ >>=. yJ |> memo
+  let inline (>>-*) xJ x2y = xJ >>- x2y |> memo
+  let inline (>>-*.) xJ y = xJ >>-. y |> memo
+  let inline (>>-*!) xJ e = xJ >>-! e |> memo
+  let inline (>=>*) x2yJ y2zJ x = x2yJ x >>=* y2zJ
+  let inline (>->*) x2yJ y2z x = x2yJ x >>-* y2z
+
+  let inline ( *<- ) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
+  let inline ( *<+ ) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
+  let inline ( *<+->= ) qCh rCh2n2qJ =
+    {new AltWithNackJob<_, _> () with
+      override xA'.Do (nack) =
+        let rCh = Ch<_> ()
+        rCh2n2qJ rCh nack >>= fun q ->
+        qCh *<+ q >>-.
+        rCh} :> Alt<_>
+  let inline ( *<+->- ) qCh rCh2n2q =
+    {new AltWithNackJob<_, _> () with
+      override xA'.Do (nack) =
+        let rCh = Ch<_> ()
+        qCh *<+ rCh2n2q rCh nack >>-.
+        rCh} :> Alt<_>
+  let ( *<-=>= ) qCh rI2qJ =
+    let inline u2xAJ () =
+      let rI = IVar<_> ()
+      rI2qJ rI >>- fun q ->
+      qCh *<- q ^=>.
+      rI
+    {new Alt<'x> () with
+      override xA'.DoJob (wr, xK) =
+       u2xAJ().DoJob (&wr, GuardJobCont xK)
+      override xA'.TryAlt (wr, i, xK, xE) =
+       Pick.ClaimAndDoJob (xE.pk, &wr, u2xAJ (), GuardCont (i, xK, xE))}
+  let inline ( *<-=>- ) qCh rI2q =
+    {new AltDelay<'x> () with
+      override xA'.Do () =
+        let rI = IVar<_> ()
+        qCh *<- rI2q rI ^=>.
+        rI} :> Alt<_>
+  let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
+  let inline ( *<=! ) (xI: IVar<'x>) (e: exn) =
+    IVar<'x>.FillFailure (xI, e) :> Job<unit>
+  let inline ( *<<= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
+  let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) =
+    MailboxSend<'x> (xMb, x) :> Job<unit>
+
+  [<Obsolete "Use `*<-` rather than `<--`">]
+  let inline (<--) xCh x = xCh *<- x
+  [<Obsolete "Use `*<+` rather than `<-+`">]
+  let inline (<-+) xCh x = xCh *<+ x
+  [<Obsolete "Use `*<=` rather than `<-=`">]
+  let inline (<-=) xI x = xI *<= x
+  [<Obsolete "Use `*<=!` rather than `<-=!`">]
+  let inline (<-=!) xI e = xI *<=! e
+  [<Obsolete "Use `*<<=` rather than `<<-=`">]
+  let inline (<<-=) xM x = xM *<<= x
+  [<Obsolete "Use `*<<+` rather than `<<-+`">]
+  let inline (<<-+) xMb x = xMb *<<+ x
+
+open Infixes
+
+////////////////////////////////////////////////////////////////////////////////
+
+module Alt =
+  let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
+
+  let inline unit () =
+    match StaticData.unit with
+     | null -> StaticData.Init () ; StaticData.unit
+     | unit -> unit
+
+  let inline never () = Never<_>() :> Alt<_>
+
+  let inline zero () =
+    match StaticData.zero with
+     | null -> StaticData.Init () ; StaticData.zero :> Alt<_>
+     | zero -> zero :> Alt<_>
+
+  let inline once x = Once<'x> (x) :> Alt<'x>
+
+  let raises e = Raises (e) :> Alt<_>
 
   let prepareJob (u2xAJ: unit -> #Job<#Alt<'x>>) =
     {new Alt<'x> () with
@@ -335,98 +542,29 @@ module Alt =
       override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
 
   module Infixes =
-    let inline either (wr: byref<Worker>) xK (xA1: Alt<_>) (xA2: Alt<_>) =
-      xA1.TryAlt (&wr, 0, xK, {new Pick_State<Alt<'x>> () with
-       override xE'.TryElse (wr, i) =
-        match xE'.State1 with
-         | null -> ()
-         | xA2 ->
-           xE'.State1 <- null
-           xA2.TryAlt (&wr, i, xK, xE')}.Init(xA2))
-
-    let inline eitherOr (wr: byref<Worker>)
-                        i
-                        xK
-                        (xE: Else)
-                        (xA1: Alt<_>)
-                        (xA2: Alt<_>) =
-      xA1.TryAlt (&wr, i, xK, {new Else () with
-       override xE'.TryElse (wr, i) =
-        xA2.TryAlt (&wr, i, xK, xE)}.Init(xE.pk))
-
-    let (<|>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
-      {new Alt<'x> () with
-        override xA'.DoJob (wr, xK) = either &wr xK xA1 xA2
-        override xA'.TryAlt (wr, i, xK, xE) = eitherOr &wr i xK xE xA1 xA2}
-
-    let (<~>) (xA1: Alt<'x>) (xA2: Alt<'x>) =
-      {new Alt<'x> () with
-        override xA'.DoJob (wr, xK) =
-         if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
-         then either &wr xK xA1 xA2
-         else either &wr xK xA2 xA1
-        override xA'.TryAlt (wr, i, xK, xE) =
-         if int (Randomizer.Next (&wr.RandomLo, &wr.RandomHi)) < 0
-         then eitherOr &wr i xK xE xA1 xA2
-         else eitherOr &wr i xK xE xA2 xA1}
-
-    let inline (^->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
-      {new AltMap<'x, 'y> () with
-        override yA'.Do (x) = x2y x}.InternalInit(xA)
-
-    let inline (^=>) (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) =
-      {new AltBind<'x, 'y> () with
-        override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
-
-    let (^->.) (xA: Alt<_>) (y: 'y) =
-      {new Alt<'y> () with
-        override yA'.DoJob (wr, yK) =
-         yK.Value <- y
-         xA.DoJob (&wr, DropCont yK)
-        override yA'.TryAlt (wr, i, yK, yE) =
-         xA.TryAlt (&wr, i, ValueCont (y, yK), yE)}
-
-    let (^->!) (xA: Alt<_>) (e: exn) =
-      {new Alt<'y> () with
-        override yA'.DoJob (wr, yK) =
-         xA.DoJob (&wr, FailCont (yK, e))
-        override yA'.TryAlt (wr, i, yK, yE) =
-         xA.TryAlt (&wr, i, FailCont (yK, e), yE)}
-
-    let (^=>.) (xA: Alt<_>) (yJ: Job<'y>) =
-      {new Alt<'y> () with
-        override yA'.DoJob (wr, yK) =
-         xA.DoJob (&wr, SeqCont (yJ, yK))
-        override yA'.TryAlt (wr, i, yK, yE) =
-         xA.TryAlt (&wr, i, SeqCont (yJ, yK), yE)}
-
-    let (<+>) (xA: Alt<'x>) (yA: Alt<'y>) : Alt<'x * 'y> =
-          xA ^=> fun x -> yA ^-> fun y -> (x, y)
-      <|> yA ^=> fun y -> xA ^-> fun x -> (x, y)
-
     [<Obsolete "Use `<|>` rather than `<|>?`">]
-    let (<|>?) xA1 xA2 = xA1 <|> xA2
+    let inline ( <|>? ) xA1 xA2 = xA1 <|> xA2
     [<Obsolete "Use `<~>` rather than `<~>?`">]
-    let (<~>?) x y = x <~> y
+    let inline ( <~>? ) x y = x <~> y
     [<Obsolete "Use `^=>` rather than `>>=?`">]
-    let inline (>>=?) xA x2yJ = xA ^=> x2yJ
+    let inline ( >>=? ) xA x2yJ = xA ^=> x2yJ
     [<Obsolete "Use `^=>.` rather than `>>.?`">]
-    let (>>.?) xA yJ = xA ^=>. yJ
+    let inline ( >>.? ) xA yJ = xA ^=>. yJ
     [<Obsolete "`.>>?` is to be removed">]
-    let (.>>?) (xA: Alt<'x>) (yJ: Job<_>) =
+    let ( .>>? ) (xA: Alt<'x>) (yJ: Job<_>) =
       {new Alt<'x> () with
         override xA'.DoJob (wr, xK) =
          xA.DoJob (&wr, SkipCont (xK, yJ))
         override xA'.TryAlt (wr, i, xK, xE) =
          xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
     [<Obsolete "Use `^->` rather than `|>>?`">]
-    let inline (|>>?) xA x2y = xA ^-> x2y
+    let inline ( |>>? ) xA x2y = xA ^-> x2y
     [<Obsolete "Use `^->.` rather than `>>%?`">]
-    let (>>%?) xA y = xA ^->. y
+    let inline ( >>%? ) xA y = xA ^->. y
     [<Obsolete "Use `^->!` rather than `>>!?`">]
-    let (>>!?) xA e = xA ^->! e
+    let inline ( >>!? ) xA e = xA ^->! e
     [<Obsolete "Use `<+>` rather than `<+>?`">]
-    let (<+>?) xA yA = xA <+> yA
+    let inline ( <+>? ) xA yA = xA <+> yA
 
   let Ignore (xA: Alt<_>) =
     {new Alt<unit> () with
@@ -942,90 +1080,27 @@ module Job =
   //////////////////////////////////////////////////////////////////////////////
 
   module Infixes =
-    let inline (>>=) (xJ: Job<'x>) (x2yJ: 'x -> #Job<'y>) =
-      {new JobBind<'x, 'y> () with
-        override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xJ)
-
-    let (>>=.) (xJ: Job<_>) (yJ: Job<'y>) =
-      {new Job<'y> () with
-        override yJ'.DoJob (wr, yK) =
-         xJ.DoJob (&wr, SeqCont (yJ, yK))}
-
-    let inline (>>-) (xJ: Job<'x>) (x2y: 'x -> 'y) =
-      {new JobMap<'x, 'y> () with
-        override yJ'.Do (x) = x2y x}.InternalInit(xJ)
-
-    let (>>-.) (xJ: Job<_>) (y: 'y) =
-      {new Job<'y> () with
-        override yJ'.DoJob (wr, yK) =
-         yK.Value <- y
-         xJ.DoJob (&wr, DropCont yK)}
-
-    let (>>-!) (xJ: Job<_>) (e: exn) =
-      {new Job<'y> () with
-        override yJ'.DoJob (wr, yK_) =
-         xJ.DoJob (&wr, {new Cont_State<_, _> () with
-          override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-          override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.State, &wr, e)
-          override xK'.DoWork (wr) = Handler.DoHandle (xK'.State, &wr, e)
-          override xK'.DoCont (wr, _) =
-            Handler.DoHandle (xK'.State, &wr, e)}.Init(yK_))}
-
-    let inline (>=>) (x2yJ: 'x -> #Job<'y>) (y2zJ: 'y -> #Job<'z>) (x: 'x) =
-      x2yJ x >>= y2zJ
-
-    let inline (>->) (x2yJ: 'x -> #Job<'y>) (y2z: 'y -> 'z) (x: 'x) =
-      x2yJ x >>- y2z
-
-    type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
-      inherit Cont<'y> ()
-      override yK'.GetProc (wr) = xyK.GetProc (&wr)
-      override yK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
-      override yK'.DoWork (wr) = xyK.DoCont (&wr, (x, yK'.Value))
-      override yK'.DoCont (wr, y) = xyK.DoCont (&wr, (x, y))
-
-    type PairCont<'x, 'y> (yJ: Job<'y>, xyK: Cont<'x * 'y>) =
-      inherit Cont<'x> ()
-      override xK'.GetProc (wr) = xyK.GetProc (&wr)
-      override xK'.DoHandle (wr, e) = xyK.DoHandle (&wr, e)
-      override xK'.DoWork (wr) =
-        yJ.DoJob (&wr, PairCont2<'x, 'y> (xK'.Value, xyK))
-      override xK'.DoCont (wr, x) = yJ.DoJob (&wr, PairCont2<'x, 'y> (x, xyK))
-
-    let (<&>) (xJ: Job<'x>) (yJ: Job<'y>) =
-      {new Job<'x * 'y> () with
-        override xyJ'.DoJob (wr, xyK) =
-         xJ.DoJob (&wr, PairCont (yJ, xyK))}
-
-    let (<*>) (xJ: Job<'x>) (yJ: Job<'y>) =
-      {new Job<'x * 'y> () with
-        override xyJ'.DoJob (wr, xyK) =
-         let yK' = ParTuple<'x, 'y> (xyK)
-         Worker.PushNew (&wr, {new Cont_State<_, Job<'x>> () with
-          override xK'.GetProc (wr) = yK'.GetProc (&wr)
-          override xK'.DoHandle (wr, e) = yK'.DoHandle (&wr, e)
-          override xK'.DoCont (wr, a) = yK'.DoOtherCont (&wr, a)
-          override xK'.DoWork (wr) =
-           match xK'.State with
-            | null -> yK'.DoOtherCont (&wr, xK'.Value)
-            | xJ ->
-              xK'.State <- null
-              xJ.DoJob (&wr, xK')}.Init(xJ))
-         yJ.DoJob (&wr, yK')}
-
+    [<Obsolete "Use `Hopac.Infixes.>>=`">]
+    let inline ( >>= ) xJ x2yJ = xJ >>= x2yJ
+    [<Obsolete "Use `Hopac.Infixes.>=>`">]
+    let inline ( >=> ) x2yJ y2zJ x = (x2yJ >=> y2zJ) x
+    [<Obsolete "Use `>>=.` rather than `>>.`">]
+    let inline ( >>. ) xJ yJ = xJ >>=. yJ
     [<Obsolete "`.>>` is to be removed">]
-    let (.>>) (xJ: Job<'x>) (yJ: Job<_>) =
+    let ( .>> ) (xJ: Job<'x>) (yJ: Job<_>) =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
          xJ.DoJob (&wr, SkipCont (xK, yJ))}
-    [<Obsolete "Use `>>=.` rather than `>>.`">]
-    let (>>.) xJ yJ = xJ >>=. yJ
     [<Obsolete "Use `>>-` rather than `|>>`">]
-    let inline (|>>) xJ x2y = xJ >>- x2y
+    let inline ( |>> ) xJ x2y = xJ >>- x2y
     [<Obsolete "Use `>>-.` rather than `>>%`">]
-    let (>>%) xJ y = xJ >>-. y
+    let inline ( >>% ) xJ y = xJ >>-. y
     [<Obsolete "Use `>>-!` rather than `>>!`">]
-    let (>>!) xJ e = xJ >>-! e
+    let inline ( >>! ) xJ e = xJ >>-! e
+    [<Obsolete "Use `Hopac.Infixes.<&>`">]
+    let inline ( <&> ) xJ yJ = xJ <&> yJ
+    [<Obsolete "Use `Hopac.Infixes.<*>`">]
+    let inline ( <*> ) xJ yJ = xJ <*> yJ
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -1486,26 +1561,20 @@ module Promise =
     let get (xP: Promise<'x>) = xP.Get ()
   module Infixes =
     open Job.Infixes
-    open Alt.Infixes
-    let inline (<|>*) xA1 xA2 = xA1 <|> xA2 |> Now.delay
-    let inline (>>=*) xJ x2yJ = xJ >>= x2yJ |> Now.delay
-    let inline (>>=*.) xJ yJ = xJ >>=. yJ |> Now.delay
-    let inline (>>-*) xJ x2y = xJ >>- x2y |> Now.delay
-    let inline (>>-*.) xJ y = xJ >>-. y |> Now.delay
-    let inline (>>-*!) xJ e = xJ >>-! e |> Now.delay
-    let inline (>=>*) x2yJ y2zJ x = x2yJ x >>=* y2zJ
-    let inline (>->*) x2yJ y2z x = x2yJ x >>-* y2z
-
+    [<Obsolete "Use `Hopac.Infixes.<|>*`">]
+    let inline ( <|>* ) xA yA = xA <|>* yA
+    [<Obsolete "Use `Hopac.Infixes.>>=*`">]
+    let inline ( >>=* ) xJ x2yJ = xJ >>=* x2yJ
     [<Obsolete "Use `>>=*.` rather than `>>.*`">]
-    let inline (>>.*) xJ yJ = xJ >>=*. yJ
+    let inline ( >>.* ) xJ yJ = xJ >>=*. yJ
     [<Obsolete "`.>>*` is to be removed">]
-    let inline (.>>*) xJ yJ = xJ .>> yJ |> Now.delay
+    let inline ( .>>* ) xJ yJ = xJ .>> yJ |> memo
     [<Obsolete "Use `>>-*` rather than `|>>*`">]
-    let inline (|>>*) xJ x2y = xJ >>-* x2y
+    let inline ( |>>* ) xJ x2y = xJ >>-* x2y
     [<Obsolete "Use `>>-*.` rather than `>>%*`">]
-    let inline (>>%*) xJ y = xJ >>-*. y
+    let inline ( >>%* ) xJ y = xJ >>-*. y
     [<Obsolete "Use `>>-*!` rather than `>>!*`">]
-    let inline (>>!*) xJ e = xJ >>-*! e
+    let inline ( >>!* ) xJ e = xJ >>-*! e
   let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1616,8 +1685,6 @@ module Cond =
 ////////////////////////////////////////////////////////////////////////////////
 
 module MVar =
-  open Job.Infixes
-  open Alt.Infixes
   module Now =
     let inline create () = MVar<'x> ()
     let inline createFull (x: 'x) = MVar<'x> (x)
@@ -1856,8 +1923,6 @@ module Extensions =
            cc'.Lock.Enter (&wr, cc')}
 
   //////////////////////////////////////////////////////////////////////////////
-
-  open Job.Infixes
 
   type Task with
     static member inline awaitJob (xTask: Task<'x>) =
@@ -2129,10 +2194,9 @@ module Extensions =
     member this.onceAltOnMain = this.onceAltOn (Async.getMain ())
     member this.onceAlt = this.onceAltOn null
 
-////////////////////////////////////////////////////////////////////////////////
-
 open Extensions
-open Job.Infixes
+
+////////////////////////////////////////////////////////////////////////////////
 
 type JobBuilder () =
   member inline job.Bind (xO: IObservable<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
@@ -2174,40 +2238,6 @@ type EmbeddedJob<'x> = struct
 type EmbeddedJobBuilder () =
   inherit JobBuilder ()
   member this.Run (xJ: Job<'x>) : EmbeddedJob<'x> = EmbeddedJob<'x> (xJ)
-
-////////////////////////////////////////////////////////////////////////////////
-
-module Infixes =
-  open Alt.Infixes
-  let inline ( *<- ) (xCh: Ch<'x>) (x: 'x) = ChGive<'x> (xCh, x) :> Alt<unit>
-  let inline ( *<+ ) (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
-  let inline ( *<+-> ) qCh rCh2n2q = Alt.withNackJob <| fun nack ->
-    let rCh = Ch<_> ()
-    qCh *<+ rCh2n2q rCh nack >>-.
-    rCh
-  let inline ( *<-=> ) qCh rI2q = Alt.prepareFun <| fun () ->
-    let rI = IVar<_> ()
-    qCh *<- rI2q rI ^=>.
-    rI
-  let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
-  let inline ( *<=! ) (xI: IVar<'x>) (e: exn) =
-    IVar<'x>.FillFailure (xI, e) :> Job<unit>
-  let inline ( *<<= ) (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
-  let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) =
-    MailboxSend<'x> (xMb, x) :> Job<unit>
-
-  [<Obsolete "Use `*<-` rather than `<--`">]
-  let inline (<--) xCh x = xCh *<- x
-  [<Obsolete "Use `*<+` rather than `<-+`">]
-  let inline (<-+) xCh x = xCh *<+ x
-  [<Obsolete "Use `*<=` rather than `<-=`">]
-  let inline (<-=) xI x = xI *<= x
-  [<Obsolete "Use `*<=!` rather than `<-=!`">]
-  let inline (<-=!) xI e = xI *<=! e
-  [<Obsolete "Use `*<<=` rather than `<<-=`">]
-  let inline (<<-=) xM x = xM *<<= x
-  [<Obsolete "Use `*<<+` rather than `<<-+`">]
-  let inline (<<-+) xMb x = xMb *<<+ x
 
 ////////////////////////////////////////////////////////////////////////////////
 

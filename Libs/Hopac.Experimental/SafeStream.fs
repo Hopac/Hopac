@@ -7,9 +7,6 @@ open System.Collections.Generic
 open System.Threading
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
-open Hopac.Promise.Infixes
 open Hopac.Extensions
 
 type Live = interface end

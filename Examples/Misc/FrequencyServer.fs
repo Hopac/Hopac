@@ -8,24 +8,19 @@ module FrequencyServer
 open System.Collections.Generic
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
 
 type Frequency = int
-type FrequencyServer = {
-    allocCh: Ch<Proc * Promise<unit> * Ch<Frequency>>
-    deallocCh: Ch<Proc * Frequency>
-  }
+type FrequencyServer =
+   {allocCh: Ch<Proc * Ch<Frequency> * Promise<unit>>
+    deallocCh: Ch<Proc * Frequency>}
 
-let allocate s = Alt.withNackJob <| fun nack ->
-  Proc.self () >>= fun self ->
-  let replyCh = Ch ()
-  s.allocCh *<+ (self, nack, replyCh) >>-.
-  replyCh
+let allocate s =
+  s.allocCh *<+->= fun replyCh nack ->
+    Proc.map <| fun self -> (self, replyCh, nack)
 
 let deallocate s freq =
-  Proc.self () >>= fun self ->
-  s.deallocCh *<- (self, freq)
+  Proc.bind <| fun self ->
+  s.deallocCh *<+ (self, freq)
 
 let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
   let self = {allocCh = Ch (); deallocCh = Ch ()}
@@ -48,7 +43,7 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
 
   let someFree =
         noneFree
-    <|> self.allocCh ^=> fun (proc, nack, replyCh) ->
+    <|> self.allocCh ^=> fun (proc, replyCh, nack) ->
           let mutable e = free.GetEnumerator ()
           if e.MoveNext () then
             let freq = e.Current

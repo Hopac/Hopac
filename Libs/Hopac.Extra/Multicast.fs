@@ -4,8 +4,6 @@ namespace Hopac.Extra
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
 
 type MPort<'a> =
  | MPort of Alt<'a>

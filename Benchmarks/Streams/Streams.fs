@@ -8,9 +8,6 @@ open System
 open System.Diagnostics
 open System.Threading
 open Hopac
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
-open Hopac.Promise.Infixes
 open Hopac.Infixes
 
 module Stream =

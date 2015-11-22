@@ -4,8 +4,6 @@ namespace Hopac.Experimental
 
 open System
 open Hopac
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
 open Hopac.Infixes
 
 type AltsCons<'x> =

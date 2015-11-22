@@ -4,7 +4,7 @@ namespace Models
 
 module ActorModel =
   open Hopac
-  open Hopac.Job.Infixes
+  open Hopac.Infixes
 
   type AT<'a, 'x> = AT of (Ch<'a> -> Job<'x>)
   let unAT (AT x) = x

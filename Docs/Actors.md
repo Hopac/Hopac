@@ -79,7 +79,7 @@ module HopacModel =
 ```
 
 Using the monadic operations,
-`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E=)
 and
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result),
 one can define a thread of execution, represented by the type

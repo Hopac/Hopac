@@ -4,7 +4,6 @@ namespace Hopac.Experimental
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
 
 type EagerSeq<'x> = {EagerSeq: IVar<option<'x * EagerSeq<'x>>>}
 

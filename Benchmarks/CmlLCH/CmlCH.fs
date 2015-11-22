@@ -4,8 +4,6 @@ open System
 open System.Diagnostics
 open Hopac
 open Hopac.Infixes
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
 
 module EgPaper =
   let egpaper =
@@ -44,9 +42,9 @@ module SwapCh =
 
   let swapch () = Ch ()
 
-  let swap sCh outMsg =
-        sCh *<-=> fun inI -> (outMsg, inI)
-    <|> sCh ^=> fun (inMsg, outI) -> outI *<= outMsg >>-. inMsg
+  let swap swapCh outMsg =
+        swapCh *<-=>- fun inIv -> (outMsg, inIv)
+    <|> swapCh ^=> fun (inMsg, outIv) -> outIv *<= outMsg >>-. inMsg
 
   let bench = Job.delay <| fun () ->
     let sCh = swapch ()

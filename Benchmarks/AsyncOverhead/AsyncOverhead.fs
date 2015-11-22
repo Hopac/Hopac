@@ -3,8 +3,8 @@
 module AsyncOverhead
 
 open Hopac
+open Hopac.Infixes
 open Hopac.Extensions
-open Hopac.Job.Infixes
 open System
 open System.Diagnostics
 open System.Threading.Tasks

@@ -6,7 +6,6 @@ open System
 open System.Diagnostics
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
 
 module Literal =
   let run n =

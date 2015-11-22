@@ -5,8 +5,6 @@ module Chameneos
 open Hopac
 open Hopac.Infixes
 open Hopac.Extensions
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
 open System
 open System.Diagnostics
 
@@ -178,7 +176,7 @@ module HopacAlt =
             outCh *<= Some msgOut >>-. Some msgIn
           else
             outCh *<= None >>-. None
-        csch.Ch *<-=> fun inI -> (msgOut, inI)
+        csch.Ch *<-=>- fun inI -> (msgOut, inI)
         csch.Done :> Alt<_> |]
 
   module Creature =

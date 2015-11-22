@@ -4,13 +4,11 @@ namespace Hopac.Extra
 
 open System.Collections.Generic
 open Hopac
-open Hopac.Alt.Infixes
 open Hopac.Infixes
-open Hopac.Job.Infixes
 
 type SelectableQueue<'a> =
   {SendCh: Ch<'a>
-   TakeCh: Ch<('a -> bool) * Promise<unit> * Ch<'a>>}
+   TakeCh: Ch<('a -> bool) * Ch<'a> * Promise<unit>>}
 
 module SelectableQueue =
   let nodes (q: LinkedList<_>) =
@@ -22,10 +20,10 @@ module SelectableQueue =
   let create () = Job.delay <| fun () ->
     let q = {SendCh = Ch (); TakeCh = Ch ()}
     let msgs = LinkedList<'a>()
-    let reqs = LinkedList<('a -> bool) * Promise<unit> * Ch<'a>>()
+    let reqs = LinkedList<('a -> bool) * Ch<'a> * Promise<unit>>()
      in nodes reqs
         |> Seq.map (fun (reqNode: LinkedListNode<_>) ->
-           let (pred, cancel, replyCh) = reqNode.Value
+           let (pred, replyCh, cancel) = reqNode.Value
            let cancelAlt = cancel ^-> fun () -> reqs.Remove reqNode
            match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
             | None         -> cancelAlt
@@ -39,4 +37,4 @@ module SelectableQueue =
      |> Job.foreverServer >>-. q
 
   let send q x = q.SendCh *<+ x
-  let take q p = q.TakeCh *<+-> fun replyCh nack -> (p, nack, replyCh)
+  let take q p = q.TakeCh *<+->- fun replyCh nack -> (p, replyCh, nack)

@@ -6,8 +6,6 @@ open FsCheck
 open System
 open System.Numerics
 open Hopac
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
 open Hopac.Infixes
 
 module Stream =

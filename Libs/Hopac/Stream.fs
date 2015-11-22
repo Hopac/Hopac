@@ -6,11 +6,8 @@ open System
 open System.Collections.Generic
 open System.Threading
 open Hopac.Infixes
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
-open Hopac.Promise.Infixes
 open Hopac.Extensions
-open Timer.Global
+open Hopac.Timer.Global
 
 module Stream =
   let imp () = failwith "Impossible"

@@ -3,8 +3,6 @@
 namespace Hopac.Experimental
 
 open Hopac
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
 open Hopac.Infixes
 
 module Alt =

@@ -4,7 +4,6 @@ namespace Hopac.Extra
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
 
 type InCh<'a> = InCh of Ch<'a>
 type OutCh<'a> = OutCh of Ch<'a>

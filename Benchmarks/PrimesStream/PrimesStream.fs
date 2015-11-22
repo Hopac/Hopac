@@ -5,8 +5,7 @@ module PrimesStream
 open System
 open System.Diagnostics
 open Hopac
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
+open Hopac.Infixes
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -150,8 +149,6 @@ module HopacPromise =
 ////////////////////////////////////////////////////////////////////////////////
 
 module HopacStream =
-  open Hopac.Promise.Infixes
-
   let sieve () = Stream.delay <| fun () ->
     let rec sieve nats =
       nats >>=* function

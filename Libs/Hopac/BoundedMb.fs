@@ -4,8 +4,6 @@ namespace Hopac
 
 open System.Collections.Generic
 open Hopac.Infixes
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
 
 type BoundedMb<'x> = {putCh: Ch<'x>; takeCh: Ch<'x>}
 

@@ -11,7 +11,6 @@ open System.Threading.Tasks
 open Hopac
 open Hopac.Infixes
 open Hopac.Extensions
-open Hopac.Job.Infixes
 
 module ChMsg =
   type Msg =

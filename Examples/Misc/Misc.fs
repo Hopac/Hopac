@@ -4,8 +4,6 @@ namespace Misc
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Alt.Infixes
-open Hopac.Job.Infixes
 
 module Alts =
   let sumWith (xy2z: 'x -> 'y -> Job<'z>)

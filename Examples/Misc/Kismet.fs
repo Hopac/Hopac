@@ -5,9 +5,7 @@ open System.Collections.Generic
 open Hopac
 open Hopac.Infixes
 open Hopac.Alt
-open Hopac.Alt.Infixes
 open Hopac.Job
-open Hopac.Job.Infixes
 open Hopac.Extensions
 
 // Inspired by http://upload.wikimedia.org/wikipedia/en/e/e6/Kismet_Roboblitz.PNG
@@ -19,7 +17,7 @@ module GameTime =
   let internal timerReqCh : Ch<Ticks * IVar<unit>> = Ch ()
 
   let atTime atTime =
-    timerReqCh *<-=> fun replyI -> (atTime, replyI)
+    timerReqCh *<-=>- fun replyI -> (atTime, replyI)
 
   let timeOut afterTicks =
     assert (0L <= afterTicks)

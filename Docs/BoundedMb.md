@@ -133,7 +133,7 @@ combinator.
 Here is a sample interactive session with `BoundedMb`:
 
 ```fsharp
-open Hopac.Alt.Infixes
+open Hopac.Infixes
 > let mb: BoundedMb<int> = BoundedMb.create 1 |> run ;;
 val mb : BoundedMb<int>
 > BoundedMb.put mb 123 |> run ;;

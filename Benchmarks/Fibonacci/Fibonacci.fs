@@ -4,7 +4,7 @@ module Fibonacci
 /////////////////////////////////////////////////////////////////////////
 
 open Hopac
-open Hopac.Job.Infixes
+open Hopac.Infixes
 open System
 open System.Threading
 open System.Threading.Tasks
@@ -185,8 +185,6 @@ module Task =
 /////////////////////////////////////////////////////////////////////////
 
 module FibNck =
-  open Hopac.Alt.Infixes
-
   let rec fibWithNack (n: int64) (cancel: Alt<int64>) : Job<int64> =
     if n < 2L then
       Job.result n

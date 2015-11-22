@@ -65,7 +65,7 @@ open it up a bit.
   They can be bound to variables, passed to and returned from functions and can
   even be sent from one job to another.
 * **Higher-order** means that primitive alternatives can be combined and
-  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+  extended[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E=%3E)
   with user defined procedures to
   build[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)
   more
@@ -306,7 +306,7 @@ workflow builder like we did in the previous section.  The other way is to
 directly use the monadic combinators,
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and bind,
-`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=),
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E=),
 that the workflow builder abstracts away.  I personally mostly prefer using the
 monadic combinators with an occasional excursion with the workflow notation.  I
 have a number of reasons for this:
@@ -315,9 +315,9 @@ have a number of reasons for this:
 * I often find it easier to understand the code when it is written with the
   monadic combinators.
 * There are many very commonly used monadic combinators,
-  e.g. `>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-)
+  e.g. `>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E-)
   and
-  `>>-.`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-.),
+  `>>-.`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E-.),
   that do not have a corresponding workflow builder function and notation and
   use of those combinators leads to faster code.
 * Using the combinators directly I can often avoid some unnecessary
@@ -459,12 +459,12 @@ alternatives[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt):
 * The first alternative
   takes[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
   a value on the `putCh` channel from a client and
-  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E=%3E)
   loops.
 * The second alternative
   gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.take)
   a value on the `getCh` channel to a client and
-  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+  then[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E=%3E)
   loops.
 
 What this basically means is that the server makes an offer to perform the
@@ -805,13 +805,13 @@ let rec fib n = Job.delay <| fun () ->
 ```
 
 The above implementation makes use of the combinators
-`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%26%3E)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3C%26%3E)
 and
-`>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E-)
+`>>-`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E-)
 whose meanings can be specified in terms of
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
 and
-`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+`>>=`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E=)
 as follows:
 
 ```fsharp
@@ -836,9 +836,9 @@ computing Fibonacci numbers.
 
 Let's make a small change, namely, let's change from the sequential pair
 combinator
-`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%26%3E)
+`<&>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3C%26%3E)
 to the parallel pair combinator
-`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3C%2A%3E):
+`<*>`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3C%2A%3E):
 
 ```fsharp
 let rec fib n = Job.delay <| fun () ->
@@ -1161,16 +1161,16 @@ When one of the alternatives in the disjunction becomes available, the
 alternative is committed to and the other alternatives are canceled.
 
 The after `^=>`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E=%3E)
 operation is somewhat similar to the bind `>>=`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Infixes.%3E%3E=)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3E%3E=)
 operation on jobs and allows one to extend an alternative so that further
 operations are performed after the alternative has been committed to.  Similarly
 to corresponding operations on jobs, several commonly useful operators, such as
 `^->`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E-%3E)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E-%3E)
 and `^->.`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E-%3E.),
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E-%3E.),
 are provided in addition to `^=>` on alternatives.
 
 In this case we use the ability to simply map the button messages to a boolean
@@ -1194,7 +1194,7 @@ create new alternatives and those alternatives are first-class values just like
 the primitive `give` and `take` alternatives on channels.  For the common case
 of simply combining just two
 alternatives the operation `<|>`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%3C%7C%3E)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%3C%7C%3E)
 is provided.  Its semantics can be described as follows:
 
 ```fsharp
@@ -1213,7 +1213,7 @@ set of events that is specified statically in the program text.
 ### Prepare
 
 The after combinator `^=>`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.Infixes.%5E=%3E)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Infixes.%5E=%3E)
 allows post-commit actions to be added to an alternative.  Hopac also provides
 the `prepareJob`
 [*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.prepareJob)

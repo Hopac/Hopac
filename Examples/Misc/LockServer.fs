@@ -5,8 +5,6 @@ module LockServer
 open System.Collections.Generic
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +24,7 @@ type Server = {
 let release s (Lock lock) = s.reqCh *<- Release lock
 
 let acquire s (Lock lock) =
-  s.reqCh *<+-> fun replyCh nack -> Acquire (lock, replyCh, nack)
+  s.reqCh *<+->- fun replyCh nack -> Acquire (lock, replyCh, nack)
 
 let withLock s l xJ =
   acquire s l ^=> fun () ->

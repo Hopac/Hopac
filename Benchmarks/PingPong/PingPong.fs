@@ -2,7 +2,6 @@
 
 open Hopac
 open Hopac.Infixes
-open Hopac.Job.Infixes
 open Hopac.Extensions
 open System
 open System.Diagnostics

@@ -3,6 +3,9 @@
 open System
 open System.Diagnostics
 open System.Threading
+open Hopac
+open Hopac.Infixes
+open Hopac.Extensions
 
 module Array =
   let inline last (xs: array<_>) = xs.[xs.Length-1]
@@ -29,11 +32,6 @@ module Async =
       (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module MbSend =
-  open Hopac
-  open Hopac.Infixes
-  open Hopac.Job.Infixes
-  open Hopac.Extensions
-
   let run data =
     printf "MbSend:    "
     let timer = Stopwatch.StartNew ()
@@ -53,11 +51,6 @@ module MbSend =
       (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module MbSendNow =
-  open Hopac
-  open Hopac.Infixes
-  open Hopac.Job.Infixes
-  open Hopac.Extensions
-
   let run data =
     printf "MbSendNow: "
     let timer = Stopwatch.StartNew ()
@@ -76,11 +69,6 @@ module MbSendNow =
       (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChGive =
-  open Hopac
-  open Hopac.Infixes
-  open Hopac.Job.Infixes
-  open Hopac.Extensions
-
   let run data =
     printf "ChGive:    "
     let timer = Stopwatch.StartNew ()
@@ -100,11 +88,6 @@ module ChGive =
       (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChSend =
-  open Hopac
-  open Hopac.Infixes
-  open Hopac.Job.Infixes
-  open Hopac.Extensions
-
   let run data =
     printf "ChSend:    "
     let timer = Stopwatch.StartNew ()
@@ -124,11 +107,6 @@ module ChSend =
       (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChSendNow =
-  open Hopac
-  open Hopac.Infixes
-  open Hopac.Job.Infixes
-  open Hopac.Extensions
-
   let run data =
     printf "ChSendNow: "
     let timer = Stopwatch.StartNew ()
