@@ -437,6 +437,24 @@ namespace Hopac {
     }
 
     ///
+    public abstract class JobProcBind<X> : Job<X> {
+      ///
+      public abstract Job<X> Do(Proc proc);
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Do(xK.GetProc(ref wr)).DoJob(ref wr, xK);
+      }
+    }
+
+    ///
+    public abstract class JobProcMap<X> : Job<X> {
+      ///
+      public abstract X Do(Proc proc);
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Cont.Do(xK, ref wr, Do(xK.GetProc(ref wr)));
+      }
+    }
+
+    ///
     public abstract class JobRandomBind<X> : Job<X> {
       ///
       public abstract Job<X> Do(ulong random);

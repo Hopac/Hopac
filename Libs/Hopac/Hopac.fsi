@@ -312,7 +312,8 @@ module Proc =
   /// to `Job.Ignore xJ |> queue`.
   val queueIgnore: Job<_> -> Job<Proc>
 
-  /// Returns a job that returns the current process.
+  /// Creates a job that calls the given job contructor with the current
+  /// process.
 #if DOC
   ///
   /// Note that this is an `O(n)` operation where `n` is the number of
@@ -321,6 +322,13 @@ module Proc =
   /// object of the current job it may be advantageous to cache it in a local
   /// variable.
 #endif
+  val inline bind: (Proc -> #Job<'x>) -> Job<'x>
+
+  /// `map p2x` is equivalent to `bind (p2x >> result)`.
+  val inline map: (Proc -> 'x) -> Job<'x>
+
+  /// Returns a job that returns the current process.  `self ()` is equivalent
+  /// to `bind result`.
   val inline self: unit -> Job<Proc>
 
   /// Returns an alternative that becomes available once the process is known to

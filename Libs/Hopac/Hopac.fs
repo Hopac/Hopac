@@ -1536,6 +1536,14 @@ module Proc =
   let inline queue (uJ: Job<unit>) =
     queueIgnore uJ
 
+  let inline bind (p2xJ: Proc -> #Job<_>) =
+    {new JobProcBind<_> () with
+      override xJ'.Do (proc) = upcast p2xJ proc} :> Job<_>
+
+  let inline map (p2x: Proc -> _) =
+    {new JobProcMap<_> () with
+      override xJ'.Do (proc) = p2x proc} :> Job<_>
+
   let inline self () =
     match StaticData.proc with
      | null -> StaticData.Init () ; StaticData.proc
