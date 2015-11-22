@@ -2,11 +2,11 @@ Background reading: [Where is the monad?](http://www.quanttec.com/fparsec/users-
 
  Workflow expression                      | Function expression                | Operator expression
 :---------------------------------------- |:---------------------------------- |:----------------------------
-`let! x = xJ; ...`                        | `xJ |> Job.bind (fun x -> yJ)`     | `xJ >>= fun x -> yJ`
-`let! _ = xJ; return! yJ`                 |                                    | `xJ >>=. yJ`
-`let! x = xJ; return f x`                 | `xJ |> Job.map (fun x -> y)`       | `xJ >>- fun x -> y`
-`let! _ = xJ; return y`                   |                                    | `xJ >>-. y`
-`let! _ = xJ; raise e`                    |                                    | `xJ >>-! e`
+`let! x = xJ; ...`                        | `xJ |> Job.bind (fun x -> ...)`    | `xJ >>= fun x -> ...`
+`let! _ = xJ; return! ...`                |                                    | `xJ >>=. ...`
+`let! x = xJ; return ...`                 | `xJ |> Job.map (fun x -> ...)`     | `xJ >>- fun x -> ...`
+`let! _ = xJ; return ...`                 |                                    | `xJ >>-. ...`
+`let! _ = xJ; raise ...`                  |                                    | `xJ >>-! ...`
 `let! x = xJ; let! y = yJ; return (x, y)` |                                    | `xJ <&> yJ`
 
  Function expression               | Operator expression
