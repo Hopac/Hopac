@@ -108,14 +108,14 @@ module HopacJob =
 module HopacPromise =
   type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Promise<Stream<'a>>}
 
-  let rec iterate (step: 'a -> 'a) (init: 'a) : Job<Stream<_>> = Job.thunk <| fun () ->
+  let rec iterate (step: 'a -> 'a) (init: 'a) = Job.thunk <| fun () ->
     {Value = init;
-     Next = Promise.Now.delay (iterate step (step init))}
+     Next = memo (iterate step (step init))}
 
   let rec filter (pred: 'a -> bool) (xs: Stream<'a>) : Job<Stream<'a>> =
     let next = xs.Next >>= filter pred
     if pred xs.Value then
-      Job.result {Value = xs.Value; Next = Promise.Now.delay next}
+      Job.result {Value = xs.Value; Next = memo next}
     else
       next
 
@@ -211,7 +211,8 @@ module HopacCh =
           primes >>- fun p ->
           result.[i] <- p
           if i = last then
-            printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
+            printf "%5d b/p "
+              (max 0L (GC.GetTotalMemory true - before) / int64 n)
     >>-. result
 
   let run n =

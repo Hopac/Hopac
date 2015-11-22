@@ -45,7 +45,8 @@ module BasicBench =
           f n
           let elapsed = start.Elapsed
           GC.Collect () ; Thread.Sleep 100
-          printfn "%8d in %As is %11.2f ops/s" n elapsed (float n / elapsed.TotalSeconds)
+          printfn "%8d in %As is %11.2f ops/s"
+            n elapsed (float n / elapsed.TotalSeconds)
     with e ->
       printfn "Failed with: %A" e
 
