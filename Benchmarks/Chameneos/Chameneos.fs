@@ -10,7 +10,7 @@ open Hopac.Job.Infixes
 open System
 open System.Diagnostics
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 type Color =
   | R = 0
@@ -32,7 +32,7 @@ let colors10 = [|
   Color.B; Color.R; Color.Y; Color.R; Color.Y;
   Color.B; Color.R; Color.Y; Color.R; Color.B|]
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module HopacLock =
   type [<AllowNullLiteral>] Chameneos =
@@ -95,9 +95,10 @@ module HopacLock =
       return! pn <&> pm
     }
     let d = timer.Elapsed
-    printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
+    printf "%d %d %fs (%d, %d)\n"
+      numMeets Environment.ProcessorCount d.TotalSeconds n m
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module HopacMV =
   type Chameneos =
@@ -148,9 +149,10 @@ module HopacMV =
       return! pn <&> pm
     }
     let d = timer.Elapsed
-    printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
+    printf "%d %d %fs (%d, %d)\n"
+      numMeets Environment.ProcessorCount d.TotalSeconds n m
     
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 module HopacAlt =
   [<AutoOpen>]
@@ -205,9 +207,10 @@ module HopacAlt =
       return! pn <&> pm
     }
     let d = timer.Elapsed
-    printf "%d %d %fs (%d, %d)\n" numMeets Environment.ProcessorCount d.TotalSeconds n m
+    printf "%d %d %fs (%d, %d)\n"
+      numMeets Environment.ProcessorCount d.TotalSeconds n m
 
-/////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 let cleanup () =
   for i=1 to 5 do

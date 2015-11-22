@@ -25,7 +25,8 @@ module Async =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s"
+      (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module MbSend =
   open Hopac
@@ -48,7 +49,8 @@ module MbSend =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s"
+      (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module MbSendNow =
   open Hopac
@@ -70,7 +72,8 @@ module MbSendNow =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s"
+      (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChGive =
   open Hopac
@@ -93,7 +96,8 @@ module ChGive =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s"
+      (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChSend =
   open Hopac
@@ -116,7 +120,8 @@ module ChSend =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s"
+      (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
 
 module ChSendNow =
   open Hopac
@@ -138,7 +143,8 @@ module ChSendNow =
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
-    printfn "%10.0f and %10.0f msgs/s" (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
+    printfn "%10.0f and %10.0f msgs/s"
+      (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
     
 let cleanup () =
   for i=1 to 10 do

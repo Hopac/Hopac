@@ -30,7 +30,8 @@ module Stream =
      <| fun i -> i
 
 module Obs =
-  let ints n = Observable.Generate(0, (fun i -> i < n), (fun i -> i + 1), (fun i -> i))
+  let ints n =
+    Observable.Generate(0, (fun i -> i < n), (fun i -> i + 1), (fun i -> i))
 
 module BasicBench =
 
