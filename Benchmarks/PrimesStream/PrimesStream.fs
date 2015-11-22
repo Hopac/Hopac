@@ -65,7 +65,7 @@ module Sequential =
 module HopacJob =
   type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Job<Stream<'a>>}
 
-  let rec iterate (step: 'a -> 'a) (init: 'a) : Job<Stream<_>> = Job.thunk <| fun () ->
+  let rec iterate (step: 'a -> 'a) (init: 'a) = Job.thunk <| fun () ->
     {Value = init;
      Next = iterate step (step init)}
 
