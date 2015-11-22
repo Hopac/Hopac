@@ -3,13 +3,13 @@
 namespace Models
 
 module ActorModel =
-  type ActorThread<'a, 'x>
-  val (>>=): ActorThread<'a, 'x> -> ('x -> ActorThread<'a, 'y>) -> ActorThread<'a, 'y>
-  val result: 'x -> ActorThread<'a, 'x>
-  val receive: ActorThread<'a, 'a>
+  type AT<'a, 'x>
+  val (>>=): AT<'a, 'x> -> ('x -> AT<'a, 'y>) -> AT<'a, 'y>
+  val result: 'x -> AT<'a, 'x>
+  val receive: AT<'a, 'a>
   type Actor<'a>
-  val self: ActorThread<'a, Actor<'a>>
-  val start: ActorThread<'a, unit> -> Actor<'a>
+  val self: AT<'a, Actor<'a>>
+  val start: AT<'a, unit> -> Actor<'a>
   val send: Actor<'a> -> 'a -> unit
 
 module HopacModel =

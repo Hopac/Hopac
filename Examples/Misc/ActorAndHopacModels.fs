@@ -6,19 +6,19 @@ module ActorModel =
   open Hopac
   open Hopac.Job.Infixes
 
-  type ActorThread<'a, 'x> = AT of (Ch<'a> -> Job<'x>)
+  type AT<'a, 'x> = AT of (Ch<'a> -> Job<'x>)
   let unAT (AT x) = x
-  let (>>=) (xA: ActorThread<'a, 'x>) (x2yA: 'x -> ActorThread<'a, 'y>) : ActorThread<'a, 'y> =
+  let (>>=) (xA: AT<'a, 'x>) (x2yA: 'x -> AT<'a, 'y>) : AT<'a, 'y> =
     AT (fun aCh -> unAT xA aCh >>= fun x -> unAT (x2yA x) aCh)
-  let result (x: 'x) : ActorThread<'a, 'x> =
+  let result (x: 'x) : AT<'a, 'x> =
     AT (fun _ -> Job.result x)
-  let receive : ActorThread<'a, 'a> =
+  let receive : AT<'a, 'a> =
     AT (fun aCh -> aCh :> Job<_>)
   type Actor<'a> = A of Ch<'a>
   let unA (A aCh) = aCh
-  let self : ActorThread<'a, Actor<'a>> =
+  let self : AT<'a, Actor<'a>> =
     AT (fun aCh -> Job.result (A aCh))
-  let start (uA: ActorThread<'a, unit>) : Actor<'a> =
+  let start (uA: AT<'a, unit>) : Actor<'a> =
     let aCh = Ch.Now.create ()
     Job.Global.start (unAT uA aCh)
     A aCh
@@ -29,7 +29,7 @@ module HopacModel =
   open System.Collections.Generic
   open ActorModel
 
-  type Job<'x> = J of ActorThread<unit, 'x>
+  type Job<'x> = J of AT<unit, 'x>
   let unJ (J x) = x
   type Msg<'x> =
     | Take of Actor<unit> * ref<option<'x>>
