@@ -62,14 +62,14 @@ font-weight: bold;
 <pre><b>module</b> <a id="dec:module Hopac.Extra.Multicast" href="#def:module Hopac.Extra.Multicast">Multicast</a> <b>=</b>
   <b>val</b> <a id="dec:val Hopac.Extra.Multicast.create" href="#def:val Hopac.Extra.Multicast.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Extra.Multicast.port" href="#def:val Hopac.Extra.Multicast.port">port</a><b>:</b> <a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val Hopac.Extra.Multicast.multicast" href="#def:val Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> <a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Extra.Multicast.multicast" href="#def:val Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> <a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Extra.Multicast.recv" href="#def:val Hopac.Extra.Multicast.recv">recv</a><b>:</b> <a href="#def:type Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
 </pre>
 <pre><b>type</b> <a id="dec:type Hopac.Extra.SelectableQueue" href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b>
 </pre>
 <pre><b>module</b> <a id="dec:module Hopac.Extra.SelectableQueue" href="#def:module Hopac.Extra.SelectableQueue">SelectableQueue</a> <b>=</b>
   <b>val</b> <a id="dec:val Hopac.Extra.SelectableQueue.create" href="#def:val Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val Hopac.Extra.SelectableQueue.send" href="#def:val Hopac.Extra.SelectableQueue.send">send</a><b>:</b> <a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
+  <b>val</b> <a id="dec:val Hopac.Extra.SelectableQueue.send" href="#def:val Hopac.Extra.SelectableQueue.send">send</a><b>:</b> <a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val Hopac.Extra.SelectableQueue.take" href="#def:val Hopac.Extra.SelectableQueue.take">take</a><b>:</b> <a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> (<i>'a</i> <b>-&gt;</b> bool) <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
 </pre>
 <pre><b>module</b> <a id="dec:module Hopac.Extra.Stream" href="#def:module Hopac.Extra.Stream">Stream</a> <b>=</b>
@@ -158,7 +158,7 @@ font-weight: bold;
 <pre><b>val</b> <a id="def:val Hopac.Extra.Multicast.port" href="#dec:val Hopac.Extra.Multicast.port">port</a><b>:</b> <a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
 </pre>
 <div class="nested"><p> Creates a new port for listening to the given multicast channel.</div>
-<pre><b>val</b> <a id="def:val Hopac.Extra.Multicast.multicast" href="#dec:val Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> <a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
+<pre><b>val</b> <a id="def:val Hopac.Extra.Multicast.multicast" href="#dec:val Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> <a href="#def:type Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
 </pre>
 <div class="nested"><p> Sends a message to all of the ports listening to the multicast channel.</div>
 <pre><b>val</b> <a id="def:val Hopac.Extra.Multicast.recv" href="#dec:val Hopac.Extra.Multicast.recv">recv</a><b>:</b> <a href="#def:type Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
@@ -173,9 +173,9 @@ font-weight: bold;
 <div class="nested"><p> Implements a selectable buffered queue similar to what is described in the paper ''Kill-Safe Synchronization Abstractions'' by Matthew Flatt and Robert Bruce Findler.  Note that Hopac doesn't, at least not yet, provide all the operations on threads necessary to make the abstraction kill-safe as described in the paper.  Even without the full kill-safety properties this queue can be quite useful and serves as an interesting example of Concurrent ML -style programming making use of a dynamic number of alternatives.<pre><b>val</b> <a id="def:val Hopac.Extra.SelectableQueue.create" href="#dec:val Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
 </pre>
 <div class="nested"><p> Creates a new selectable queue.</div>
-<pre><b>val</b> <a id="def:val Hopac.Extra.SelectableQueue.send" href="#dec:val Hopac.Extra.SelectableQueue.send">send</a><b>:</b> <a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
+<pre><b>val</b> <a id="def:val Hopac.Extra.SelectableQueue.send" href="#dec:val Hopac.Extra.SelectableQueue.send">send</a><b>:</b> <a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
 </pre>
-<div class="nested"><p> Constructs an alternative that sends the given message to the selectable queue.</div>
+<div class="nested"><p> Constructs a job that sends the given message to the selectable queue.</div>
 <pre><b>val</b> <a id="def:val Hopac.Extra.SelectableQueue.take" href="#dec:val Hopac.Extra.SelectableQueue.take">take</a><b>:</b> <a href="#def:type Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> (<i>'a</i> <b>-&gt;</b> bool) <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
 </pre>
 <div class="nested"><p> Constructs an alternative that takes a message that satisfies the given predicate from the specified selectable queue.</div>
