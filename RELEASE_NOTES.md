@@ -1,3 +1,10 @@
+#### 0.1.0 - ??.11.2015
+* Redesigned infix operator symbols to allow most common expressions to be written without parentheses and also added several new infix operators.  See the documentation for details.
+* Moved all infix operators to the `Hopac.Infixes` module so that one only has to open one module to use infix operators.
+* Introduced `Alt.prepare*` and `Alt.after*` combinators for clarity and uniformity to replace `delay`, `guard` and `wrap`.
+* Added `Job.isolate` as a workaround for scheduling issues.
+* Minor additions: `Seq.foldFromJob`, `Proc.bind`, `Proc.map`.
+
 #### 0.0.0.48 - 15.07.2015
 * Fixed a bug in exception propagation of delayed promises.
 
