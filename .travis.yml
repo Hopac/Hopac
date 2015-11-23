@@ -10,7 +10,7 @@ mono:
 solution: Hopac.sln
 
 notifications:
-  email: true
+  email: false # Sorry, travis ci builds fail with timeouts too often
 
 env:
   global:
