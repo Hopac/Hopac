@@ -23,8 +23,6 @@ module ToDo
 // See also: https://github.com/tastejs/todomvc/blob/master/app-spec.md
 
 open Hopac
-open Hopac.Job.Infixes
-open Hopac.Alt.Infixes
 open Hopac.Infixes
 open Hopac.Extensions
 
@@ -40,12 +38,12 @@ module internal Util =
   /// Sets up the main synchronization context that we need for accessing GUI
   /// components.  Something like this should be put into a library.
   let setupWhen (onEvent: IEvent<_, _>) =
-    let mainCtx = ivar ()
+    let mainCtx = IVar ()
     let handler =
       EventHandler(fun _ _ ->
       IVar.tryFill mainCtx SynchronizationContext.Current |> start)
     onEvent.AddHandler handler
-    mainCtx |>> fun ctx ->
+    mainCtx >>- fun ctx ->
     Hopac.Core.StaticData.writeLine <- Action<string>(MessageBox.Show >> ignore)
     Async.setMain ctx
     onEvent.RemoveHandler handler
@@ -70,7 +68,7 @@ let main argv =
 
   // This makes it so that the stream wiring code is run after the main
   // synchronization context has been created.
-  setupWhen main.Activated |>> fun () ->
+  setupWhen main.Activated >>- fun () ->
 
       /// Serialized variable that holds the immutable model.  In this example
       /// it doesn't really make any difference, but the use of a serialized
