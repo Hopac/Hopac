@@ -1,4 +1,4 @@
-﻿module Kismet
+module Kismet
 
 open System
 open System.Collections.Generic

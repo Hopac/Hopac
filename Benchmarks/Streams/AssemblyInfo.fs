@@ -1,4 +1,4 @@
-﻿module Streams.AssemblyInfo
+module Streams.AssemblyInfo
 open System.Reflection
 open System.Runtime.CompilerServices
 

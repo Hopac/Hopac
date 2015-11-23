@@ -1,4 +1,4 @@
-﻿module CmlLCH
+module CmlLCH
 
 open System
 open System.Diagnostics

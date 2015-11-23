@@ -1,4 +1,4 @@
-﻿This is a benchmark inspired by the paper [Chameneos, a Concurrency Game for
+This is a benchmark inspired by the paper [Chameneos, a Concurrency Game for
 Java, Ada and Others](http://cedric.cnam.fr/PUBLIS/RC474.pdf).  Actually this
 benchmark is inspired by a benchmark, inspired by the paper, on an infamous
 language shootout site.  (The implementations here do not meet the requirements

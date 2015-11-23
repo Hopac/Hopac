@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "ToDo", "ToDo\ToDo.fsproj", "{4F8448C1-4B30-4708-B378-02696D6C1962}"

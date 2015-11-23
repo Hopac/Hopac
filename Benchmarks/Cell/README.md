@@ -1,4 +1,4 @@
-﻿This is a custom benchmark inspired by the first example of Concurrent ML
+This is a custom benchmark inspired by the first example of Concurrent ML
 programming in [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s book
 [Concurrent Programming in
 ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).

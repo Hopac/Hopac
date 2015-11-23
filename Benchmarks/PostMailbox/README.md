@@ -1,4 +1,4 @@
-﻿This benchmark is inspired by the blog post
+This benchmark is inspired by the blog post
 [F# – How many messages can you post to a F# agent in one second?](http://theburningmonk.com/2012/03/f-how-many-messages-can-you-post-to-a-f-agent-in-one-second/).
 The benchmark in itself is very simple.  It just creates an "agent" that
 receives a stream of integer messages from 1 to max and then signals when it

@@ -1,4 +1,4 @@
-﻿This benchmark program is inspired by the blog post [Building an “actor” in F#
+This benchmark program is inspired by the blog post [Building an “actor” in F#
 with higher throughput than Akka and Erlang actors](http://zbray.com/2012/12/09/building-an-actor-in-f-with-higher-throughput-than-akka-and-erlang-actors/).
 
 The blog post can be somewhat misleading.  As a kind of technicality, the 

@@ -1,4 +1,4 @@
-﻿This benchmark is inspired by the blog post
+This benchmark is inspired by the blog post
 [ha4: Making Async 5x Faster](http://t0yv0.blogspot.com/2011/12/making-async-5x-faster.html).
 The benchmark basically creates a pair of jobs.  One job acts as a writer (or
 producer) and another acts as a reader (or consumer) of messages on a channel

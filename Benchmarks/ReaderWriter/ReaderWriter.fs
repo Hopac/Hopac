@@ -1,4 +1,4 @@
-﻿module ReaderWriter
+module ReaderWriter
 
 // Inspired by http://t0yv0.blogspot.com/2011/12/making-async-5x-faster.html
 

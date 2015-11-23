@@ -1,4 +1,4 @@
-﻿This benchmark is inspired by the parallel Fibonacci function used
+This benchmark is inspired by the parallel Fibonacci function used
 traditionally as a Cilk programming example.  See [The Implementation of the
 Cilk-5 Multithreaded Language](http://supertech.csail.mit.edu/papers/cilk5.pdf)
 for a representative example.  Basically, the naive, recursive, exponential

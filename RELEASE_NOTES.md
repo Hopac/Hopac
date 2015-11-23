@@ -1,4 +1,4 @@
-﻿#### 0.0.0.48 - 15.07.2015
+#### 0.0.0.48 - 15.07.2015
 * Fixed a bug in exception propagation of delayed promises.
 
 #### 0.0.0.47 - 27.05.2015

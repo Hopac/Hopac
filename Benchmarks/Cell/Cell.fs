@@ -1,4 +1,4 @@
-﻿module Cell
+module Cell
 
 open Hopac
 open Hopac.Infixes

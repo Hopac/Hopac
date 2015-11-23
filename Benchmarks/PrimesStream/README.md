@@ -1,4 +1,4 @@
-﻿This benchmark implements a traditional example of programming with (lazy)
+This benchmark implements a traditional example of programming with (lazy)
 streams: the Sieve of Eratosthenes.  This is also one of the first examples
 presented in the book
 [Concurrent Programming in ML](http://www.cambridge.org/us/academic/subjects/computer-science/distributed-networked-and-mobile-computing/concurrent-programming-ml).

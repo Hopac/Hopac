@@ -1,4 +1,4 @@
-﻿This is a simple benchmark that exposes costs associated with awaiting for
+This is a simple benchmark that exposes costs associated with awaiting for
 tasks.  A trivial task is started (queued to the .Net thread pool) from within
 a job and then the result of that task is awaited for.  Some of the relevant
 issues here are:

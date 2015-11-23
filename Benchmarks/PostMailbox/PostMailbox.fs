@@ -1,4 +1,4 @@
-﻿module PostMailbox
+module PostMailbox
 
 open System
 open System.Diagnostics

@@ -1,4 +1,4 @@
-﻿// Copyright (C) by Housemarque, Inc.
+// Copyright (C) by Housemarque, Inc.
 
 module Chameneos
 

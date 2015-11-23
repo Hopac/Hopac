@@ -1,4 +1,4 @@
-﻿This benchmark is inspired by a benchmark by the same name on an infamous
+This benchmark is inspired by a benchmark by the same name on an infamous
 language shootout site.  The benchmark creates a ring (or multiple independent
 rings) of jobs that pass a message around the ring.  The Hopac based
 implementations in here use a custom cooperative scheduler and do not pass the

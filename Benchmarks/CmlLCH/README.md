@@ -1,4 +1,4 @@
-﻿This program contains benchmarks inspired by the benchmarks described in the
+This program contains benchmarks inspired by the benchmarks described in the
 paper [A Concurrent ML Library in Concurrent
 Haskell](http://www.cs.umd.edu/~avik/projects/cmllch/).  The paper describes an
 implementation, or encoding, of Concurrent ML on top of (simpler) primitives

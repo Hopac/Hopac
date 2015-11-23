@@ -1,4 +1,4 @@
-﻿module PingPong
+module PingPong
 
 open Hopac
 open Hopac.Infixes
