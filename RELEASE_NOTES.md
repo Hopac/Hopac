@@ -1,4 +1,4 @@
-#### 0.1.0 - ??.11.2015
+#### 0.1.0 - 23.11.2015
 * Redesigned infix operator symbols to allow most common expressions to be written without parentheses and also added several new infix operators.  See the documentation for details.
 * Moved all infix operators to the `Hopac.Infixes` module so that one only has to open one module to use infix operators.
 * Introduced `Alt.prepare*` and `Alt.after*` combinators for clarity and uniformity to replace `delay`, `guard` and `wrap`.
