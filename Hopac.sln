@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 VisualStudioVersion = 12.0.31101.0
@@ -67,12 +67,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-F
 		Hopac.fsx = Hopac.fsx
 		LICENSE.md = LICENSE.md
 		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{BC37BE32-0A06-4E91-B4CD-0D9E20035A83}"
-	ProjectSection(SolutionItems) = preProject
-		build.fsx = build.fsx
 		RELEASE_NOTES.md = RELEASE_NOTES.md
+		build.fsx = build.fsx
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C2B858D2-C161-446F-930F-87AECA04EF36}"
