@@ -48,6 +48,8 @@ module internal Util =
     Async.setMain ctx
     onEvent.RemoveHandler handler
 
+  let inline (^) x = x
+
 /// Represents an immutable ToDo item.
 type Item = {
     IsCompleted: bool
@@ -85,16 +87,17 @@ let main argv =
       // This adds new ToDo items in response to Enter key presses on the
       // EnterHeader text box.
       Stream.ofObservableOnMain main.EnterHeader.KeyUp
-      |> Stream.filterFun (fun evt -> evt.Key = Key.Enter)
-      |> Stream.chooseJob (fun _ -> onMain {
-         return match main.EnterHeader.Text.Trim () with
-                 | "" -> None
-                 | header ->
-                   main.EnterHeader.Text <- ""
-                   Some header })
-      |> Stream.consumeJob (fun header ->
-         Stream.MVar.updateFun modelMVar
-          <| Map.add (Id.next ()) {IsCompleted = false; Header = header})
+      |> Stream.filterFun ^ fun evt -> evt.Key = Key.Enter
+      |> Stream.chooseJob ^ fun _ -> onMain {
+           return match main.EnterHeader.Text.Trim () with
+                   | "" -> None
+                   | header ->
+                     main.EnterHeader.Text <- ""
+                     Some header
+         }
+      |> Stream.consumeJob ^ fun header ->
+           Stream.MVar.updateFun modelMVar ^
+             Map.add (Id.next ()) {IsCompleted = false; Header = header}
 
       // Filtering predicates on ToDo items.
       let isAny _ = true
@@ -110,14 +113,15 @@ let main argv =
           Stream.ofObservableOnMain button.Click
           |> Stream.mapConst (button, pred)
         Stream.one (main.FilterAll, isAny)
-        |> Stream.merge (filterOn main.FilterAll isAny)
-        |> Stream.merge (filterOn main.FilterActive isActive)
-        |> Stream.merge (filterOn main.FilterCompleted isCompleted)
+        |> Stream.merge ^ filterOn main.FilterAll isAny
+        |> Stream.merge ^ filterOn main.FilterActive isActive
+        |> Stream.merge ^ filterOn main.FilterCompleted isCompleted
         |> Stream.keepPreceding1
-        |> Stream.mapJob (fun (bn, pred) -> onMain {
-           [main.FilterAll; main.FilterActive; main.FilterCompleted]
-           |> Seq.iter (fun bn' -> bn'.IsEnabled <- bn <> bn')
-           return pred })
+        |> Stream.mapJob ^ fun (bn, pred) -> onMain {
+             [main.FilterAll; main.FilterActive; main.FilterCompleted]
+             |> Seq.iter ^ fun bn' -> bn'.IsEnabled <- bn <> bn'
+             return pred
+           }
 
       /// Creates a control for a ToDo item.
       let newControl id item =
@@ -132,34 +136,39 @@ let main argv =
         // This updates the underlying item in response to a click on the
         // completed checkbox.
         Stream.ofObservableOnMain control.IsCompleted.Click
-        |> Stream.consumeJob (fun _ -> onMain {
-           let isCompleted = control.IsCompleted.IsChecked.Value
-           return! Stream.MVar.updateFun modelMVar
-                     << updateItem id <| fun item ->
-                         {item with IsCompleted = isCompleted} })
+        |> Stream.consumeJob ^ fun _ -> onMain {
+             let isCompleted = control.IsCompleted.IsChecked.Value
+             return! Stream.MVar.updateFun modelMVar ^
+                       updateItem id ^ fun item ->
+                         {item with IsCompleted = isCompleted}
+           }
 
         // This enables editing the header of a ToDo item.
         Stream.ofObservableOnMain control.Header.MouseDoubleClick
-        |> Stream.consumeJob (fun _ -> onMain {
-           control.Header.Focusable <- true
-           if control.Header.Focus () then
-             control.Header.SelectAll () })
+        |> Stream.consumeJob ^ fun _ -> onMain {
+             control.Header.Focusable <- true
+             if control.Header.Focus () then
+               control.Header.SelectAll ()
+           }
+
         // This finalizes the editing of a ToDo item header after Enter key is
         // pressed or after focus is lost.  If the header would become empty
         // after trimming, the edit is ignored.
         Stream.ofObservableOnMain control.Header.KeyUp
-        |> Stream.filterFun (fun evt -> evt.Key = Key.Enter)
+        |> Stream.filterFun ^ fun evt -> evt.Key = Key.Enter
         |> Stream.mapIgnore
         |> Stream.merge (Stream.ofObservableOnMain control.Header.LostFocus
                          |> Stream.mapIgnore)
-        |> Stream.consumeJob (fun () -> onMain {
-           Keyboard.ClearFocus ()
-           control.Header.Focusable <- false
-           match control.Header.Text.Trim () with
-             | "" -> control.Header.Text <- item.Header
-             | header ->
-               return! Stream.MVar.updateFun modelMVar << updateItem id <| fun item ->
-                       {item with Header = header} })
+        |> Stream.consumeJob ^ fun () -> onMain {
+             Keyboard.ClearFocus ()
+             control.Header.Focusable <- false
+             match control.Header.Text.Trim () with
+               | "" -> control.Header.Text <- item.Header
+               | header ->
+                 return! Stream.MVar.updateFun modelMVar ^
+                           updateItem id ^ fun item ->
+                             {item with Header = header}
+           }
 
         // This shows the Remove button of a ToDo item when the mouse is over
         // the item.  The stream is carefully constructed to avoid problems due
@@ -167,18 +176,19 @@ let main argv =
         // absolute guarantee that elements from the MouseEnter stream would
         // always precede elements from the MouseLeave stream.
         Stream.merge
-          (Stream.ofObservableOnMain control.MouseEnter |> Stream.mapConst +1)
-          (Stream.ofObservableOnMain control.MouseLeave |> Stream.mapConst -1)
+          <| Stream.mapConst +1 ^ Stream.ofObservableOnMain control.MouseEnter
+          <| Stream.mapConst -1 ^ Stream.ofObservableOnMain control.MouseLeave
         |> Stream.scanFromFun 0 (+)
         |> Stream.keepPreceding1
-        |> Stream.consumeJob (fun n -> onMain {
-           control.Remove.Visibility <-
-             if 0 < n then Visibility.Visible else Visibility.Hidden })
+        |> Stream.consumeJob ^ fun n -> onMain {
+             control.Remove.Visibility <-
+               if 0 < n then Visibility.Visible else Visibility.Hidden
+           }
 
         // This removes the item from the model if the Remove button is clicked.
         Stream.ofObservableOnMain control.Remove.Click
-        |> Stream.consumeJob (fun _ ->
-           Stream.MVar.updateFun modelMVar <| Map.remove id)
+        |> Stream.consumeJob ^ fun _ ->
+             Stream.MVar.updateFun modelMVar ^ Map.remove id
 
         control
 
@@ -193,53 +203,57 @@ let main argv =
       Stream.MVar.tap modelMVar
       |> Stream.combineLatest filter
       |> Stream.keepPreceding1
-      |> Stream.consumeJob (fun (filter, model) -> onMain {
-         main.Items.Children.Clear ()
-         model
-         |> Map.iter (fun id item ->
-            if filter item then
-              newControl id item
-              |> main.Items.Children.Add
-              |> ignore) })
+      |> Stream.consumeJob ^ fun (filter, model) -> onMain {
+           main.Items.Children.Clear ()
+           model
+           |> Map.iter ^ fun id item ->
+                if filter item then
+                  newControl id item
+                  |> main.Items.Children.Add
+                  |> ignore
+         }
 
       // This updates the display of the number of active ToDo items.
       Stream.MVar.tap modelMVar
       |> Stream.keepPreceding1
-      |> Stream.consumeJob (fun model -> onMain {
-         let n = Map.toSeq model |> Seq.filter (snd >> isActive) |> Seq.length
-         main.NumberOfItems.Text <-
-           sprintf "%d item%s left" n (if n=1 then "" else "s") })
+      |> Stream.consumeJob ^ fun model -> onMain {
+           let n = Map.toSeq model |> Seq.filter (snd >> isActive) |> Seq.length
+           main.NumberOfItems.Text <-
+             sprintf "%d item%s left" n ^ if n=1 then "" else "s"
+         }
 
       // This updates the button to clear all completed items.
       Stream.MVar.tap modelMVar
       |> Stream.keepPreceding1
-      |> Stream.consumeJob (fun model -> onMain {
-         let n = Map.toSeq model |> Seq.filter (snd >> isCompleted) |> Seq.length
-         main.ClearCompleted.Visibility <-
-           if n=0 then Visibility.Hidden else Visibility.Visible })
+      |> Stream.consumeJob ^ fun model -> onMain {
+           let n = Map.toSeq model |> Seq.filter (snd >> isCompleted) |> Seq.length
+           main.ClearCompleted.Visibility <-
+             if n=0 then Visibility.Hidden else Visibility.Visible
+         }
 
       // This removes all completed items when the ClearCompleted button is
       // clicked.
       Stream.ofObservableOnMain main.ClearCompleted.Click
-      |> Stream.consumeJob (fun _ ->
-         Stream.MVar.updateFun modelMVar << Map.filter <| fun _ -> isActive)
+      |> Stream.consumeJob ^ fun _ ->
+           Stream.MVar.updateFun modelMVar ^ Map.filter ^ fun _ -> isActive
 
       // This updates the CompleteAll checkbox for marking all ToDo items as
       // completed or active.
       Stream.MVar.tap modelMVar
-      |> Stream.mapFun (fun model ->
-         not (Map.isEmpty model) && Map.forall (fun _ -> isCompleted) model)
+      |> Stream.mapFun ^ fun model ->
+           not ^ Map.isEmpty model && model |> Map.forall ^ fun _ -> isCompleted
       |> Stream.keepPreceding1
-      |> Stream.consumeJob (fun allCompleted -> onMain {
-         main.CompleteAll.IsChecked <- Nullable<bool> allCompleted })
+      |> Stream.consumeJob ^ fun allCompleted -> onMain {
+           main.CompleteAll.IsChecked <- Nullable<bool> allCompleted
+         }
 
       // This makes all ToDo items as either completed or active depending on
       // the state of the CompleteAll checkbox when it is clicked.
       Stream.ofObservableOnMain main.CompleteAll.Click
-      |> Stream.consumeJob (fun _ ->
-         onMain { return main.CompleteAll.IsChecked.Value } >>= fun isCompleted ->
-         Stream.MVar.updateFun modelMVar << Map.map <| fun _ item ->
-         {item with IsCompleted = isCompleted})
+      |> Stream.consumeJob ^ fun _ ->
+           onMain { return main.CompleteAll.IsChecked.Value } >>= fun isCompleted ->
+           Stream.MVar.updateFun modelMVar ^ Map.map ^ fun _ item ->
+             {item with IsCompleted = isCompleted}
 
   |> queue
 
