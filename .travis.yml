@@ -1,6 +1,8 @@
 # first class nowadays: http://docs.travis-ci.com/user/languages/csharp/
 language: csharp
 
+sudo: false
+
 mono:
  - beta
  - latest
