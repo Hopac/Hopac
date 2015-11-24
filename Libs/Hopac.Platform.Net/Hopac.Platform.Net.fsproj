@@ -18,6 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
@@ -27,6 +28,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>

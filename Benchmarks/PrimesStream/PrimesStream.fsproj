@@ -20,17 +20,20 @@
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\PrimesStream.xml</DocumentationFile>
     <OtherFlags>--warnon:1182</OtherFlags>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>
     </DefineConstants>

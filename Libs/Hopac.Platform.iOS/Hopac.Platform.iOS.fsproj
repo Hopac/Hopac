@@ -19,6 +19,7 @@
     <ErrorReport>prompt</ErrorReport>
     <ConsolePause>false</ConsolePause>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <PlatformTarget>
     </PlatformTarget>
   </PropertyGroup>
@@ -32,6 +33,7 @@
     </PlatformTarget>
     <ConsolePause>false</ConsolePause>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -22,16 +22,19 @@
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\CounterActor.xml</DocumentationFile>
     <OtherFlags>--warnon:1182</OtherFlags>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Release\</OutputPath>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\CounterActor.xml</DocumentationFile>

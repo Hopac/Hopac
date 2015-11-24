@@ -18,6 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
@@ -28,11 +29,12 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Hopac.Extra.xml</DocumentationFile>
-    <OtherFlags>--warnon:1182</OtherFlags>k
+    <OtherFlags>--warnon:1182</OtherFlags>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>

@@ -21,9 +21,11 @@
     <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <Externalconsole>true</Externalconsole>
-    <Tailcalls>false</Tailcalls>
+    <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
+    <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
@@ -34,7 +36,9 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Externalconsole>true</Externalconsole>
     <Tailcalls>true</Tailcalls>
+    <GenerateTailCalls>true</GenerateTailCalls>
     <Prefer32Bit>false</Prefer32Bit>
+    <OtherFlags>--warnon:1182</OtherFlags>
     <DefineConstants>
     </DefineConstants>
   </PropertyGroup>
