@@ -64,7 +64,7 @@ module Id =
   let next () = Interlocked.Increment &id
 
 [<STAThread; EntryPoint>]
-let main argv =
+let main _ =
   /// The main window.
   let main = ToDo.UI.MainWindow ()
 
