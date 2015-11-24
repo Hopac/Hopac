@@ -24,7 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\PostMailbox.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\PostMailbox.xml</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
@@ -36,7 +36,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Release\PostMailbox.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\PostMailbox.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnon:1182</OtherFlags>
     <DebugSymbols>true</DebugSymbols>

@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Hopac.Extra.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Hopac.Extra.xml</DocumentationFile>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -31,8 +31,8 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Hopac.Extra.XML</DocumentationFile>
-    <OtherFlags>--warnon:1182</OtherFlags>
+    <DocumentationFile>bin\Release\Hopac.Extra.xml</DocumentationFile>
+    <OtherFlags>--warnon:1182</OtherFlags>k
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
