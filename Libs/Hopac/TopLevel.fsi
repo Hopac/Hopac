@@ -60,17 +60,17 @@ module TopLevel =
   ///
   /// This is the same function as `Job.Global.start`.
 #endif
-  val inline start: Job<unit> -> unit
+  val inline start:                Job<unit> -> unit
 
   /// Starts running the given job on the global scheduler, but does not wait
   /// for the job to finish.  `startIgnore xJ` is equivalent to `Job.Ignore xJ
   /// |> start`.
-  val inline startIgnore: Job<_> -> unit
+  val inline startIgnore:          Job<_>    -> unit
 
   /// Starts running the given delayed job on the global scheduler, but does not
   /// wait for the job to finish.  `startDelay u2xJ` is equivalent to
   /// `startIgnore <| Job.delay u2xJ`.
-  val inline startDelay: (unit -> #Job<_>) -> unit
+  val inline startDelay: (unit -> #Job<_>)   -> unit
 
   /// Queues the given job for execution on the global scheduler.  See also:
   /// `start`, `server`.
@@ -81,15 +81,15 @@ module TopLevel =
   ///
   /// This is the same function as `Job.Global.queue`.
 #endif
-  val inline queue: Job<unit> -> unit
+  val inline queue:                Job<unit> -> unit
 
   /// Queues the given job for execution on the global scheduler.  `queueIgnore
   /// xJ` is equivalent to `Job.Ignore xJ |> queue`.
-  val inline queueIgnore: Job<_> -> unit
+  val inline queueIgnore:          Job<_>    -> unit
 
   /// Queues the given delayed job for execution on the global scheduler.
   /// `queueDelay u2xJ` is equivalent to `queueIgnore <| Job.delay u2xJ`.
-  val inline queueDelay: (unit -> #Job<_>) -> unit
+  val inline queueDelay: (unit -> #Job<_>)   -> unit
 
   /// Starts running the given job on the global scheduler like `start`, but the
   /// given job is known never to return normally, so the job can be spawned in
