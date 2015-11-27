@@ -89,7 +89,7 @@ namespace Hopac {
         internal override void DoWork(ref Worker wr) {
           var rJ = fJ.Next(Value, ref s);
           if (null != rJ) {
-            rJ.DoJob(ref wr, this);
+            Job.Do(rJ, ref wr, this);
           } else {
             fJ.Finish(ref s, ref fK.Value);
             wr.Handler = fK;
@@ -100,7 +100,7 @@ namespace Hopac {
         internal override void DoCont(ref Worker wr, R r) {
           var rJ = fJ.Next(r, ref s);
           if (null != rJ) {
-            rJ.DoJob(ref wr, this);
+            Job.Do(rJ, ref wr, this);
           } else {
             fJ.Finish(ref s, ref fK.Value);
             wr.Handler = fK;
@@ -138,14 +138,14 @@ namespace Hopac {
         internal override void DoWork(ref Worker wr) {
           var xJ = uJ.Do();
           if (null != xJ)
-            xJ.DoJob(ref wr, this);
+            Job.Do(xJ, ref wr, this);
           else
             Work.Do(uK, ref wr);
         }
         internal override void DoCont(ref Worker wr, X value) {
           var xJ = uJ.Do();
           if (null != xJ)
-            xJ.DoJob(ref wr, this);
+            Job.Do(xJ, ref wr, this);
           else
             Work.Do(uK, ref wr);
         }
