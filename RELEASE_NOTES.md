@@ -1,3 +1,6 @@
+#### 0.1.2 - 27.11.2015
+* Fixed lack of tail call workaround in `for` and `while`.
+
 #### 0.1.1 - 23.11.2015
 * XML documentation was missing from `0.1.0`.
 * Updated `FSharp.Core` dependency to `4.0.0.1`.
