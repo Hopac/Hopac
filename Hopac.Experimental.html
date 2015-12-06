@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
 <title>Hopac.Experimental Library Reference</title>
@@ -31,7 +31,6 @@ font-weight: bold;
 </head>
 <body><table width="80%" align="center"><tr><td>
 <h1>Hopac.Experimental Library Reference</h1>
-<p>This document provides a reference manual for the Hopac.Experimental library and is generated from the library source code.</p>
 <h2>Synopsis</h2>
 <pre><b>namespace</b> Hopac<b>.</b>Experimental</pre>
 <pre><b>type</b> <a id="dec:type Hopac.Experimental.Alts" href="#def:type Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
@@ -89,7 +88,7 @@ font-weight: bold;
 </pre>
 <pre><b>type</b> Live <b>=</b> <b>interface</b> <b>end</b>
 </pre>
-<pre><b>type</b> Lazy <b>=</b> <b>interface</b> inherit Live <b>end</b>
+<pre><b>type</b> Lazy <b>=</b> <b>interface</b> <b>inherit</b> Live <b>end</b>
 </pre>
 <pre><b>module</b> Stream <b>=</b>
   <b>type</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'l</i> <b>:&gt;</b> Live <b>=</b> Stream of Hopac<b>.</b>Stream<b>.</b>Stream<b>&lt;</b><i>'x</i><b>&gt;</b>
