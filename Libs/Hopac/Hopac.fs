@@ -453,14 +453,14 @@ open Infixes
 module Alt =
   let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
 
-  let inline unit () =
+  let unit =
     match StaticData.unit with
      | null -> StaticData.Init () ; StaticData.unit
      | unit -> unit
 
-  let inline never () = Never<_>() :> Alt<_>
+  let never<'x> = Never<'x>() :> Alt<_>
 
-  let inline zero () =
+  let zero =
     match StaticData.zero with
      | null -> StaticData.Init () ; StaticData.zero :> Alt<_>
      | zero -> zero :> Alt<_>
@@ -623,7 +623,7 @@ module Alt =
            else
              xE.TryElse (&wr, i)}.Init(xE.pk))}
     else
-      never ()
+      never
 
   let inline shuffle (wr: byref<Worker>) (xAs: array<_>) j =
     let j' = Randomizer.NextInRange (&wr.RandomLo, &wr.RandomHi, j, xAs.Length)
@@ -1052,14 +1052,14 @@ module Job =
     {new JobMap<'x, 'y> () with
       override yJ'.Do (x) = x2y x}.InternalInit(xJ)
 
-  let inline unit () = Alt.unit () :> Job<_>
+  let unit = Alt.unit :> Job<_>
 
-  let abort () = Never<_>() :> Job<_>
+  let abort<'x> = Never<'x>() :> Job<_>
 
   let raises (e: exn) = Raises (e) :> Job<_>
 
   let inline whenDo (b: bool) (uJ: Job<unit>) =
-    if b then uJ else unit ()
+    if b then uJ else unit
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -1553,8 +1553,7 @@ module Promise =
     let inline delay (xJ: Job<'x>) = Promise<'x> (xJ)
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let never () = let p = Promise<'x> () in p.State <- Promise<'x>.Running ; p
+    let never<'x> = let p = Promise<'x> () in p.State <- Promise<'x>.Running ; p
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let isFulfilled (xP: Promise<'x>) = xP.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
@@ -1640,9 +1639,9 @@ module Timer =
       let ms = (ticks + 9999L) / 10000L // Rounds up.
       if ticks <= 0L then
         if -10000L = ticks then
-          Alt.zero ()
+          Alt.zero
         elif 0L = ticks then
-          Alt.unit ()
+          Alt.unit
         else
           outOfRange ticks
       elif 21474836470000L < ticks then
@@ -2228,7 +2227,7 @@ type JobBuilder () =
     Job.using x x2yJ
   member inline job.While (u2b: unit -> bool, uJ: Job<unit>) : Job<unit> =
     Job.whileDo u2b uJ
-  member inline job.Zero () : Job<unit> = Job.unit ()
+  member inline job.Zero () : Job<unit> = Job.unit
 
 type EmbeddedJob<'x> = struct
     val Job: Job<'x>

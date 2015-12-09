@@ -19,19 +19,19 @@ module Alts =
 
   let consume (onNext: 'x -> Job<unit>) (In xO: Alts<'x>) : Job<unit> =
     let rec loop xO =
-      xO >>= function Done -> Job.unit ()
+      xO >>= function Done -> Job.unit
                     | Next (x, xO) -> onNext x >>= fun () -> loop xO
     loop xO
 
   // Primitives ----------------------------------------------------------------
 
-  let zero () : Alts<'x> = In <| Alt.always Done
+  let zero<'x> : Alts<'x> = In <| Alt.always Done
 
   let result x : Alts<'x> = In <| Alt.always (Next (x, Alt.always Done))
 
   let inline start f =
     Alt.withNackJob <| fun nack ->
-    Promise.start (f (nack ^=> Job.abort))
+    Promise.start (f (nack ^=>. Job.abort))
 
   let rec mergeAbort yO1 yO2 abort =
     let inline case yO1 yO2 =

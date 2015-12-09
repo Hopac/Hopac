@@ -99,7 +99,7 @@ type IAsyncDisposable =
   /// Note that simply calling `DisposeAsync` must not immediately dispose the
   /// resource.  For example, the following pattern is incorrect:
   ///
-  ///> override this.DisposeAsync () = this.DisposeFlag <- true ; Job.unit ()
+  ///> override this.DisposeAsync () = this.DisposeFlag <- true ; Job.unit
   ///
   /// A typical correct disposal pattern could look something like this:
   ///
@@ -542,9 +542,9 @@ module Job =
 
   //////////////////////////////////////////////////////////////////////////////
 
-  /// Returns a job that does nothing and returns `()`.  `unit ()` is an
+  /// A job that does nothing and returns `()`.  `unit` is an
   /// optimized version of `result ()`.
-  val inline unit: unit -> Job<unit>
+  val unit: Job<unit>
 
   /// Creates a job with the given result.  See also: `lift`, `thunk`, `unit`.
   val result: 'x -> Job<'x>
@@ -561,7 +561,7 @@ module Job =
   /// the given function.  This is the same as `>>-` with the arguments flipped.
   val inline map: ('x -> 'y) -> Job<'x> -> Job<'y>
 
-  /// Creates a job that immediately terminates the current job.  See also:
+  /// A job that immediately terminates the current job.  See also:
   /// `startWithFinalizer`.
 #if DOC
   ///
@@ -573,7 +573,7 @@ module Job =
   /// or `tryFinallyJob`, the job must either return normally or raise an
   /// exception.  In other words, do not use `abort` in such a case.
 #endif
-  val abort: unit -> Job<_>
+  val abort<'x> : Job<'x>
 
   /// Creates a job that has the effect of raising the specified exception.
   /// `raises e` is equivalent to `Job.delayWith raise e`.
@@ -736,7 +736,7 @@ module Job =
   ///>   if n > 0 then
   ///>     uJ >>= fun () -> forN (n - 1) uJ
   ///>   else
-  ///>     Job.unit ()
+  ///>     Job.unit
 #endif
   val inline forN:       int -> Job<unit> -> Job<unit>
 
@@ -754,7 +754,7 @@ module Job =
   ///>   if lo <= hi then
   ///>     i2uJ lo >>= fun () -> forUpTo (lo + 1) hi i2uJ
   ///>   else
-  ///>     Job.unit ()
+  ///>     Job.unit
   ///
   /// Rationale: The reason for iterating over an inclusive range is to make
   /// this construct work like a `for ... to ... do ...` loop of the base F#
@@ -777,7 +777,7 @@ module Job =
   ///>   if hi >= lo then
   ///>     i2uJ hi >>= fun () -> forDownTo (hi - 1) lo i2uJ
   ///>   else
-  ///>     Job.unit ()
+  ///>     Job.unit
   ///
   /// Rationale: The reason for iterating over an inclusive range is to make
   /// this construct work like a `for ... downto ... do ...` loop of the base F#
@@ -800,7 +800,7 @@ module Job =
   ///>     if u2b () then
   ///>       uJ >>= loop
   ///>     else
-  ///>       Job.unit ()
+  ///>       Job.unit
   ///>   loop ()
 #endif
   val inline whileDo:       (unit -> bool) ->           Job<unit> -> Job<unit>
@@ -814,7 +814,7 @@ module Job =
   /// equivalent to `Job.Ignore xJ |> whileDo u2b`.
   val inline whileDoIgnore: (unit -> bool) ->           Job<_>    -> Job<unit>
 
-  /// `whenDo b uJ` is equivalent to `if b then uJ else Job.unit ()`.
+  /// `whenDo b uJ` is equivalent to `if b then uJ else Job.unit`.
   val inline whenDo: bool -> Job<unit> -> Job<unit>
 
   //////////////////////////////////////////////////////////////////////////////
@@ -1104,19 +1104,19 @@ module Alt =
   /// the first such alternative will be committed to.
   val inline always: 'x -> Alt<'x>
 
-  /// Returns an alternative that is always available and results in the unit
-  /// value.  `unit ()` is an optimized version of `always ()`.
-  val inline unit: unit -> Alt<unit>
+  /// An alternative that is always available and results in the unit
+  /// value.  `unit` is an optimized version of `always ()`.
+  val unit: Alt<unit>
 
-  /// Creates an alternative that is never available.
+  /// An alternative that is never available.
   ///
-  /// Note that synchronizing on `never ()`, without other alternatives, is
-  /// equivalent to performing `abort ()`.
-  val inline never: unit -> Alt<'x>
+  /// Note that synchronizing on `never`, without other alternatives, is
+  /// equivalent to performing `abort`.
+  val never<'x> : Alt<'x>
 
-  /// Returns an alternative that is never available.  `zero ()` is an optimized
-  /// version of `never ()`.
-  val inline zero: unit -> Alt<unit>
+  /// An alternative that is never available.  `zero` is an optimized
+  /// version of `never`.
+  val zero: Alt<unit>
 
   /// Returns an alternative that can be committed to once and that produces the
   /// given value.
@@ -1275,13 +1275,13 @@ module Alt =
   /// Creates an alternative that is available when any one of the given
   /// alternatives is.  See also: `choosy`, `<|>`.
   ///
-  /// Note that `choose []` is equivalent to `never ()`.
+  /// Note that `choose []` is equivalent to `never`.
 #if DOC
   ///
   /// Reference implementation:
   ///
   ///> let choose xAs = Alt.prepareFun <| fun () ->
-  ///>   Seq.foldBack (<|>) xAs <| never ()
+  ///>   Seq.foldBack (<|>) xAs never
   ///
   /// Above, `Seq.foldBack` has the obvious meaning.  Alternatively we could
   /// define `xA1 <|> xA2` to be equivalent to `choose [xA1; xA2]` and consider
@@ -1972,7 +1972,7 @@ module Promise =
     val inline withFailure: exn -> Promise<'x>
 
     /// Creates a promise that will never be fulfilled.
-    val never: unit -> Promise<'x>
+    val never<'x> : Promise<'x>
 
     /// Returns true iff the given promise has already been fulfilled (either
     /// with a value or with a failure).

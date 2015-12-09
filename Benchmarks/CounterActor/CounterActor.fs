@@ -27,7 +27,7 @@ module ChMsg =
          (inCh >>= function
            | Add n ->
              state := !state + n
-             Job.unit ()
+             Job.unit
            | GetAndReset replyVar ->
              let was = !state
              state := 0L
@@ -71,7 +71,7 @@ module MbMsg =
          (inMb >>= function
            | Add n ->
              state := !state + n
-             Job.unit ()
+             Job.unit
            | GetAndReset replyVar ->
              let was = !state
              state := 0L

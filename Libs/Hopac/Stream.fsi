@@ -279,7 +279,7 @@ module Stream =
   /// A choice stream that never produces any values and never closes.  While
   /// perhaps rarely used, this is theoretically important as the identity
   /// element for the `switch` and `amb` combinators.
-  val inline never<'x> : Stream<'x>
+  val never<'x> : Stream<'x>
 
   /// Constructs a choice stream that is closed with an error.
   val inline error: exn -> Stream<'x>
@@ -1052,7 +1052,7 @@ module Stream =
   /// Reference implementation:
   ///
   ///> let rec iterJob x2uJ xs =
-  ///>   xs >>= function Nil -> Job.unit ()
+  ///>   xs >>= function Nil -> Job.unit
   ///>                 | Cons (x, xs) -> x2uJ x >>=. iterJob x2uJ xs
 #endif
   val iterJob: ('x -> #Job<unit>) -> Stream<'x> -> Job<unit>

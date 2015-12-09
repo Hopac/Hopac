@@ -12,7 +12,7 @@ type Alts<'x>
 module Alts =
   val consume: onNext: ('x -> Job<unit>) -> Alts<'x> -> Job<unit>
 
-  val zero: unit -> Alts<'x>
+  val zero<'x> : Alts<'x>
 
   val result: 'x -> Alts<'x>
 

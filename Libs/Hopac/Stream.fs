@@ -118,7 +118,7 @@ module Stream =
     xs.Readers <- Promise<_>.Fulfill (xs, Job.delay <| fun () -> xs2xs xs)
     xs :> Stream<_>
 
-  let inline never<'x> = Promise.Now.never () :> Stream<'x>
+  let never<'x> = Promise.Now.never :> Stream<'x>
 
   let rec ofEnum (xs: IEnumerator<'x>) = thunk <| fun () ->
     if xs.MoveNext () then Cons (xs.Current, ofEnum xs) else xs.Dispose () ; Nil
@@ -194,8 +194,8 @@ module Stream =
     let rec loop xs =
       Job.tryIn xs
        <| function Cons (x, xs) -> iter (fun xS -> xS.OnNext x); loop xs
-                 | Nil -> Job.unit << iter <| fun xS -> xS.OnCompleted ()
-       <| fun e -> Job.unit << iter <| fun xS -> xS.OnError e
+                 | Nil -> iter (fun xS -> xS.OnCompleted ()); Job.unit
+       <| fun e -> iter (fun xS -> xS.OnError e); Job.unit
     loop xs |> start
     {new IObservable<'x> with
       override this.Subscribe xS =
@@ -505,11 +505,11 @@ module Stream =
   let count xs = foldFun (fun s _ -> s+1L) 0L xs
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
-    xs >>= function Cons (x, xs) -> f x >>=. iterJob f xs | Nil -> Job.unit ()
+    xs >>= function Cons (x, xs) -> f x >>=. iterJob f xs | Nil -> Job.unit
   let rec iterFun f xs =
-    xs >>= function Cons (x, xs) -> f x ; iterFun f xs | Nil -> Job.unit ()
+    xs >>= function Cons (x, xs) -> f x ; iterFun f xs | Nil -> Job.unit
   let rec iter (xs: Stream<_>) : Job<unit> =
-    xs >>= function Cons (_, xs) -> iter xs | Nil -> Job.unit ()
+    xs >>= function Cons (_, xs) -> iter xs | Nil -> Job.unit
   let consumeJob f xs = iterJob f xs |> queue
   let consumeFun f xs = iterFun f xs |> queue
   let consume xs = iter xs |> queue
@@ -524,7 +524,7 @@ module Stream =
     and on xs n =
           cmd ^=> fun d -> let n = n+d in if n = 0 then off xs else on xs n
       <|> xs ^=> function Cons (x, xs) -> onValue x >>=. on xs n
-                        | Nil -> onCompleted ()
+                        | Nil -> onCompleted
        :> Job<_>
     Job.tryWith (off xs) onError >>=. Job.foreverIgnore cmd |> server
     (cmd *<+ 1, cmd *<+ -1)
@@ -538,7 +538,7 @@ module Stream =
     let es = Ch<Shift<Promise<_>, 'x>> ()
     let (inc, dec) =
       pull xs <| fun x -> Promise.start t >>= fun p -> es *<+ Value (p, x)
-              <| fun () -> es *<+ Completed
+              <| es *<+ Completed
               <| fun e -> es *<+ Error e
     let es = inc >>=. es
     let rec ds () =

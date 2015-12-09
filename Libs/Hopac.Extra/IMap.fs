@@ -47,7 +47,7 @@ module IMap =
     match k2vI.TryGetValue k with
      | (false, _) ->
        k2vI.Add (k, IVar.Now.createFull (Some v))
-       Job.unit ()
+       Job.unit
      | (true, vI) ->
        if IVar.Now.isFull vI then
          failwithf "Tried to fill item %A twice." k

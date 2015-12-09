@@ -621,13 +621,13 @@ let bMoved = ref false
 do! CompareBool bMoved
                 (Ch.take ch_1)
                 (Ch.give ch_2)
-                (fun _ -> Job.unit ())
+                (fun _ -> Job.unit)
     |> Job.forever |> Job.server
 do! Delay (ref (TimeSpan.FromSeconds 3.14))
           (Ch.take ch_2)
-          (Alt.never ())
+          Alt.never
           (Ch.give ch_3)
-          (fun _ -> Job.unit ())
+          (fun _ -> Job.unit)
     |> Job.forever |> Job.server
 // ...
 ```
@@ -1335,7 +1335,7 @@ let timeReqServer =
          requests.Add (atTime, replyChs)
          replyChs
     replyIvs.Add replyCh
-    Job.unit ()
+    Job.unit
 ```
 
 The time request server also uses an asynchronous send to reply to requests.
@@ -1364,7 +1364,7 @@ let tick = Job.delay <| fun () ->
      replyChs
      |> Seq.iterJob (fun replyCh -> Ch.send replyCh ())
    | _ ->
-     Job.unit ()
+     Job.unit
 ```
 
 That concludes the implementation of the time server itself.
@@ -1414,7 +1414,7 @@ In the first case above, a verbose alternative is instantiated and committed to.
 The negative acknowledgment is created, but does not become enabled.
 
 ```fsharp
-> run <| Alt.choose [verbose <| Alt.never (); Alt.always 2] ;;
+> run <| Alt.choose [verbose Alt.never; Alt.always 2] ;;
 Instantiated and aborted.
 val it : int = 2
 ```
@@ -1566,7 +1566,7 @@ let start = Job.delay <| fun () ->
        match locks.TryGetValue lock with
         | (true, pending) ->
           pending.Enqueue (replyCh, abortAlt)
-          Job.unit ()
+          Job.unit
         | _ ->
           Alt.choose [Ch.give replyCh () ^-> fun () ->
                         locks.Add (lock, Queue<_>())
@@ -1577,7 +1577,7 @@ let start = Job.delay <| fun () ->
           let rec assign () =
             if 0 = pending.Count then
               locks.Remove lock |> ignore
-              Job.unit ()
+              Job.unit
             else
               let (replyCh, abortAlt) = pending.Dequeue ()
               Alt.choose [Ch.give replyCh ()
@@ -1585,7 +1585,7 @@ let start = Job.delay <| fun () ->
           assign ()
         | _ ->
           // We just ignore the erroneous release request
-          Job.unit ()) >>-. s
+          Job.unit) >>-. s
 ```
 
 As usual, the above server is implemented as a job that loops indefinitely

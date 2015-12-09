@@ -57,14 +57,14 @@ module BasicBench =
 
      bench "ignoreWhile" 1000000 <| fun n ->
        Stream.ints n
-       |> Stream.ignoreWhile (Job.unit ())
+       |> Stream.ignoreWhile Job.unit
        |> Stream.iter |> run
 
      bench "shift" 1000000 <| fun n ->
        Stream.ints n
-       |> Stream.shift (Job.unit ())
-       |> Stream.shift (Job.unit ())
-       |> Stream.shift (Job.unit ())
+       |> Stream.shift Job.unit
+       |> Stream.shift Job.unit
+       |> Stream.shift Job.unit
        |> Stream.iter |> run
 
      bench "appendMap" 1000000 <| fun n ->
@@ -90,16 +90,16 @@ module BasicBench =
 
      bench "delayEach" 10000000 <| fun n ->
        Stream.ints n
-       |> Stream.delayEach (Job.unit ())
-       |> Stream.delayEach (Job.unit ())
-       |> Stream.delayEach (Job.unit ())
+       |> Stream.delayEach Job.unit
+       |> Stream.delayEach Job.unit
+       |> Stream.delayEach Job.unit
        |> Stream.iter |> run
 
      bench "afterEach" 10000000 <| fun n ->
        Stream.ints n
-       |> Stream.afterEach (Job.unit ())
-       |> Stream.afterEach (Job.unit ())
-       |> Stream.afterEach (Job.unit ())
+       |> Stream.afterEach Job.unit
+       |> Stream.afterEach Job.unit
+       |> Stream.afterEach Job.unit
        |> Stream.iter |> run
 
      bench "distinctUntilChanged" 10000000 <| fun n ->

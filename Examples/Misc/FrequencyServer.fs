@@ -54,7 +54,7 @@ let create (frequencies: seq<Frequency>) = Job.delay <| fun () ->
             <|> nack
           else
             e.Dispose ()
-            Alt.unit ()
+            Alt.unit
 
   Job.iterateServer () <| fun () ->
         if 0 < free.Count then someFree else noneFree

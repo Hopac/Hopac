@@ -13,7 +13,7 @@ module Alt =
 
     let start (abort2xJ: Alt<'x> -> #Job<'x>) : Alt<'x> =
       Alt.withNackJob <| fun nack ->
-      Promise.queue (abort2xJ (nack ^=> Job.abort))
+      Promise.queue (abort2xJ (nack ^=>. Job.abort))
 
     let merge (lhs: Alt<'x>) (rhs: Alt<'x>) =
       start <| fun abort -> lhs <|> rhs <|> abort
@@ -37,7 +37,7 @@ module Alt =
       xA
       |> switchMap (fun x ->
          match x2yO x with
-          | None -> Alt.never ()
+          | None -> Alt.never
           | Some y -> Alt.once y)
 
     let filter x2b xA =

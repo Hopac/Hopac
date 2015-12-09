@@ -110,12 +110,12 @@ module EagerSeq =
     Job.queue (loop xs.EagerSeq) >>-. xs
 
   let rec iterFun (x2u: 'x -> unit) (xs: EagerSeq<'x>) =
-    xs.EagerSeq >>= function None -> Job.unit ()
+    xs.EagerSeq >>= function None -> Job.unit
                            | Some (x, xs) -> x2u x ; iterFun x2u xs
 
   let rec iterJob (x2yJ: 'x -> Job<'y>) (xs: EagerSeq<'x>) =
     xs.EagerSeq >>= function
-     | None -> Job.unit ()
+     | None -> Job.unit
      | Some (x, xs) -> x2yJ x >>= fun _ -> iterJob x2yJ xs
 
   let mapFun (x2y: 'x -> 'y) xs =
