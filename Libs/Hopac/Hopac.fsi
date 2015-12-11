@@ -2500,6 +2500,22 @@ module Scheduler =
   /// normally, so the job can be spawned in an even more lightweight manner.
   val server: Scheduler -> Job<Void> -> unit
 
+  /// Starts running the given job on the specified scheduler and then blocks
+  /// the current thread waiting for the job to either return successfully or
+  /// fail.
+#if DOC
+  ///
+  /// WARNING: Like with `Job.Global.run`, use of `run` should be considered
+  /// carefully, because calling `run` from an arbitrary thread can cause
+  /// deadlock.
+  ///
+  /// A call of `run xJ` is safe when the call is not made from within a Hopac
+  /// worker thread and the job `xJ` does not perform operations that might
+  /// block or that might directly, or indirectly, need to communicate with
+  /// the thread from which `run` is being called.
+#endif
+  val run: Scheduler -> Job<'x> -> 'x
+
   /// Waits until the scheduler becomes completely idle.
   ///
   /// Note that for this to make sense, the scheduler should be a local
