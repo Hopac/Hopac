@@ -25,7 +25,7 @@ module HopacReq =
     let c = {reqCh = Ch (); replyCh = Ch ()}
     Job.iterateServer x <| fun x ->
           c.reqCh >>= function
-           | Get   -> c.replyCh *<+ x >>-. x
+           | Get   -> c.replyCh *<+ x >>-. x // XXX
            | Put x -> Job.result x
     >>-. c
 
