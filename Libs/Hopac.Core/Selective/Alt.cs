@@ -15,44 +15,34 @@ namespace Hopac {
     ///
     public abstract class AltBind<X, Y> : Alt<Y> {
       internal Alt<X> xA;
-
       ///
       [MethodImpl(AggressiveInlining.Flag)]
       public Alt<Y> InternalInit(Alt<X> xA) { this.xA = xA; return this; }
-
       ///
       public abstract Job<Y> Do(X x);
-
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
         xA.DoJob(ref wr, new ContBind(this, yK));
       }
-
       internal sealed class ContBind : Cont<X> {
         internal AltBind<X, Y> yA;
         internal Cont<Y> yK;
-
         internal ContBind(AltBind<X, Y> yA, Cont<Y> yK) {
           this.yA = yA;
           this.yK = yK;
         }
-
         internal override Proc GetProc(ref Worker wr) {
           return Handler.GetProc(ref wr, ref yK);
         }
-
         internal override void DoHandle(ref Worker wr, Exception e) {
           Handler.DoHandle(yK, ref wr, e);
         }
-
         internal override void DoWork(ref Worker wr) {
           yA.Do(this.Value).DoJob(ref wr, yK);
         }
-
         internal override void DoCont(ref Worker wr, X x) {
           yA.Do(x).DoJob(ref wr, yK);
         }
       }
-
       internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else yE) {
         xA.TryAlt(ref wr, i, new ContBind(this, yK), yE);
       }
@@ -61,44 +51,34 @@ namespace Hopac {
     ///
     public abstract class AltMap<X, Y> : Alt<Y> {
       internal Alt<X> xA;
-
       ///
       [MethodImpl(AggressiveInlining.Flag)]
       public Alt<Y> InternalInit(Alt<X> xA) { this.xA = xA; return this; }
-
       ///
       public abstract Y Do(X x);
-
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
         xA.DoJob(ref wr, new ContMap(this, yK));
       }
-
       internal sealed class ContMap : Cont<X> {
         internal AltMap<X, Y> yA;
         internal Cont<Y> yK;
-
         internal ContMap(AltMap<X, Y> yA, Cont<Y> yK) {
           this.yA = yA;
           this.yK = yK;
         }
-
         internal override Proc GetProc(ref Worker wr) {
           return Handler.GetProc(ref wr, ref yK);
         }
-
         internal override void DoHandle(ref Worker wr, Exception e) {
           Handler.DoHandle(yK, ref wr, e);
         }
-
         internal override void DoWork(ref Worker wr) {
           yK.DoCont(ref wr, yA.Do(this.Value));
         }
-
         internal override void DoCont(ref Worker wr, X x) {
           yK.DoCont(ref wr, yA.Do(x));
         }
       }
-
       internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else yE) {
         xA.TryAlt(ref wr, i, new ContMap(this, yK), yE);
       }
@@ -106,14 +86,11 @@ namespace Hopac {
 
     ///
     public abstract class AltDelay<X> : Alt<X> {
-
       ///
       public abstract Alt<X> Do();
-
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
         Do().DoJob(ref wr, xK);
       }
-
       internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
         var pk = xE.pk;
         if (0 == Pick.Claim(pk)) {
