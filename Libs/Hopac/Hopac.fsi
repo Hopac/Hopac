@@ -2611,7 +2611,7 @@ module Infixes =
   ///>   qCh *<- q ^=>.
   ///>   rI
 #endif
-  val ( *<-=>= ): Ch<'q> -> (IVar<'r>                  -> #Job<'q>) -> Alt<'r>
+  val inline ( *<-=>= ): Ch<'q> -> (IVar<'r>                  -> #Job<'q>) -> Alt<'r>
 
   /// Creates an alternative that, using the given function, constructs a query
   /// with a reply variable, commits on giving the query and reads the reply
@@ -2624,6 +2624,36 @@ module Infixes =
   ///> let ( *<-=>- ) qCh rI2q = qCh *<-=>= (rI2q >> result)
 #endif
   val inline ( *<-=>- ): Ch<'q> -> (IVar<'r>                  ->      'q)  -> Alt<'r>
+
+  /// Creates an alternative that, using the given job constructor, constructs a
+  /// query with a reply variable, sends the query and reads the reply.  In
+  /// order for the alternative to make sense, the operation must not require
+  /// exclusive choice.  If this not the case, then the resulting value should
+  /// only be used as a job.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let ( *<+=>= ) qCh rI2qJ = Alt.prepareJob <| fun () ->
+  ///>   let rI = IVar ()
+  ///>   rI2qJ rI >>= fun q ->
+  ///>   qCh *<+ q >>-.
+  ///>   rI
+#endif
+  val inline ( *<+=>= ): Ch<'q> -> (IVar<'r>                  -> #Job<'q>) -> Alt<'r>
+
+  /// Creates an alternative that, using the given function, constructs a query
+  /// with a reply variable, sends the query and reads the reply.  In order for
+  /// the alternative to make sense, the operation must not require exclusive
+  /// choice.  If it the operation is not idempotent, then the resulting value
+  /// should only be used as a job.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let ( *<+=>- ) qCh rI2q = qCh *<+=>= (rI2q >> result)
+#endif
+  val inline ( *<+=>- ): Ch<'q> -> (IVar<'r>                  ->      'q)  -> Alt<'r>
   
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job

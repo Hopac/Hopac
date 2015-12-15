@@ -198,29 +198,6 @@ module Util =
       if 0 = Pick.PickAndSetNacks (xE.pk, &wr, i) then
         Handler.DoHandle (xK, &wr, e)
 
-  type GuardCont<'x, 'xA> when 'xA :> Alt<'x> =
-   inherit Cont<'xA>
-   val i: int
-   val mutable xK: Cont<'x>
-   val xE: Else
-   new (i, xK, xE) = {inherit Cont<'xA> (); i=i; xK=xK; xE=xE}
-   override xAK'.GetProc (wr) =
-    Handler.GetProc (&wr, &xAK'.xK)
-   override xAK'.DoHandle (wr, e) =
-    Pick.PickClaimedAndSetNacks (&wr, xAK'.i, xAK'.xE.pk)
-    let xK = xAK'.xK
-    wr.Handler <- xK ; Handler.DoHandle (xK, &wr, e)
-   override xAK'.DoWork (wr) =
-    let xE = xAK'.xE
-    Pick.Unclaim xE.pk
-    let xK = xAK'.xK
-    wr.Handler <- xK ; xAK'.Value.TryAlt (&wr, xAK'.i, xK, xE)
-   override xAK'.DoCont (wr, xA) =
-    let xE = xAK'.xE
-    Pick.Unclaim xE.pk
-    let xK = xAK'.xK
-    wr.Handler <- xK ; xA.TryAlt (&wr, xAK'.i, xK, xE)
-
 ////////////////////////////////////////////////////////////////////////////////
 
 module IVar =
@@ -401,31 +378,35 @@ module Infixes =
       override xA'.Do (nack) =
         let rCh = Ch<_> ()
         rCh2n2qJ rCh nack >>= fun q ->
-        qCh *<+ q >>-.
-        rCh} :> Alt<_>
+        ChSend<_, _> (qCh, q, rCh)} :> Alt<_>
   let inline ( *<+->- ) qCh rCh2n2q =
     {new AltWithNackJob<_, _> () with
       override xA'.Do (nack) =
         let rCh = Ch<_> ()
-        qCh *<+ rCh2n2q rCh nack >>-.
-        rCh} :> Alt<_>
-  let ( *<-=>= ) qCh rI2qJ =
-    let inline u2xAJ () =
-      let rI = IVar<_> ()
-      rI2qJ rI >>- fun q ->
-      qCh *<- q ^=>.
-      rI
-    {new Alt<'x> () with
-      override xA'.DoJob (wr, xK) =
-       u2xAJ().DoJob (&wr, GuardJobCont xK)
-      override xA'.TryAlt (wr, i, xK, xE) =
-       Pick.ClaimAndDoJob (xE.pk, &wr, u2xAJ (), GuardCont (i, xK, xE))}
+        upcast ChSend<_, _> (qCh, rCh2n2q rCh nack, rCh)} :> Alt<_>
+  let inline ( *<-=>= ) qCh rI2qJ =
+    {new AltPrepareJob<_, _> () with
+      override xA'.Do () =
+        let rI = IVar<_> ()
+        rI2qJ rI >>- fun q ->
+        qCh *<- q ^=>.
+        rI} :> Alt<_>
   let inline ( *<-=>- ) qCh rI2q =
-    {new AltDelay<'x> () with
+    {new AltPrepareFun<'x> () with
       override xA'.Do () =
         let rI = IVar<_> ()
         qCh *<- rI2q rI ^=>.
         rI} :> Alt<_>
+  let inline ( *<+=>= ) (qCh: Ch<'q>) (rI2qJ: IVar<'r> -> #Job<'q>) =
+    {new AltPrepareJob<_, _> () with
+      override xA'.Do () =
+        let rI = IVar ()
+        rI2qJ rI >>= fun q -> ChSend<_, IVar<_>> (qCh, q, rI)} :> Alt<_>
+  let inline ( *<+=>- ) (qCh: Ch<'q>) (rI2q: IVar<'r> -> 'q) =
+    {new AltPrepareJob<_, _> () with
+      override xA'.Do () =
+        let rI = IVar ()
+        upcast ChSend<_, IVar<_>> (qCh, rI2q rI, rI)} :> Alt<_>
   let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline ( *<=! ) (xI: IVar<'x>) (e: exn) =
     IVar<'x>.FillFailure (xI, e) :> Job<unit>
@@ -470,20 +451,16 @@ module Alt =
   let raises e = Raises (e) :> Alt<_>
 
   let prepareJob (u2xAJ: unit -> #Job<#Alt<'x>>) =
-    {new Alt<'x> () with
-      override xA'.DoJob (wr, xK) =
-       u2xAJ().DoJob (&wr, GuardJobCont xK)
-      override xA'.TryAlt (wr, i, xK, xE) =
-       Pick.ClaimAndDoJob (xE.pk, &wr, u2xAJ (), GuardCont (i, xK, xE))}
+    {new AltPrepareJob<_, _> () with
+      override xA'.Do () = upcast u2xAJ ()} :> Alt<_>
   let prepare (xAJ: Job<#Alt<'x>>) =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) =
-       xAJ.DoJob (&wr, GuardJobCont xK)
+       xAJ.DoJob (&wr, PrepareJobCont xK)
       override xA'.TryAlt (wr, i, xK, xE) =
-       Pick.ClaimAndDoJob (xE.pk, &wr, xAJ, GuardCont (i, xK, xE))}
-
+       Pick.ClaimAndDoJob (xE.pk, &wr, xAJ, PrepareAltCont (i, xK, xE))}
   let inline prepareFun (u2xA: unit -> #Alt<'x>) =
-    {new AltDelay<'x> () with
+    {new AltPrepareFun<'x> () with
       override xA'.Do () = upcast u2xA ()} :> Alt<_>
 
   let inline random (u2xA: uint64 -> #Alt<'x>) =

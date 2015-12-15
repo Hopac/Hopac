@@ -85,7 +85,7 @@ namespace Hopac {
     }
 
     ///
-    public abstract class AltDelay<X> : Alt<X> {
+    public abstract class AltPrepareFun<X> : Alt<X> {
       ///
       public abstract Alt<X> Do();
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
@@ -103,6 +103,28 @@ namespace Hopac {
             xA = new AltFail<X>(e);
           }
           xA.TryAlt(ref wr, i, xK, xE);
+        }
+      }
+    }
+
+    ///
+    public abstract class AltPrepareJob<X, xA> : Alt<X> where xA : Alt<X> {
+      ///
+      public abstract Job<xA> Do();
+      internal override void DoJob(ref Worker wr, Cont<X> xK) {
+        Do().DoJob(ref wr, new PrepareJobCont<X, xA>(xK));
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
+        var pk = xE.pk;
+        if (0 == Pick.Claim(pk)) {
+          Job<xA> xAJ;
+          try {
+            xAJ = Do();
+          } catch (Exception e) {
+            Pick.PickClaimedAndSetNacks(ref wr, i, pk);
+            xAJ = new AltFail<xA>(e);
+          }
+          xAJ.DoJob(ref wr, new PrepareAltCont<X, xA>(i, xK, xE));
         }
       }
     }
@@ -141,9 +163,9 @@ namespace Hopac {
       }
     }
 
-    internal class GuardJobCont<X, xA> : Cont<xA> where xA : Alt<X> {
+    internal class PrepareJobCont<X, xA> : Cont<xA> where xA : Alt<X> {
       private Cont<X> xK;
-      internal GuardJobCont(Cont<X> xK) { this.xK = xK; }
+      internal PrepareJobCont(Cont<X> xK) { this.xK = xK; }
       internal override Proc GetProc(ref Worker wr) {
         return Handler.GetProc(ref wr, ref xK);
       }
@@ -155,6 +177,40 @@ namespace Hopac {
       }
       internal override void DoCont(ref Worker wr, xA value) {
         value.DoJob(ref wr, xK);
+      }
+    }
+
+    internal class PrepareAltCont<X, xA> : Cont<xA> where xA : Alt<X> {
+      private int i;
+      private Cont<X> xK;
+      private Else xE;
+      internal PrepareAltCont(int i, Cont<X> xK, Else xE) {
+        this.i = i;
+        this.xK = xK;
+        this.xE = xE;
+      }
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc (ref wr, ref xK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        Pick.PickClaimedAndSetNacks(ref wr, i, xE.pk);
+        var xK = this.xK;
+        wr.Handler = xK;
+        Handler.DoHandle(xK, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        var xE = this.xE;
+        Pick.Unclaim(xE.pk);
+        var xK = this.xK;
+        wr.Handler = xK;
+        Value.TryAlt(ref wr, i, xK, xE);
+      }
+      internal override void DoCont(ref Worker wr, xA xA) {
+        var xE = this.xE;
+        Pick.Unclaim(xE.pk);
+        var xK = this.xK;
+        wr.Handler = xK;
+        xA.TryAlt(ref wr, i, xK, xE);
       }
     }
 
@@ -213,7 +269,7 @@ namespace Hopac {
       ///
       public abstract Job<xA> Do(Promise<Unit> nack);
       internal override void DoJob(ref Worker wr, Cont<X> xK) {
-        Do(StaticData.zero).DoJob(ref wr, new GuardJobCont<X, xA>(xK));
+        Do(StaticData.zero).DoJob(ref wr, new PrepareJobCont<X, xA>(xK));
       }
       internal override void TryAlt(ref Worker wr, int i, Cont<X> xK, Else xE) {
         var nk = Pick.ClaimAndAddNack(xE.pk, i);

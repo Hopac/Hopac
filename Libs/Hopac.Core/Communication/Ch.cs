@@ -318,20 +318,40 @@ namespace Hopac {
     }
 
     /// Internal implementation detail.
-    public sealed class ChSend<T> : Job<Unit> {
-      private Ch<T> Ch;
-      private T X;
+    public sealed class ChSend<X> : Job<Unit> {
+      private Ch<X> xCh;
+      private X x;
 
       /// Internal implementation detail.
       [MethodImpl(AggressiveInlining.Flag)]
-      public ChSend(Ch<T> ch, T x) {
-        this.Ch = ch;
-        this.X = x;
+      public ChSend(Ch<X> ch, X x) {
+        this.xCh = ch;
+        this.x = x;
       }
 
-      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
-        Ch<T>.Send(this.Ch, ref wr, this.X);
-        Work.Do(uK, ref wr);
+      internal override void DoJob(ref Worker wr, Cont<Unit> yK) {
+        Ch<X>.Send(this.xCh, ref wr, this.x);
+        Work.Do(yK, ref wr);
+      }
+    }
+
+    /// Internal implementation detail.
+    public sealed class ChSend<X, Y> : Job<Y> {
+      private Ch<X> xCh;
+      private X x;
+      private Y y;
+
+      /// Internal implementation detail.
+      [MethodImpl(AggressiveInlining.Flag)]
+      public ChSend(Ch<X> ch, X x, Y y) {
+        this.xCh = ch;
+        this.x = x;
+        this.y = y;
+      }
+
+      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
+        Ch<X>.Send(this.xCh, ref wr, this.x);
+        Cont.Do(yK, ref wr, this.y);
       }
     }
 

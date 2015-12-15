@@ -67,10 +67,8 @@ module HopacDyn =
   let put (c: Cell<'a>) (x: 'a) =
     c.reqCh *<- Put x
 
-  let get (c: Cell<'a>) : Job<'a> = Job.delay <| fun () ->
-    let replyIv = IVar ()
-    c.reqCh *<+ Get replyIv >>=.
-    replyIv
+  let get (c: Cell<'a>) =
+    c.reqCh *<+=>- Get :> Job<_>
 
   let cell (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
     let reqCh = Ch ()

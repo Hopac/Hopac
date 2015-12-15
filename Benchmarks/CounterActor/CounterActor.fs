@@ -36,10 +36,8 @@ module ChMsg =
   }
 
   let add (CA inCh) (n: int64) = inCh *<- Add n
-  let getAndReset (CA inCh) : Job<int64> = Job.delay <| fun () ->
-    let replyVar = IVar ()
-    inCh *<+ GetAndReset replyVar >>=.
-    replyVar
+  let getAndReset (CA inCh) =
+    inCh *<+=>- GetAndReset :> Job<_>
 
   let run numPerThread =
     printf "ChMsg: "
