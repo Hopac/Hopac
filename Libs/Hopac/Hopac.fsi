@@ -2645,8 +2645,8 @@ module Infixes =
   /// Creates an alternative that, using the given function, constructs a query
   /// with a reply variable, sends the query and reads the reply.  In order for
   /// the alternative to make sense, the operation must not require exclusive
-  /// choice.  If it the operation is not idempotent, then the resulting value
-  /// should only be used as a job.
+  /// choice.  If this is not the case, then the resulting value should only be
+  /// used as a job.
 #if DOC
   ///
   /// Reference implementation:
