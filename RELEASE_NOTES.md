@@ -1,3 +1,7 @@
+#### 0.1.3 - 15.12.2015
+* Added `*<+=>-` and `*<+=>=` for async calls.
+* Reverted `FSharp.Core` dependency.
+
 #### 0.1.2 - 27.11.2015
 * Fixed lack of tail call workaround in `for` and `while`.
 
