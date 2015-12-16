@@ -13,7 +13,7 @@ namespace Hopac {
 
   namespace Core {
     ///
-    public abstract class AltBind<X, Y> : Alt<Y> {
+    public abstract class AltAfterJob<X, Y> : Alt<Y> {
       internal Alt<X> xA;
       ///
       [MethodImpl(AggressiveInlining.Flag)]
@@ -21,12 +21,12 @@ namespace Hopac {
       ///
       public abstract Job<Y> Do(X x);
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        xA.DoJob(ref wr, new ContBind(this, yK));
+        xA.DoJob(ref wr, new ContAfterJob(this, yK));
       }
-      internal sealed class ContBind : Cont<X> {
-        internal AltBind<X, Y> yA;
+      internal sealed class ContAfterJob : Cont<X> {
+        internal AltAfterJob<X, Y> yA;
         internal Cont<Y> yK;
-        internal ContBind(AltBind<X, Y> yA, Cont<Y> yK) {
+        internal ContAfterJob(AltAfterJob<X, Y> yA, Cont<Y> yK) {
           this.yA = yA;
           this.yK = yK;
         }
@@ -44,12 +44,12 @@ namespace Hopac {
         }
       }
       internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else yE) {
-        xA.TryAlt(ref wr, i, new ContBind(this, yK), yE);
+        xA.TryAlt(ref wr, i, new ContAfterJob(this, yK), yE);
       }
     }
 
     ///
-    public abstract class AltMap<X, Y> : Alt<Y> {
+    public abstract class AltAfterFun<X, Y> : Alt<Y> {
       internal Alt<X> xA;
       ///
       [MethodImpl(AggressiveInlining.Flag)]
@@ -57,12 +57,12 @@ namespace Hopac {
       ///
       public abstract Y Do(X x);
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        xA.DoJob(ref wr, new ContMap(this, yK));
+        xA.DoJob(ref wr, new ContAfterFun(this, yK));
       }
-      internal sealed class ContMap : Cont<X> {
-        internal AltMap<X, Y> yA;
+      internal sealed class ContAfterFun : Cont<X> {
+        internal AltAfterFun<X, Y> yA;
         internal Cont<Y> yK;
-        internal ContMap(AltMap<X, Y> yA, Cont<Y> yK) {
+        internal ContAfterFun(AltAfterFun<X, Y> yA, Cont<Y> yK) {
           this.yA = yA;
           this.yK = yK;
         }
@@ -80,7 +80,7 @@ namespace Hopac {
         }
       }
       internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else yE) {
-        xA.TryAlt(ref wr, i, new ContMap(this, yK), yE);
+        xA.TryAlt(ref wr, i, new ContAfterFun(this, yK), yE);
       }
     }
 

@@ -328,11 +328,11 @@ module Infixes =
        else eitherOr &wr i xK xE xA2 xA1}
 
   let inline (^->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
-    {new AltMap<'x, 'y> () with
+    {new AltAfterFun<'x, 'y> () with
       override yA'.Do (x) = x2y x}.InternalInit(xA)
 
   let inline (^=>) (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) =
-    {new AltBind<'x, 'y> () with
+    {new AltAfterJob<'x, 'y> () with
       override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
 
   let (^->.) (xA: Alt<_>) (y: 'y) =
@@ -511,11 +511,11 @@ module Alt =
           xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
 
   let inline afterFun (x2y: 'x -> 'y) (xA: Alt<'x>) =
-    {new AltMap<'x, 'y> () with
+    {new AltAfterFun<'x, 'y> () with
       override yA'.Do (x) = x2y x}.InternalInit(xA)
 
   let inline afterJob (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) =
-    {new AltBind<'x, 'y> () with
+    {new AltAfterJob<'x, 'y> () with
       override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
 
   module Infixes =
