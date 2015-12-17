@@ -2,7 +2,7 @@
 
 ## Server Pattern
 
-``` fsharp
+```fsharp
 type Server =
   {opCh1: Ch<Request1>
    ...
@@ -34,8 +34,8 @@ let op1 server ... = ... server.opCh1 ...
 let opN server ... = ... server.opChN ...
 ```
 
-``` fsharp
-type Server () =
+```fsharp
+type Server (params) =
   let opCh1 = Ch ()
   ...
   let opChN = Ch ()
@@ -92,7 +92,6 @@ server: opCh ^=> function Request replyIv ->
 
 ```fsharp
 client: opCh *<-=>- fun replyIv -> Request replyIv
-          ^=> fun Reply -> ...
 ```
 
 ### SyncOnReply: Request -> Alt<Reply>
