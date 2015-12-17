@@ -62,7 +62,7 @@ type Server (params) =
 
 ## Call Patterns
 
-### SyncOnReply: unit -> Alt<Reply>
+### SyncOnReply: unit -&gt; Alt&lt;Reply&gt;
 
 ```fsharp
 server: opCh *<- Reply
@@ -72,7 +72,7 @@ server: opCh *<- Reply
 client: opCh
 ```
 
-### SyncOnRequest: Request -> Alt<unit>
+### SyncOnRequest: Request -&gt; Alt&lt;unit&gt;
 
 ```fsharp
 server: opCh ^=> fun Request -> ...
@@ -82,7 +82,7 @@ server: opCh ^=> fun Request -> ...
 client: opCh *<- Request
 ```
 
-### SyncOnRequest: Request -> Alt<Reply>
+### SyncOnRequest: Request -&gt; Alt&lt;unit&gt;
 
 ```fsharp
 server: opCh ^=> function Request replyIv ->
@@ -94,7 +94,7 @@ server: opCh ^=> function Request replyIv ->
 client: opCh *<-=>- fun replyIv -> Request replyIv
 ```
 
-### SyncOnReply: Request -> Alt<Reply>
+### SyncOnReply: Request -&gt; Alt&lt;unit&gt;
 
 ```fsharp
 server: opCh ^=> function Request (replyCh, nack) ->
@@ -106,7 +106,7 @@ server: opCh ^=> function Request (replyCh, nack) ->
 client: opCh *<+->- fun replyCh nack -> Request (replyCh, nack)
 ```
 
-### AsyncNoReply: Request -> Job<unit>
+### AsyncNoReply: Request -&gt; Job&lt;unit&gt;
 
 ```fsharp
 server: opCh ^=> function Request -> ...
@@ -116,7 +116,7 @@ server: opCh ^=> function Request -> ...
 client: opCh *<+ Request
 ```
 
-### AsyncWithReply: Request -> Alt<Reply>
+### AsyncWithReply: Request -&gt; Alt&lt;Reply&gt;
 
 ```fsharp
 server: opCh ^=> function Request replyIv ->
