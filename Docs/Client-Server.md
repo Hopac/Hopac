@@ -99,11 +99,9 @@ type Stack<'x> () =
   let pushCh = Ch ()
   let popCh = Ch ()
   do server << Job.iterate [] <| function
-       | [] ->
-         pushCh ^-> fun x -> [x]
-       | h::t ->
-             popCh *<- h ^->. t
-         <|> pushCh      ^-> fun n -> n::h::t
+       | []   -> pushCh      ^-> fun x -> [x]
+       | h::t -> popCh *<- h ^->. t
+             <|> pushCh      ^-> fun n -> n::h::t
   member s.Pop = popCh :> Alt<_>
   member s.Push (x: 'x) = pushCh *<- x
 ```
