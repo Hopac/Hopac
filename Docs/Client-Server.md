@@ -72,6 +72,16 @@ server: opCh *<- Reply
 client: opCh
 ```
 
+#### Example: Unique id server
+
+```fsharp
+type Id () =
+  let reqCh = Ch ()
+  do server << Job.iterate 0 <| fun i ->
+       reqCh *<- i ^->. i+1
+  member s.New = reqCh :> Alt<_>
+```
+
 ### SyncOnRequest: Request -&gt; Alt&lt;unit&gt;
 
 ```fsharp
@@ -80,6 +90,22 @@ server: opCh ^=> fun Request -> ...
 
 ```fsharp
 client: opCh *<- Request
+```
+
+#### Example: Stack
+
+```fsharp
+type Stack<'x> () =
+  let pushCh = Ch ()
+  let popCh = Ch ()
+  do server << Job.iterate [] <| function
+       | [] ->
+         pushCh ^-> fun x -> [x]
+       | h::t ->
+             popCh *<- h ^->. t
+         <|> pushCh      ^-> fun n -> n::h::t
+  member s.Pop = popCh :> Alt<_>
+  member s.Push (x: 'x) = pushCh *<- x
 ```
 
 ### SyncOnRequest: Request -&gt; Alt&lt;unit&gt;
