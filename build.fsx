@@ -38,6 +38,8 @@ let authors = ["Housemarque Inc."]
 let company = "Housemarque Inc."
 let copyright = "© Housemarque Inc."
 
+let keyFile = "../../Hopac.snk"
+
 // Tags for your project (for NuGet package)
 let tags = "f#, fsharp, parallel, async, concurrent, reactive"
 
@@ -104,7 +106,8 @@ Target "AssemblyInfo" <| fun _ ->
           Attribute.Version release.AssemblyVersion
           Attribute.FileVersion release.AssemblyVersion
           Attribute.Company company
-          Attribute.Copyright copyright ]
+          Attribute.Copyright copyright
+          Attribute.KeyFile keyFile]
         |>
         match project.Type with
         | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")

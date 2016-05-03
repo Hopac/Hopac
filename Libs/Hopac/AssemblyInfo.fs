@@ -1,4 +1,4 @@
-namespace System
+﻿namespace System
 open System.Reflection
 
 [<assembly: AssemblyTitleAttribute("Hopac")>]
@@ -8,8 +8,9 @@ open System.Reflection
 [<assembly: AssemblyFileVersionAttribute("0.1.3")>]
 [<assembly: AssemblyCompanyAttribute("Housemarque Inc.")>]
 [<assembly: AssemblyCopyrightAttribute("� Housemarque Inc.")>]
-[<assembly: AssemblyKeyFile("../../Hopac.snk")>]
+[<assembly: AssemblyKeyFileAttribute("../../Hopac.snk")>]
 do ()
 
 module internal AssemblyVersionInformation =
     let [<Literal>] Version = "0.1.3"
+    let [<Literal>] InformationalVersion = "0.1.3"
