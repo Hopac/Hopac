@@ -27,6 +27,8 @@
     <DocumentationFile>bin\Debug\Hopac.Core.xml</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../Tools/Hopac.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
