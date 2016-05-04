@@ -16,7 +16,7 @@ notifications:
 
 env:
   global:
-    - EnableNuGetPackageRestore=true
+    - EnableNuGetPackageRestore=false
 
 script:
   - ./build.sh
