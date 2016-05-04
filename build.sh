@@ -7,7 +7,7 @@ if [ ! -f paket.exe ]; then
 fi
 
 if [ ! -d packages ] ; then
-    mono --debug paket.exe install
+    mono --debug paket.exe install --force
 fi
 
 mono --debug packages/FAKE/tools/FAKE.exe build.fsx "$*"
