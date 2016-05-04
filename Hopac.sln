@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{BBB71A6D-D87A-4D99-B2A1-F07D5A970707}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{0F31BE63-CB73-4207-94E8-158D3077F24A}"
 EndProject
 Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "ThreadRing", "Benchmarks\ThreadRing\ThreadRing.fsproj", "{36759B0E-103D-4985-815C-2ACFE9568334}"
@@ -74,7 +79,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C2B858D2-C161-446F-930F-87AECA04EF36}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\Hopac.nuspec = .nuget\Hopac.nuspec
-		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
 Global

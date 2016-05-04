@@ -14,9 +14,9 @@ solution: Hopac.sln
 notifications:
   email: false # Sorry, travis ci builds fail with timeouts too often
 
-env:
-  global:
-    - EnableNuGetPackageRestore=false
+install:
+ - mono --debug paket.bootstrapper.exe
+ - mono --debug paket.exe install
 
 script:
-  - ./build.sh
+  - mono --debug packages/FAKE/tools/FAKE.exe build.fsx

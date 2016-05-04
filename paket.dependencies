@@ -1,3 +1,10 @@
 source https://www.nuget.org/api/v2
 nuget FAKE
+nuget FsCheck 2.2.2 framework: >= net45
+nuget FSharp.Core 4.0.0.1
+nuget Rx-Core 2.2.5 framework: >= net45
+nuget Rx-Interfaces 2.2.5 framework: >= net45
+nuget Rx-Linq 2.2.5 framework: >= net45
+nuget Rx-Main 2.2.5 framework: >= net45
+nuget Rx-PlatformServices 2.2.5 framework: >= net45
 nuget SourceLink.Fake
