@@ -22,9 +22,9 @@ namespace Hopac {
     public IVar(Exception e) : base(e) { }
 
     /// Internal implementation detail.
-    public class Fill : Job<Unit> {
-      internal readonly IVar<T> tI;
-      internal readonly T t;
+    public sealed class Fill : Job<Unit> {
+      private readonly IVar<T> tI;
+      private readonly T t;
 
       /// Internal implementation detail.
       [MethodImpl(AggressiveInlining.Flag)]
@@ -51,10 +51,16 @@ namespace Hopac {
     }
 
     /// Internal implementation detail.
-    public sealed class TryFill : Fill {
+    public sealed class TryFill : Job<Unit> {
+      private readonly IVar<T> tI;
+      private readonly T t;
+
       /// Internal implementation detail.
       [MethodImpl(AggressiveInlining.Flag)]
-      public TryFill(IVar<T> tI, T t) : base (tI, t) { }
+      public TryFill(IVar<T> tI, T t) {
+        this.tI = tI;
+        this.t = t;
+      }
 
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var tI = this.tI;
