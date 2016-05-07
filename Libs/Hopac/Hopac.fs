@@ -256,10 +256,8 @@ module Infixes =
     x2yJ x >>= y2zJ
   let inline (>->) (x2yJ: 'x -> #Job<'y>) (y2z: 'y -> 'z) (x: 'x) =
     x2yJ x >>- y2z
-  let inline (>=>.) (x2yJ: 'x -> #Job<'y>) (zJ: #Job<'z>) (x: 'x) =
-    x2yJ x >>=. zJ
-  let inline (>->.) (x2yJ: 'x -> #Job<'y>) (z: 'z) (x: 'x) =
-    x2yJ x >>-. z
+  let inline (>=>.) x2yJ zJ x = x2yJ x >>=. zJ
+  let inline (>->.) x2yJ z x = x2yJ x >>-. z
 
   type PairCont2<'x, 'y> (x: 'x, xyK: Cont<'x * 'y>) =
     inherit Cont<'y> ()
