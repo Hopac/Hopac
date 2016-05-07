@@ -2794,18 +2794,25 @@ module Infixes =
   /// Creates a job that is the composition of the given two job constructors.
   /// `(x2yJ >=> y2zJ) x` is equivalent to `x2yJ x >>= y2zJ` and is much like
   /// the `>>` operator on ordinary functions.
-  val inline ( >=>  ): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x ->     Job<'z>
+  val inline ( >=>   ): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x ->     Job<'z>
 
   /// A memoizing version of `>=>`.
-  val inline ( >=>* ): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Promise<'z>
+  val inline ( >=>*  ): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Promise<'z>
 
   /// Creates a job that is the composition of the given job constructor and
   /// function.  `(x2yJ >-> y2z) x` is equivalent to `x2yJ x >>- y2z` and is
   /// much like the `>>` operator on ordinary functions.
-  val inline ( >->  ): ('x -> #Job<'y>) -> ('y ->      'z)  -> 'x ->     Job<'z>
+  val inline ( >->   ): ('x -> #Job<'y>) -> ('y ->      'z)  -> 'x ->     Job<'z>
 
   /// A memoizing version of `>->`.
-  val inline ( >->* ): ('x -> #Job<'y>) -> ('y ->      'z)  -> 'x -> Promise<'z>
+  val inline ( >->*  ): ('x -> #Job<'y>) -> ('y ->      'z)  -> 'x -> Promise<'z>
+
+  val inline ( >=>.  ): ('x -> #Job<_>)  ->         Job<'z>  -> 'x ->     Job<'z>
+  val inline ( >=>*. ): ('x -> #Job<_>)  ->         Job<'z>  -> 'x -> Promise<'z>
+  val inline ( >->.  ): ('x -> #Job<_>)  ->             'z   -> 'x ->     Job<'z>
+  val inline ( >->*. ): ('x -> #Job<_>)  ->             'z   -> 'x -> Promise<'z>
+  val inline ( >->!  ): ('x -> #Job<_>)  ->             exn  -> 'x ->     Job<_>
+  val inline ( >->*! ): ('x -> #Job<_>)  ->             exn  -> 'x -> Promise<_>
 
   // Pairs ---------------------------------------------------------------------
 
