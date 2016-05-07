@@ -1698,6 +1698,11 @@ module IVar =
   /// usage leads to undefined behavior.  See also: `*<=!`, `fill`.
   val inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
+  /// Creates a job that tries to write the given exception to the given write
+  /// once variable.  No operation takes place and no error is reported in case
+  /// the write once variable has already been written to.
+  val inline tryFillFailure: IVar<'x> -> exn -> Job<unit>
+
   /// Creates an alternative that becomes available after the write once
   /// variable has been written to.
   val inline read: IVar<'x> -> Alt<'x>

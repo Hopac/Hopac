@@ -216,6 +216,8 @@ module IVar =
     IVar<'x>.TryFill (xI, x) :> Job<unit>
   let inline fillFailure (xI: IVar<'x>) (e: exn) =
     IVar<'x>.FillFailure (xI, e) :> Job<unit>
+  let inline tryFillFailure (xI: IVar<'x>) (e: exn) =
+    IVar<'x>.TryFillFailure (xI, e) :> Job<unit>
   let inline read (xI: IVar<'x>) = xI :> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////

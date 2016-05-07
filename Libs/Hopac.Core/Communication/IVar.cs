@@ -80,6 +80,37 @@ namespace Hopac {
     }
 
     /// Internal implementation detail.
+    public sealed class TryFillFailure : Job<Unit> {
+      private IVar<T> tI;
+      private Exception e;
+
+      /// Internal implementation detail.
+      [MethodImpl(AggressiveInlining.Flag)]
+      public TryFillFailure(IVar<T> tI, Exception e) {
+        this.tI = tI;
+        this.e = e;
+      }
+
+      internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+        var tI = this.tI;
+      Spin:
+        var state = tI.State;
+        if (state < Delayed) goto Spin;
+        if (state > Running) goto Done;
+        if (state != Interlocked.CompareExchange(ref tI.State, ~state, state)) goto Spin;
+
+        var readers = tI.Readers;
+        var e = this.e;
+        tI.Readers = new Fail<T>(e);
+        tI.State = HasExn;
+
+        WaitQueue.FailReaders(readers, e, ref wr);
+      Done:
+        Work.Do(uK, ref wr);
+      }
+    }
+
+    /// Internal implementation detail.
     public sealed class FillFailure : Job<Unit> {
       private IVar<T> tI;
       private Exception e;
