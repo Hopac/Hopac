@@ -1678,7 +1678,7 @@ module IVar =
   val inline fill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that tries to write the given value to the given write once
-  /// variable.  No operation takes places and no error is reported in case the
+  /// variable.  No operation takes place and no error is reported in case the
   /// write once variable has already been written to.
 #if DOC
   ///
