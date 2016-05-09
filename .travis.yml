@@ -20,3 +20,4 @@ install:
 
 script:
   - mono --debug packages/FAKE/tools/FAKE.exe build.fsx
+  - mono --debug Benchmarks/PingPong/bin/Debug/PingPong.exe
