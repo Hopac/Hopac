@@ -78,7 +78,7 @@ type Project =
       Folder: string
       ProjectFile: string }
 
-let projects = 
+let coreProjects =
     ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
     |> List.map (fun projectName ->
         let folder = "Libs" @@ projectName
@@ -100,7 +100,7 @@ let projects =
 
 // Generate assembly info files with the right version & up-to-date information
 Target "AssemblyInfo" <| fun _ ->
-    projects
+    coreProjects
     |> List.iter (fun project ->
         [ Attribute.Title project.Name
           Attribute.Product project.Name
@@ -113,7 +113,7 @@ Target "AssemblyInfo" <| fun _ ->
         |>
         match project.Type with
         | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")
-        | CSharp -> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
+        | CSharp -> Seq.filter (fun a -> a.Name <> "KeyFile") >> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
@@ -125,7 +125,7 @@ Target "Clean" <| fun _ ->
 // Build library & test project
 
 Target "Build" <| fun _ ->
-    projects
+    coreProjects
     |> List.map (fun project -> project.ProjectFile)
     |> MSBuildRelease "bin" "Rebuild"
     |> ignore
