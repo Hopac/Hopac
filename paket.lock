@@ -4,7 +4,7 @@ NUGET
     FAKE (4.25.5)
     FsCheck (2.2.2) - framework: >= net45
       FSharp.Core (>= 3.1.2.5)
-    FSharp.Core (4.0.0.1)
+    FSharp.Core (3.1.2.5)
     Rx-Core (2.2.5) - framework: >= net45
       Rx-Interfaces (>= 2.2.5)
     Rx-Interfaces (2.2.5) - framework: >= net45

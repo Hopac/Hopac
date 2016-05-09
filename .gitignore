@@ -12,3 +12,5 @@ nuget
 obj
 packages
 paket.exe
+
+Hopac.template
