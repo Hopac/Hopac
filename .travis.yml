@@ -21,4 +21,5 @@ install:
 
 script:
   - mono --debug packages/FAKE/tools/FAKE.exe build.fsx
+  - xbuild Hopac.sln
   - mono --debug Benchmarks/PingPong/bin/Debug/PingPong.exe
