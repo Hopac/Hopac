@@ -10,6 +10,7 @@ open Fake.ReleaseNotesHelper
 open Fake.Paket
 open Fake.PaketTemplate
 open System.IO
+open System
 
 
 // --------------------------------------------------------------------------------------
@@ -153,6 +154,13 @@ Target "NuGet" <| fun _ ->
             Dependencies = getDependencies "Libs/Hopac/packages.config"})
         (".nuget" @@ project + ".nuspec")
 
+Target "PaketBootstrap" <| fun _ ->
+  ExecProcess (fun info ->
+    info.FileName <- "./paket.bootstrapper.exe"
+    info.WorkingDirectory <- ".")
+    TimeSpan.MaxValue
+  |> ignore
+
 Target "PaketTemplate" <| fun _ ->
   PaketTemplate (fun p ->
     { p with
@@ -179,6 +187,7 @@ Target "Package" <| fun _ ->
     {p with
       TemplateFile = "./Hopac.template"
       OutputPath = "nuget"
+      ToolPath = "paket.exe"
     })
 
 
@@ -192,6 +201,7 @@ Target "All" DoNothing
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
+  ==> "PaketBootstrap"
   ==> "PaketTemplate"
   ==> "Package"
   ==> "All"
