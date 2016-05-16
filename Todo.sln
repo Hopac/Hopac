@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{BF578A49-1825-4B1B-9A1C-C15D604268DD}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hopac.Core", "Libs\Hopac.Core\Hopac.Core.csproj", "{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac", "Libs\Hopac\Hopac.fsproj", "{898D8FE3-C9BE-4115-9A13-7615AF27C048}"

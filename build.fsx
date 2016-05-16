@@ -7,7 +7,10 @@ open Fake
 open Fake.Git
 open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
+open Fake.Paket
+open Fake.PaketTemplate
 open System.IO
+open System
 
 
 // --------------------------------------------------------------------------------------
@@ -76,7 +79,7 @@ type Project =
       Folder: string
       ProjectFile: string }
 
-let projects = 
+let coreProjects =
     ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
     |> List.map (fun projectName ->
         let folder = "Libs" @@ projectName
@@ -98,7 +101,7 @@ let projects =
 
 // Generate assembly info files with the right version & up-to-date information
 Target "AssemblyInfo" <| fun _ ->
-    projects
+    coreProjects
     |> List.iter (fun project ->
         [ Attribute.Title project.Name
           Attribute.Product project.Name
@@ -111,7 +114,7 @@ Target "AssemblyInfo" <| fun _ ->
         |>
         match project.Type with
         | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")
-        | CSharp -> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
+        | CSharp -> Seq.filter (fun a -> a.Name <> "KeyFile") >> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
@@ -123,7 +126,7 @@ Target "Clean" <| fun _ ->
 // Build library & test project
 
 Target "Build" <| fun _ ->
-    projects
+    coreProjects
     |> List.map (fun project -> project.ProjectFile)
     |> MSBuildRelease "bin" "Rebuild"
     |> ignore
@@ -151,6 +154,43 @@ Target "NuGet" <| fun _ ->
             Dependencies = getDependencies "Libs/Hopac/packages.config"})
         (".nuget" @@ project + ".nuspec")
 
+Target "PaketBootstrap" <| fun _ ->
+  ExecProcess (fun info ->
+    info.FileName <- "./paket.bootstrapper.exe"
+    info.WorkingDirectory <- ".")
+    TimeSpan.MaxValue
+  |> ignore
+
+Target "PaketTemplate" <| fun _ ->
+  PaketTemplate (fun p ->
+    { p with
+        TemplateType = PaketTemplateType.File
+        Id = Some "Hopac-StrongName"
+        Files = [ PaketFileInfo.Include ("bin", "lib/net45") ; PaketFileInfo.Exclude "bin/FSharp.Core*"]
+        Authors = authors
+        Owners = authors
+        Copyright = Some "Copyright 2015"
+        Summary = [summary]
+        Description = [description]
+        Version = Some release.NugetVersion
+        ReleaseNotes = release.Notes
+        Tags = [tags]
+        IconUrl = Some "https://avatars2.githubusercontent.com/u/10173903"
+        ProjectUrl = Some "https://github.com/Hopac/Hopac"
+        LicenseUrl = Some "https://github.com/Hopac/Hopac/blob/master/LICENSE.md"
+        TemplateFilePath = Some "./Hopac.template"
+        Dependencies = ["FSharp.Core", PaketDependencyVersionInfo.GreaterOrEqual (PaketDependencyVersion.Version "3.1.2.5")]
+     })
+
+Target "Package" <| fun _ ->
+  Pack (fun p -> 
+    {p with
+      TemplateFile = "./Hopac.template"
+      OutputPath = "nuget"
+      ToolPath = "paket.exe"
+    })
+
+
 Target "BuildPackage" DoNothing
 
 // --------------------------------------------------------------------------------------
@@ -161,10 +201,9 @@ Target "All" DoNothing
 "Clean"
   ==> "AssemblyInfo"
   ==> "Build"
+  ==> "PaketBootstrap"
+  ==> "PaketTemplate"
+  ==> "Package"
   ==> "All"
-
-"All"
-  ==> "NuGet"
-  ==> "BuildPackage"
 
 RunTargetOrDefault "All"

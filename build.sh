@@ -2,12 +2,12 @@
 
 set -e
 
-if [ ! -f packages/FAKE/tools/Fake.exe ] ; then
-    nuget install FAKE -OutputDirectory packages -ExcludeVersion
+if [ ! -f paket.exe ]; then
+    mono --debug paket.bootstrapper.exe
 fi
 
-if [ ! -f packages/SourceLink.Fake/tools/SourceLink.fsx ] ; then
-    nuget install SourceLink.Fake -OutputDirectory packages -ExcludeVersion
+if [ ! -d packages ] ; then
+    mono --debug paket.exe install --force
 fi
 
-mono packages/FAKE/tools/FAKE.exe build.fsx "$*"
+mono --debug packages/FAKE/tools/FAKE.exe build.fsx "$*"

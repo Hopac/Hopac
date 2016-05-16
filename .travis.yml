@@ -4,6 +4,7 @@ language: csharp
 sudo: false
 
 mono:
+ - alpha
  - beta
  - latest
  - 4.0.0
@@ -14,9 +15,11 @@ solution: Hopac.sln
 notifications:
   email: false # Sorry, travis ci builds fail with timeouts too often
 
-env:
-  global:
-    - EnableNuGetPackageRestore=true
+install:
+ - mono --debug paket.bootstrapper.exe
+ - mono --debug paket.exe install
 
 script:
-  - ./build.sh
+  - mono --debug packages/FAKE/tools/FAKE.exe build.fsx
+  - xbuild Hopac.sln
+  - mono --debug Benchmarks/PingPong/bin/Debug/PingPong.exe
