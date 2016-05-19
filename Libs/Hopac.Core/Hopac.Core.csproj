@@ -25,8 +25,8 @@
     <DocumentationFile>bin\Debug\Hopac.Core.xml</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>../../Hopac.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly Condition="'$(StrongNameAssembly)' != ''">true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="'$(StrongNameAssembly)' != ''">../../Hopac.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -85,7 +85,7 @@
     <None Include="paket.references" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

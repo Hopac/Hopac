@@ -39,7 +39,7 @@ let description = "Inspired by languages like Concurrent ML and Cilk, Hopac is a
 let authors = ["Housemarque Inc."]
 
 let company = "Housemarque Inc."
-let copyright = "© Housemarque Inc."
+let copyright = "ï¿½ Housemarque Inc."
 
 let keyFile = "../../Hopac.snk"
 
@@ -67,25 +67,24 @@ let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/Hopac"
 let buildDir = "bin"
 let nugetDir = "./nuget/"
 
-
 // Read additional information from the release notes document
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
-
 type ProjectType = FSharp | CSharp
 
-type Project = 
+type Project =
     { Type: ProjectType
       Name: string
       Folder: string
-      ProjectFile: string }
+      ProjectFile: string
+      StrongName: bool }
 
 let coreProjects =
     ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
     |> List.map (fun projectName ->
         let folder = "Libs" @@ projectName
-        let projectType, projectFile = 
+        let projectType, projectFile =
             !! (folder + "/*")
-            |> Seq.choose (fun file -> 
+            |> Seq.choose (fun file ->
                 match  (Path.GetExtension file).ToLower() with
                 | ".fsproj" -> Some (FSharp, file)
                 | ".csproj" -> Some (CSharp, file)
@@ -97,24 +96,32 @@ let coreProjects =
         { Type = projectType
           Name = projectName
           Folder = folder
-          ProjectFile = projectFile })
+          ProjectFile = projectFile
+          StrongName = System.Environment.GetEnvironmentVariable("HOPAC_STRONG_NAME") <> null })
 
 // Generate assembly info files with the right version & up-to-date information
 Target "AssemblyInfo" <| fun _ ->
     coreProjects
     |> List.iter (fun project ->
-        [ Attribute.Title project.Name
-          Attribute.Product project.Name
-          Attribute.Description summary
-          Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion
-          Attribute.Company company
-          Attribute.Copyright copyright
-          Attribute.KeyFile keyFile]
-        |>
-        match project.Type with
-        | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")
-        | CSharp -> Seq.filter (fun a -> a.Name <> "KeyFile") >> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
+        let attrs =
+          [ Attribute.Title project.Name
+            Attribute.Product project.Name
+            Attribute.Description summary
+            Attribute.Version release.AssemblyVersion
+            Attribute.FileVersion release.AssemblyVersion
+            Attribute.Company company
+            Attribute.Copyright copyright
+          ]
+
+        let attrs =
+          if project.StrongName then
+            Attribute.KeyFile keyFile :: attrs
+          else attrs
+
+        attrs
+        |> match project.Type with
+           | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")
+           | CSharp -> Seq.filter (fun a -> a.Name <> "KeyFile") >> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
 
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
@@ -183,7 +190,7 @@ Target "PaketTemplate" <| fun _ ->
      })
 
 Target "Package" <| fun _ ->
-  Pack (fun p -> 
+  Pack (fun p ->
     {p with
       TemplateFile = "./Hopac.template"
       OutputPath = "nuget"

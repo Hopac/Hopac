@@ -8,7 +8,6 @@ using System.Reflection;
 [assembly: AssemblyFileVersionAttribute("0.1.4")]
 [assembly: AssemblyCompanyAttribute("Housemarque Inc.")]
 [assembly: AssemblyCopyrightAttribute("� Housemarque Inc.")]
-[assembly: AssemblyKeyFileAttribute("../../Hopac.snk")]
 namespace System {
     internal static class AssemblyVersionInformation {
         internal const string Version = "0.1.4";
