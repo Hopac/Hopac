@@ -7,7 +7,7 @@ open System.Reflection
 [<assembly: AssemblyVersionAttribute("0.1.4")>]
 [<assembly: AssemblyFileVersionAttribute("0.1.4")>]
 [<assembly: AssemblyCompanyAttribute("Housemarque Inc.")>]
-[<assembly: AssemblyCopyrightAttribute("� Housemarque Inc.")>]
+[<assembly: AssemblyCopyrightAttribute("© Housemarque Inc.")>]
 do ()
 
 module internal AssemblyVersionInformation =

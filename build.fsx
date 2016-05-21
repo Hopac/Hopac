@@ -39,7 +39,7 @@ let description = "Inspired by languages like Concurrent ML and Cilk, Hopac is a
 let authors = ["Housemarque Inc."]
 
 let company = "Housemarque Inc."
-let copyright = "� Housemarque Inc."
+let copyright = "© Housemarque Inc."
 
 let keyFile = "../../Hopac.snk"
 

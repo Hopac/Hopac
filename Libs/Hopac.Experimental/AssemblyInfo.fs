@@ -7,8 +7,7 @@ open System.Reflection
 [<assembly: AssemblyVersionAttribute("0.0.0.36")>]
 [<assembly: AssemblyFileVersionAttribute("0.0.0.36")>]
 [<assembly: AssemblyCompanyAttribute("Housemarque Inc.")>]
-[<assembly: AssemblyCopyrightAttribute("� Housemarque Inc.")>]
-[<assembly: AssemblyKeyFile("../../Hopac.snk")>]
+[<assembly: AssemblyCopyrightAttribute("© Housemarque Inc.")>]
 do ()
 
 module internal AssemblyVersionInformation =
