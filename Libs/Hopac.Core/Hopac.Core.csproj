@@ -12,6 +12,8 @@
     <AssemblyName>Hopac.Core</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <SignAssembly Condition="'$(StrongNameAssembly)' == 'true'">true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="'$(StrongNameAssembly)' == 'true'">../../Hopac.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,8 +27,6 @@
     <DocumentationFile>bin\Debug\Hopac.Core.xml</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
-    <SignAssembly Condition="'$(StrongNameAssembly)' != ''">true</SignAssembly>
-    <AssemblyOriginatorKeyFile Condition="'$(StrongNameAssembly)' != ''">../../Hopac.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
