@@ -395,14 +395,14 @@ module Infixes =
   let inline ( *<-=>= ) qCh rI2qJ =
     {new AltPrepareJob<_, _> () with
       override xA'.Do () =
-        let rI = IVar<_> ()
+        let rI = IVar ()
         rI2qJ rI >>- fun q ->
         qCh *<- q ^=>.
         rI} :> Alt<_>
   let inline ( *<-=>- ) qCh rI2q =
     {new AltPrepareFun<'x> () with
       override xA'.Do () =
-        let rI = IVar<_> ()
+        let rI = IVar ()
         qCh *<- rI2q rI ^=>.
         rI} :> Alt<_>
   let inline ( *<+=>= ) (qCh: Ch<'q>) (rI2qJ: IVar<'r> -> #Job<'q>) =
@@ -2007,7 +2007,7 @@ module Extensions =
       {new Job<Alt<'x>> () with
         override xJ'.DoJob (wr, xAK) =
          let sr = wr.Scheduler
-         let rI = IVar.Now.create ()
+         let rI = IVar ()
          let ts = new CancellationTokenSource ()
          let success = IVar.fill rI >> Scheduler.start sr
          let failure = IVar.fillFailure rI >> Scheduler.start sr
