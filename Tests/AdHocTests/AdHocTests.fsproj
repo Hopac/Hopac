@@ -60,6 +60,8 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Util.fs" />
+    <Compile Include="RunTask.fsi" />
+    <Compile Include="RunTask.fs" />
     <Compile Include="JobTests.fs" />
     <Compile Include="TaskTests.fs" />
     <Compile Include="BuilderTests.fs" />
