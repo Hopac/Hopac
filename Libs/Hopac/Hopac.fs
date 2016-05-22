@@ -1789,11 +1789,22 @@ module Extensions =
   //////////////////////////////////////////////////////////////////////////////
 
   type Task with
-    static member inline awaitJob (xTask: Task<'x>) =
-      AwaitTaskWithResult<'x> (xTask) :> Job<'x>
+    static member inline toAlt (t2xT: CancellationToken -> Task<'x>) =
+      {new TaskWithResultToAlt<_> () with
+        override xA'.Start t = t2xT t} :> Alt<_>
 
-    static member inline awaitJob (task: Task) =
-      AwaitTask (task) :> Job<unit>
+//    static member toAlt (t2uT: CancellationToken -> Task) : Alt<unit> =
+//      failwith "XXX"
+
+    static member inline toJob (u2xT: unit -> Task<'x>) =
+      {new TaskWithResultToJob<_> () with
+        override xJ'.Start () = u2xT ()} :> Job<'x>
+    static member inline toJob (u2uT: unit -> Task) =
+      {new TaskToJob () with
+        override xJ'.Start () = u2uT ()} :> Job<unit>
+
+    static member inline awaitJob (xT: Task<'x>) = Task.toJob (fun () -> xT)
+    static member inline awaitJob (uT: Task) = Task.toJob (fun () -> uT)
 
     static member inline bindJob (xT: Task<'x>, x2yJ: 'x -> #Job<'y>) =
       {new BindTaskWithResult<'x, 'y> () with

@@ -2092,6 +2092,12 @@ module Extensions =
   /// comonadic while jobs are monadic.
 #endif
   type Task with
+    static member inline toAlt: (CancellationToken -> Task<'x>) -> Alt<'x>
+//    static member inline toAlt: (CancellationToken -> Task)     -> Alt<unit>
+
+    static member inline toJob: (unit              -> Task<'x>) -> Job<'x>
+    static member inline toJob: (unit              -> Task)     -> Job<unit>
+
     /// Creates a job that waits for the given task to finish and then returns
     /// the result of the task.  Note that this does not start the task.  Make
     /// sure that the task is started correctly.
