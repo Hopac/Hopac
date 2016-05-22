@@ -61,6 +61,7 @@
     <None Include="App.config" />
     <Compile Include="BuilderTests.fs" />
     <Compile Include="StreamTests.fs" />
+    <Compile Include="Main.fs" />
     <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
