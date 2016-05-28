@@ -165,7 +165,7 @@ module Stream =
      override t.OnCompleted () = t.State <- 2; src *<= Nil |> start
      override t.OnError (e) = t.State <- 2; src *<=! e |> start
      override t.OnNext (x) =
-       let nxt = IVar<_> ()
+       let nxt = IVar ()
        src *<= Cons (x, nxt) |> start
        src <- nxt
 
