@@ -2810,11 +2810,17 @@ module Infixes =
   /// A memoizing version of `>->`.
   val inline ( >->*  ): ('x -> #Job<'y>) -> ('y ->      'z)  -> 'x -> Promise<'z>
 
+  /// `(x2yJ >=>. zJ) x` is equivalent to `x2yJ x >>=. zJ`.
   val inline ( >=>.  ): ('x -> #Job<_>)  ->         Job<'z>  -> 'x ->     Job<'z>
+  /// A memoizing version of `>=>.`.
   val inline ( >=>*. ): ('x -> #Job<_>)  ->         Job<'z>  -> 'x -> Promise<'z>
+  /// `(x2yJ >->. z) x` is equivalent to `x2yJ x >>-. z`.
   val inline ( >->.  ): ('x -> #Job<_>)  ->             'z   -> 'x ->     Job<'z>
+  /// A memoizing version of `>->.`.
   val inline ( >->*. ): ('x -> #Job<_>)  ->             'z   -> 'x -> Promise<'z>
+  /// `(x2yJ >->! e) x` is equivalent to `x2yJ x >>-! e`.
   val inline ( >->!  ): ('x -> #Job<_>)  ->             exn  -> 'x ->     Job<_>
+  /// A memoizing version of `>->!`.
   val inline ( >->*! ): ('x -> #Job<_>)  ->             exn  -> 'x -> Promise<_>
 
   // Pairs ---------------------------------------------------------------------
