@@ -19,10 +19,10 @@ module Stream =
   /// Represents a non-deterministic stream of values called a choice stream.
 #if DOC
   ///
-  /// Choice streams can be used in ways similar to Rx observable sequences.
-  /// However, the underlying implementations of choice streams and observable
-  /// sequences are almost polar opposites: choice streams are pull based while
-  /// observable sequences are push based.
+  /// Choice streams can be used to solve similar problems as Rx observable
+  /// sequences.  However, the underlying implementations of choice streams and
+  /// observable sequences are almost polar opposites: choice streams are pull
+  /// based while observable sequences are push based.
   ///
   /// Probably the most notable advantage of observable sequences over choice
   /// streams is that observables support disposables via their all-or-nothing
