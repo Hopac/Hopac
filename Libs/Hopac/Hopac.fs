@@ -365,6 +365,7 @@ module Infixes =
     <|> yA ^=> fun y -> xA ^-> fun x -> (x, y)
 
   let inline memo (xJ: Job<'x>) = Promise<'x> (xJ)
+  let inline (<~>*) xA1 xA2 = xA1 <~> xA2 |> memo
   let inline (<|>*) xA1 xA2 = xA1 <|> xA2 |> memo
   let inline (>>=*) xJ x2yJ = xJ >>= x2yJ |> memo
   let inline (>>=*.) xJ yJ = xJ >>=. yJ |> memo

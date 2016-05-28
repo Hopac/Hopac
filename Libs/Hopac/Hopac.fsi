@@ -2747,6 +2747,9 @@ module Infixes =
 #endif
   val ( <~>  ): Alt<'x> -> Alt<'x> ->     Alt<'x>
 
+  /// A memoizing version of `<~>`.
+  val inline ( <~>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
+
   /// A memoizing version of `<|>`.
   val inline ( <|>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
 
