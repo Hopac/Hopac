@@ -561,7 +561,7 @@ module Stream =
     yJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach yJ xs)
                            | Nil -> Nil
 
-  let distinctByJob x2kJ xs = filterJob (x2kJ >> Job.map (HashSet<_>().Add)) xs
+  let distinctByJob x2kJ xs = filterJob (x2kJ >-> HashSet<_>().Add) xs
   let distinctByFun x2k xs = filterFun (x2k >> HashSet<_>().Add) xs
 
   let rec ducwj eqJ x' = function
