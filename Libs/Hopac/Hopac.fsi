@@ -2735,6 +2735,9 @@ module Infixes =
 #endif
   val ( <|>  ): Alt<'x> -> Alt<'x> ->     Alt<'x>
 
+  /// A memoizing version of `<|>`.
+  val inline ( <|>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
+
   /// `xA1 <~> xA2` is like `xA1 <|> xA2` except that the order in which `xA1`
   /// and `xA2` are considered is determined at random every time the
   /// alternative is used.  See also: `chooser`.
@@ -2749,9 +2752,6 @@ module Infixes =
 
   /// A memoizing version of `<~>`.
   val inline ( <~>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
-
-  /// A memoizing version of `<|>`.
-  val inline ( <|>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
 
   // Sequencing ----------------------------------------------------------------
 
