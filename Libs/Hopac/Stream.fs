@@ -37,11 +37,15 @@ module Stream =
     let rec value s x = Job.delay <| fun () ->
       let w = IVar ()
       let v = s.src
-      if IVar.Now.isFull v then raise <| Exception ("Src closed")
-      let v' = Interlocked.CompareExchange (&s.src, w, v)
-      if LanguagePrimitives.PhysicalEquality v' v
-      then v *<= Cons (x, w)
-      else value s x
+      if IVar.Now.isFull v then
+        match IVar.Now.get v with
+         | Nil -> raise <| Exception ("Src closed")
+         | Cons _ -> value s x
+      else
+        let v' = Interlocked.CompareExchange (&s.src, w, v)
+        if LanguagePrimitives.PhysicalEquality v' v
+        then v *<= Cons (x, w)
+        else value s x
     let error s e = Job.delay <| fun () -> s.src *<=! e // delay required
     let close s = Job.delay <| fun () -> s.src *<= Nil // delay required
     let tap s = s.src :> Promise<_>
