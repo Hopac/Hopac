@@ -59,6 +59,8 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="Util.fs" />
+    <Compile Include="JobTests.fs" />
     <Compile Include="BuilderTests.fs" />
     <Compile Include="StreamTests.fs" />
     <Compile Include="Main.fs" />

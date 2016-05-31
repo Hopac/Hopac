@@ -8,18 +8,11 @@ open System.Numerics
 open Hopac
 open Hopac.Infixes
 
-let inline (^) x = x
-
 module Stream =
   let ofList (xs: list<_>) = Stream.ofSeq xs
   let toList xs = Stream.toSeq xs >>- List.ofSeq
   let onList f xs = ofList xs |> f |> toList |> run
   let onList2 f xs ys = f (ofList xs) (ofList ys) |> toList |> run
-
-let testEq exp act =
-  if exp <> act
-  then printfn "Expected %A, but got %A" exp act
-  else printfn "OK"
 
 let quick = Check.Quick
 

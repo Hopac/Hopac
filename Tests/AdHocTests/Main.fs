@@ -1,4 +1,6 @@
-﻿module Main
+﻿// Copyright (C) by Vesa Karvonen
 
-do StreamTests.run ()
+module Main
 
+do JobTests.run()
+   StreamTests.run ()
