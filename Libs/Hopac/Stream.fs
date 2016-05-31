@@ -34,21 +34,32 @@ module Stream =
 
   module Src =
     let create () = {src = IVar ()}
-    let rec value s x = Job.delay <| fun () ->
+    let rec access s w =
+      match s.src with
+       | null -> access s w
+       | v ->
+         if IVar.Now.isFull v then
+           match IVar.Now.get v with
+            | Nil -> raise <| Exception ("Src closed")
+            | Cons _ -> access s w
+         else
+           let v' = Interlocked.CompareExchange (&s.src, w, v)
+           if LanguagePrimitives.PhysicalEquality v' v
+           then v
+           else access s w
+    let value s x = Job.delay <| fun () ->
       let w = IVar ()
-      let v = s.src
-      if IVar.Now.isFull v then
-        match IVar.Now.get v with
-         | Nil -> raise <| Exception ("Src closed")
-         | Cons _ -> value s x
-      else
-        let v' = Interlocked.CompareExchange (&s.src, w, v)
-        if LanguagePrimitives.PhysicalEquality v' v
-        then v *<= Cons (x, w)
-        else value s x
-    let error s e = Job.delay <| fun () -> s.src *<=! e // delay required
-    let close s = Job.delay <| fun () -> s.src *<= Nil // delay required
-    let tap s = s.src :> Promise<_>
+      access s w *<= Cons (x, w)
+    let error s e = Job.delay <| fun () ->
+      let v = access s null
+      v *<=! e >>- fun () -> s.src <- v
+    let close s = Job.delay <| fun () ->
+      let v = access s null
+      v *<= Nil >>- fun () -> s.src <- v
+    let rec tap s =
+      match s.src with
+       | null -> tap s
+       | v -> v :> Promise<_>
 
   let ValueChangedEventArgs =
     System.ComponentModel.PropertyChangedEventArgs "Value"
