@@ -8,6 +8,8 @@ open System.Numerics
 open Hopac
 open Hopac.Infixes
 
+let inline (^) x = x
+
 module Stream =
   let ofList (xs: list<_>) = Stream.ofSeq xs
   let toList xs = Stream.toSeq xs >>- List.ofSeq
@@ -22,6 +24,13 @@ let testEq exp act =
 let quick = Check.Quick
 
 let run () =
+  let src = Stream.Src.create ()
+  let filler = Job.Scheduler.switchToWorker ()
+          >>=. Job.forN 10000 ^ Stream.Src.value src 0
+  filler <*> filler
+  |> run
+  |> testEq ((), ())
+
   let fibs: Stream<BigInteger> =
     let rec lp f0 f1 = Stream.cons f0 << Stream.delay <| fun () -> lp f1 (f0 + f1)
     lp 0I 1I
