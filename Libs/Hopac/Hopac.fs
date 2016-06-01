@@ -622,6 +622,18 @@ module Alt =
       override xA'.DoJob (wr, xK) = xA.DoJob (&wr, xK)
       override xA'.TryAlt (wr, i, xK, xE) = xA.TryAlt (&wr, i, xK, xE)}
 
+  let inline fromBeginEndCancel (doBegin: AsyncCallback * obj -> IAsyncResult)
+                                (doEnd: IAsyncResult -> 'x)
+                                (doCancel: IAsyncResult -> unit) =
+    {new FromBeginEnd<'x> () with
+      override xJ'.DoBegin (acb, s) = doBegin (acb, s)
+      override xJ'.DoEnd (iar) = doEnd iar
+      override xJ'.DoCancel (iar) = doCancel iar} :> Alt<_>
+
+  let inline fromAsync (xA: Async<'x>) =
+    let (doBegin, doEnd, doCancel) = Async.AsBeginEnd (fun () -> xA)
+    fromBeginEndCancel (fun (acb, s) -> doBegin ((), acb, s)) doEnd doCancel
+
   let inline fromCancellableTask (t2xT: CancellationToken -> Task<'x>) =
     {new TaskToAlt<_> () with
       override xA'.Start t = t2xT t} :> Alt<_>
@@ -1381,13 +1393,17 @@ module Job =
 
   let inline fromBeginEnd (doBegin: AsyncCallback * obj -> IAsyncResult)
                           (doEnd: IAsyncResult -> 'x) =
-    {new JobFromBeginEnd<'x> () with
+    {new FromBeginEnd<'x> () with
       override xJ'.DoBegin (acb, s) = doBegin (acb, s)
       override xJ'.DoEnd (iar) = doEnd iar} :> Job<_>
 
   let inline fromEndBegin (doEnd: IAsyncResult -> 'x)
                           (doBegin: AsyncCallback * obj -> IAsyncResult) =
     fromBeginEnd doBegin doEnd
+
+  let inline fromAsync (xA: Async<'x>) =
+    let (doBegin, doEnd, _) = Async.AsBeginEnd (fun () -> xA)
+    fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd
 
   let inline byStartingTask (u2xT: unit -> Task<'x>) =
     {new TaskToJob<_> () with
@@ -1877,6 +1893,7 @@ module Extensions =
     let inline startIn (context: SynchronizationContext) sr xA xK =
       context.Post ((fun _ -> start sr xA xK), null)
 
+    [<Obsolete "`Async.toJob` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toJob (xA: Async<'x>) =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
@@ -1919,6 +1936,7 @@ module Extensions =
           override uK'.DoCont (_, _) = ts.Cancel () ; ts.Dispose ()})
          xAK.DoCont (&wr, Alt.tryFinallyFun rI ts.Dispose)}
 
+    [<Obsolete "`Async.toAlt` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAlt (xA: Async<'x>) = toAltOn null xA
 
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
@@ -2083,7 +2101,7 @@ type JobBuilder () =
   member inline __.Bind (xO: IObservable<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xO.onceAlt >>= x2yJ
   member inline __.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
-    Async.toJob xA >>= x2yJ
+    Job.fromAsync xA >>= x2yJ
   member inline __.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Job.bindTask x2yJ xT
   [<Obsolete "The non-generic Task Bind overload will be removed, use `Job.awaitUnitTask`.">]
@@ -2097,7 +2115,7 @@ type JobBuilder () =
     Seq.iterJob x2uJ xs
   member inline __.Return (x: 'x) : Job<'x> = Job.result x
   member inline __.ReturnFrom (xO: IObservable<'x>) = xO.onceAlt :> Job<_>
-  member inline __.ReturnFrom (xA: Async<'x>) : Job<'x> = Async.toJob xA
+  member inline __.ReturnFrom (xA: Async<'x>) : Job<'x> = Job.fromAsync xA
   member inline __.ReturnFrom (xT: Task<'x>) : Job<'x> = Job.awaitTask xT
   [<Obsolete "The non-generic Task ReturnFrom overload will be removed, use `Job.awaitUnitTask`.">]
   member inline __.ReturnFrom (uT: Task) : Job<unit> = Job.awaitUnitTask uT

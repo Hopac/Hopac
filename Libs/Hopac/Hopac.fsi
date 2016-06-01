@@ -734,6 +734,8 @@ module Job =
   /// doEnd`.
   val inline fromEndBegin: (IAsyncResult -> 'x) -> (AsyncCallback * obj -> IAsyncResult) -> Job<'x>
 
+  val inline fromAsync: Async<'x> -> Job<'x>
+
   val inline byStartingTask:     (unit -> Task<'x>) -> Job<'x>
   val inline byStartingUnitTask: (unit -> Task)     -> Job<unit>
 
@@ -1220,6 +1222,13 @@ module Alt =
   val tryFinallyFun: Alt<'x> -> (unit -> unit) -> Alt<'x>
 
   //# Interop
+
+  val inline fromBeginEndCancel: (AsyncCallback * obj -> IAsyncResult)
+                       -> (IAsyncResult -> 'x)
+                       -> (IAsyncResult -> unit)
+                       -> Alt<'x>
+
+  val inline fromAsync: Async<'x> -> Alt<'x>
 
   val inline fromCancellableTask:     (CancellationToken -> Task<'x>) -> Alt<'x>
   val inline fromCancellableUnitTask: (CancellationToken -> Task)     -> Alt<unit>
@@ -2010,6 +2019,7 @@ module Extensions =
     /// thread or synchronization context switching async operation in your
     /// async operation.
 #endif
+    [<Obsolete "`Async.toJob` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toJob: Async<'x> -> Job<'x>
 
     /// Creates a job that posts the given async operation to the specified
@@ -2030,6 +2040,7 @@ module Extensions =
     /// thread or synchronization context switching async operation in your
     /// async operation.
 #endif
+    [<Obsolete "`Async.toAlt` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toAlt: Async<'x> -> Alt<'x>
 
     /// Creates an alternative that, when instantiated, posts the given async
