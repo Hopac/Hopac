@@ -20,9 +20,10 @@ let run () =
   let src = Stream.Src.create ()
   let filler = Job.Scheduler.switchToWorker ()
           >>=. Job.forN 10000 ^ Stream.Src.value src 0
+          >>=. Stream.Src.error src ^ Expected 1
   filler <*> filler
-  |> run
-  |> testEq ((), ())
+  |> Job.catch |> run
+  |> testExpected [Expected 1]
 
   let fibs: Stream<BigInteger> =
     let rec lp f0 f1 = Stream.cons f0 << Stream.delay <| fun () -> lp f1 (f0 + f1)
