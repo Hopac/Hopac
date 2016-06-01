@@ -293,6 +293,7 @@ module Infixes =
           | xJ ->
             xK'.State <- null
             xJ.DoJob (&wr, xK')}.Init(xJ))
+       wr.Handler <- yK'
        yJ.DoJob (&wr, yK')}
 
   let inline either (wr: byref<Worker>) xK (xA1: Alt<_>) (xA2: Alt<_>) =
