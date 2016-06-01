@@ -8,14 +8,15 @@ open System.Numerics
 open Hopac
 open Hopac.Infixes
 
-type [<Struct>] Dummy (x: int) =
-  member this.X = x
+type [<Struct>] Dummy (x: ref<int>) =
   interface IDisposable with
-    member this.Dispose () = ()
+    member this.Dispose () = x := !x + 1
 
 let run () =
-  let dummy = new Dummy (1)
+  let x = ref 0
+  let dummy = new Dummy (x)
   Job.using dummy Job.result |> run |> testEq dummy
+  testEq 1 !x
   Job.using (null : IDisposable) Job.result |> run |> testEq null
 
   Job.delay (fun () -> raise ^ Expected 1) <*>
