@@ -1,3 +1,11 @@
+#### 0.2.0 - 2016-06-01
+* Dropped obsolete definitions.
+* Exception handling fixes to `<*>`.
+* Allow null in `Job.using` for the disposable.
+* Fixed `Stream.Src` ops to be atomic.
+* Added various missing operators for symmetry.
+* Added `IVar.tryFillFailure`.
+
 #### 0.1.4 - 2015-05-09
 * New package Hopac-StrongName for those requiring it.
 
