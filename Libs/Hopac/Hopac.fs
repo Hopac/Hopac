@@ -1387,9 +1387,7 @@ module Job =
 
   let inline fromEndBegin (doEnd: IAsyncResult -> 'x)
                           (doBegin: AsyncCallback * obj -> IAsyncResult) =
-    {new JobFromBeginEnd<'x> () with
-      override xJ'.DoBegin (acb, s) = doBegin (acb, s)
-      override xJ'.DoEnd (iar) = doEnd iar} :> Job<_>
+    fromBeginEnd doBegin doEnd
 
   let inline byStartingTask (u2xT: unit -> Task<'x>) =
     {new TaskToJob<_> () with
