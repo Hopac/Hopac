@@ -30,7 +30,7 @@ namespace Hopac.Core {
       xK.DoHandle(ref wr, e);
     }
     internal override void DoWork(ref Worker wr) {
-      xK.DoCont(ref wr, xJ.DoEnd(iar));
+      Cont.Do(xK, ref wr, xJ.DoEnd(iar));
     }
     internal override void DoCont(ref Worker wr, Unit value) {
       this.DoWork(ref wr);
@@ -51,7 +51,7 @@ namespace Hopac.Core {
       if (0 != Pick.PickAndSetNacks(pk, ref wr, me))
         xJ.DoCancel(iar);
       else
-        xK.DoCont(ref wr, xJ.DoEnd(iar));
+        Cont.Do(xK, ref wr, xJ.DoEnd(iar));
     }
   }
 
