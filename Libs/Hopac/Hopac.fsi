@@ -734,6 +734,38 @@ module Job =
   /// doEnd`.
   val inline fromEndBegin: (IAsyncResult -> 'x) -> (AsyncCallback * obj -> IAsyncResult) -> Job<'x>
 
+  val inline byStartingTask:     (unit -> Task<'x>) -> Job<'x>
+  val inline byStartingUnitTask: (unit -> Task)     -> Job<unit>
+
+  /// Creates a job that waits for the given task to finish and then returns the
+  /// result of the task.  Note that this does not start the task.  Make sure
+  /// that the task is started correctly.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let awaitTask (xT: Task<'x>) =
+  ///>   Job.Scheduler.bind <| fun sr ->
+  ///>   let xI = IVar ()
+  ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
+  ///>     Scheduler.start sr (try xI *<= xT.Result with e -> xI *<=! e)))
+  ///>   |> ignore
+  ///>   xI
+#endif
+  val inline awaitTask:     Task<'x> -> Job<'x>
+
+  /// Creates a job that waits until the given task finishes.  Note that this
+  /// does not start the task.  Make sure that the task is started correctly.
+  val inline awaitUnitTask: Task     -> Job<unit>
+
+  /// `bindTask x2yJ xT` is equivalent to `awaitTask xT >>= x2yJ`.
+  val inline bindTask:     ('x   -> #Job<'y>) -> Task<'x> -> Job<'y>
+
+  /// `bindUnitTask u2xJ uT` is equivalent to `awaitTask uT >>= u2xJ`.
+  val inline bindUnitTask: (unit -> #Job<'y>) -> Task     -> Job<'y>
+
+  //////////////////////////////////////////////////////////////////////////////
+
   //# Debugging
 
   /// Given a job, creates a new job that behaves exactly like the given job,
@@ -788,7 +820,7 @@ module Job =
     ///
     /// There are other similar examples as reference implementations of various
     /// Hopac primitives.  See, for example, the reference implementations of
-    /// `fromBeginEnd` and `Task.awaitJob`.
+    /// `fromBeginEnd` and `Job.awaitTask`.
 
 #endif
     val inline bind: (Scheduler -> #Job<'x>) -> Job<'x>
@@ -1186,6 +1218,11 @@ module Alt =
   ///>    <| Job.thunk u2u
 #endif
   val tryFinallyFun: Alt<'x> -> (unit -> unit) -> Alt<'x>
+
+  //# Interop
+
+  val inline fromCancellableTask:     (CancellationToken -> Task<'x>) -> Alt<'x>
+  val inline fromCancellableUnitTask: (CancellationToken -> Task)     -> Alt<unit>
 
   //# Debugging
 
@@ -2092,37 +2129,13 @@ module Extensions =
   /// comonadic while jobs are monadic.
 #endif
   type Task with
-    static member inline toAlt: (CancellationToken -> Task<'x>) -> Alt<'x>
-//    static member inline toAlt: (CancellationToken -> Task)     -> Alt<unit>
-
-    static member inline toJob: (unit              -> Task<'x>) -> Job<'x>
-    static member inline toJob: (unit              -> Task)     -> Job<unit>
-
-    /// Creates a job that waits for the given task to finish and then returns
-    /// the result of the task.  Note that this does not start the task.  Make
-    /// sure that the task is started correctly.
-#if DOC
-    ///
-    /// Reference implementation:
-    ///
-    ///> let awaitJob (xT: Task<'x>) =
-    ///>   Job.Scheduler.bind <| fun sr ->
-    ///>   let xI = IVar ()
-    ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
-    ///>     Scheduler.start sr (try xI *<= xT.Result with e -> xI *<=! e)))
-    ///>   |> ignore
-    ///>   xI
-#endif
+    [<Obsolete "Use `Job.awaitTask`">]
     static member inline awaitJob: Task<'x> -> Job<'x>
-
-    /// Creates a job that waits until the given task finishes.  Note that this
-    /// does not start the task.  Make sure that the task is started correctly.
+    [<Obsolete "Use `Job.awaitUnitTask`">]
     static member inline awaitJob: Task -> Job<unit>
-
-    /// `bindJob (xT, x2yJ)` is equivalent to `awaitJob xT >>= x2yJ`.
+    [<Obsolete "Use `Job.bindTask`">]
     static member inline bindJob: Task<'x> * ('x   -> #Job<'y>) -> Job<'y>
-
-    /// `bindJob (uT, u2xJ)` is equivalent to `awaitJob uT >>= u2xJ`.
+    [<Obsolete "Use `Job.bindUnitTask`">]
     static member inline bindJob: Task     * (unit -> #Job<'x>) -> Job<'x>
 
     /// Creates a job that starts the given job as a separate concurrent job,
