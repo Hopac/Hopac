@@ -2,6 +2,8 @@
 
 namespace Hopac
 
+#nowarn "1204" // Warning for using LanguagePrimitives.IntrinsicFunctions.Dispose
+
 open System
 open System.Collections.Generic
 open System.Diagnostics
@@ -1076,6 +1078,8 @@ module Job =
        wr.Handler <- yK'
        (x2yJ x).DoJob (&wr, yK')}
 
+  open LanguagePrimitives.IntrinsicFunctions
+
   let using (x: 'x when 'x :> IDisposable) (x2yJ: 'x -> #Job<'y>) =
     // REMINDER: Dispose() of managed resources is an optimization.  Do not
     // implement Finalize() for managed resources.  See:
@@ -1083,21 +1087,18 @@ module Job =
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK_) =
        let yK' =
-         if Primitive.IsNull x
-         then yK_
-         else let yK' = {new Cont_State<'y, _> () with
-               override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
-               override yK'.DoHandle (wr, e) =
-                let yK = yK'.State
-                wr.Handler <- yK ; x.Dispose () ; Handler.DoHandle (yK, &wr, e)
-               override yK'.DoWork (wr) =
-                let yK = yK'.State
-                wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, yK'.Value)
-               override yK'.DoCont (wr, y) =
-                let yK = yK'.State
-                wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, y)}.Init(yK_)
-              wr.Handler <- yK'
-              yK'
+         {new Cont_State<'y, _> () with
+           override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
+           override yK'.DoHandle (wr, e) =
+            let yK = yK'.State
+            wr.Handler <- yK ; Dispose x ; Handler.DoHandle (yK, &wr, e)
+           override yK'.DoWork (wr) =
+            let yK = yK'.State
+            wr.Handler <- yK ; Dispose x ; yK.DoCont (&wr, yK'.Value)
+           override yK'.DoCont (wr, y) =
+            let yK = yK'.State
+            wr.Handler <- yK ; Dispose x ; yK.DoCont (&wr, y)}.Init(yK_)
+       wr.Handler <- yK'
        (x2yJ x).DoJob (&wr, yK')}
 
   let catch (xJ: Job<'x>) =
