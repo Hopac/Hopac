@@ -71,6 +71,8 @@ let nugetDir = "./nuget/"
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
 type ProjectType = FSharp | CSharp
 
+let strongName = System.Environment.GetEnvironmentVariable("HOPAC_STRONG_NAME") <> null
+
 type Project =
     { Type: ProjectType
       Name: string
@@ -97,7 +99,7 @@ let coreProjects =
           Name = projectName
           Folder = folder
           ProjectFile = projectFile
-          StrongName = System.Environment.GetEnvironmentVariable("HOPAC_STRONG_NAME") <> null })
+          StrongName = strongName })
 
 // Generate assembly info files with the right version & up-to-date information
 Target "AssemblyInfo" <| fun _ ->
@@ -152,7 +154,7 @@ Target "PaketTemplate" <| fun _ ->
   PaketTemplate (fun p ->
     { p with
         TemplateType = PaketTemplateType.File
-        Id = Some "Hopac-StrongName"
+        Id = Some <| if strongName then "Hopac-StrongName" else "Hopac"
         Files = [ PaketFileInfo.Include ("bin", "lib/net45") ; PaketFileInfo.Exclude "bin/FSharp.Core*"]
         Authors = authors
         Owners = authors
