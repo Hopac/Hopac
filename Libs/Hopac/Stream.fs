@@ -22,7 +22,6 @@ module Stream =
      | null -> yK y
      | e -> eK e
   let inline tryIn u2v vK eK = tryAp u2v () vK eK
-  let inline (|Nothing|Just|) (b, x) = if b then Just x else Nothing
 
   type Cons<'x> =
     | Cons of Value: 'x * Next: Promise<Cons<'x>>
@@ -637,12 +636,12 @@ module Stream =
                         Job.tryInDelay <| fun () -> keyOf s
                          <| fun k ->
                               match key2br.TryGetValue k with
-                               | Just g ->
+                               | true, g ->
                                  let i = g.var
                                  let n = IVar ()
                                  g.var <- n
                                  i *<= Cons (s, n) >>=. oldK serve ss k s n
-                               | Nothing ->
+                               | _ ->
                                  let i' = IVar ()
                                  let i = Alt.always (Cons (s, i'))
                                  let g = {key = k; var = i'}
@@ -664,7 +663,7 @@ module Stream =
                   <| raised
              <|> closes ^=> fun g ->
                    match key2br.TryGetValue g.key with
-                    | Just g' when obj.ReferenceEquals (g', g) ->
+                    | true, g' when obj.ReferenceEquals (g', g) ->
                       key2br.Remove g.key |> ignore
                       g.var *<= Nil >>=. oldC serve ss g.key
                     | _ -> serve ss
