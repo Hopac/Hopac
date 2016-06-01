@@ -4,11 +4,11 @@ language: csharp
 sudo: false
 
 mono:
- - alpha
- - beta
+# - alpha
+# - beta
  - latest
  - 4.0.0
- - 3.12.0
+# - 3.12.0
 
 solution: Hopac.sln
 
