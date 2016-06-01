@@ -9,41 +9,83 @@ open System
 open System.Diagnostics
 open System.Threading.Tasks
 
-let doJobAsyncBinds n =
-    let timer = Stopwatch.StartNew ()
-    printf "Job binds: "
-    async {
-      do! Async.SwitchToThreadPool ()
-      for i=1 to n do
-        do ignore i
-        do! Async.Global.ofJob (job { return () })
-    }
-    |> Async.RunSynchronously
-    let d = timer.Elapsed
-    printfn "%d hops in %A" n d
+let inline (^) x = x
 
-do for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+do let doTaskAltBinds n =
+     let timer = Stopwatch.StartNew ()
+     printf "Task-as-Alt-in-Job binds: "
+     let dI = IVar ()
+     job {
+       do! Job.Scheduler.switchToWorker ()
+       for i=1 to n do
+         do ignore i
+         do! dI <|> Alt.fromCancellableTask ^ fun _ -> Task.FromResult ()
+     }
+     |> run
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
+
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doTaskAltBinds n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
+do let doAsyncAltBinds n =
+     let timer = Stopwatch.StartNew ()
+     printf "Async-as-Alt-in-Job binds: "
+     let dI = IVar ()
+     job {
+       do! Job.Scheduler.switchToWorker ()
+       for i=1 to n do
+         do ignore i
+         do! dI <|> Alt.fromAsync ^ async { return () }
+     }
+     |> run
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
+
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doAsyncAltBinds n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
+do let doJobAsyncBinds n =
+     let timer = Stopwatch.StartNew ()
+     printf "Job-in-Async binds: "
+     async {
+       do! Async.SwitchToThreadPool ()
+       for i=1 to n do
+         do ignore i
+         do! Async.Global.ofJob ^ job { return () }
+     }
+     |> Async.RunSynchronously
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
+
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doJobAsyncBinds n
      GC.Collect ()
      System.Threading.Thread.Sleep 100
 
-let doAsyncJobBinds n =
-    let timer = Stopwatch.StartNew ()
-    printf "Async binds: "
-    job {
-      do! Job.Scheduler.switchToWorker ()
-      for i=1 to n do
-        do ignore i
-        do! async { return () }
-    }
-    |> run
-    let d = timer.Elapsed
-    printfn "%d hops in %A" n d
+do let doAsyncJobBinds n =
+     let timer = Stopwatch.StartNew ()
+     printf "Async-in-Job binds: "
+     job {
+       do! Job.Scheduler.switchToWorker ()
+       for i=1 to n do
+         do ignore i
+         do! Job.fromAsync ^ async { return () }
+     }
+     |> run
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
 
-do for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAsyncJobBinds n
      GC.Collect ()
      System.Threading.Thread.Sleep 100
+
+//
 
 let runHopacTCS numOps n =
   printf "HopacTCS: "
