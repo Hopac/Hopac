@@ -39,14 +39,14 @@ let run () =
      (delayAndSet 50 r <|> delayAndSet 100 r |> run = 50 && !r = 50)
      |> verify "Delays"
 
-  do Job.tryIn (delayAndSet 50 ^ ref 1
+  do Job.tryIn (delayAndSet 150 ^ ref 1
             <|> Alt.fromCancellableTask ^ fun _ -> raise Ex ; Task.FromResult 1)
          <| fun x -> printfn "Unexpected %A" x ; Job.unit ()
          <| fun e -> printfn "OK %A" e ; Job.unit ()
      |> run
 
   do Job.tryIn (delayAndRaise 50 Ex
-            <|> delayAndSet 100 ^ ref 1)
+            <|> delayAndSet 200 ^ ref 1)
          <| fun x -> printfn "Unexpected %A" x ; Job.unit ()
          <| fun e -> printfn "OK %A" <| e.GetBaseException () ; Job.unit ()
      |> run
