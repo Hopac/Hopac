@@ -123,16 +123,3 @@ module TopLevel =
   /// an attempt is made to read the promise.  This is the same function as
   /// `Promise.Now.delay`.
   val inline memo: Job<'x> -> Promise<'x>
-
-  [<Obsolete "Use `Ch ()` rather than `ch ()`.">]
-  val inline ch: unit -> Ch<'x>
-  [<Obsolete "Use `Mailbox ()` rather than `mb ()`.">]
-  val inline mb: unit -> Mailbox<'x>
-  [<Obsolete "Use `IVar ()` rather than `ivar ()`.">]
-  val inline ivar: unit -> IVar<'x>
-  [<Obsolete "Use `IVar (x)` rather than `ivarFull ()`.">]
-  val inline ivarFull: 'x -> IVar<'x>
-  [<Obsolete "Use `MVar ()` rather than `mvar ()`.">]
-  val inline mvar: unit -> MVar<'x>
-  [<Obsolete "Use `MVar (x)` rather than `mvarFull x`.">]
-  val inline mvarFull: 'x -> MVar<'x>

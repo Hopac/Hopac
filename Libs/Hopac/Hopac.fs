@@ -424,19 +424,6 @@ module Infixes =
   let inline ( *<<+ ) (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
 
-  [<Obsolete "Use `*<-` rather than `<--`">]
-  let inline (<--) xCh x = xCh *<- x
-  [<Obsolete "Use `*<+` rather than `<-+`">]
-  let inline (<-+) xCh x = xCh *<+ x
-  [<Obsolete "Use `*<=` rather than `<-=`">]
-  let inline (<-=) xI x = xI *<= x
-  [<Obsolete "Use `*<=!` rather than `<-=!`">]
-  let inline (<-=!) xI e = xI *<=! e
-  [<Obsolete "Use `*<<=` rather than `<<-=`">]
-  let inline (<<-=) xM x = xM *<<= x
-  [<Obsolete "Use `*<<+` rather than `<<-+`">]
-  let inline (<<-+) xMb x = xMb *<<+ x
-
 open Infixes
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -527,31 +514,6 @@ module Alt =
   let inline afterJob (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) =
     {new AltAfterJob<'x, 'y> () with
       override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
-
-  module Infixes =
-    [<Obsolete "Use `<|>` rather than `<|>?`">]
-    let inline ( <|>? ) xA1 xA2 = xA1 <|> xA2
-    [<Obsolete "Use `<~>` rather than `<~>?`">]
-    let inline ( <~>? ) x y = x <~> y
-    [<Obsolete "Use `^=>` rather than `>>=?`">]
-    let inline ( >>=? ) xA x2yJ = xA ^=> x2yJ
-    [<Obsolete "Use `^=>.` rather than `>>.?`">]
-    let inline ( >>.? ) xA yJ = xA ^=>. yJ
-    [<Obsolete "`.>>?` is to be removed">]
-    let ( .>>? ) (xA: Alt<'x>) (yJ: Job<_>) =
-      {new Alt<'x> () with
-        override xA'.DoJob (wr, xK) =
-         xA.DoJob (&wr, SkipCont (xK, yJ))
-        override xA'.TryAlt (wr, i, xK, xE) =
-         xA.TryAlt (&wr, i, SkipCont (xK, yJ), xE)}
-    [<Obsolete "Use `^->` rather than `|>>?`">]
-    let inline ( |>>? ) xA x2y = xA ^-> x2y
-    [<Obsolete "Use `^->.` rather than `>>%?`">]
-    let inline ( >>%? ) xA y = xA ^->. y
-    [<Obsolete "Use `^->!` rather than `>>!?`">]
-    let inline ( >>!? ) xA e = xA ^->! e
-    [<Obsolete "Use `<+>` rather than `<+>?`">]
-    let inline ( <+>? ) xA yA = xA <+> yA
 
   let Ignore (xA: Alt<_>) =
     {new Alt<unit> () with
@@ -693,19 +655,6 @@ module Alt =
     {new Alt<'x> () with
       override xA'.DoJob (wr, xK) = xA.DoJob (&wr, xK)
       override xA'.TryAlt (wr, i, xK, xE) = xA.TryAlt (&wr, i, xK, xE)}
-
-  [<Obsolete "Use `prepare` rather than `guard`">]
-  let guard xAJ = prepare xAJ
-  [<Obsolete "Use `prepareFun` rather than `delay`">]
-  let inline delay u2xA = prepareFun u2xA
-  [<Obsolete "Use `withNackJob` rather than `withNack`.">]
-  let inline withNack nack2xAJ = withNackJob nack2xAJ
-  [<Obsolete "Use `wrapAbortJob` rather than `wrapAbort`.">]
-  let wrapAbort uJ xA = wrapAbortJob uJ xA
-  [<Obsolete "Use `afterJob` rather than `wrap`">]
-  let inline wrap x2yJ xA = afterJob x2yJ xA
-  [<Obsolete "Use `afterFun` rather than `map`">]
-  let inline map x2y xA = afterFun x2y xA
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1063,31 +1012,6 @@ module Job =
       match StaticData.random with
        | null -> StaticData.Init () ; StaticData.random
        | random -> random
-
-  //////////////////////////////////////////////////////////////////////////////
-
-  module Infixes =
-    [<Obsolete "Use `Hopac.Infixes.>>=`">]
-    let inline ( >>= ) xJ x2yJ = xJ >>= x2yJ
-    [<Obsolete "Use `Hopac.Infixes.>=>`">]
-    let inline ( >=> ) x2yJ y2zJ x = (x2yJ >=> y2zJ) x
-    [<Obsolete "Use `>>=.` rather than `>>.`">]
-    let inline ( >>. ) xJ yJ = xJ >>=. yJ
-    [<Obsolete "`.>>` is to be removed">]
-    let ( .>> ) (xJ: Job<'x>) (yJ: Job<_>) =
-      {new Job<'x> () with
-        override xJ'.DoJob (wr, xK) =
-         xJ.DoJob (&wr, SkipCont (xK, yJ))}
-    [<Obsolete "Use `>>-` rather than `|>>`">]
-    let inline ( |>> ) xJ x2y = xJ >>- x2y
-    [<Obsolete "Use `>>-.` rather than `>>%`">]
-    let inline ( >>% ) xJ y = xJ >>-. y
-    [<Obsolete "Use `>>-!` rather than `>>!`">]
-    let inline ( >>! ) xJ e = xJ >>-! e
-    [<Obsolete "Use `Hopac.Infixes.<&>`">]
-    let inline ( <&> ) xJ yJ = xJ <&> yJ
-    [<Obsolete "Use `Hopac.Infixes.<*>`">]
-    let inline ( <*> ) xJ yJ = xJ <*> yJ
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -1550,22 +1474,6 @@ module Promise =
     let isFulfilled (xP: Promise<'x>) = xP.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xP: Promise<'x>) = xP.Get ()
-  module Infixes =
-    open Job.Infixes
-    [<Obsolete "Use `Hopac.Infixes.<|>*`">]
-    let inline ( <|>* ) xA yA = xA <|>* yA
-    [<Obsolete "Use `Hopac.Infixes.>>=*`">]
-    let inline ( >>=* ) xJ x2yJ = xJ >>=* x2yJ
-    [<Obsolete "Use `>>=*.` rather than `>>.*`">]
-    let inline ( >>.* ) xJ yJ = xJ >>=*. yJ
-    [<Obsolete "`.>>*` is to be removed">]
-    let inline ( .>>* ) xJ yJ = xJ .>> yJ |> memo
-    [<Obsolete "Use `>>-*` rather than `|>>*`">]
-    let inline ( |>>* ) xJ x2y = xJ >>-* x2y
-    [<Obsolete "Use `>>-*.` rather than `>>%*`">]
-    let inline ( >>%* ) xJ y = xJ >>-*. y
-    [<Obsolete "Use `>>-*!` rather than `>>!*`">]
-    let inline ( >>!* ) xJ e = xJ >>-*! e
   let inline read (xPr: Promise<'x>) = xPr :> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////

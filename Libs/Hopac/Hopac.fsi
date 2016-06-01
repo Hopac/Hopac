@@ -579,29 +579,6 @@ module Job =
   /// `raises e` is equivalent to `Job.delayWith raise e`.
   val raises: exn -> Job<_>
 
-  [<Obsolete "Just `open Hopac.Infixes`">]
-  module Infixes =
-    [<Obsolete "Use `Hopac.Infixes.>>=`">]
-    val inline ( >>= ): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
-    [<Obsolete "Use `Hopac.Infixes.>=>`">]
-    val inline ( >=> ): ('x -> #Job<'y>) -> ('y -> #Job<'z>) -> 'x -> Job<'z>
-    [<Obsolete "Use `>>=.` rather than `>>.`">]
-    val inline ( >>. ): Job<_> -> Job<'y> -> Job<'y>
-    /// Creates a job that runs the given two jobs and returns the result of the
-    /// first job.  `xJ .>> yJ` is equivalent to `xJ >>= fun x -> yJ >>-. x`.
-    [<Obsolete "`.>>` is to be removed">]
-    val ( .>> ): Job<'x> -> Job<_> -> Job<'x>
-    [<Obsolete "Use `>>-` rather than `|>>`">]
-    val inline ( |>> ): Job<'x> -> ('x -> 'y) -> Job<'y>
-    [<Obsolete "Use `>>-.` rather than `>>%`">]
-    val inline ( >>% ): Job<_> -> 'y -> Job<'y>
-    [<Obsolete "Use `>>-!` rather than `>>!`">]
-    val inline ( >>! ): Job<_> -> exn -> Job<_>
-    [<Obsolete "Use `Hopac.Infixes.<&>`">]
-    val inline ( <&> ): Job<'x> -> Job<'y> -> Job<'x * 'y>
-    [<Obsolete "Use `Hopac.Infixes.<*>`">]
-    val inline ( <*> ): Job<'x> -> Job<'y> -> Job<'x * 'y>
-
   //////////////////////////////////////////////////////////////////////////////
 
   /// Implements the `try-in-unless` exception handling construct for jobs.
@@ -1342,30 +1319,6 @@ module Alt =
 
   //////////////////////////////////////////////////////////////////////////////
 
-  [<Obsolete "Just `open Hopac.Infixes`">]
-  module Infixes =
-    [<Obsolete "Use `<|>` rather than `<|>?`">]
-    val inline ( <|>? ): Alt<'x> -> Alt<'x> -> Alt<'x>
-    [<Obsolete "Use `<~>` rather than `<~>?`">]
-    val inline ( <~>? ): Alt<'x> -> Alt<'x> -> Alt<'x>
-    [<Obsolete "Use `^=>` rather than `>>=?`">]
-    val inline ( >>=? ): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
-    [<Obsolete "Use `^=>.` rather than `>>.?`">]
-    val inline ( >>.? ): Alt<_> -> Job<'y> -> Alt<'y>
-    /// `xA .>>? yJ` is equivalent to `xA ^=> fun x -> yJ >>-. x`.
-    [<Obsolete "`.>>?` is to be removed">]
-    val ( .>>? ): Alt<'x> -> Job<_> -> Alt<'x>
-    [<Obsolete "Use `^->` rather than `|>>?`">]
-    val inline ( |>>? ): Alt<'x> -> ('x -> 'y) -> Alt<'y>
-    [<Obsolete "Use `^->.` rather than `>>%?`">]
-    val inline ( >>%? ): Alt<_> -> 'y -> Alt<'y>
-    [<Obsolete "Use `^->!` rather than `>>!?`">]
-    val inline ( >>!? ): Alt<_> -> exn -> Alt<_>
-    [<Obsolete "Use `<+>` rather than `<+>?`">]
-    val inline ( <+>? ): Alt<'a> -> Alt<'b> -> Alt<'a * 'b>
-
-  //////////////////////////////////////////////////////////////////////////////
-
   /// Implements the `try-in-unless` exception handling construct for
   /// alternatives.  Both of the continuation jobs `'x -> Job<'y>`, for success,
   /// and `exn -> Job<'y>`, for failure, are invoked from a tail position.
@@ -1420,19 +1373,6 @@ module Alt =
   /// operation is provided for debugging purposes.  You can always break
   /// abstractions using reflection.  See also: `Job.paranoid`.
   val paranoid: Alt<'x> -> Alt<'x>
-
-  [<Obsolete "Use `prepare` rather than `guard`">]
-  val guard: Job<#Alt<'x>> -> Alt<'x>
-  [<Obsolete "Use `prepareFun` rather than `delay`">]
-  val inline delay: (unit -> #Alt<'x>) -> Alt<'x>
-  [<Obsolete "Use `withNackJob` rather than `withNack`.">]
-  val inline withNack: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
-  [<Obsolete "Use `wrapAbortJob` rather than `wrapAbort`.">]
-  val wrapAbort: Job<unit> -> Alt<'x> -> Alt<'x>
-  [<Obsolete "Use `afterJob` rather than `wrap`">]
-  val inline wrap: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
-  [<Obsolete "Use `afterFun` rather than `map`">]
-  val inline map: ('x -> 'y) -> Alt<'x> -> Alt<'y>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1995,23 +1935,6 @@ module Promise =
     /// when creating more complex data structures that make internal use of
     /// promises.  Using this to poll promises is not generally a good idea.
     val get: Promise<'x> -> 'x
-
-  [<Obsolete "Just `open Hopac.Infixes`">]
-  module Infixes =
-    [<Obsolete "Use `Hopac.Infixes.<|>*`">]
-    val inline ( <|>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
-    [<Obsolete "Use `Hopac.Infixes.>>=*`">]
-    val inline ( >>=* ): Job<'x> -> ('x -> #Job<'y>) -> Promise<'y>
-    [<Obsolete "Use `>>=*.` rather than `>>.*`">]
-    val inline ( >>.* ): Job<_> -> Job<'y> -> Promise<'y>
-    [<Obsolete "`.>>*` is to be removed">]
-    val inline ( .>>* ): Job<'x> -> Job<_> -> Promise<'x>
-    [<Obsolete "Use `>>-*` rather than `|>>*`">]
-    val inline ( |>>* ): Job<'x> -> ('x -> 'y) -> Promise<'y>
-    [<Obsolete "Use `>>-*.` rather than `>>%*`">]
-    val inline ( >>%* ): Job<_> -> 'y -> Promise<'y>
-    [<Obsolete "Use `>>-*!` rather than `>>!*`">]
-    val inline ( >>!* ): Job<_> -> exn -> Promise<_>
 
   /// Creates a job that creates a promise, whose value is computed with the
   /// given job, which is immediately started to run as a separate concurrent
@@ -2855,16 +2778,3 @@ module Infixes =
   /// single transaction.  Such an operation would require a more complex
   /// synchronization protocol like with the so called Transactional Events.
   val ( <+> ): Alt<'x> -> Alt<'y> -> Alt<'x * 'y>
-
-  [<Obsolete "Use `*<-` rather than `<--`">]
-  val inline ( <--  ): Ch<'x> -> 'x -> Alt<unit>
-  [<Obsolete "Use `*<+` rather than `<-+`">]
-  val inline ( <-+  ): Ch<'x> -> 'x -> Job<unit>
-  [<Obsolete "Use `*<=` rather than `<-=`">]
-  val inline ( <-=  ): IVar<'x> -> 'x  -> Job<unit>
-  [<Obsolete "Use `*<=!` rather than `<-=!`">]
-  val inline ( <-=! ): IVar<'x> -> exn -> Job<unit>
-  [<Obsolete "Use `*<<=` rather than `<<-=`">]
-  val inline ( <<-= ): MVar<'x> -> 'x -> Job<unit>
-  [<Obsolete "Use `*<<+` rather than `<<-+`">]
-  val inline ( <<-+ ): Mailbox<'x> -> 'x -> Job<unit>
