@@ -193,8 +193,6 @@ namespace Hopac.Core {
     }
     internal override void DoWork(ref Worker wr) {
       var pk = this.pk;
-      if (null == pk)
-        goto DoCont;
       var cts = this.cts;
       if (null == cts)
         goto Done;
@@ -205,7 +203,6 @@ namespace Hopac.Core {
       cts.Dispose();
       if (0 != picked)
         goto Done;
-    DoCont:
       xK.DoCont(ref wr, xT.Result);
     Done:
       return;
@@ -284,8 +281,6 @@ namespace Hopac.Core {
     }
     internal override void DoWork(ref Worker wr) {
       var pk = this.pk;
-      if (null == pk)
-        goto DoCont;
       var cts = this.cts;
       if (null == cts)
         goto Done;
@@ -296,7 +291,6 @@ namespace Hopac.Core {
       cts.Dispose();
       if (0 != picked)
         goto Done;
-    DoCont:
       if (TaskStatus.RanToCompletion == uT.Status)
         uK.DoWork(ref wr);
       else
