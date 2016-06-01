@@ -141,26 +141,6 @@ Target "Build" <| fun _ ->
 // --------------------------------------------------------------------------------------
 // Build NuGet packages
 
-Target "NuGet" <| fun _ ->
-    let nugetlibDir = nugetDir @@ "lib/net45"
-    CleanDir nugetlibDir
-    CopyDir nugetlibDir "bin" (fun file -> file.Contains "FSharp.Core." |> not)
-
-    NuGet (fun p ->
-        { p with
-            Authors = authors
-            Project = project
-            Summary = summary
-            Description = description
-            Version = release.NugetVersion
-            ReleaseNotes = release.Notes |> toLines
-            Tags = tags
-            OutputPath = nugetDir
-            AccessKey = getBuildParamOrDefault "nugetkey" ""
-            Publish = hasBuildParam "nugetkey"
-            Dependencies = getDependencies "Libs/Hopac/packages.config"})
-        (".nuget" @@ project + ".nuspec")
-
 Target "PaketBootstrap" <| fun _ ->
   ExecProcess (fun info ->
     info.FileName <- "./paket.bootstrapper.exe"
