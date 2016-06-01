@@ -8,9 +8,11 @@ open System.Collections.Generic
 
 let inline (^) x = x
 
+let mutable exitCode = 0
+
 let testEq exp act =
   if exp <> act
-  then printfn "Expected %A, but got %A" exp act
+  then printfn "Expected %A, but got %A" exp act ; exitCode <- 1
   else printfn "OK"
 
 exception Expected of int
@@ -30,14 +32,19 @@ let rec getRootCauses (d: Dictionary<_, _>)  (e: exn) =
         getRootCauses d e
 
 let testExpected expected = function
-  | Choice1Of2 _ -> printfn "Unexpected success"
+  | Choice1Of2 _ -> printfn "Unexpected success" ; exitCode <- 1
   | Choice2Of2 e ->
     let d = Dictionary ()
     getRootCauses d e
+    let mutable failures = false
     for e in expected do
       match d.TryGetValue e with
        | true, n when n > 0 -> d.[e] <- n - 1
-       | _ -> printfn "Expected %A, but got none" e
+       | _ -> printfn "Expected %A, but got none" e ; failures <- true
     for kv in d do
       if kv.Value <> 0 then
-        printfn "Didn't expect, but got %A" kv.Key
+        printfn "Didn't expect, but got %A" kv.Key ; failures <- true
+    if not failures then
+      printfn "OK"
+    else
+      exitCode <- 1

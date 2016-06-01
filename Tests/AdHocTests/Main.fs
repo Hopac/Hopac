@@ -2,5 +2,8 @@
 
 module Main
 
-do JobTests.run()
-   StreamTests.run ()
+[<EntryPoint>]
+let main _ =
+  JobTests.run ()
+  StreamTests.run ()
+  exitCode
