@@ -31,7 +31,7 @@ namespace Hopac.Core {
     DoHandle:
       var abK = this.abK;
       wr.Handler = abK;
-      if (null != this.e)
+      if (e != this.e && null != this.e)
         e = new AggregateException(new Exception[]{this.e, e});
       abK.DoHandle(ref wr, e);
     }
