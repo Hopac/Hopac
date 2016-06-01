@@ -80,6 +80,7 @@
     <Compile Include="Util\SpinlockTTAS.cs" />
     <Compile Include="Util\Unsafe.cs" />
     <Compile Include="Util\WorkQueueLock.cs" />
+    <Compile Include="Util\Primitive.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />

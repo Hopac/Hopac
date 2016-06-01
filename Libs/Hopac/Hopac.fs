@@ -1157,18 +1157,22 @@ module Job =
     //   http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/
     {new Job<'y> () with
       override yJ'.DoJob (wr, yK_) =
-       let yK' = {new Cont_State<'y, _> () with
-        override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
-        override yK'.DoHandle (wr, e) =
-         let yK = yK'.State
-         wr.Handler <- yK ; x.Dispose () ; Handler.DoHandle (yK, &wr, e)
-        override yK'.DoWork (wr) =
-         let yK = yK'.State
-         wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, yK'.Value)
-        override yK'.DoCont (wr, y) =
-         let yK = yK'.State
-         wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, y)}.Init(yK_)
-       wr.Handler <- yK'
+       let yK' =
+         if Primitive.IsNull x
+         then yK_
+         else let yK' = {new Cont_State<'y, _> () with
+               override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
+               override yK'.DoHandle (wr, e) =
+                let yK = yK'.State
+                wr.Handler <- yK ; x.Dispose () ; Handler.DoHandle (yK, &wr, e)
+               override yK'.DoWork (wr) =
+                let yK = yK'.State
+                wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, yK'.Value)
+               override yK'.DoCont (wr, y) =
+                let yK = yK'.State
+                wr.Handler <- yK ; x.Dispose () ; yK.DoCont (&wr, y)}.Init(yK_)
+              wr.Handler <- yK'
+              yK'
        (x2yJ x).DoJob (&wr, yK')}
 
   let catch (xJ: Job<'x>) =
