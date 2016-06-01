@@ -64,9 +64,6 @@ let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/Hopac"
 // END TODO: The rest of the file includes standard build steps
 // --------------------------------------------------------------------------------------
 
-let buildDir = "bin"
-let nugetDir = "./nuget/"
-
 // Read additional information from the release notes document
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
 type ProjectType = FSharp | CSharp
@@ -129,7 +126,7 @@ Target "AssemblyInfo" <| fun _ ->
 // Clean build results & restore NuGet packages
 
 Target "Clean" <| fun _ ->
-    CleanDirs [buildDir; "temp"; nugetDir]
+    CleanDirs ["bin"]
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
