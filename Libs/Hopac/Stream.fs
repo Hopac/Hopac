@@ -807,28 +807,27 @@ module Stream =
 
   type [<AbstractClass>] Builder () =
     member inline this.Bind (xs, x2ys: _ -> Stream<_>) =
-      mapJoin (fun x y -> this.Plus (x, y)) x2ys xs
-    member inline this.Combine (xs1, xs2) = this.Plus (xs1, xs2)
+      mapJoin (fun x y -> this.Combine (x, y)) x2ys xs
+    abstract Combine: Stream<'x> * Stream<'x> -> Stream<'x>
     member inline this.Delay (u2xs: unit -> Stream<'x>) = delay u2xs
-    abstract Zero: unit -> Stream<'x>
     member inline this.For (xs, x2ys: _ -> Stream<_>) =
       this.Bind (ofSeq xs, x2ys)
     member inline this.TryWith (xs, e2xs: _ -> Stream<_>) = catch e2xs xs
-    member this.While (u2b, xs) = sumWhileFun this.Plus this.Zero u2b xs
+    member this.While (u2b, xs) = sumWhileFun this.Combine this.Zero u2b xs
     member inline this.Yield (x) = one x
     member inline this.YieldFrom (xs: Stream<_>) = xs
-    abstract Plus: Stream<'x> * Stream<'x> -> Stream<'x>
+    abstract Zero: unit -> Stream<'x>
 
   let appended = {new Builder () with
     member this.Zero () = nil
-    member this.Plus (xs, ys) = append xs ys}
+    member this.Combine (xs, ys) = append xs ys}
   let merged = {new Builder () with
     member this.Zero () = nil
-    member this.Plus (xs, ys) = merge xs ys}
+    member this.Combine (xs, ys) = merge xs ys}
 
   let ambed = {new Builder () with
     member this.Zero () = never
-    member this.Plus (xs, ys) = amb xs ys}
+    member this.Combine (xs, ys) = amb xs ys}
   let switched = {new Builder () with
     member this.Zero () = never
-    member this.Plus (xs, ys) = switch xs ys}
+    member this.Combine (xs, ys) = switch xs ys}
