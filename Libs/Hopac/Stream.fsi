@@ -1174,7 +1174,7 @@ module Stream =
   /// `mapJoin j f xs` is equivalent to `joinWith j <| mapFun f xs`.
   val  inline mapJoin: ('y -> Stream<'z> -> #Job<Cons<'z>>) -> ('x -> 'y) -> Stream<'x> -> Stream<'z>
 
-  //# Debugging
+  //# Testing
 
   /// Returns a job that collects all the elements from the stream.  This
   /// function is provided for testing purposes.
