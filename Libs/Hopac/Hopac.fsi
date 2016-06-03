@@ -1074,6 +1074,8 @@ type Alt<'x> :> Job<'x>
 
 /// Operations on first-class synchronous operations or alternatives.
 module Alt =
+  //# Basic alternatives
+
   /// Creates an alternative that is always available and results in the given
   /// value.
   ///
@@ -1108,9 +1110,7 @@ module Alt =
 #endif
   val inline once: 'x -> Alt<'x>
 
-  /// Creates an alternative that has the effect of raising the specified
-  /// exception.  `raises e` is equivalent to `prepareFun <| fun () -> raise e`.
-  val raises: exn -> Alt<_>
+  //# Before actions
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job.  See also: `*<-=>-`, `prepareFun`, `withNackJob`.
@@ -1149,10 +1149,7 @@ module Alt =
 #endif
   val inline prepareFun: (unit ->      #Alt<'x>)  -> Alt<'x>
 
-  /// Creates an alternative that is computed at instantiation time with the
-  /// the given function, which will be called with a pseudo random 64-bit
-  /// unsigned integer.  See also: `Random.bind`.
-  val inline random: (uint64 -> #Alt<'x>) -> Alt<'x>
+  //# Negative acknowledgments
 
   /// Creates an alternative that is computed at instantiation time with the
   /// given job constructed with a negative acknowledgment alternative.  See
@@ -1249,6 +1246,8 @@ module Alt =
   /// `wrapAbortFun u2u xA` is equivalent to `wrapAbortJob (Job.thunk u2u) xA`.
   val wrapAbortFun: (unit -> unit) -> Alt<'x> -> Alt<'x>
 
+  //# Choices
+
   /// Creates an alternative that is available when any one of the given
   /// alternatives is.  See also: `choosy`, `<|>`.
   ///
@@ -1293,10 +1292,19 @@ module Alt =
 #endif
   val choosy: array<#Alt<'x>> -> Alt<'x>
 
+  //# Randomization
+
+  /// Creates an alternative that is computed at instantiation time with the
+  /// the given function, which will be called with a pseudo random 64-bit
+  /// unsigned integer.  See also: `Random.bind`.
+  val inline random: (uint64 -> #Alt<'x>) -> Alt<'x>
+
   /// `chooser xAs` is like `choose xAs` except that the order in which the
   /// alternatives from the sequence are considered will be determined at random
   /// each time the alternative is used.  See also: `<~>`.
   val chooser:  seq<#Alt<'x>> -> Alt<'x>
+
+  //# After actions
 
   /// Creates an alternative whose result is passed to the given job constructor
   /// and processed with the resulting job after the given alternative has been
@@ -1317,7 +1325,11 @@ module Alt =
   /// `Ignore xA` is equivalent to `xA ^-> fun _ -> ()`.
   val Ignore: Alt<_> -> Alt<unit>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Exception handling
+
+  /// Creates an alternative that has the effect of raising the specified
+  /// exception.  `raises e` is equivalent to `prepareFun <| fun () -> raise e`.
+  val raises: exn -> Alt<_>
 
   /// Implements the `try-in-unless` exception handling construct for
   /// alternatives.  Both of the continuation jobs `'x -> Job<'y>`, for success,
@@ -1365,7 +1377,7 @@ module Alt =
 #endif
   val tryFinallyJob: Alt<'x> ->      Job<unit> -> Alt<'x>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Debugging
 
   /// Given an alternative, creates a new alternative that behaves exactly like
   /// the given alternative, except that the new alternative obviously cannot be
