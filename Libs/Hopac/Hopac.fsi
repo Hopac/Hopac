@@ -2489,7 +2489,7 @@ module Scheduler =
 #endif
 module Infixes =
 
-  // Message passing -----------------------------------------------------------
+  //# Query-Reply
 
   /// Creates an alternative that, using the given job constructor, constructs a
   /// query with a reply channel and a nack, sends it to the query channel and
@@ -2582,7 +2582,9 @@ module Infixes =
   ///> let ( *<+=>- ) qCh rI2q = qCh *<+=>= (rI2q >> result)
 #endif
   val inline ( *<+=>- ): Ch<'q> -> (IVar<'r>                  ->      'q)  -> Alt<'r>
-  
+
+  //# Message passing
+
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
   /// offers to take the value.  `xCh *<- x` is equivalent to `Ch.give xCh x`.
@@ -2623,7 +2625,7 @@ module Infixes =
   /// x`.
   val inline ( *<<+ ): Mailbox<'x> -> 'x  -> Job<unit>
 
-  // After actions -------------------------------------------------------------
+  //# After actions
 
   /// Creates an alternative whose result is passed to the given job constructor
   /// and processed with the resulting job after the given alternative has been
@@ -2643,7 +2645,7 @@ module Infixes =
   /// `xA ^->! e` is equivalent to `xA ^-> fun _ -> raise e`.
   val ( ^->! ): Alt<_>  ->             exn  -> Alt<_>
 
-  // Choices -------------------------------------------------------------------
+  //# Choices
 
   /// Creates an alternative that is available when either of the given
   /// alternatives is available.  `xA1 <|> xA2` is an optimized version of
@@ -2676,7 +2678,7 @@ module Infixes =
   /// A memoizing version of `<~>`.
   val inline ( <~>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
 
-  // Sequencing ----------------------------------------------------------------
+  //# Sequencing
 
   /// Creates a job that first runs the given job and then passes the result of
   /// that job to the given function to build another job which will then be
@@ -2715,7 +2717,7 @@ module Infixes =
   /// A memoizing version of `>>-!`.
   val inline ( >>-*! ): Job<_>  ->             exn  -> Promise<_>
 
-  // Kleisli -------------------------------------------------------------------
+  //# Composition
 
   /// Creates a job that is the composition of the given two job constructors.
   /// `(x2yJ >=> y2zJ) x` is equivalent to `x2yJ x >>= y2zJ` and is much like
@@ -2746,7 +2748,7 @@ module Infixes =
   /// A memoizing version of `>->!`.
   val inline ( >->*! ): ('x -> #Job<_>)  ->             exn  -> 'x -> Promise<_>
 
-  // Pairs ---------------------------------------------------------------------
+  //# Pairing
 
   /// Creates a job that runs the given two jobs and then returns a pair of
   /// their results.  `xJ <&> yJ` is equivalent to `xJ >>= fun x -> yJ >>= fun y
