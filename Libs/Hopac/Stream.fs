@@ -10,6 +10,7 @@ open Hopac.Extensions
 open Hopac.Timer.Global
 
 module Stream =
+  let inline (^) x = x
   let imp () = failwith "Impossible"
   let inline memo x = Promise.Now.delay x
   let inline queue x = Job.Global.queue x
@@ -517,6 +518,21 @@ module Stream =
                    | Cons (x, xs) -> s2x2sJ (foldFromBack s s2x2sJ xs) x
 
   let count xs = foldFun (fun s _ -> s+1L) 0L xs
+
+  let rec tryPickJob x2yOJ xs =
+    xs >>= function
+     | Nil -> Job.result None
+     | Cons (x, xs) ->
+       x2yOJ x >>= function
+        | Some y -> Job.result ^ Some y
+        | None -> tryPickJob x2yOJ xs
+  let rec tryPickFun x2yJ xs =
+    xs >>= function
+     | Nil -> Job.result None
+     | Cons (x, xs) ->
+       x2yJ x |> function
+        | Some y -> Job.result ^ Some y
+        | None -> tryPickFun x2yJ xs
 
   let rec iterJob (f: _ -> #Job<unit>) xs =
     xs >>= function Cons (x, xs) -> f x >>=. iterJob f xs | Nil -> Job.unit ()

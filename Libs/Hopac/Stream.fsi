@@ -1045,6 +1045,13 @@ module Stream =
                  -> Stream<'x>
                  -> Promise<'s> when 'sJ :> Job<'s>
 
+  /// `tryPickJob x2yOJ xs` returns a job that returns the first `Some y` result
+  /// produced by the job `x2yOJ x` for an element `x` of the `xs` stream.
+  val tryPickJob: ('x -> #Job<option<'y>>) -> Stream<'x> -> Job<option<'y>>
+
+  /// `tryPickFun x2yO xs` is equivalent to `tryPickJob (x2yO >> result) xs`.
+  val tryPickFun: ('x ->      option<'y>)  -> Stream<'x> -> Job<option<'y>>
+
   /// Returns a job that iterates the given job constructor over the given
   /// stream.  See also: `consumeJob`.
 #if DOC
