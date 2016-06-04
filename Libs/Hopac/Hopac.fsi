@@ -508,6 +508,32 @@ module Job =
 
   //# Basic jobs
 
+  /// Creates a job with the given result.  See also: `lift`, `thunk`, `unit`.
+  val result: 'x   -> Job<'x>
+
+  /// Returns a job that does nothing and returns `()`.  `unit ()` is an
+  /// optimized version of `result ()`.
+  val   inline unit: unit -> Job<unit>
+
+  /// Creates a job that first runs the given job and then passes the result of
+  /// that job to the given function to build another job which will then be
+  /// run.  This is the same as `>>=` with the arguments flipped.
+  val inline bind:      ('x   -> #Job<'y>) -> Job<'x> -> Job<'y>
+
+  /// Creates a job that calls the given function with the given value to build
+  /// a job that will then be run.  `delayWith x2yJ x` is equivalent to `result
+  /// x >>= x2yJ`.
+  val inline delayWith: ('x   -> #Job<'y>) ->     'x  -> Job<'y>
+
+  /// Creates a job that runs the given job and maps the result of the job with
+  /// the given function.  This is the same as `>>-` with the arguments flipped.
+  val inline map:       ('x   ->      'y)  -> Job<'x> -> Job<'y>
+
+  /// Creates a job that calls the given function with the given value to
+  /// compute the result of the job.  `lift x2y x` is equivalent to `result x
+  /// >>- x2y`.  Note that `x2y x |> result` is not the same.
+  val inline lift:      ('x   ->      'y)  ->     'x  -> Job<'y>
+
   /// Creates a job that calls the given function to build a job that will then
   /// be run.  `delay u2xJ` is equivalent to `result () >>= u2xJ`.
 #if DOC
@@ -520,44 +546,14 @@ module Job =
   /// constructed job with `delay` and avoiding unnecessary `delay` operations
   /// can improve performance.
 #endif
-  val inline delay: (unit -> #Job<'x>) -> Job<'x>
-
-  /// Creates a job that calls the given function with the given value to build
-  /// a job that will then be run.  `delayWith x2yJ x` is equivalent to `result
-  /// x >>= x2yJ`.
-  val inline delayWith: ('x -> #Job<'y>) -> 'x -> Job<'y>
-
-  /// Creates a job that calls the given function with the given value to
-  /// compute the result of the job.  `lift x2y x` is equivalent to `result x
-  /// >>- x2y`.  Note that `x2y x |> result` is not the same.
-  val inline lift: ('x -> 'y) -> 'x -> Job<'y>
+  val inline delay:     (unit -> #Job<'y>)            -> Job<'y>
 
   /// Creates a job that invokes the given thunk to compute the result of the
   /// job.  `thunk u2x` is equivalent to `result () >>- u2x`.
-  val inline thunk: (unit -> 'x) -> Job<'x>
-
-  /// Creates a job like the given job except that the result of the job will be
-  /// `()`.  `Ignore xJ` is equivalent to `xJ >>- ignore`.
-  val Ignore: Job<_> -> Job<unit>
-
-  /// Returns a job that does nothing and returns `()`.  `unit ()` is an
-  /// optimized version of `result ()`.
-  val inline unit: unit -> Job<unit>
-
-  /// Creates a job with the given result.  See also: `lift`, `thunk`, `unit`.
-  val result: 'x -> Job<'x>
-
-  /// Creates a job that first runs the given job and then passes the result of
-  /// that job to the given function to build another job which will then be
-  /// run.  This is the same as `>>=` with the arguments flipped.
-  val inline bind: ('x -> #Job<'y>) -> Job<'x> -> Job<'y>
+  val inline thunk:     (unit ->      'y)             -> Job<'y>
 
   /// `join xJJ` is equivalent to `bind id xJJ`.
   val inline join: Job<#Job<'x>> -> Job<'x>
-
-  /// Creates a job that runs the given job and maps the result of the job with
-  /// the given function.  This is the same as `>>-` with the arguments flipped.
-  val inline map: ('x -> 'y) -> Job<'x> -> Job<'y>
 
   /// Creates a job that immediately terminates the current job.  See also:
   /// `startWithFinalizer`.
@@ -572,6 +568,10 @@ module Job =
   /// exception.  In other words, do not use `abort` in such a case.
 #endif
   val abort: unit -> Job<_>
+
+  /// Creates a job like the given job except that the result of the job will be
+  /// `()`.  `Ignore xJ` is equivalent to `xJ >>- ignore`.
+  val Ignore: Job<_> -> Job<unit>
 
   //# Exception handling
 
@@ -840,7 +840,7 @@ module Job =
   /// x2xJ` is equivalent to `iterate x x2xJ |> server`.
   val inline iterateServer: 'x -> ('x -> #Job<'x>) -> Job<unit>
 
-  //# Sequences
+  //# Sequences of jobs
 
   /// Creates a job that runs all of the jobs in sequence and returns a list of
   /// the results.  See also: `seqIgnore`, `conCollect`, `Seq.mapJob`.
@@ -922,8 +922,6 @@ module Job =
   /// See also: `Alt.paranoid`.
   val paranoid: Job<'x> -> Job<'x>
 
-  //# Scheduler
-
   /// Operations for dealing with the scheduler.
   module Scheduler =
     /// `bind s2xJ` creates a job that calls the given job constructor with the
@@ -985,8 +983,6 @@ module Job =
     /// `isolate u2x` is like `thunk u2x`, but it is ensured that the blocking
     /// invocation of `u2x` does not prevent scheduling of other work.
     val inline isolate: (unit -> 'x) -> Job<'x>
-
-  //# Randomization
 
   /// Operations on the built-in pseudo random number generator (PRNG) of Hopac.
 #if DOC
@@ -1578,13 +1574,13 @@ module IVar =
   /// Immediate or non-workflow operations on write once variables.
   module Now =
     /// Creates a new write once variable.
-    val inline create: unit -> IVar<'x>
+    val inline create:        unit -> IVar<'x>
 
     /// Creates a new write once variable with the given value.
-    val inline createFull: 'x -> IVar<'x>
+    val inline createFull:    'x   -> IVar<'x>
 
     /// Creates a new write once variable with the given failure exception.
-    val inline createFailure: exn -> IVar<'x>
+    val inline createFailure: exn  -> IVar<'x>
 
     /// Returns true iff the given write once variable has already been filled
     /// (either with a value or with a failure).
@@ -1782,11 +1778,11 @@ module MVar =
   /// Immediate or non-workflow operations on serialized variables.
   module Now =
     /// Creates a new serialized variable that is initially empty.
-    val inline create: unit -> MVar<'x>
+    val inline create:     unit -> MVar<'x>
 
     /// Creates a new serialized variable that initially contains the given
     /// value.
-    val inline createFull: 'x -> MVar<'x>
+    val inline createFull: 'x   -> MVar<'x>
 
   /// Creates a job that creates a new serialized variable that is initially
   /// empty.
@@ -1916,7 +1912,7 @@ module Promise =
     val inline delay: Job<'x> -> Promise<'x>
 
     /// Creates a promise with the given value.
-    val inline withValue: 'x -> Promise<'x>
+    val inline withValue:   'x  -> Promise<'x>
 
     /// Creates a promise with the given failure exception.
     val inline withFailure: exn -> Promise<'x>
@@ -2015,6 +2011,27 @@ module Extensions =
 
   /// Operations for processing sequences with jobs.
   module Seq =
+    /// Sequentially folds the job constructor over the given sequence and
+    /// returns the result of the fold.
+#if DOC
+    ///
+    /// Reference implementation:
+    ///
+    ///> let foldJob xy2xJ x (ys: seq<'y>) = Job.delay <| fun () ->
+    ///>   Job.using <| ys.GetEnumerator () <| fun ys ->
+    ///>   let rec loop x =
+    ///>     if ys.MoveNext () then
+    ///>       xy2xJ x ys.Current >>= loop
+    ///>     else
+    ///>       Job.result x
+    ///>   loop x
+#endif
+    val foldJob:     ('x -> 'y -> #Job<'x>) -> 'x -> seq<'y> -> Job<'x>
+
+    /// `foldFromJob x x2y2xJ ys` is equivalent to `foldJob x2y2xJ x ys` and is
+    /// often syntactically more convenient.
+    val inline foldFromJob: 'x -> ('x -> 'y -> #Job<'x>) -> seq<'y> -> Job<'x>
+
     /// Sequentially iterates the given job constructor over the given sequence.
     /// See also: `Seq.iterJobIgnore`, `Seq.Con.iterJob`, `seqIgnore`,
     /// `Array.mapJob`.
@@ -2048,27 +2065,6 @@ module Extensions =
     ///>   >>-. ys
 #endif
     val mapJob: ('x -> #Job<'y>) -> seq<'x> -> Job<ResizeArray<'y>>
-
-    /// Sequentially folds the job constructor over the given sequence and
-    /// returns the result of the fold.
-#if DOC
-    ///
-    /// Reference implementation:
-    ///
-    ///> let foldJob xy2xJ x (ys: seq<'y>) = Job.delay <| fun () ->
-    ///>   Job.using <| ys.GetEnumerator () <| fun ys ->
-    ///>   let rec loop x =
-    ///>     if ys.MoveNext () then
-    ///>       xy2xJ x ys.Current >>= loop
-    ///>     else
-    ///>       Job.result x
-    ///>   loop x
-#endif
-    val foldJob:           ('x -> 'y -> #Job<'x>) -> 'x -> seq<'y> -> Job<'x>
-
-    /// `foldFromJob x x2y2xJ ys` is equivalent to `foldJob x2y2xJ x ys` and is
-    /// often syntactically more convenient.
-    val inline foldFromJob: 'x -> ('x -> 'y -> #Job<'x>)       -> seq<'y> -> Job<'x>
 
     /// Operations for processing sequences using concurrent jobs.
     module Con =
