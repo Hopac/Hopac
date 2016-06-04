@@ -223,11 +223,10 @@ do for n in [10L; 20L; 30L; 40L] do
      ParallelOpt.run n ; cleanup ()
      ParallelJob.run n ; cleanup ()
      ParallelPro.run n ; cleanup ()
+     Task.run n ; cleanup ()
      SerialOpt.run n ; cleanup ()
      SerialJob.run n ; cleanup ()
      FibNck.run n ; cleanup ()
      SerAsc.run n ; cleanup ()
-     if not (isMono ()) then
-       Task.run n ; cleanup ()
      if n <= 30L then
        ParAsc.run n ; cleanup ()
