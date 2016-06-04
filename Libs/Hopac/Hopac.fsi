@@ -420,7 +420,7 @@ module Job =
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.server` instead.
 #endif
-    val server: Job<Void> -> unit
+    val server:      Job<Void> -> unit
 
     /// Starts running the given job on the global scheduler and then blocks the
     /// current thread waiting for the job to either return successfully or
@@ -441,7 +441,7 @@ module Job =
 #endif
     val run: Job<'x> -> 'x
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Spawning jobs
 
   /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job.  Use `Promise.start` if you need to be able to get the
@@ -479,7 +479,7 @@ module Job =
   /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job like `start`, but the given job is known never to return
   /// normally, so the job can be spawned in an even more lightweight manner.
-  val server: Job<Void> -> Job<unit>
+  val server:      Job<Void> -> Job<unit>
 
   /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job like `start`, but also attaches a finalizer to the started
@@ -498,15 +498,15 @@ module Job =
   /// case where a job is garbage collected.  For fault tolerance the `Proc`
   /// abstraction may be preferable.
 #endif
-  val inline startWithFinalizer: finalizer: Job<unit> -> Job<unit> -> Job<unit>
+  val inline startWithFinalizer:       finalizer: Job<unit> -> Job<unit> -> Job<unit>
 
   /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job like `start`, but also attaches a finalizer to the started
   /// job.  `startWithFinalizerIgnore finalizerJ xJ` is equivalent to
   /// `Job.Ignore xJ |> startWithFinalizer finalizerJ`.
-  val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_> -> Job<unit>
+  val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_>    -> Job<unit>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Basic jobs
 
   /// Creates a job that calls the given function to build a job that will then
   /// be run.  `delay u2xJ` is equivalent to `result () >>= u2xJ`.
@@ -539,8 +539,6 @@ module Job =
   /// Creates a job like the given job except that the result of the job will be
   /// `()`.  `Ignore xJ` is equivalent to `xJ >>- ignore`.
   val Ignore: Job<_> -> Job<unit>
-
-  //////////////////////////////////////////////////////////////////////////////
 
   /// Returns a job that does nothing and returns `()`.  `unit ()` is an
   /// optimized version of `result ()`.
@@ -575,11 +573,11 @@ module Job =
 #endif
   val abort: unit -> Job<_>
 
+  //# Exception handling
+
   /// Creates a job that has the effect of raising the specified exception.
   /// `raises e` is equivalent to `Job.delayWith raise e`.
   val raises: exn -> Job<_>
-
-  //////////////////////////////////////////////////////////////////////////////
 
   /// Implements the `try-in-unless` exception handling construct for jobs.
   /// Both of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
@@ -591,16 +589,13 @@ module Job =
   /// only supports the `Job.tryWith` operation.  `Job.tryIn` makes it easier to
   /// write exception handling code that has the desired tail-call properties.
 #endif
-  val inline tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
+  val inline tryIn:                Job<'x>  -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
   /// Implements the `try-in-unless` exception handling construct for jobs.
   /// Both of the continuation jobs `'x -> Job<'y>`, for success, and `exn ->
   /// Job<'y>`, for failure, are invoked from a tail position.  `tryInDelay u2xJ
   /// x2yJ e2yJ` is equivalent to `tryIn (delay u2xJ) x2yJ e2yJ`.
-  val inline tryInDelay: (unit -> #Job<'x>)
-               -> ('x -> #Job<'y>)
-               -> (exn -> #Job<'y>)
-               -> Job<'y>
+  val inline tryInDelay: (unit -> #Job<'x>) -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
   /// Implements the try-with exception handling construct for jobs.
 #if DOC
@@ -654,6 +649,21 @@ module Job =
   /// has been run, whether it fails or completes successfully.
   val tryFinallyJobDelay: (unit -> #Job<'x>) ->      Job<unit> -> Job<'x>
 
+  /// Creates a job that runs the given job and results in either the ordinary
+  /// result of the job or the exception raised by the job.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let catch xJ =
+  ///>   tryIn xJ
+  ///>    <| lift Choice1Of2
+  ///>    <| lift Choice2Of2
+#endif
+  val catch: Job<'x> -> Job<Choice<'x, exn>>
+
+  //# Finalization
+
   /// Implements the `use` construct for jobs.  The `Dispose` method of the
   /// given disposable object is called after running the job constructed with
   /// the disposable object.  See also: `abort`, `usingAsync`.
@@ -688,20 +698,7 @@ module Job =
 #endif
   val usingAsync: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IAsyncDisposable
 
-  /// Creates a job that runs the given job and results in either the ordinary
-  /// result of the job or the exception raised by the job.
-#if DOC
-  ///
-  /// Reference implementation:
-  ///
-  ///> let catch xJ =
-  ///>   tryIn xJ
-  ///>    <| lift Choice1Of2
-  ///>    <| lift Choice2Of2
-#endif
-  val catch: Job<'x> -> Job<Choice<'x, exn>>
-
-  //////////////////////////////////////////////////////////////////////////////
+  //# Iteration
 
   /// Creates a job that runs the given job sequentially the given number of
   /// times.
@@ -794,7 +791,7 @@ module Job =
   /// `whenDo b uJ` is equivalent to `if b then uJ else Job.unit ()`.
   val inline whenDo: bool -> Job<unit> -> Job<unit>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Server loops
 
   /// Creates a job that repeats the given job indefinitely.  See also:
   /// `foreverServer`, `iterate`.
@@ -832,7 +829,7 @@ module Job =
 #endif
   val inline iterate: 'x -> ('x -> #Job<'x>) -> Job<_>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Spawning server loops
 
   /// Creates a job that starts a separate server job that repeats the given job
   /// indefinitely.  `foreverServer xJ` is equivalent to `forever xJ |> server`.
@@ -843,7 +840,7 @@ module Job =
   /// x2xJ` is equivalent to `iterate x x2xJ |> server`.
   val inline iterateServer: 'x -> ('x -> #Job<'x>) -> Job<unit>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Sequences
 
   /// Creates a job that runs all of the jobs in sequence and returns a list of
   /// the results.  See also: `seqIgnore`, `conCollect`, `Seq.mapJob`.
@@ -894,7 +891,7 @@ module Job =
   /// Note that this is not optimal for fine-grained parallel execution.
   val conIgnore: seq<#Job<_>> -> Job<unit>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Interop
 
   /// Creates a job that performs the asynchronous operation defined by the
   /// given pair of begin and end operations.
@@ -910,17 +907,13 @@ module Job =
   ///>   |> ignore
   ///>   xI
 #endif
-  val inline fromBeginEnd: (AsyncCallback * obj -> IAsyncResult)
-                 -> (IAsyncResult -> 'x)
-                 -> Job<'x>
+  val inline fromBeginEnd: (AsyncCallback * obj -> IAsyncResult) -> (IAsyncResult -> 'x) -> Job<'x>
 
   /// `fromEndBegin doEnd doBegin` is equivalent to `fromBeginEnd doBegin
   /// doEnd`.
-  val inline fromEndBegin: (IAsyncResult -> 'x)
-                 -> (AsyncCallback * obj -> IAsyncResult)
-                 -> Job<'x>
+  val inline fromEndBegin: (IAsyncResult -> 'x) -> (AsyncCallback * obj -> IAsyncResult) -> Job<'x>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Debugging
 
   /// Given a job, creates a new job that behaves exactly like the given job,
   /// except that the new job obviously cannot be directly downcast to the
@@ -929,7 +922,7 @@ module Job =
   /// See also: `Alt.paranoid`.
   val paranoid: Job<'x> -> Job<'x>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Scheduler
 
   /// Operations for dealing with the scheduler.
   module Scheduler =
@@ -993,7 +986,7 @@ module Job =
     /// invocation of `u2x` does not prevent scheduling of other work.
     val inline isolate: (unit -> 'x) -> Job<'x>
 
-  //////////////////////////////////////////////////////////////////////////////
+  //# Randomization
 
   /// Operations on the built-in pseudo random number generator (PRNG) of Hopac.
 #if DOC
@@ -1081,21 +1074,11 @@ module Alt =
   ///
   /// Note that when there are alternatives immediately available in a choice,
   /// the first such alternative will be committed to.
-  val inline always: 'x -> Alt<'x>
+  val inline always: 'x   -> Alt<'x>
 
   /// Returns an alternative that is always available and results in the unit
   /// value.  `unit ()` is an optimized version of `always ()`.
-  val inline unit: unit -> Alt<unit>
-
-  /// Creates an alternative that is never available.
-  ///
-  /// Note that synchronizing on `never ()`, without other alternatives, is
-  /// equivalent to performing `abort ()`.
-  val inline never: unit -> Alt<'x>
-
-  /// Returns an alternative that is never available.  `zero ()` is an optimized
-  /// version of `never ()`.
-  val inline zero: unit -> Alt<unit>
+  val   inline unit: unit -> Alt<unit>
 
   /// Returns an alternative that can be committed to once and that produces the
   /// given value.
@@ -1109,6 +1092,19 @@ module Alt =
   ///>   paranoid xCh
 #endif
   val inline once: 'x -> Alt<'x>
+
+  /// Creates an alternative that is never available.
+  ///
+  /// Note that synchronizing on `never ()`, without other alternatives, is
+  /// equivalent to performing `abort ()`.
+  val inline never: unit -> Alt<'x>
+
+  /// Returns an alternative that is never available.  `zero ()` is an optimized
+  /// version of `never ()`.
+  val  inline zero: unit -> Alt<unit>
+
+  /// `Ignore xA` is equivalent to `xA ^-> fun _ -> ()`.
+  val Ignore: Alt<_> -> Alt<unit>
 
   //# Before actions
 
@@ -1321,9 +1317,6 @@ module Alt =
   /// `xA |> afterFun x2y` is equivalent to `xA |> afterJob (x2y >> result)`.
   /// This is the same as `^->` with the arguments flipped.
   val inline afterFun: ('x ->      'y)  -> Alt<'x> -> Alt<'y>
-
-  /// `Ignore xA` is equivalent to `xA ^-> fun _ -> ()`.
-  val Ignore: Alt<_> -> Alt<unit>
 
   //# Exception handling
 
@@ -1627,7 +1620,7 @@ module IVar =
   /// the case, then you should likely use some other communication primitive.
   /// See also: `*<=`, `tryFill`, `fillFailure`.
 #endif
-  val inline fill: IVar<'x> -> 'x -> Job<unit>
+  val    inline fill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that tries to write the given value to the given write once
   /// variable.  No operation takes place and no error is reported in case the
@@ -1648,7 +1641,7 @@ module IVar =
   /// variable.  It is an error to write to a single `IVar` more than once.
   /// This assumption may be used to optimize the implementation and incorrect
   /// usage leads to undefined behavior.  See also: `*<=!`, `fill`.
-  val inline fillFailure: IVar<'x> -> exn -> Job<unit>
+  val    inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
   /// Creates a job that tries to write the given exception to the given write
   /// once variable.  No operation takes place and no error is reported in case
@@ -2185,8 +2178,7 @@ module Extensions =
 
       member inline TryWith: Async<'x> * (exn -> Async<'x>) -> Async<'x>
 
-      member inline Using: 'x * ('x -> Async<'y>)
-                 -> Async<'y> when 'x :> IDisposable
+      member inline Using: 'x * ('x -> Async<'y>) -> Async<'y> when 'x :> IDisposable
 
       member inline While: (unit -> bool) * Async<unit> -> Async<unit>
 
@@ -2219,9 +2211,7 @@ module Extensions =
 
   /// Builder for an async operation started on the given synchronization
   /// context with jobs on the specified scheduler wrapped as a job.
-  val inline asyncOn: SynchronizationContext
-            -> Scheduler
-            -> Async.OnWithSchedulerBuilder
+  val inline asyncOn: SynchronizationContext -> Scheduler -> Async.OnWithSchedulerBuilder
 
   /// Operations for interfacing tasks with jobs.
 #if DOC
@@ -2413,10 +2403,7 @@ module Scheduler =
   /// Note that using this function in a job workflow is not optimal and you
   /// should instead use `Job.start` with desired Job exception handling
   /// construct (e.g. `Job.tryIn` or `Job.catch`).
-  val startWithActions: Scheduler
-                     -> (exn -> unit)
-                     -> ('x -> unit)
-                     -> Job<'x> -> unit
+  val startWithActions: Scheduler -> (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
   /// Starts running the given job, but does not wait for the job to finish.
   ///
@@ -2438,7 +2425,7 @@ module Scheduler =
 
   /// Like `Scheduler.start`, but the given job is known never to return
   /// normally, so the job can be spawned in an even more lightweight manner.
-  val server: Scheduler -> Job<Void> -> unit
+  val server:      Scheduler -> Job<Void> -> unit
 
   /// Starts running the given job on the specified scheduler and then blocks
   /// the current thread waiting for the job to either return successfully or
