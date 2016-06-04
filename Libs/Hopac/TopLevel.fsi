@@ -13,6 +13,8 @@ module TopLevel =
   /// Represents a non-deterministic stream of values called a choice stream.
   type Stream<'x> = Stream.Stream<'x>
 
+  //# Computation expression builders
+
   /// Default expression builder for jobs.
   val job: JobBuilder
 
@@ -26,6 +28,8 @@ module TopLevel =
   /// `Hopac.Extensions.Async.Global.onMain ()`.
 #endif
   val onMain: Extensions.Async.OnWithSchedulerBuilder
+
+  //# Starting jobs
 
   /// Starts running the given job on the global scheduler and then blocks the
   /// current thread waiting for the job to either return successfully or fail.
@@ -105,6 +109,25 @@ module TopLevel =
 #endif
   val inline server: Job<Void> -> unit
 
+  //# Timeouts
+
+  /// Creates a timeout for the specified time span.  This is the same function
+  /// as `Timer.Global.timeOut`.
+  val inline timeOut:       TimeSpan -> Alt<unit>
+
+  /// Creates a timeout for the specified number of milliseconds.  This is the
+  /// same function as `Timer.Global.timeOutMillis`.
+  val inline timeOutMillis: int      -> Alt<unit>
+
+  //# Promises
+
+  /// Creates a promise whose value is computed lazily with the given job when
+  /// an attempt is made to read the promise.  This is the same function as
+  /// `Promise.Now.delay`.
+  val inline memo: Job<'x> -> Promise<'x>
+
+  //# Type ascription helpers
+
   /// Use object as alternative.  This function is a NOP and is provided as a
   /// kind of syntactic alternative to using a type ascription or an `upcast`.
   val inline asAlt: Alt<'x> -> Alt<'x>
@@ -112,16 +135,3 @@ module TopLevel =
   /// Use object as job.  This function is a NOP and is provided as a kind of
   /// syntactic alternative to using a type ascription or an `upcast`.
   val inline asJob: Job<'x> -> Job<'x>
-
-  /// Creates a timeout for the specified time span.  This is the same function
-  /// as `Timer.Global.timeOut`.
-  val inline timeOut: TimeSpan -> Alt<unit>
-
-  /// Creates a timeout for the specified number of milliseconds.  This is the
-  /// same function as `Timer.Global.timeOutMillis`.
-  val inline timeOutMillis: int -> Alt<unit>
-
-  /// Creates a promise whose value is computed lazily with the given job when
-  /// an attempt is made to read the promise.  This is the same function as
-  /// `Promise.Now.delay`.
-  val inline memo: Job<'x> -> Promise<'x>
