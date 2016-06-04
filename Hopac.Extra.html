@@ -4,81 +4,79 @@
 <title>Hopac.Extra Library Reference</title>
 <style>
 pre {
-border: 1px solid #e0e0e0;
-border-radius: 3px;
-padding: 5px;
-line-height: 160%;
-background: #f7f7f7;
-font-family: "Lucida Console", Monaco, monospace;
-font-size: 72%;
-}
-pre h3 {
-display: inline-block;
-margin: 1em 0em 0.5em 0em;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  padding: 5px;
+  background: #f7f7f7;
+  line-height: 160%;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 72%;
 }
 code {
-border: 1px solid #e0e0e0;
-border-radius: 3px;
-padding: 2px;
-background: #f7f7f7;
-font-family: "Lucida Console", Monaco, monospace;
-font-size: 72%;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  padding: 2px;
+  background: #f7f7f7;
+  line-height: 160%;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 72%;
+}
+span.h3 {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 1.17em;
+  font-family: inherit;
+  margin: 0.75em 0em 0.5em 0em;
+}
+span.spacing {
+  display: inherit;
+  margin: 0.5em 0em 0.5em 0em;
 }
 div.nested {
-padding-left: 1.5em;
+  padding-left: 1.5em;
 }
 a {
-text-decoration: none;
-font-weight: bold;
+  text-decoration: none;
+  font-weight: bold;
 }
 </style>
 </head>
 <body><table width="80%" align="center"><tr><td>
 <h1>Hopac.Extra Library Reference</h1>
 <h2>Synopsis</h2>
-<pre><b>namespace</b> Hopac<b>.</b>Extra</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.InCh" href="#def:type%20Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.OutCh" href="#def:type%20Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>module</b> <a id="dec:module%20Hopac.Extra.DirCh" href="#def:module%20Hopac.Extra.DirCh">DirCh</a> <b>=</b>
-  <b>module</b> <a id="dec:module%20Hopac.Extra.DirCh.Now" href="#def:module%20Hopac.Extra.DirCh.Now">Now</a> <b>=</b>
+<pre><b>namespace</b> Hopac<b>.</b>Extra
+<span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.InCh" href="#def:type%20Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
+</span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.OutCh" href="#def:type%20Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
+</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Extra.DirCh" href="#def:module%20Hopac.Extra.DirCh">DirCh</a> <b>=</b>
+<span class="spacing">  <b>module</b> <a id="dec:module%20Hopac.Extra.DirCh.Now" href="#def:module%20Hopac.Extra.DirCh.Now">Now</a> <b>=</b>
     <b>val</b> <a id="dec:val%20Hopac.Extra.DirCh.Now.create" href="#def:val%20Hopac.Extra.DirCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>*</b> <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Extra.DirCh.create" href="#def:val%20Hopac.Extra.DirCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>*</b> <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
+</span>  <b>val</b> <a id="dec:val%20Hopac.Extra.DirCh.create" href="#def:val%20Hopac.Extra.DirCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>*</b> <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.DirCh.take" href="#def:val%20Hopac.Extra.DirCh.take">take</a><b>:</b> <a href="#def:type%20Hopac.Extra.InCh">InCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.DirCh.give" href="#def:val%20Hopac.Extra.DirCh.give">give</a><b>:</b> <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b>unit<b>&gt;</b>
-</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.IMap" href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-</pre>
-<pre><b>module</b> <a id="dec:module%20Hopac.Extra.IMap" href="#def:module%20Hopac.Extra.IMap">IMap</a> <b>=</b>
-  <b>module</b> <a id="dec:module%20Hopac.Extra.IMap.Now" href="#def:module%20Hopac.Extra.IMap.Now">Now</a> <b>=</b>
+</span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.IMap" href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
+</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Extra.IMap" href="#def:module%20Hopac.Extra.IMap">IMap</a> <b>=</b>
+<span class="spacing">  <b>module</b> <a id="dec:module%20Hopac.Extra.IMap.Now" href="#def:module%20Hopac.Extra.IMap.Now">Now</a> <b>=</b>
     <b>val</b> <a id="dec:val%20Hopac.Extra.IMap.Now.create" href="#def:val%20Hopac.Extra.IMap.Now.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Extra.IMap.create" href="#def:val%20Hopac.Extra.IMap.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;&gt;</b>
+</span>  <b>val</b> <a id="dec:val%20Hopac.Extra.IMap.create" href="#def:val%20Hopac.Extra.IMap.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.IMap.close" href="#def:val%20Hopac.Extra.IMap.close">close</a><b>:</b> <a href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.IMap.fill" href="#def:val%20Hopac.Extra.IMap.fill">fill</a><b>:</b> <a href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> <i>'k</i> <b>-&gt;</b> <i>'v</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.IMap.query" href="#def:val%20Hopac.Extra.IMap.query">query</a><b>:</b> <a href="#def:type%20Hopac.Extra.IMap">IMap</a><b>&lt;</b><i>'k</i>, <i>'v</i><b>&gt;</b> <b>-&gt;</b> <i>'k</i> <b>-&gt;</b> Alt<b>&lt;</b>option<b>&lt;</b><i>'v</i><b>&gt;&gt;</b>
-</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.MChan" href="#def:type%20Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.MPort" href="#def:type%20Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>module</b> <a id="dec:module%20Hopac.Extra.Multicast" href="#def:module%20Hopac.Extra.Multicast">Multicast</a> <b>=</b>
+</span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.MChan" href="#def:type%20Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b>
+</span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.MPort" href="#def:type%20Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;</b>
+</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Extra.Multicast" href="#def:module%20Hopac.Extra.Multicast">Multicast</a> <b>=</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Multicast.create" href="#def:val%20Hopac.Extra.Multicast.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Multicast.port" href="#def:val%20Hopac.Extra.Multicast.port">port</a><b>:</b> <a href="#def:type%20Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Multicast.multicast" href="#def:val%20Hopac.Extra.Multicast.multicast">multicast</a><b>:</b> <a href="#def:type%20Hopac.Extra.MChan">MChan</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Multicast.recv" href="#def:val%20Hopac.Extra.Multicast.recv">recv</a><b>:</b> <a href="#def:type%20Hopac.Extra.MPort">MPort</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.SelectableQueue" href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>module</b> <a id="dec:module%20Hopac.Extra.SelectableQueue" href="#def:module%20Hopac.Extra.SelectableQueue">SelectableQueue</a> <b>=</b>
+</span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.SelectableQueue" href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b>
+</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Extra.SelectableQueue" href="#def:module%20Hopac.Extra.SelectableQueue">SelectableQueue</a> <b>=</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.SelectableQueue.create" href="#def:val%20Hopac.Extra.SelectableQueue.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.SelectableQueue.send" href="#def:val%20Hopac.Extra.SelectableQueue.send">send</a><b>:</b> <a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.SelectableQueue.take" href="#def:val%20Hopac.Extra.SelectableQueue.take">take</a><b>:</b> <a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> (<i>'a</i> <b>-&gt;</b> bool) <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>module</b> <a id="dec:module%20Hopac.Extra.Stream" href="#def:module%20Hopac.Extra.Stream">Stream</a> <b>=</b>
-  <b>type</b> <a id="dec:type%20Hopac.Extra.Stream.In" href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-  <b>type</b> <a id="dec:type%20Hopac.Extra.Stream.Out" href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> <i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.imp" href="#def:val%20Hopac.Extra.Stream.imp">imp</a><b>:</b> (<a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> #Job<b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
+</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Extra.Stream" href="#def:module%20Hopac.Extra.Stream">Stream</a> <b>=</b>
+<span class="spacing">  <b>type</b> <a id="dec:type%20Hopac.Extra.Stream.In" href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
+</span><span class="spacing">  <b>type</b> <a id="dec:type%20Hopac.Extra.Stream.Out" href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> <i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
+</span>  <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.imp" href="#def:val%20Hopac.Extra.Stream.imp">imp</a><b>:</b> (<a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> #Job<b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.filterFun" href="#def:val%20Hopac.Extra.Stream.filterFun">filterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.filterJob" href="#def:val%20Hopac.Extra.Stream.filterJob">filterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>bool<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.iterateFun" href="#def:val%20Hopac.Extra.Stream.iterateFun">iterateFun</a><b>:</b> <i>'x</i> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i>) <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
@@ -87,15 +85,13 @@ font-weight: bold;
   <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.mapJob" href="#def:val%20Hopac.Extra.Stream.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.sumWithFun" href="#def:val%20Hopac.Extra.Stream.sumWithFun">sumWithFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i> <b>-&gt;</b> <i>'z</i>) <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'z</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.Stream.sumWithJob" href="#def:val%20Hopac.Extra.Stream.sumWithJob">sumWithJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'z</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.In">In</a><b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a><b>&lt;</b><i>'z</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-</pre>
-<pre><b>type</b> <a id="dec:type%20Hopac.Extra.SwapCh" href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
-<pre><b>module</b> <a id="dec:module%20Hopac.Extra.SwapCh" href="#def:module%20Hopac.Extra.SwapCh">SwapCh</a> <b>=</b>
-  <b>module</b> <a id="dec:module%20Hopac.Extra.SwapCh.Now" href="#def:module%20Hopac.Extra.SwapCh.Now">Now</a> <b>=</b>
+</span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Extra.SwapCh" href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
+</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Extra.SwapCh" href="#def:module%20Hopac.Extra.SwapCh">SwapCh</a> <b>=</b>
+<span class="spacing">  <b>module</b> <a id="dec:module%20Hopac.Extra.SwapCh.Now" href="#def:module%20Hopac.Extra.SwapCh.Now">Now</a> <b>=</b>
     <b>val</b> <a id="dec:val%20Hopac.Extra.SwapCh.Now.create" href="#def:val%20Hopac.Extra.SwapCh.Now.create">create</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a><b>&lt;</b><i>'a</i><b>&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Extra.SwapCh.create" href="#def:val%20Hopac.Extra.SwapCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
+</span>  <b>val</b> <a id="dec:val%20Hopac.Extra.SwapCh.create" href="#def:val%20Hopac.Extra.SwapCh.create">create</a><b>:</b> unit <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a><b>&lt;</b><i>'a</i><b>&gt;&gt;</b>
   <b>val</b> <a id="dec:val%20Hopac.Extra.SwapCh.swap" href="#def:val%20Hopac.Extra.SwapCh.swap">swap</a><b>:</b> <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a><b>&lt;</b><i>'a</i><b>&gt;</b> <b>-&gt;</b> <i>'a</i> <b>-&gt;</b> Alt<b>&lt;</b><i>'a</i><b>&gt;</b>
-</pre>
+</span></pre>
 <h2>Description</h2>
 <pre><b>namespace</b> Hopac<b>.</b>Extra
 </pre>
