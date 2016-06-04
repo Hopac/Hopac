@@ -7,6 +7,8 @@ open System.Threading
 open System.Collections.Generic
 open System.ComponentModel
 
+////////////////////////////////////////////////////////////////////////////////
+
 /// Operations on choice streams.
 module Stream =
   //# Stream representation

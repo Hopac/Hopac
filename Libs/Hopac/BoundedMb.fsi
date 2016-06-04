@@ -2,6 +2,8 @@
 
 namespace Hopac
 
+////////////////////////////////////////////////////////////////////////////////
+
 /// Represents a bounded synchronous mailbox for many to many communication.
 #if DOC
 ///

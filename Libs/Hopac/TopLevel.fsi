@@ -5,6 +5,8 @@ namespace Hopac
 open System
 open Hopac
 
+////////////////////////////////////////////////////////////////////////////////
+
 /// Convenience bindings for programming with Hopac.
 [<AutoOpen>]
 module TopLevel =
