@@ -766,8 +766,6 @@ module Job =
   /// `bindUnitTask u2xJ uT` is equivalent to `awaitTask uT >>= u2xJ`.
   val inline bindUnitTask: (unit -> #Job<'y>) -> Task     -> Job<'y>
 
-  //////////////////////////////////////////////////////////////////////////////
-
   //# Debugging
 
   /// Given a job, creates a new job that behaves exactly like the given job,
