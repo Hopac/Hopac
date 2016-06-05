@@ -21,6 +21,8 @@ namespace Hopac.Core {
     internal Handler Handler;
 #if TRAMPOLINE
     internal byte *StackLimit;
+    [ThreadStatic]
+    internal static byte *ThreadStackLimit;
 #endif
     internal Scheduler Scheduler;
     internal WorkerEvent Event;
@@ -34,7 +36,10 @@ namespace Hopac.Core {
     internal void Init(Scheduler sr, int bytes) {
       var sp = Unsafe.GetStackPtr();
 #if TRAMPOLINE
-      this.StackLimit = sp - bytes;
+      var limit = ThreadStackLimit;
+      if (null == limit)
+        ThreadStackLimit = limit = sp - bytes;
+      this.StackLimit = limit;
 #endif
       this.RandomLo = (ulong)sp; // Quick and dirty (also never zero)
       this.Scheduler = sr;
@@ -75,7 +80,7 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void RunOnThisThread(Scheduler sr, Work work) {
       var wr = new Worker();
-      wr.Init(sr, 1000);
+      wr.Init(sr, 8000);
 
       Scheduler.Inc(sr);
 
@@ -92,7 +97,7 @@ namespace Hopac.Core {
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void RunOnThisThread<T>(Scheduler sr, Job<T> tJ, Cont<T> tK) {
       var wr = new Worker();
-      wr.Init(sr, 1000);
+      wr.Init(sr, 8000);
 
       Scheduler.Inc(sr);
 
@@ -110,7 +115,7 @@ namespace Hopac.Core {
       IsWorkerThread = true;
 
       var wr = new Worker();
-      wr.Init(sr, 4000);
+      wr.Init(sr, 16000);
       wr.RandomHi = (ulong)DateTime.UtcNow.Ticks;
 
       var iK = new IdleCont();
