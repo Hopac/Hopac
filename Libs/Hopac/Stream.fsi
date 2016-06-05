@@ -78,12 +78,12 @@ module Stream =
   ///
   /// - The asynchronous one element at a time model of choice streams allows
   /// for a basic form of backpressure or the flow of synchronization from
-  /// consumers to producers.  This allows for many new operations to expressed.
-  /// For example, `keepPreceding1` and `keepFollowing1` cannot be implemented
-  /// for observable sequences.  Operations such as `afterEach` and `beforeEach`
-  /// have semantics that are pull based and lazy and cannot be implemented for
-  /// observable sequences.  Operations such as `pullOn`, or `zip` in disguise,
-  /// have new uses.
+  /// consumers to producers.  This allows for many new operations to be
+  /// expressed.  For example, `keepPreceding1` and `keepFollowing1` cannot be
+  /// implemented for observable sequences.  Operations such as `afterEach` and
+  /// `beforeEach` have semantics that are pull based and lazy and cannot be
+  /// implemented for observable sequences.  Operations such as `pullOn`, or
+  /// `zip` in disguise, have new uses.
   ///
   /// All of the above advantages are strongly related and result from the pull
   /// based nature of choice streams.  Pull semantics puts the consumer in
