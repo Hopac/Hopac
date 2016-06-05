@@ -8,4 +8,4 @@ Library Reference: [Hopac](http://hopac.github.io/Hopac/Hopac.html), [Hopac.Expe
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/3l7omyrsbm1yioet)](https://ci.appveyor.com/project/vasily-kirichenko/hopac)
 [![Travis Build Status](https://travis-ci.org/Hopac/Hopac.svg?branch=master)](https://travis-ci.org/Hopac/Hopac)
 
-[![NuGet version](https://badge.fury.io/nu/HopAC.svg)](https://badge.fury.io/nu/HopAC)
+[![NuGet version](https://badge.fury.io/nu/Hopac.svg)](https://badge.fury.io/nu/Hopac)
