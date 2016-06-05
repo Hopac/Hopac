@@ -239,8 +239,8 @@ type JobBuilder =
 ///> type MonadBuilder =
 ///>   member Delay: unit -> Job<Monad<'x>>
 ///>   member Return: 'x -> Job<Monad<'x>>
-///>   member Bind: Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
-///>   member Bind: EmbeddedJob<'x> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///>   member Bind:   Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///>   member Bind: EmbeddedJob<'x>  * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
 ///
 /// The `Monad<'x>` type constructor and the `MonadBuilder` defines the new
 /// computation mechanism on top of jobs.  The `Bind` operation taking an
