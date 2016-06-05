@@ -698,7 +698,7 @@ module Job =
 #endif
   val usingAsync: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IAsyncDisposable
 
-  //# Iterating over a range
+  //# Repeating an operation
 
   /// Creates a job that runs the given job sequentially the given number of
   /// times.
@@ -716,6 +716,8 @@ module Job =
 
   /// `forNIgnore n xJ` is equivalent to `Job.Ignore xJ |> forN n`.
   val forNIgnore: int -> Job<_>    -> Job<unit>
+
+  //# Iterating over a range
 
   /// `forUpTo lo hi i2uJ` creates a job that sequentially iterates from `lo` to
   /// `hi` (inclusive) and calls the given function to construct jobs that will
