@@ -23,10 +23,20 @@ module Stream =
   /// Represents a non-deterministic stream of values called a choice stream.
 #if DOC
   ///
-  /// Choice streams can be used to solve similar problems as Rx observable
-  /// sequences.  However, the underlying implementations of choice streams and
-  /// observable sequences are almost polar opposites: choice streams are pull
-  /// based while observable sequences are push based.
+  /// Choice streams are essentially lazy lists of promises.  Anything that can
+  /// be done using ordinary lazy lists can also be done using choice streams.
+  /// In addition, choice streams allow asynchronicity at any point and have a
+  /// concept of time making it possible to support various operations, such as
+  /// a non-deterministic `merge`, that are not supported by ordinary lazy
+  /// lists.
+  ///
+  /// Thanks to the additional power compared to ordinary lazy lists, choice
+  /// streams can be used to solve similar problems as Rx observable sequences.
+  /// However, the underlying implementations of choice streams and observable
+  /// sequences are almost polar opposites: choice streams are pull based
+  /// immutable (or write once) chains, while observable sequences are push
+  /// based imperative pipes.  Many things that are difficult with observables
+  /// can be easy with choice streams and vice versa.
   ///
   /// Probably the most notable advantage of observable sequences over choice
   /// streams is that observables support disposables via their all-or-nothing
