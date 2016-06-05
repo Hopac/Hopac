@@ -120,26 +120,6 @@ module Util =
       xK.Value <- x
       xK'.uJ.DoJob (&wr, DropCont (xK))
 
-  type BindCont<'x, 'y> =
-    inherit Cont<'x>
-    val x2yJ: 'x -> Job<'y>
-    val mutable yK: Cont<'y>
-    new (x2yJ, yK) = {inherit Cont<'x> (); x2yJ=x2yJ; yK=yK}
-    override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.yK)
-    override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.yK, &wr, e)
-    override xK'.DoWork (wr) = (xK'.x2yJ xK'.Value).DoJob (&wr, xK'.yK)
-    override xK'.DoCont (wr, x) = (xK'.x2yJ x).DoJob (&wr, xK'.yK)
-
-  type MapCont<'x, 'y> =
-    inherit Cont<'x>
-    val x2y: 'x -> 'y
-    val mutable yK: Cont<'y>
-    new (x2y, yK) = {inherit Cont<'x> (); x2y=x2y; yK=yK}
-    override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.yK)
-    override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.yK, &wr, e)
-    override xK'.DoWork (wr) = xK'.yK.DoCont (&wr, xK'.x2y xK'.Value)
-    override xK'.DoCont (wr, x) = xK'.yK.DoCont (&wr, xK'.x2y x)
-
   type ValueCont<'x, 'y> (y: 'y, yK: Cont<'y>) =
     inherit Cont<'x> ()
     override xK'.GetProc (wr) = yK.GetProc (&wr)
@@ -156,22 +136,6 @@ module Util =
     override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.yK, &wr, e)
     override xK'.DoWork (wr) = xK'.yJ.DoJob (&wr, xK'.yK)
     override xK'.DoCont (wr, _) = xK'.yJ.DoJob (&wr, xK'.yK)
-
-  type SkipCont<'x, 'y> =
-    inherit Cont<'x>
-    val mutable xK: Cont<'x>
-    val yJ: Job<'y>
-    new (xK, yJ) = {inherit Cont<'x> (); xK=xK; yJ=yJ}
-    override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.xK)
-    override xK'.DoHandle (wr, e) = Handler.DoHandle (xK'.xK, &wr, e)
-    override xK'.DoWork (wr) =
-     let xK = xK'.xK
-     xK.Value <- xK'.Value
-     xK'.yJ.DoJob (&wr, DropCont xK)
-    override xK'.DoCont (wr, x) =
-     let xK = xK'.xK
-     xK.Value <- x
-     xK'.yJ.DoJob (&wr, DropCont xK)
 
   type [<AbstractClass>] ContQueue<'x> () =
     inherit Cont<'x> ()
