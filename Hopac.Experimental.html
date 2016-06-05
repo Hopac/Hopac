@@ -1,31 +1,30 @@
 <!doctype html>
 <html>
 <head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('code').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+});
+</script>
 <title>Hopac.Experimental Library Reference</title>
 <style>
-pre {
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
-  padding: 5px;
-  background: #f7f7f7;
-  line-height: 160%;
-  font-family: "Lucida Console", Monaco, monospace;
-  font-size: 72%;
+p > code.hljs {
+  display: inline;
+  padding: 1px;
 }
 code {
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
-  padding: 2px;
-  background: #f7f7f7;
-  line-height: 160%;
   font-family: "Lucida Console", Monaco, monospace;
   font-size: 72%;
+  border-radius: 3px;
 }
 span.h3 {
   display: inline-block;
-  font-weight: bold;
-  font-size: 1.17em;
-  font-family: inherit;
   margin: 0.75em 0em 0.5em 0em;
 }
 span.spacing {
@@ -44,308 +43,308 @@ a {
 <body><table width="80%" align="center"><tr><td>
 <h1>Hopac.Experimental Library Reference</h1>
 <h2>Synopsis</h2>
-<pre><b>namespace</b> Hopac<b>.</b>Experimental
-<span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Experimental.Alts" href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Experimental.Alts" href="#def:module%20Hopac.Experimental.Alts">Alts</a> <b>=</b>
-  <b>val</b> consume<b>:</b> onNext<b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> zero<b>:</b> unit <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-  <b>val</b> result<b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a><b>:</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-  <b>val</b> bindJob<b>:</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> bindFun<b>:</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b>     <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;</b> ) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> processJob<b>:</b> onFirst<b>:</b>      (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i> <b>*</b> option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>)
-               <b>-&gt;</b> onNext<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i> <b>*</b> option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>)
-               <b>-&gt;</b> Alts<b>&lt;</b><i>'x</i><b>&gt;</b>
-               <b>-&gt;</b> Alts<b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> scanJob<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'s</i><b>&gt;</b>
-  <b>val</b> scanFun<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b>     <i>'s</i> ) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'s</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.Alt.Discrete.throttle">throttle</a><b>:</b> timeOut<b>:</b> Alt<b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b>     <i>'y</i> ) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'y</i><b>&gt;</b>
-  <b>val</b> noDups<b>:</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>when</b> <i>'x</i> <b>:</b> equality
-</span><span class="spacing"><b>module</b> Alt <b>=</b>
-<span class="spacing">  <b>module</b> <a id="dec:module%20Hopac.Experimental.Alt.Discrete" href="#def:module%20Hopac.Experimental.Alt.Discrete">Discrete</a> <b>=</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.merge" href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a><b>:</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.switchMap" href="#def:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.throttle" href="#def:val%20Hopac.Experimental.Alt.Discrete.throttle">throttle</a><b>:</b> timeout<b>:</b> Alt<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.combineLatest" href="#def:val%20Hopac.Experimental.Alt.Discrete.combineLatest">combineLatest</a><b>:</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.choose" href="#def:val%20Hopac.Experimental.Alt.Discrete.choose">choose</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.filter" href="#def:val%20Hopac.Experimental.Alt.Discrete.filter">filter</a><b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.Alt.Discrete.map" href="#def:val%20Hopac.Experimental.Alt.Discrete.map">map</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>
-</span></span><span class="spacing"><b>type</b> <a id="dec:type%20Hopac.Experimental.EagerSeq" href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</span><span class="spacing"><b>module</b> <a id="dec:module%20Hopac.Experimental.EagerSeq" href="#def:module%20Hopac.Experimental.EagerSeq">EagerSeq</a> <b>=</b>
-<span class="spacing">  <b>module</b> <a id="dec:module%20Hopac.Experimental.EagerSeq.Now" href="#def:module%20Hopac.Experimental.EagerSeq.Now">Now</a> <b>=</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.Now.empty" href="#def:val%20Hopac.Experimental.EagerSeq.Now.empty">empty</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-    <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.Now.singleton" href="#def:val%20Hopac.Experimental.EagerSeq.Now.singleton">singleton</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</span>  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.collectJob" href="#def:val%20Hopac.Experimental.EagerSeq.collectJob">collectJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.chooseFun" href="#def:val%20Hopac.Experimental.EagerSeq.chooseFun">chooseFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.chooseJob" href="#def:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.filterFun" href="#def:val%20Hopac.Experimental.EagerSeq.filterFun">filterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.generateFun" href="#def:val%20Hopac.Experimental.EagerSeq.generateFun">generateFun</a><b>:</b> (unit <b>-&gt;</b> option<b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.generateJob" href="#def:val%20Hopac.Experimental.EagerSeq.generateJob">generateJob</a><b>:</b> Job<b>&lt;</b>option<b>&lt;</b><i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.iterFun" href="#def:val%20Hopac.Experimental.EagerSeq.iterFun">iterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.iterJob" href="#def:val%20Hopac.Experimental.EagerSeq.iterJob">iterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>_<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.mapFun" href="#def:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.mapJob" href="#def:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.ofSeq" href="#def:val%20Hopac.Experimental.EagerSeq.ofSeq">ofSeq</a><b>:</b> seq<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.toSeq" href="#def:val%20Hopac.Experimental.EagerSeq.toSeq">toSeq</a><b>:</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>ResizeArray<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.tryPickFun" href="#def:val%20Hopac.Experimental.EagerSeq.tryPickFun">tryPickFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.unfoldFun" href="#def:val%20Hopac.Experimental.EagerSeq.unfoldFun">unfoldFun</a><b>:</b> (<i>'s</i> <b>-&gt;</b> option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> <a id="dec:val%20Hopac.Experimental.EagerSeq.unfoldJob" href="#def:val%20Hopac.Experimental.EagerSeq.unfoldJob">unfoldJob</a><b>:</b> (<i>'s</i> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</span><span class="spacing"><b>type</b> Live <b>=</b> <b>interface</b> <b>end</b>
-</span><span class="spacing"><b>type</b> Lazy <b>=</b> <b>interface</b> <b>inherit</b> Live <b>end</b>
-</span><span class="spacing"><b>module</b> Stream <b>=</b>
-<span class="spacing">  <b>type</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'l</i> <b>:&gt;</b> Live <b>=</b> Stream <b>of</b> Hopac<b>.</b>Stream<b>.</b>Stream<b>&lt;</b><i>'x</i><b>&gt;</b>
-</span><span class="spacing">  <b>type</b> Src<b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> Hopac<b>.</b>Stream<b>.</b>Src<b>&lt;</b><i>'x</i><b>&gt;</b>
-</span><span class="spacing">  <b>module</b> Src <b>=</b>
-    <b>val</b> create<b>:</b> unit <b>-&gt;</b> Src<b>&lt;</b><i>'x</i><b>&gt;</b>
-    <b>val</b> value<b>:</b> Src<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-    <b>val</b> error<b>:</b> Src<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> exn <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-    <b>val</b> close<b>:</b> Src<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-    <b>val</b> tap<b>:</b> Src<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>Live, <i>'x</i><b>&gt;</b>
-</span><span class="spacing">  <b>type</b> Var<b>&lt;</b><i>'x</i><b>&gt;</b> <b>=</b> Hopac<b>.</b>Stream<b>.</b>Var<b>&lt;</b><i>'x</i><b>&gt;</b>
-</span><span class="spacing">  <b>module</b> Var <b>=</b>
-    <b>val</b> create<b>:</b> <i>'x</i> <b>-&gt;</b> Var<b>&lt;</b><i>'x</i><b>&gt;</b>
-    <b>val</b> get<b>:</b> Var<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i>
-    <b>val</b> set<b>:</b> Var<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-    <b>val</b> tap<b>:</b> Var<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>Live, <i>'x</i><b>&gt;</b>
-</span>  <b>val</b> nil<b>&lt;</b><i>'l</i>, <i>'x</i> <b>when</b> <i>'l</i> <b>:&gt;</b> Live<b>&gt;</b> <b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> cons<b>:</b> <i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> one<b>:</b> <i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> delay<b>:</b> (unit <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> error<b>:</b> exn <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> never<b>&lt;</b><i>'l</i>, <i>'x</i> <b>when</b> <i>'l</i> <b>:&gt;</b> Live<b>&gt;</b> <b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.ofSeq">ofSeq</a><b>:</b> seq<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> indefinitely<b>:</b> Job<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> once<b>:</b> Job<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.unfoldJob">unfoldJob</a><b>:</b> (<i>'s</i> <b>-&gt;</b> #Job<b>&lt;</b>option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.unfoldFun">unfoldFun</a><b>:</b> (<i>'s</i> <b>-&gt;</b> option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> generateFuns<b>:</b> <i>'s</i> <b>-&gt;</b> Hopac<b>.</b>Stream<b>.</b>GenerateFuns<b>&lt;</b><i>'s</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.generateFun">generateFun</a><b>:</b> <i>'s</i>
-                <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> bool)
-                <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'s</i>)
-                <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i>)
-                <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> iterateJob<b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> iterateFun<b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i>) <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> repeat<b>:</b> <i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> cycle<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> ofObservableOn<b>:</b> subscribeOn<b>:</b> SynchronizationContext
-                   <b>-&gt;</b> IObservable<b>&lt;</b><i>'x</i><b>&gt;</b>
-                   <b>-&gt;</b> Stream<b>&lt;</b>Live, <i>'x</i><b>&gt;</b>
-  <b>val</b> ofObservableOnMain<b>:</b> IObservable<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>Live, <i>'x</i><b>&gt;</b>
-  <b>val</b> ofObservable<b>:</b> IObservable<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>Live, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.chooseFun">chooseFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.Alt.Discrete.choose">choose</a><b>:</b> Stream<b>&lt;</b><i>'l</i>, option<b>&lt;</b><i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> filterJob<b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>bool<b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.filterFun">filterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> mapConst<b>:</b> <i>'y</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> groupByJob<b>:</b> (<i>'k</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> #Job<b>&lt;</b><i>'y</i><b>&gt;</b>)
-               <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'k</i><b>&gt;</b>)
-               <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-               <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-  <b>val</b> groupByFun<b>:</b> (<i>'k</i> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'y</i>)
-               <b>-&gt;</b> (<i>'x</i> <b>-&gt;</b> <i>'k</i>)
-               <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-               <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-  <b>val</b> zip<b>:</b> Stream<b>&lt;</b>#Lazy, <i>'x</i>     <b>&gt;</b>
-        <b>-&gt;</b> Stream<b>&lt;</b>#Lazy,      <i>'y</i><b>&gt;</b>
-        <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>
-  <b>val</b> zipWithFun<b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i> <b>-&gt;</b> <i>'z</i>)
-               <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;</b>
-               <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'y</i><b>&gt;</b>
-               <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'z</i><b>&gt;</b>
-  <b>val</b> scanJob<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'s</i><b>&gt;</b>
-  <b>val</b> scanFun<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <i>'s</i>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'s</i><b>&gt;</b>
-  <b>val</b> scanFromJob<b>:</b> <i>'s</i> <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'s</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'s</i><b>&gt;</b>
-  <b>val</b> scanFromFun<b>:</b> <i>'s</i> <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <i>'s</i>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'s</i><b>&gt;</b>
-  <b>val</b> distinctByJob<b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'k</i><b>&gt;</b>)
-                  <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-                  <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-  <b>val</b> distinctByFun<b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'k</i>)
-                  <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-                  <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-  <b>val</b> distinctUntilChangedWithJob<b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>bool<b>&gt;</b>)
-                                <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-                                <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> distinctUntilChangedWithFun<b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> bool)
-                                <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-                                <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> distinctUntilChangedByJob<b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'k</i><b>&gt;</b>)
-                              <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-                              <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-  <b>val</b> distinctUntilChangedByFun<b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'k</i>)
-                              <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-                              <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'k</i><b>:</b> equality
-  <b>val</b> distinctUntilChanged<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>when</b> <i>'x</i><b>:</b> equality
-  <b>val</b> amb<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a><b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> append<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> switch<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> switchTo<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> ambAll<b>:</b> Stream<b>&lt;</b><i>'l</i>, Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> mergeAll<b>:</b> Stream<b>&lt;</b><i>'l</i>, Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> appendAll<b>:</b> Stream<b>&lt;</b>#Lazy, Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> switchAll<b>:</b> Stream<b>&lt;</b><i>'l</i>, Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> ambMap<b>:</b> (<i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> mergeMap<b>:</b> (<i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> appendMap<b>:</b> (<i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'y</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'ls</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> skip<b>:</b> int64 <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> take<b>:</b> int64 <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> skipUntil<b>:</b> Alt<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> takeUntil<b>:</b> Alt<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> takeAndSkipUntil<b>:</b> Alt<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>*</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> skipWhileJob<b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>bool<b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> skipWhileFun<b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> takeWhileJob<b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>bool<b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> takeWhileFun<b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> catch<b>:</b> (exn <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> onCloseJob<b>:</b> Job<b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> onCloseFun<b>:</b> (unit <b>-&gt;</b> unit) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> doFinalizeJob<b>:</b> Job<b>&lt;</b>unit<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> doFinalizeFun<b>:</b> (unit <b>-&gt;</b> unit) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> keepPrecedingFuns<b>:</b> Hopac<b>.</b>Stream<b>.</b>KeepPrecedingFuns<b>&lt;</b><i>'x</i>, <i>'y</i><b>&gt;</b>
-                      <b>-&gt;</b> Stream<b>&lt;</b>#Live, <i>'x</i><b>&gt;</b>
-                      <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> keepPreceding<b>:</b> maxCount<b>:</b> int
-                  <b>-&gt;</b> Stream<b>&lt;</b>#Live, <i>'x</i><b>&gt;</b>
-                  <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, Queue<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> keepPreceding1<b>:</b> Stream<b>&lt;</b>#Live, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> keepFollowing1<b>:</b> Stream<b>&lt;</b>#Live, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> pullOn<b>:</b> ticks<b>:</b> Stream<b>&lt;</b><i>'l</i>, _<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>Lazy, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> debounce<b>:</b> timeout<b>:</b> Alt<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> samplesBefore<b>:</b> ticks<b>:</b> Stream<b>&lt;</b><i>'l</i>, _<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> samplesAfter<b>:</b> ticks<b>:</b> Stream<b>&lt;</b><i>'l</i>, _<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> ignoreUntil<b>:</b> timeout<b>:</b> Job<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> ignoreWhile<b>:</b> timeout<b>:</b> Job<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.Alt.Discrete.combineLatest">combineLatest</a><b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>
-  <b>val</b> shift<b>:</b> timeout<b>:</b> Job<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> delayEach<b>:</b> timeout<b>:</b> Job<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> afterEach<b>:</b> timeout<b>:</b> Job<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> beforeEach<b>:</b> timeout<b>:</b> Job<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b>#Lazy, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> afterDateTimeOffsets<b>:</b> Stream<b>&lt;</b>#Lazy, DateTimeOffset<b>&gt;</b>
-                         <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, DateTimeOffset<b>&gt;</b>
-  <b>val</b> afterDateTimeOffset<b>:</b> DateTimeOffset <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, DateTimeOffset<b>&gt;</b>
-  <b>val</b> afterTimeSpan<b>:</b> TimeSpan <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, unit<b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.toSeq">toSeq</a><b>:</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>ResizeArray<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> values<b>:</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-  <b>val</b> foldJob<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i><b>&gt;</b>
-  <b>val</b> foldFun<b>:</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <i>'s</i>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i><b>&gt;</b>
-  <b>val</b> foldFromJob<b>:</b> <i>'s</i> <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b><i>'s</i><b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i><b>&gt;</b>
-  <b>val</b> foldFromFun<b>:</b> <i>'s</i> <b>-&gt;</b> (<i>'s</i> <b>-&gt;</b> <i>'x</i> <b>-&gt;</b> <i>'s</i>) <b>-&gt;</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><i>'s</i><b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.iterJob">iterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> #Job<b>&lt;</b>unit<b>&gt;</b>) <b>-&gt;</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> <a href="#def:val%20Hopac.Experimental.EagerSeq.iterFun">iterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> iter<b>:</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-  <b>val</b> count<b>:</b> Stream<b>&lt;</b>_, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>int64<b>&gt;</b>
-  <b>val</b> head<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> tail<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> init<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> last<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b>
-  <b>val</b> tails<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> inits<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;&gt;</b>
-  <b>val</b> tailsMapFun<b>:</b> (Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> tailsMapFun<b>:</b> (Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Stream<b>&lt;</b><i>'l</i>, <i>'y</i><b>&gt;</b>
-  <b>val</b> decon<b>:</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b>option<b>&lt;</b><i>'x</i> <b>*</b> Stream<b>&lt;</b><i>'l</i>, <i>'x</i><b>&gt;&gt;&gt;</b>
-</span></pre>
+<pre><code class="fsharp">namespace Hopac.Experimental
+<span class="spacing">type <a id="dec:type%20Hopac.Experimental.Alts" href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt;
+</span><span class="spacing">module <a id="dec:module%20Hopac.Experimental.Alts" href="#def:module%20Hopac.Experimental.Alts">Alts</a> =
+  val consume: onNext: ('x -&gt; Job&lt;unit&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+  val zero: unit -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt;
+  val result: 'x -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a>: <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt;
+  val bindJob: <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; ('x -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt;
+  val bindFun: <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; ('x -&gt;     <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt; ) -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt;
+  val processJob: onFirst:      ('x -&gt; Job&lt;'s * option&lt;'y&gt;&gt;)
+               -&gt; onNext: ('s -&gt; 'x -&gt; Job&lt;'s * option&lt;'y&gt;&gt;)
+               -&gt; Alts&lt;'x&gt;
+               -&gt; Alts&lt;'y&gt;
+  val scanJob: ('s -&gt; 'x -&gt; Job&lt;'s&gt;) -&gt; 's -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'s&gt;
+  val scanFun: ('s -&gt; 'x -&gt;     's ) -&gt; 's -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'s&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a>: ('x -&gt; Job&lt;option&lt;'y&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt;
+  val <a href="#def:val%20Hopac.Experimental.Alt.Discrete.throttle">throttle</a>: timeOut: Alt&lt;unit&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a>: ('x -&gt; Job&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a>: ('x -&gt;     'y ) -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'y&gt;
+  val noDups: <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt; when 'x : equality
+</span><span class="spacing">module Alt =
+<span class="spacing">  module <a id="dec:module%20Hopac.Experimental.Alt.Discrete" href="#def:module%20Hopac.Experimental.Alt.Discrete">Discrete</a> =
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.merge" href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a>: Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt;
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.switchMap" href="#def:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a>: ('x -&gt; Alt&lt;'y&gt;) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt;
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.throttle" href="#def:val%20Hopac.Experimental.Alt.Discrete.throttle">throttle</a>: timeout: Alt&lt;_&gt; -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt;
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.combineLatest" href="#def:val%20Hopac.Experimental.Alt.Discrete.combineLatest">combineLatest</a>: Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt; -&gt; Alt&lt;'x * 'y&gt;
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.choose" href="#def:val%20Hopac.Experimental.Alt.Discrete.choose">choose</a>: ('x -&gt; option&lt;'y&gt;) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt;
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.filter" href="#def:val%20Hopac.Experimental.Alt.Discrete.filter">filter</a>: ('x -&gt; bool) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt;
+    val <a id="dec:val%20Hopac.Experimental.Alt.Discrete.map" href="#def:val%20Hopac.Experimental.Alt.Discrete.map">map</a>: ('x -&gt; 'y) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt;
+</span></span><span class="spacing">type <a id="dec:type%20Hopac.Experimental.EagerSeq" href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;
+</span><span class="spacing">module <a id="dec:module%20Hopac.Experimental.EagerSeq" href="#def:module%20Hopac.Experimental.EagerSeq">EagerSeq</a> =
+<span class="spacing">  module <a id="dec:module%20Hopac.Experimental.EagerSeq.Now" href="#def:module%20Hopac.Experimental.EagerSeq.Now">Now</a> =
+    val <a id="dec:val%20Hopac.Experimental.EagerSeq.Now.empty" href="#def:val%20Hopac.Experimental.EagerSeq.Now.empty">empty</a>: unit -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;
+    val <a id="dec:val%20Hopac.Experimental.EagerSeq.Now.singleton" href="#def:val%20Hopac.Experimental.EagerSeq.Now.singleton">singleton</a>: 'x -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;
+</span>  val <a id="dec:val%20Hopac.Experimental.EagerSeq.collectJob" href="#def:val%20Hopac.Experimental.EagerSeq.collectJob">collectJob</a>: ('x -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.chooseFun" href="#def:val%20Hopac.Experimental.EagerSeq.chooseFun">chooseFun</a>: ('x -&gt; option&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.chooseJob" href="#def:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a>: ('x -&gt; Job&lt;option&lt;'y&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.filterFun" href="#def:val%20Hopac.Experimental.EagerSeq.filterFun">filterFun</a>: ('x -&gt; bool) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.generateFun" href="#def:val%20Hopac.Experimental.EagerSeq.generateFun">generateFun</a>: (unit -&gt; option&lt;'x&gt;) -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.generateJob" href="#def:val%20Hopac.Experimental.EagerSeq.generateJob">generateJob</a>: Job&lt;option&lt;'x&gt;&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.iterFun" href="#def:val%20Hopac.Experimental.EagerSeq.iterFun">iterFun</a>: ('x -&gt; unit) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.iterJob" href="#def:val%20Hopac.Experimental.EagerSeq.iterJob">iterJob</a>: ('x -&gt; Job&lt;_&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.mapFun" href="#def:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a>: ('x -&gt; 'y) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.mapJob" href="#def:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a>: ('x -&gt; Job&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.ofSeq" href="#def:val%20Hopac.Experimental.EagerSeq.ofSeq">ofSeq</a>: seq&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.toSeq" href="#def:val%20Hopac.Experimental.EagerSeq.toSeq">toSeq</a>: <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;ResizeArray&lt;'x&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.tryPickFun" href="#def:val%20Hopac.Experimental.EagerSeq.tryPickFun">tryPickFun</a>: ('x -&gt; option&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;option&lt;'y&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.unfoldFun" href="#def:val%20Hopac.Experimental.EagerSeq.unfoldFun">unfoldFun</a>: ('s -&gt; option&lt;'x * 's&gt;) -&gt; 's -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+  val <a id="dec:val%20Hopac.Experimental.EagerSeq.unfoldJob" href="#def:val%20Hopac.Experimental.EagerSeq.unfoldJob">unfoldJob</a>: ('s -&gt; Job&lt;option&lt;'x * 's&gt;&gt;) -&gt; 's -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</span><span class="spacing">type Live = interface end
+</span><span class="spacing">type Lazy = interface inherit Live end
+</span><span class="spacing">module Stream =
+<span class="spacing">  type Stream&lt;'l, 'x&gt; when 'l :&gt; Live = Stream of Hopac.Stream.Stream&lt;'x&gt;
+</span><span class="spacing">  type Src&lt;'x&gt; = Hopac.Stream.Src&lt;'x&gt;
+</span><span class="spacing">  module Src =
+    val create: unit -&gt; Src&lt;'x&gt;
+    val value: Src&lt;'x&gt; -&gt; 'x -&gt; Job&lt;unit&gt;
+    val error: Src&lt;'x&gt; -&gt; exn -&gt; Job&lt;unit&gt;
+    val close: Src&lt;'x&gt; -&gt; Job&lt;unit&gt;
+    val tap: Src&lt;'x&gt; -&gt; Stream&lt;Live, 'x&gt;
+</span><span class="spacing">  type Var&lt;'x&gt; = Hopac.Stream.Var&lt;'x&gt;
+</span><span class="spacing">  module Var =
+    val create: 'x -&gt; Var&lt;'x&gt;
+    val get: Var&lt;'x&gt; -&gt; 'x
+    val set: Var&lt;'x&gt; -&gt; 'x -&gt; Job&lt;unit&gt;
+    val tap: Var&lt;'x&gt; -&gt; Stream&lt;Live, 'x&gt;
+</span>  val nil&lt;'l, 'x when 'l :&gt; Live&gt; : Stream&lt;'l, 'x&gt;
+  val cons: 'x -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val one: 'x -&gt; Stream&lt;'l, 'x&gt;
+  val delay: (unit -&gt; Stream&lt;'l, 'x&gt;) -&gt; Stream&lt;'l, 'x&gt;
+  val error: exn -&gt; Stream&lt;'l, 'x&gt;
+  val never&lt;'l, 'x when 'l :&gt; Live&gt; : Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.ofSeq">ofSeq</a>: seq&lt;'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val indefinitely: Job&lt;'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val once: Job&lt;'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.unfoldJob">unfoldJob</a>: ('s -&gt; #Job&lt;option&lt;'x * 's&gt;&gt;) -&gt; 's -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.unfoldFun">unfoldFun</a>: ('s -&gt; option&lt;'x * 's&gt;) -&gt; 's -&gt; Stream&lt;'l, 'x&gt;
+  val generateFuns: 's -&gt; Hopac.Stream.GenerateFuns&lt;'s, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.generateFun">generateFun</a>: 's
+                -&gt; ('s -&gt; bool)
+                -&gt; ('s -&gt; 's)
+                -&gt; ('s -&gt; 'x)
+                -&gt; Stream&lt;'l, 'x&gt;
+  val iterateJob: ('x -&gt; #Job&lt;'x&gt;) -&gt; 'x -&gt; Stream&lt;'l, 'x&gt;
+  val iterateFun: ('x -&gt; 'x) -&gt; 'x -&gt; Stream&lt;'l, 'x&gt;
+  val repeat: 'x -&gt; Stream&lt;'l, 'x&gt;
+  val cycle: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val ofObservableOn: subscribeOn: SynchronizationContext
+                   -&gt; IObservable&lt;'x&gt;
+                   -&gt; Stream&lt;Live, 'x&gt;
+  val ofObservableOnMain: IObservable&lt;'x&gt; -&gt; Stream&lt;Live, 'x&gt;
+  val ofObservable: IObservable&lt;'x&gt; -&gt; Stream&lt;Live, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a>: ('x -&gt; #Job&lt;option&lt;'y&gt;&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.chooseFun">chooseFun</a>: ('x -&gt; option&lt;'y&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val <a href="#def:val%20Hopac.Experimental.Alt.Discrete.choose">choose</a>: Stream&lt;'l, option&lt;'x&gt;&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val filterJob: ('x -&gt; #Job&lt;bool&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.filterFun">filterFun</a>: ('x -&gt; bool) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a>: ('x -&gt; #Job&lt;'y&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a>: ('x -&gt; 'y) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val mapConst: 'y -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val groupByJob: ('k -&gt; Job&lt;unit&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; #Job&lt;'y&gt;)
+               -&gt; ('x -&gt; #Job&lt;'k&gt;)
+               -&gt; Stream&lt;'l, 'x&gt;
+               -&gt; Stream&lt;'l, 'y&gt; when 'k: equality
+  val groupByFun: ('k -&gt; Job&lt;unit&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; 'y)
+               -&gt; ('x -&gt; 'k)
+               -&gt; Stream&lt;'l, 'x&gt;
+               -&gt; Stream&lt;'l, 'y&gt; when 'k: equality
+  val zip: Stream&lt;#Lazy, 'x     &gt;
+        -&gt; Stream&lt;#Lazy,      'y&gt;
+        -&gt; Stream&lt;'l, 'x * 'y&gt;
+  val zipWithFun: ('x -&gt; 'y -&gt; 'z)
+               -&gt; Stream&lt;#Lazy, 'x&gt;
+               -&gt; Stream&lt;#Lazy, 'y&gt;
+               -&gt; Stream&lt;'l, 'z&gt;
+  val scanJob: ('s -&gt; 'x -&gt; #Job&lt;'s&gt;) -&gt; 's -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 's&gt;
+  val scanFun: ('s -&gt; 'x -&gt; 's) -&gt; 's -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 's&gt;
+  val scanFromJob: 's -&gt; ('s -&gt; 'x -&gt; #Job&lt;'s&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 's&gt;
+  val scanFromFun: 's -&gt; ('s -&gt; 'x -&gt; 's) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 's&gt;
+  val distinctByJob: ('x -&gt; #Job&lt;'k&gt;)
+                  -&gt; Stream&lt;'l, 'x&gt;
+                  -&gt; Stream&lt;'l, 'x&gt; when 'k: equality
+  val distinctByFun: ('x -&gt; 'k)
+                  -&gt; Stream&lt;'l, 'x&gt;
+                  -&gt; Stream&lt;'l, 'x&gt; when 'k: equality
+  val distinctUntilChangedWithJob: ('x -&gt; 'x -&gt; #Job&lt;bool&gt;)
+                                -&gt; Stream&lt;'l, 'x&gt;
+                                -&gt; Stream&lt;'l, 'x&gt;
+  val distinctUntilChangedWithFun: ('x -&gt; 'x -&gt; bool)
+                                -&gt; Stream&lt;'l, 'x&gt;
+                                -&gt; Stream&lt;'l, 'x&gt;
+  val distinctUntilChangedByJob: ('x -&gt; #Job&lt;'k&gt;)
+                              -&gt; Stream&lt;'l, 'x&gt;
+                              -&gt; Stream&lt;'l, 'x&gt; when 'k: equality
+  val distinctUntilChangedByFun: ('x -&gt; 'k)
+                              -&gt; Stream&lt;'l, 'x&gt;
+                              -&gt; Stream&lt;'l, 'x&gt; when 'k: equality
+  val distinctUntilChanged: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt; when 'x: equality
+  val amb: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a>: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val append: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;#Lazy, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val switch: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val switchTo: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val ambAll: Stream&lt;'l, Stream&lt;'l, 'x&gt;&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val mergeAll: Stream&lt;'l, Stream&lt;'l, 'x&gt;&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val appendAll: Stream&lt;#Lazy, Stream&lt;#Lazy, 'x&gt;&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val switchAll: Stream&lt;'l, Stream&lt;'l, 'x&gt;&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val ambMap: ('x -&gt; Stream&lt;'l, 'y&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val mergeMap: ('x -&gt; Stream&lt;'l, 'y&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val appendMap: ('x -&gt; Stream&lt;#Lazy, 'y&gt;) -&gt; Stream&lt;#Lazy, 'x&gt; -&gt; Stream&lt;'ls, 'y&gt;
+  val <a href="#def:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a>: ('x -&gt; Stream&lt;'l, 'y&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val skip: int64 -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val take: int64 -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val skipUntil: Alt&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val takeUntil: Alt&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val takeAndSkipUntil: Alt&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt; * Stream&lt;'l, 'x&gt;
+  val skipWhileJob: ('x -&gt; #Job&lt;bool&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val skipWhileFun: ('x -&gt; bool) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val takeWhileJob: ('x -&gt; #Job&lt;bool&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val takeWhileFun: ('x -&gt; bool) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val catch: (exn -&gt; Stream&lt;'l, 'x&gt;) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val onCloseJob: Job&lt;unit&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val onCloseFun: (unit -&gt; unit) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val doFinalizeJob: Job&lt;unit&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val doFinalizeFun: (unit -&gt; unit) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val keepPrecedingFuns: Hopac.Stream.KeepPrecedingFuns&lt;'x, 'y&gt;
+                      -&gt; Stream&lt;#Live, 'x&gt;
+                      -&gt; Stream&lt;'l, 'y&gt;
+  val keepPreceding: maxCount: int
+                  -&gt; Stream&lt;#Live, 'x&gt;
+                  -&gt; Stream&lt;'l, Queue&lt;'x&gt;&gt;
+  val keepPreceding1: Stream&lt;#Live, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val keepFollowing1: Stream&lt;#Live, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val pullOn: ticks: Stream&lt;'l, _&gt; -&gt; Stream&lt;Lazy, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val debounce: timeout: Alt&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val samplesBefore: ticks: Stream&lt;'l, _&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val samplesAfter: ticks: Stream&lt;'l, _&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val ignoreUntil: timeout: Job&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val ignoreWhile: timeout: Job&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val <a href="#def:val%20Hopac.Experimental.Alt.Discrete.combineLatest">combineLatest</a>: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt; -&gt; Stream&lt;'l, 'x * 'y&gt;
+  val shift: timeout: Job&lt;_&gt; -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val delayEach: timeout: Job&lt;_&gt; -&gt; Stream&lt;#Lazy, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val afterEach: timeout: Job&lt;_&gt; -&gt; Stream&lt;#Lazy, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val beforeEach: timeout: Job&lt;_&gt; -&gt; Stream&lt;#Lazy, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val afterDateTimeOffsets: Stream&lt;#Lazy, DateTimeOffset&gt;
+                         -&gt; Stream&lt;'l, DateTimeOffset&gt;
+  val afterDateTimeOffset: DateTimeOffset -&gt; Stream&lt;'l, DateTimeOffset&gt;
+  val afterTimeSpan: TimeSpan -&gt; Stream&lt;'l, unit&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.toSeq">toSeq</a>: Stream&lt;_, 'x&gt; -&gt; Job&lt;ResizeArray&lt;'x&gt;&gt;
+  val values: Stream&lt;_, 'x&gt; -&gt; Alt&lt;'x&gt;
+  val foldJob: ('s -&gt; 'x -&gt; #Job&lt;'s&gt;) -&gt; 's -&gt; Stream&lt;_, 'x&gt; -&gt; Job&lt;'s&gt;
+  val foldFun: ('s -&gt; 'x -&gt; 's) -&gt; 's -&gt; Stream&lt;_, 'x&gt; -&gt; Job&lt;'s&gt;
+  val foldFromJob: 's -&gt; ('s -&gt; 'x -&gt; #Job&lt;'s&gt;) -&gt; Stream&lt;_, 'x&gt; -&gt; Job&lt;'s&gt;
+  val foldFromFun: 's -&gt; ('s -&gt; 'x -&gt; 's) -&gt; Stream&lt;_, 'x&gt; -&gt; Job&lt;'s&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.iterJob">iterJob</a>: ('x -&gt; #Job&lt;unit&gt;) -&gt; Stream&lt;_, 'x&gt; -&gt; Job&lt;unit&gt;
+  val <a href="#def:val%20Hopac.Experimental.EagerSeq.iterFun">iterFun</a>: ('x -&gt; unit) -&gt; Stream&lt;_, 'x&gt; -&gt; Job&lt;unit&gt;
+  val iter: Stream&lt;_, 'x&gt; -&gt; Job&lt;unit&gt;
+  val count: Stream&lt;_, 'x&gt; -&gt; Job&lt;int64&gt;
+  val head: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val tail: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val init: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val last: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'x&gt;
+  val tails: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, Stream&lt;'l, 'x&gt;&gt;
+  val inits: Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, Stream&lt;'l, 'x&gt;&gt;
+  val tailsMapFun: (Stream&lt;'l, 'x&gt; -&gt; 'y) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val tailsMapFun: (Stream&lt;'l, 'x&gt; -&gt; 'y) -&gt; Stream&lt;'l, 'x&gt; -&gt; Stream&lt;'l, 'y&gt;
+  val decon: Stream&lt;'l, 'x&gt; -&gt; Alt&lt;option&lt;'x * Stream&lt;'l, 'x&gt;&gt;&gt;
+</span></code></pre>
 <h2>Description</h2>
-<pre><b>namespace</b> Hopac<b>.</b>Experimental
-</pre>
-<div class="nested"><pre><b>type</b> <a id="def:type%20Hopac.Experimental.Alts" href="#dec:type%20Hopac.Experimental.Alts">Alts</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">namespace Hopac.Experimental
+</code></pre>
+<div class="nested"><pre><code class="fsharp">type <a id="def:type%20Hopac.Experimental.Alts" href="#dec:type%20Hopac.Experimental.Alts">Alts</a>&lt;'x&gt;
+</code></pre>
 <div class="nested"><p> Represents a discrete event stream.</div>
-<pre><b>module</b> <a id="def:module%20Hopac.Experimental.Alts" href="#dec:module%20Hopac.Experimental.Alts">Alts</a> <b>=</b>
-</pre>
+<pre><code class="fsharp">module <a id="def:module%20Hopac.Experimental.Alts" href="#dec:module%20Hopac.Experimental.Alts">Alts</a> =
+</code></pre>
 <div class="nested"><p> Operations for programming with discrete event streams.</div>
-<pre><b>module</b> Alt <b>=</b>
-</pre>
-<div class="nested"><pre><b>module</b> <a id="def:module%20Hopac.Experimental.Alt.Discrete" href="#dec:module%20Hopac.Experimental.Alt.Discrete">Discrete</a> <b>=</b>
-</pre>
-<div class="nested"><p> Operations for treating alternatives as a kind of discrete event sources allowing combinators for limited froms of event throttling, mapping and filtering.</p><p> The essence of this module is that a subset of alternatives forms a monad with plus where <code>once</code> is return, <code><a href="#def:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a></code> is bind, <code>never</code> is zero and <code><a href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a></code> is plus.  Note that many forms of alternatives, like <code>always</code>, do not combine in useful ways under this interpretation.</p><p> The limitation of technique is the one-shot or no-memory nature of the discrete event sources, which seems to make many useful combinators that can be expressed by choice streams, for example, impossible.<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.merge" href="#dec:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a><b>:</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">module Alt =
+</code></pre>
+<div class="nested"><pre><code class="fsharp">module <a id="def:module%20Hopac.Experimental.Alt.Discrete" href="#dec:module%20Hopac.Experimental.Alt.Discrete">Discrete</a> =
+</code></pre>
+<div class="nested"><p> Operations for treating alternatives as a kind of discrete event sources allowing combinators for limited froms of event throttling, mapping and filtering.</p><p> The essence of this module is that a subset of alternatives forms a monad with plus where <code class="fsharp">once</code> is return, <code class="fsharp"><a href="#def:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a></code> is bind, <code class="fsharp">never</code> is zero and <code class="fsharp"><a href="#def:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a></code> is plus.  Note that many forms of alternatives, like <code class="fsharp">always</code>, do not combine in useful ways under this interpretation.</p><p> The limitation of technique is the one-shot or no-memory nature of the discrete event sources, which seems to make many useful combinators that can be expressed by choice streams, for example, impossible.<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.merge" href="#dec:val%20Hopac.Experimental.Alt.Discrete.merge">merge</a>: Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt;
+</code></pre>
 <div class="nested"><p> Given two event sources, creates an event source that produces events from both of the given event sources.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.switchMap" href="#dec:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>
-</pre>
-<div class="nested"><p> Given an event source, <code>xE</code>, and a function that creates a new event source, <code>x2yE</code>, returns an event source that always produces events from the event source created by <code>x2yE</code> based on the latest value produced by <code>xE</code>.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.throttle" href="#dec:val%20Hopac.Experimental.Alt.Discrete.throttle">throttle</a><b>:</b> timeout<b>:</b> Alt<b>&lt;</b>_<b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
-<div class="nested"><p> Given a timeout and an event source, <code>xE</code>, creates an event source that produces only the events of <code>xE</code> after which there is a period of timeout without any events from <code>xE</code>.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.combineLatest" href="#dec:val%20Hopac.Experimental.Alt.Discrete.combineLatest">combineLatest</a><b>:</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i> <b>*</b> <i>'y</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.switchMap" href="#dec:val%20Hopac.Experimental.Alt.Discrete.switchMap">switchMap</a>: ('x -&gt; Alt&lt;'y&gt;) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt;
+</code></pre>
+<div class="nested"><p> Given an event source, <code class="fsharp">xE</code>, and a function that creates a new event source, <code class="fsharp">x2yE</code>, returns an event source that always produces events from the event source created by <code class="fsharp">x2yE</code> based on the latest value produced by <code class="fsharp">xE</code>.</div>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.throttle" href="#dec:val%20Hopac.Experimental.Alt.Discrete.throttle">throttle</a>: timeout: Alt&lt;_&gt; -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt;
+</code></pre>
+<div class="nested"><p> Given a timeout and an event source, <code class="fsharp">xE</code>, creates an event source that produces only the events of <code class="fsharp">xE</code> after which there is a period of timeout without any events from <code class="fsharp">xE</code>.</div>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.combineLatest" href="#dec:val%20Hopac.Experimental.Alt.Discrete.combineLatest">combineLatest</a>: Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt; -&gt; Alt&lt;'x * 'y&gt;
+</code></pre>
 <div class="nested"><p> Given a pair of event sources, creates an event source that produces pairs of the latest events from the sources.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.choose" href="#dec:val%20Hopac.Experimental.Alt.Discrete.choose">choose</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.choose" href="#dec:val%20Hopac.Experimental.Alt.Discrete.choose">choose</a>: ('x -&gt; option&lt;'y&gt;) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt;
+</code></pre>
 <div class="nested"><p> Given a partial function and an event source, creates an event source that produces the partially mapped events.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.filter" href="#dec:val%20Hopac.Experimental.Alt.Discrete.filter">filter</a><b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.filter" href="#dec:val%20Hopac.Experimental.Alt.Discrete.filter">filter</a>: ('x -&gt; bool) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'x&gt;
+</code></pre>
 <div class="nested"><p> Given a predicate and an event source, creates an event source that produces the events that satisfy the predicate.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.Alt.Discrete.map" href="#dec:val%20Hopac.Experimental.Alt.Discrete.map">map</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> Alt<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Alt<b>&lt;</b><i>'y</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.Alt.Discrete.map" href="#dec:val%20Hopac.Experimental.Alt.Discrete.map">map</a>: ('x -&gt; 'y) -&gt; Alt&lt;'x&gt; -&gt; Alt&lt;'y&gt;
+</code></pre>
 <div class="nested"><p> Given a function and an event source, creates an event source that produces the mapped events.</div>
 </div>
 </div>
-<pre><b>type</b> <a id="def:type%20Hopac.Experimental.EagerSeq" href="#dec:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">type <a id="def:type%20Hopac.Experimental.EagerSeq" href="#dec:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;
+</code></pre>
 <div class="nested"><p> A type of sequence where the producer is being run eagerly and the results it produces are memoized.</div>
-<pre><b>module</b> <a id="def:module%20Hopac.Experimental.EagerSeq" href="#dec:module%20Hopac.Experimental.EagerSeq">EagerSeq</a> <b>=</b>
-</pre>
-<div class="nested"><p> Operations on eager sequences.<pre><b>module</b> <a id="def:module%20Hopac.Experimental.EagerSeq.Now" href="#dec:module%20Hopac.Experimental.EagerSeq.Now">Now</a> <b>=</b>
-</pre>
-<div class="nested"><p> Immediate or non-workflow operations on eager sequences.<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.Now.empty" href="#dec:val%20Hopac.Experimental.EagerSeq.Now.empty">empty</a><b>:</b> unit <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">module <a id="def:module%20Hopac.Experimental.EagerSeq" href="#dec:module%20Hopac.Experimental.EagerSeq">EagerSeq</a> =
+</code></pre>
+<div class="nested"><p> Operations on eager sequences.<pre><code class="fsharp">module <a id="def:module%20Hopac.Experimental.EagerSeq.Now" href="#dec:module%20Hopac.Experimental.EagerSeq.Now">Now</a> =
+</code></pre>
+<div class="nested"><p> Immediate or non-workflow operations on eager sequences.<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.Now.empty" href="#dec:val%20Hopac.Experimental.EagerSeq.Now.empty">empty</a>: unit -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;
+</code></pre>
 <div class="nested"><p> Creates an empty sequence.</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.Now.singleton" href="#dec:val%20Hopac.Experimental.EagerSeq.Now.singleton">singleton</a><b>:</b> <i>'x</i> <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.Now.singleton" href="#dec:val%20Hopac.Experimental.EagerSeq.Now.singleton">singleton</a>: 'x -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;
+</code></pre>
 <div class="nested"><p> Creates a sequence containing the given element.</div>
 </div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.collectJob" href="#dec:val%20Hopac.Experimental.EagerSeq.collectJob">collectJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.collectJob" href="#dec:val%20Hopac.Experimental.EagerSeq.collectJob">collectJob</a>: ('x -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.chooseFun" href="#dec:val%20Hopac.Experimental.EagerSeq.chooseFun">chooseFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.chooseFun" href="#dec:val%20Hopac.Experimental.EagerSeq.chooseFun">chooseFun</a>: ('x -&gt; option&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.chooseJob" href="#dec:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.chooseJob" href="#dec:val%20Hopac.Experimental.EagerSeq.chooseJob">chooseJob</a>: ('x -&gt; Job&lt;option&lt;'y&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.filterFun" href="#dec:val%20Hopac.Experimental.EagerSeq.filterFun">filterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> bool) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.filterFun" href="#dec:val%20Hopac.Experimental.EagerSeq.filterFun">filterFun</a>: ('x -&gt; bool) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.generateFun" href="#dec:val%20Hopac.Experimental.EagerSeq.generateFun">generateFun</a><b>:</b> (unit <b>-&gt;</b> option<b>&lt;</b><i>'x</i><b>&gt;</b>) <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.generateFun" href="#dec:val%20Hopac.Experimental.EagerSeq.generateFun">generateFun</a>: (unit -&gt; option&lt;'x&gt;) -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.generateJob" href="#dec:val%20Hopac.Experimental.EagerSeq.generateJob">generateJob</a><b>:</b> Job<b>&lt;</b>option<b>&lt;</b><i>'x</i><b>&gt;&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.generateJob" href="#dec:val%20Hopac.Experimental.EagerSeq.generateJob">generateJob</a>: Job&lt;option&lt;'x&gt;&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.iterFun" href="#dec:val%20Hopac.Experimental.EagerSeq.iterFun">iterFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> unit) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.iterFun" href="#dec:val%20Hopac.Experimental.EagerSeq.iterFun">iterFun</a>: ('x -&gt; unit) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.iterJob" href="#dec:val%20Hopac.Experimental.EagerSeq.iterJob">iterJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b>_<b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>unit<b>&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.iterJob" href="#dec:val%20Hopac.Experimental.EagerSeq.iterJob">iterJob</a>: ('x -&gt; Job&lt;_&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.mapFun" href="#dec:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> <i>'y</i>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.mapFun" href="#dec:val%20Hopac.Experimental.EagerSeq.mapFun">mapFun</a>: ('x -&gt; 'y) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.mapJob" href="#dec:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a><b>:</b> (<i>'x</i> <b>-&gt;</b> Job<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.mapJob" href="#dec:val%20Hopac.Experimental.EagerSeq.mapJob">mapJob</a>: ('x -&gt; Job&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'y&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.ofSeq" href="#dec:val%20Hopac.Experimental.EagerSeq.ofSeq">ofSeq</a><b>:</b> seq<b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.ofSeq" href="#dec:val%20Hopac.Experimental.EagerSeq.ofSeq">ofSeq</a>: seq&lt;'x&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.toSeq" href="#dec:val%20Hopac.Experimental.EagerSeq.toSeq">toSeq</a><b>:</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>ResizeArray<b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.toSeq" href="#dec:val%20Hopac.Experimental.EagerSeq.toSeq">toSeq</a>: <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;ResizeArray&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.tryPickFun" href="#dec:val%20Hopac.Experimental.EagerSeq.tryPickFun">tryPickFun</a><b>:</b> (<i>'x</i> <b>-&gt;</b> option<b>&lt;</b><i>'y</i><b>&gt;</b>) <b>-&gt;</b> <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;</b> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'y</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.tryPickFun" href="#dec:val%20Hopac.Experimental.EagerSeq.tryPickFun">tryPickFun</a>: ('x -&gt; option&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt; -&gt; Job&lt;option&lt;'y&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.unfoldFun" href="#dec:val%20Hopac.Experimental.EagerSeq.unfoldFun">unfoldFun</a><b>:</b> (<i>'s</i> <b>-&gt;</b> option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.unfoldFun" href="#dec:val%20Hopac.Experimental.EagerSeq.unfoldFun">unfoldFun</a>: ('s -&gt; option&lt;'x * 's&gt;) -&gt; 's -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
-<pre><b>val</b> <a id="def:val%20Hopac.Experimental.EagerSeq.unfoldJob" href="#dec:val%20Hopac.Experimental.EagerSeq.unfoldJob">unfoldJob</a><b>:</b> (<i>'s</i> <b>-&gt;</b> Job<b>&lt;</b>option<b>&lt;</b><i>'x</i> <b>*</b> <i>'s</i><b>&gt;&gt;</b>) <b>-&gt;</b> <i>'s</i> <b>-&gt;</b> Job<b>&lt;</b><a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a><b>&lt;</b><i>'x</i><b>&gt;&gt;</b>
-</pre>
+<pre><code class="fsharp">val <a id="def:val%20Hopac.Experimental.EagerSeq.unfoldJob" href="#dec:val%20Hopac.Experimental.EagerSeq.unfoldJob">unfoldJob</a>: ('s -&gt; Job&lt;option&lt;'x * 's&gt;&gt;) -&gt; 's -&gt; Job&lt;<a href="#def:type%20Hopac.Experimental.EagerSeq">EagerSeq</a>&lt;'x&gt;&gt;
+</code></pre>
 <div class="nested"><p> XXX</div>
 </div>
 </div>
