@@ -152,191 +152,6 @@ type IAsyncDisposable =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Expression builder type for jobs.
-#if DOC
-///
-/// The following expression constructs are supported:
-///
-///> ... ; ...
-///> do ...
-///> do! ... | async | task | obs
-///> for ... = ... to ... do ...
-///> for ... in ... do ...
-///> if ... then ...
-///> if ... then ... else ...
-///> let ... = ... in ...
-///> let! ... = ... | async | task | obs in ...
-///> match ... with ...
-///> return ...
-///> return! ... | async | task
-///> try ... finally ...
-///> try ... with ...
-///> use ... = ... in ...
-///> use! ... = ... in ...
-///> while ... do ...
-///
-/// In the above, an ellipsis denotes either a job, an ordinary expression or a
-/// pattern.  A job workflow can also directly bind and return from async
-/// operations, which will be started on a Hopac worker thread (see
-/// `Async.toJob`), tasks (see `Task.awaitJob`) and observables (see
-/// `IObservable<'x>.onceAlt`).
-///
-/// Note that the `Job` module provides more combinators for constructing jobs.
-/// For example, the F# workflow notation does not support `Job.tryFinallyJob`
-/// and `Job.tryIn` is easier to use correctly than `try ... with ...`
-/// expressions.  Operators such as `>>-` and `>>-.` and operations such as
-/// `Job.iterate` and `Job.forever` are frequently useful and may improve
-/// performance.
-#endif
-type JobBuilder =
-  new: unit -> JobBuilder
-
-  member inline Bind: IObservable<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:       Async<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:        Task<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
-  member inline Bind:         Job<'x> * ('x   -> Job<'y>) -> Job<'y>
-
-  member inline Combine: Job<unit> * Job<'x> -> Job<'x>
-
-  member inline Delay: (unit -> Job<'x>) -> Job<'x>
-
-  member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
-
-  member inline Return: 'x -> Job<'x>
-
-  member inline ReturnFrom: IObservable<'x> -> Job<'x>
-  member inline ReturnFrom:       Async<'x> -> Job<'x>
-  member inline ReturnFrom:        Task<'x> -> Job<'x>
-  member inline ReturnFrom:        Task     -> Job<unit>
-  member inline ReturnFrom:         Job<'x> -> Job<'x>
-
-  member inline TryFinally: Job<'x> * (unit -> unit) -> Job<'x>
-
-  member inline TryWith: Job<'x> * (exn -> Job<'x>) -> Job<'x>
-
-  member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
-
-  member inline While: (unit -> bool) * Job<unit> -> Job<unit>
-
-  member inline Zero: unit -> Job<unit>
-
-////////////////////////////////////////////////////////////////////////////////
-
-/// Represents a job to be embedded within a computation built upon jobs.
-#if DOC
-///
-/// Embedded jobs can be useful when defining computations built upon jobs.
-/// Having to encode lightweight threads using the job monad is somewhat
-/// unfortunate, because it is such a fundamental abstraction.  One sometimes,
-/// perhaps even often, wants to define more interesting computations upon jobs,
-/// but the traditional way of doing that requires adding yet another costly
-/// layer of abstraction on top of jobs.  Another possibility is to expose the
-/// `Job<'x>` type constructor as shown in the following example:
-///
-///> type Monad<'x>
-///
-///> type MonadBuilder =
-///>   member Delay: unit -> Job<Monad<'x>>
-///>   member Return: 'x -> Job<Monad<'x>>
-///>   member Bind:   Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
-///>   member Bind: EmbeddedJob<'x>  * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
-///
-/// The `Monad<'x>` type constructor and the `MonadBuilder` defines the new
-/// computation mechanism on top of jobs.  The `Bind` operation taking an
-/// `EmbeddedJob<'x>` allows one to conveniently embed arbitrary jobs within the
-/// computations without introducing nasty overload resolution problems.
-///
-/// Consider what would happen if one would instead define `MonadBuilder` as
-/// follows:
-///
-///> type MonadBuilder =
-///>   member Delay: unit -> Job<Monad<'x>>
-///>   member Return: 'x -> Job<Monad<'x>>
-///>   member Bind: Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
-///>   member Bind: Job<      'x > * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
-///
-/// A `Bind` operation is now almost always ambiguous and one would have to
-/// annotate bind expressions to resolve the ambiguity.
-///
-/// The types of the operations in the `MonadBuilder` may, at first glance, seem
-/// complicated.  Essentially the covariant positions in the signature are
-/// wrapped with the `Job<_>` type constructor to make it possible to use
-/// lightweight threads.  In a language with built-in lightweight threads this
-/// would be unnecessary.  Reading the signature by mentally replacing every
-/// `Job<'x>` with just `'x`, the signature should become clear.
-#endif
-type EmbeddedJob<'x> = struct
-    val Job: Job<'x>
-    new: Job<'x> -> EmbeddedJob<'x>
-  end
-
-/// A builder for embedded jobs.
-type EmbeddedJobBuilder =
-  inherit JobBuilder
-  new: unit -> EmbeddedJobBuilder
-  member Run: Job<'x> -> EmbeddedJob<'x>
-
-////////////////////////////////////////////////////////////////////////////////
-
-#if DOC
-/// Represents a joinable lightweight thread of execution.
-///
-/// A process object makes it possible to determine when a process is known to
-/// have been terminated.  An example use for process objects would be a system
-/// where critical resources are managed by a server process and those critical
-/// resources need to be released even in case a client process suffers from a
-/// fault and is terminated before properly releasing resources.
-///
-/// For performance reasons, Hopac creates process objects lazily for simple
-/// jobs, because for many uses of lightweight threads such a capability is
-/// simply not necessary.  However, when process objects are known to be needed,
-/// it is better to allocate them eagerly by directly starting processes using
-/// `Proc.start` or `Proc.queue`.
-type Proc :> Alt<unit>
-#endif
-
-/// Operations on processes.
-module Proc =
-  /// Creates a job that queues a new process.  See also: `start`, `Job.queue`.
-  val inline queue:       Job<unit> -> Job<Proc>
-
-  /// Creates a job that queues a new process.  `queueIgnore xJ` is equivalent
-  /// to `Job.Ignore xJ |> queue`.
-  val queueIgnore: Job<_>    -> Job<Proc>
-
-  /// Creates a job that starts a new process.  See also: `queue`, `Job.start`.
-  val inline start:       Job<unit> -> Job<Proc>
-
-  /// Creates a job that starts a new process.  `startIgnore xJ` is equivalent
-  /// to `Job.Ignore xJ |> start`.
-  val startIgnore: Job<_>    -> Job<Proc>
-
-  /// Creates a job that calls the given job contructor with the current
-  /// process.
-#if DOC
-  ///
-  /// Note that this is an `O(n)` operation where `n` is the number of
-  /// continuation or stack frames of the current job.  In most cases this
-  /// should not be an issue, but if you need to repeatedly access the process
-  /// object of the current job it may be advantageous to cache it in a local
-  /// variable.
-#endif
-  val inline bind: (Proc -> #Job<'x>) -> Job<'x>
-
-  /// `map p2x` is equivalent to `bind (p2x >> result)`.
-  val  inline map: (Proc ->      'x)  -> Job<'x>
-
-  /// Returns a job that returns the current process.  `self ()` is equivalent
-  /// to `bind result`.
-  val inline self: unit -> Job<Proc>
-
-  /// Returns an alternative that becomes available once the process is known to
-  /// have been terminated for any reason.
-  val inline join: Proc -> Alt<unit>
-
-////////////////////////////////////////////////////////////////////////////////
-
 #if DOC
 /// Represents a lightweight thread of execution.
 ///
@@ -1457,6 +1272,70 @@ module Timer =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
+/// Represents a promise to produce a result at some point in the future.
+///
+/// Promises are used when a parallel job is started for the purpose of
+/// computing a result.  When multiple parallel jobs need to be started to
+/// compute results in parallel in regular patterns, combinators such as `<*>`,
+/// `Job.conCollect` and `Seq.Con.mapJob` may be easier to use and provide
+/// improved performance.
+type Promise<'x> :> Alt<'x>
+#endif
+
+/// Operations on promises.
+module Promise =
+  /// Immediate or non-workflow operations on promises.
+  module Now =
+    /// Creates a promise whose value is computed lazily with the given job when
+    /// an attempt is made to read the promise.  Although the job is not started
+    /// immediately, the effect is that the delayed job will be run as a
+    /// separate job, which means it is possible to communicate with it as long
+    /// the delayed job is started before trying to communicate with it.
+    val inline delay: Job<'x> -> Promise<'x>
+
+    /// Creates a promise with the given value.
+    val inline withValue:   'x  -> Promise<'x>
+
+    /// Creates a promise with the given failure exception.
+    val inline withFailure: exn -> Promise<'x>
+
+    /// Creates a promise that will never be fulfilled.
+    val never: unit -> Promise<'x>
+
+    /// Returns true iff the given promise has already been fulfilled (either
+    /// with a value or with a failure).
+    ///
+    /// This operation is mainly provided for advanced uses of promises such as
+    /// when creating more complex data structures that make internal use of
+    /// promises.  Using this to poll promises is not generally a good idea.
+    val isFulfilled: Promise<'x> -> bool
+
+    /// Returns the value or raises the failure exception that the promise has
+    /// been fulfilled with.  It is considered an error if the promise has not
+    /// yet been fulfilled.
+    ///
+    /// This operation is mainly provided for advanced uses of promises such as
+    /// when creating more complex data structures that make internal use of
+    /// promises.  Using this to poll promises is not generally a good idea.
+    val get: Promise<'x> -> 'x
+
+  /// Creates a job that creates a promise, whose value is computed with the
+  /// given job, which is scheduled to be run as a separate concurrent job.  See
+  /// also: `start`, `Job.queue`.
+  val queue: Job<'x> -> Job<Promise<'x>>
+
+  /// Creates a job that creates a promise, whose value is computed with the
+  /// given job, which is immediately started to run as a separate concurrent
+  /// job.  See also: `queue`, `Job.queue`.
+  val start: Job<'x> -> Job<Promise<'x>>
+
+  /// Creates an alternative for reading the promise.  If the promise was
+  /// delayed, it is started as a separate job.
+  val inline read: Promise<'x> -> Alt<'x>
+
+////////////////////////////////////////////////////////////////////////////////
+
+#if DOC
 /// Represents a synchronous channel.
 ///
 /// Channels provide a simple rendezvous mechanism for concurrent jobs and are
@@ -1852,6 +1731,47 @@ module MVar =
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Represents a bounded synchronous mailbox for many to many communication.
+#if DOC
+///
+/// Bounded synchronous mailboxes are a useful tool for coordinating work among
+/// co-operating processes.  They provide slack in the form of buffering between
+/// producers and consumers allowing them to proceed in parallel.  They also
+/// provide back-pressure in the form of blocking producers when consumers
+/// cannot keep up.
+///
+/// In cases where buffering is not necessary, the basic channel primitive,
+/// `Ch<_>`, should be preferred.  In cases where unbounded buffering is not a
+/// problem, the basic mailbox primitive, `Mailbox<_>`, should be preferred.
+///
+/// At the time of writing, `BoundedMb<_>` is not implemented as a primitive,
+/// but is implemented using other primitives of Hopac, and it is likely that
+/// performance can be improved significantly.  If you run into a case where the
+/// performance of `BoundedMb<_>` becomes problematic, please submit an issue.
+#endif
+type BoundedMb<'x>
+
+/// Operations on bounded synchronous mailboxes.
+module BoundedMb =
+  /// Returns a job that creates a new bounded mailbox with a buffer of the
+  /// specified maximum capacity.  Note that a bounded mailbox with a capacity
+  /// of `0` behaves exactly the same as a channel, `Ch<_>`.
+  val create: capacity: int -> Job<BoundedMb<'x>>
+
+  /// Selective synchronous operation to put a message to a bounded mailbox.
+  /// `put` operations are processed in FIFO order and become enabled as soon as
+  /// there is room in the bounded buffer.  If the buffer capacity is `0`, `put`
+  /// behaves exactly like `Ch.give`.
+  val put: BoundedMb<'x> -> 'x -> Alt<unit>
+
+  /// Selective synchronous operation to take a message from a bounded mailbox.
+  /// `take` operations are processed in FIFO order and become enabled as soon
+  /// as there are messages in the bounded buffer.  If the buffer capacity is
+  /// `0`, `take` behaves exactly like `Ch.take`.
+  val take: BoundedMb<'x> -> Alt<'x>
+
+////////////////////////////////////////////////////////////////////////////////
+
 #if DOC
 /// Represents an asynchronous, unbounded buffered mailbox.
 ///
@@ -1892,70 +1812,6 @@ module Mailbox =
   /// Creates an alternative that becomes available when the mailbox contains at
   /// least one value and, if committed to, takes a value from the mailbox.
   val inline take: Mailbox<'x> -> Alt<'x>
-
-////////////////////////////////////////////////////////////////////////////////
-
-#if DOC
-/// Represents a promise to produce a result at some point in the future.
-///
-/// Promises are used when a parallel job is started for the purpose of
-/// computing a result.  When multiple parallel jobs need to be started to
-/// compute results in parallel in regular patterns, combinators such as `<*>`,
-/// `Job.conCollect` and `Seq.Con.mapJob` may be easier to use and provide
-/// improved performance.
-type Promise<'x> :> Alt<'x>
-#endif
-
-/// Operations on promises.
-module Promise =
-  /// Immediate or non-workflow operations on promises.
-  module Now =
-    /// Creates a promise whose value is computed lazily with the given job when
-    /// an attempt is made to read the promise.  Although the job is not started
-    /// immediately, the effect is that the delayed job will be run as a
-    /// separate job, which means it is possible to communicate with it as long
-    /// the delayed job is started before trying to communicate with it.
-    val inline delay: Job<'x> -> Promise<'x>
-
-    /// Creates a promise with the given value.
-    val inline withValue:   'x  -> Promise<'x>
-
-    /// Creates a promise with the given failure exception.
-    val inline withFailure: exn -> Promise<'x>
-
-    /// Creates a promise that will never be fulfilled.
-    val never: unit -> Promise<'x>
-
-    /// Returns true iff the given promise has already been fulfilled (either
-    /// with a value or with a failure).
-    ///
-    /// This operation is mainly provided for advanced uses of promises such as
-    /// when creating more complex data structures that make internal use of
-    /// promises.  Using this to poll promises is not generally a good idea.
-    val isFulfilled: Promise<'x> -> bool
-
-    /// Returns the value or raises the failure exception that the promise has
-    /// been fulfilled with.  It is considered an error if the promise has not
-    /// yet been fulfilled.
-    ///
-    /// This operation is mainly provided for advanced uses of promises such as
-    /// when creating more complex data structures that make internal use of
-    /// promises.  Using this to poll promises is not generally a good idea.
-    val get: Promise<'x> -> 'x
-
-  /// Creates a job that creates a promise, whose value is computed with the
-  /// given job, which is scheduled to be run as a separate concurrent job.  See
-  /// also: `start`, `Job.queue`.
-  val queue: Job<'x> -> Job<Promise<'x>>
-
-  /// Creates a job that creates a promise, whose value is computed with the
-  /// given job, which is immediately started to run as a separate concurrent
-  /// job.  See also: `queue`, `Job.queue`.
-  val start: Job<'x> -> Job<Promise<'x>>
-
-  /// Creates an alternative for reading the promise.  If the promise was
-  /// delayed, it is started as a separate job.
-  val inline read: Promise<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2327,136 +2183,6 @@ module Extensions =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#if DOC
-/// Represents a scheduler that manages a number of worker threads.
-type Scheduler
-#endif
-
-/// Operations on schedulers.  Use of this module requires more intimate
-/// knowledge of Hopac, but may allow adapting Hopac to special application
-/// requirements.
-module Scheduler =
-
-  /// A record of scheduler configuration options.
-  type Create =
-    {
-      /// Specifies whether worker threads are run as background threads or as
-      /// foreground threads.  The default is to run workers as background
-      /// threads.  If you want to run worker threads as foreground threads,
-      /// then you will have to explicitly kill the worker threads.  Using
-      /// foreground threads is probably preferable if your application
-      /// dynamically creates and kills local schedulers to make sure the
-      /// worker threads are properly killed.
-      Foreground: option<bool>
-
-      /// Specifies the idle handler for workers.  The worker idle handler is
-      /// run whenever an individual worker runs out of work.  The idle handler
-      /// must return an integer value that specifies how many milliseconds the
-      /// worker is allowed to sleep.  `Timeout.Infinite` puts the worker into
-      /// sleep until the scheduler explicitly wakes it up.  `0` means that the
-      /// idle handler found some new work and the worker should immediately
-      /// look for it.
-      IdleHandler: option<Job<int>>
-
-      /// Specifies the maximum stack size for worker threads.  The default
-      /// is to use the default maximum stack size of the `Thread` class.
-      MaxStackSize: option<int>
-
-      /// Number of worker threads.  Using more than
-      /// `Environment.ProcessorCount` is not optimal and may, in some cases,
-      /// significantly reduce performance.  The default is
-      /// `Environment.ProcessorCount`.
-      NumWorkers: option<int>
-
-//      /// Specifies the priority of the worker threads.  The default is to use
-//      /// `Normal` priority.
-//      Priority: option<Threading.ThreadPriority>
-
-      /// Specifies the top level exception handler job constructor of the
-      /// scheduler.  When a job fails with an otherwise unhandled exception,
-      /// the job is killed and a new job is constructed with the top level
-      /// handler constructor and then started.  To avoid infinite loops, in
-      /// case the top level handler job raises exceptions, it is simply killed
-      /// after printing a message to the console.  The default top level
-      /// handler simply prints out a message to the console.
-      TopLevelHandler: option<exn -> Job<unit>>
-    }
-
-    /// Default options.
-    static member Def: Create
-
-  /// Operations on the global scheduler.
-  module Global =
-    /// Sets options for creating the global scheduler.  This must be called
-    /// before invoking any Hopac functionality that implicitly creates the
-    /// global scheduler.
-    val setCreate: Create -> unit
-
-  /// Creates a new local scheduler.
-  ///
-  /// Note that a local scheduler does not automatically implement services such
-  /// as the global wall-clock timer.
-  val create: Create -> Scheduler
-
-  /// Queues the given job for execution on the scheduler.
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should use `Job.queue` instead.
-  val inline queue:       Scheduler -> Job<unit> -> unit
-
-  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
-  val queueIgnore: Scheduler -> Job<_>    -> unit
-
-  /// Like `Scheduler.start`, but the given job is known never to return
-  /// normally, so the job can be spawned in an even more lightweight manner.
-  val server:      Scheduler -> Job<Void> -> unit
-
-  /// Starts running the given job, but does not wait for the job to finish.
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should use `Job.start` instead.
-  val inline start:       Scheduler -> Job<unit> -> unit
-
-  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
-  val startIgnore: Scheduler -> Job<_>    -> unit
-
-  /// Starts running the given job, but does not wait for the job to finish.
-  /// Upon the failure or success of the job, one of the given actions is called
-  /// once.  See also: `abort`.
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should instead use `Job.start` with desired Job exception handling
-  /// construct (e.g. `Job.tryIn` or `Job.catch`).
-  val startWithActions: Scheduler -> (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
-
-  /// Starts running the given job on the specified scheduler and then blocks
-  /// the current thread waiting for the job to either return successfully or
-  /// fail.
-#if DOC
-  ///
-  /// WARNING: Like with `Job.Global.run`, use of `run` should be considered
-  /// carefully, because calling `run` from an arbitrary thread can cause
-  /// deadlock.
-  ///
-  /// A call of `run xJ` is safe when the call is not made from within a Hopac
-  /// worker thread and the job `xJ` does not perform operations that might
-  /// block or that might directly, or indirectly, need to communicate with
-  /// the thread from which `run` is being called.
-#endif
-  val run: Scheduler -> Job<'x> -> 'x
-
-  /// Waits until the scheduler becomes completely idle.
-  ///
-  /// Note that for this to make sense, the scheduler should be a local
-  /// scheduler that your program manages explicitly.
-  val wait: Scheduler -> unit
-
-  /// Kills the worker threads of the scheduler one-by-one.  This should only be
-  /// used with a local scheduler that is known to be idle.
-  val kill: Scheduler -> unit
-
-////////////////////////////////////////////////////////////////////////////////
-
 /// Infix operators for concise expression of key Hopac idioms.  You can open
 /// this module to bring all of the infix operators into scope.
 #if DOC
@@ -2781,3 +2507,318 @@ module Infixes =
   /// single transaction.  Such an operation would require a more complex
   /// synchronization protocol like with the so called Transactional Events.
   val ( <+> ): Alt<'x> -> Alt<'y> -> Alt<'x * 'y>
+
+////////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a joinable lightweight thread of execution.
+///
+/// A process object makes it possible to determine when a process is known to
+/// have been terminated.  An example use for process objects would be a system
+/// where critical resources are managed by a server process and those critical
+/// resources need to be released even in case a client process suffers from a
+/// fault and is terminated before properly releasing resources.
+///
+/// For performance reasons, Hopac creates process objects lazily for simple
+/// jobs, because for many uses of lightweight threads such a capability is
+/// simply not necessary.  However, when process objects are known to be needed,
+/// it is better to allocate them eagerly by directly starting processes using
+/// `Proc.start` or `Proc.queue`.
+type Proc :> Alt<unit>
+#endif
+
+/// Operations on processes.
+module Proc =
+  /// Creates a job that queues a new process.  See also: `start`, `Job.queue`.
+  val inline queue:       Job<unit> -> Job<Proc>
+
+  /// Creates a job that queues a new process.  `queueIgnore xJ` is equivalent
+  /// to `Job.Ignore xJ |> queue`.
+  val queueIgnore: Job<_>    -> Job<Proc>
+
+  /// Creates a job that starts a new process.  See also: `queue`, `Job.start`.
+  val inline start:       Job<unit> -> Job<Proc>
+
+  /// Creates a job that starts a new process.  `startIgnore xJ` is equivalent
+  /// to `Job.Ignore xJ |> start`.
+  val startIgnore: Job<_>    -> Job<Proc>
+
+  /// Creates a job that calls the given job contructor with the current
+  /// process.
+#if DOC
+  ///
+  /// Note that this is an `O(n)` operation where `n` is the number of
+  /// continuation or stack frames of the current job.  In most cases this
+  /// should not be an issue, but if you need to repeatedly access the process
+  /// object of the current job it may be advantageous to cache it in a local
+  /// variable.
+#endif
+  val inline bind: (Proc -> #Job<'x>) -> Job<'x>
+
+  /// `map p2x` is equivalent to `bind (p2x >> result)`.
+  val  inline map: (Proc ->      'x)  -> Job<'x>
+
+  /// Returns a job that returns the current process.  `self ()` is equivalent
+  /// to `bind result`.
+  val inline self: unit -> Job<Proc>
+
+  /// Returns an alternative that becomes available once the process is known to
+  /// have been terminated for any reason.
+  val inline join: Proc -> Alt<unit>
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// Expression builder type for jobs.
+#if DOC
+///
+/// The following expression constructs are supported:
+///
+///> ... ; ...
+///> do ...
+///> do! ... | async | task | obs
+///> for ... = ... to ... do ...
+///> for ... in ... do ...
+///> if ... then ...
+///> if ... then ... else ...
+///> let ... = ... in ...
+///> let! ... = ... | async | task | obs in ...
+///> match ... with ...
+///> return ...
+///> return! ... | async | task
+///> try ... finally ...
+///> try ... with ...
+///> use ... = ... in ...
+///> use! ... = ... in ...
+///> while ... do ...
+///
+/// In the above, an ellipsis denotes either a job, an ordinary expression or a
+/// pattern.  A job workflow can also directly bind and return from async
+/// operations, which will be started on a Hopac worker thread (see
+/// `Async.toJob`), tasks (see `Task.awaitJob`) and observables (see
+/// `IObservable<'x>.onceAlt`).
+///
+/// Note that the `Job` module provides more combinators for constructing jobs.
+/// For example, the F# workflow notation does not support `Job.tryFinallyJob`
+/// and `Job.tryIn` is easier to use correctly than `try ... with ...`
+/// expressions.  Operators such as `>>-` and `>>-.` and operations such as
+/// `Job.iterate` and `Job.forever` are frequently useful and may improve
+/// performance.
+#endif
+type JobBuilder =
+  new: unit -> JobBuilder
+
+  member inline Bind: IObservable<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:       Async<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:        Task<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
+  member inline Bind:         Job<'x> * ('x   -> Job<'y>) -> Job<'y>
+
+  member inline Combine: Job<unit> * Job<'x> -> Job<'x>
+
+  member inline Delay: (unit -> Job<'x>) -> Job<'x>
+
+  member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
+
+  member inline Return: 'x -> Job<'x>
+
+  member inline ReturnFrom: IObservable<'x> -> Job<'x>
+  member inline ReturnFrom:       Async<'x> -> Job<'x>
+  member inline ReturnFrom:        Task<'x> -> Job<'x>
+  member inline ReturnFrom:        Task     -> Job<unit>
+  member inline ReturnFrom:         Job<'x> -> Job<'x>
+
+  member inline TryFinally: Job<'x> * (unit -> unit) -> Job<'x>
+
+  member inline TryWith: Job<'x> * (exn -> Job<'x>) -> Job<'x>
+
+  member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
+
+  member inline While: (unit -> bool) * Job<unit> -> Job<unit>
+
+  member inline Zero: unit -> Job<unit>
+
+////////////////////////////////////////////////////////////////////////////////
+
+/// Represents a job to be embedded within a computation built upon jobs.
+#if DOC
+///
+/// Embedded jobs can be useful when defining computations built upon jobs.
+/// Having to encode lightweight threads using the job monad is somewhat
+/// unfortunate, because it is such a fundamental abstraction.  One sometimes,
+/// perhaps even often, wants to define more interesting computations upon jobs,
+/// but the traditional way of doing that requires adding yet another costly
+/// layer of abstraction on top of jobs.  Another possibility is to expose the
+/// `Job<'x>` type constructor as shown in the following example:
+///
+///> type Monad<'x>
+///
+///> type MonadBuilder =
+///>   member Delay: unit -> Job<Monad<'x>>
+///>   member Return: 'x -> Job<Monad<'x>>
+///>   member Bind:   Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///>   member Bind: EmbeddedJob<'x>  * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///
+/// The `Monad<'x>` type constructor and the `MonadBuilder` defines the new
+/// computation mechanism on top of jobs.  The `Bind` operation taking an
+/// `EmbeddedJob<'x>` allows one to conveniently embed arbitrary jobs within the
+/// computations without introducing nasty overload resolution problems.
+///
+/// Consider what would happen if one would instead define `MonadBuilder` as
+/// follows:
+///
+///> type MonadBuilder =
+///>   member Delay: unit -> Job<Monad<'x>>
+///>   member Return: 'x -> Job<Monad<'x>>
+///>   member Bind: Job<Monad<'x>> * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///>   member Bind: Job<      'x > * ('x -> Job<Monad<'y>>) -> Job<Monad<'y>>
+///
+/// A `Bind` operation is now almost always ambiguous and one would have to
+/// annotate bind expressions to resolve the ambiguity.
+///
+/// The types of the operations in the `MonadBuilder` may, at first glance, seem
+/// complicated.  Essentially the covariant positions in the signature are
+/// wrapped with the `Job<_>` type constructor to make it possible to use
+/// lightweight threads.  In a language with built-in lightweight threads this
+/// would be unnecessary.  Reading the signature by mentally replacing every
+/// `Job<'x>` with just `'x`, the signature should become clear.
+#endif
+type EmbeddedJob<'x> = struct
+    val Job: Job<'x>
+    new: Job<'x> -> EmbeddedJob<'x>
+  end
+
+/// A builder for embedded jobs.
+type EmbeddedJobBuilder =
+  inherit JobBuilder
+  new: unit -> EmbeddedJobBuilder
+  member Run: Job<'x> -> EmbeddedJob<'x>
+
+////////////////////////////////////////////////////////////////////////////////
+
+#if DOC
+/// Represents a scheduler that manages a number of worker threads.
+type Scheduler
+#endif
+
+/// Operations on schedulers.  Use of this module requires more intimate
+/// knowledge of Hopac, but may allow adapting Hopac to special application
+/// requirements.
+module Scheduler =
+
+  /// A record of scheduler configuration options.
+  type Create =
+    {
+      /// Specifies whether worker threads are run as background threads or as
+      /// foreground threads.  The default is to run workers as background
+      /// threads.  If you want to run worker threads as foreground threads,
+      /// then you will have to explicitly kill the worker threads.  Using
+      /// foreground threads is probably preferable if your application
+      /// dynamically creates and kills local schedulers to make sure the
+      /// worker threads are properly killed.
+      Foreground: option<bool>
+
+      /// Specifies the idle handler for workers.  The worker idle handler is
+      /// run whenever an individual worker runs out of work.  The idle handler
+      /// must return an integer value that specifies how many milliseconds the
+      /// worker is allowed to sleep.  `Timeout.Infinite` puts the worker into
+      /// sleep until the scheduler explicitly wakes it up.  `0` means that the
+      /// idle handler found some new work and the worker should immediately
+      /// look for it.
+      IdleHandler: option<Job<int>>
+
+      /// Specifies the maximum stack size for worker threads.  The default
+      /// is to use the default maximum stack size of the `Thread` class.
+      MaxStackSize: option<int>
+
+      /// Number of worker threads.  Using more than
+      /// `Environment.ProcessorCount` is not optimal and may, in some cases,
+      /// significantly reduce performance.  The default is
+      /// `Environment.ProcessorCount`.
+      NumWorkers: option<int>
+
+//      /// Specifies the priority of the worker threads.  The default is to use
+//      /// `Normal` priority.
+//      Priority: option<Threading.ThreadPriority>
+
+      /// Specifies the top level exception handler job constructor of the
+      /// scheduler.  When a job fails with an otherwise unhandled exception,
+      /// the job is killed and a new job is constructed with the top level
+      /// handler constructor and then started.  To avoid infinite loops, in
+      /// case the top level handler job raises exceptions, it is simply killed
+      /// after printing a message to the console.  The default top level
+      /// handler simply prints out a message to the console.
+      TopLevelHandler: option<exn -> Job<unit>>
+    }
+
+    /// Default options.
+    static member Def: Create
+
+  /// Operations on the global scheduler.
+  module Global =
+    /// Sets options for creating the global scheduler.  This must be called
+    /// before invoking any Hopac functionality that implicitly creates the
+    /// global scheduler.
+    val setCreate: Create -> unit
+
+  /// Creates a new local scheduler.
+  ///
+  /// Note that a local scheduler does not automatically implement services such
+  /// as the global wall-clock timer.
+  val create: Create -> Scheduler
+
+  /// Queues the given job for execution on the scheduler.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.queue` instead.
+  val inline queue:       Scheduler -> Job<unit> -> unit
+
+  /// `queueIgnore xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  val queueIgnore: Scheduler -> Job<_>    -> unit
+
+  /// Like `Scheduler.start`, but the given job is known never to return
+  /// normally, so the job can be spawned in an even more lightweight manner.
+  val server:      Scheduler -> Job<Void> -> unit
+
+  /// Starts running the given job, but does not wait for the job to finish.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should use `Job.start` instead.
+  val inline start:       Scheduler -> Job<unit> -> unit
+
+  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
+  val startIgnore: Scheduler -> Job<_>    -> unit
+
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// Upon the failure or success of the job, one of the given actions is called
+  /// once.  See also: `abort`.
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should instead use `Job.start` with desired Job exception handling
+  /// construct (e.g. `Job.tryIn` or `Job.catch`).
+  val startWithActions: Scheduler -> (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
+
+  /// Starts running the given job on the specified scheduler and then blocks
+  /// the current thread waiting for the job to either return successfully or
+  /// fail.
+#if DOC
+  ///
+  /// WARNING: Like with `Job.Global.run`, use of `run` should be considered
+  /// carefully, because calling `run` from an arbitrary thread can cause
+  /// deadlock.
+  ///
+  /// A call of `run xJ` is safe when the call is not made from within a Hopac
+  /// worker thread and the job `xJ` does not perform operations that might
+  /// block or that might directly, or indirectly, need to communicate with
+  /// the thread from which `run` is being called.
+#endif
+  val run: Scheduler -> Job<'x> -> 'x
+
+  /// Waits until the scheduler becomes completely idle.
+  ///
+  /// Note that for this to make sense, the scheduler should be a local
+  /// scheduler that your program manages explicitly.
+  val wait: Scheduler -> unit
+
+  /// Kills the worker threads of the scheduler one-by-one.  This should only be
+  /// used with a local scheduler that is known to be idle.
+  val kill: Scheduler -> unit

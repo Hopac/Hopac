@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -46,8 +46,6 @@
     <Compile Include="Stream.fs" />
     <Compile Include="TopLevel.fsi" />
     <Compile Include="TopLevel.fs" />
-    <Compile Include="BoundedMb.fsi" />
-    <Compile Include="BoundedMb.fs" />
     <Content Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
