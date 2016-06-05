@@ -1,3 +1,9 @@
+#### 0.2.1 - 2016-06-05
+* Improved structure and formatting of the reference manual.
+* Potentially breaking change: `Stream.Builder.Plus` method was renamed into `Stream.Builder.Combine`.
+* Added `Stream.tryPickJob` and `Stream.tryPickFun`.
+* Fixed `Job.using` to not raise in case given disposable reference is `null`.
+
 #### 0.2.0 - 2016-06-01
 * Dropped obsolete definitions.
 * Exception handling fixes to `<*>`.
