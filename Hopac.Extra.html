@@ -2,49 +2,15 @@
 <html>
 <head>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.1.1/normalize.css">
+<link rel="stylesheet" href="fs-libtool.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/github.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
-<script>
-$(document).ready(function() {
-  $('code').each(function(i, block) {
-    hljs.highlightBlock(block);
-  });
-});
-</script>
+<script src="fs-libtool.js" async></script>
 <title>Hopac.Extra Library Reference</title>
-<style>
-p > code.hljs {
-  display: inline;
-  padding: 1px;
-}
-code {
-  font-family: "Lucida Console", Monaco, monospace;
-  font-size: 80%;
-  border-radius: 3px;
-}
-span.h3 {
-  display: inline-block;
-  margin: 0.75em 0em 0.5em 0em;
-}
-span.spacing {
-  display: inherit;
-  margin: 0.5em 0em 0.5em 0em;
-}
-div.nested {
-  padding-left: 1.5em;
-}
-a {
-  text-decoration: none;
-  font-weight: bold;
-}
-</style>
 </head>
 <body><table width="80%" align="center"><tr><td>
 <h1>Hopac.Extra Library Reference</h1>
 <h2>Synopsis</h2>
-<pre><code class="fsharp">namespace Hopac.Extra
+<pre><code class="fsharp hljs">namespace Hopac.Extra
 <span class="spacing">type <a id="dec:type Hopac.Extra.InCh" href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt;
 </span><span class="spacing">type <a id="dec:type Hopac.Extra.OutCh" href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;
 </span><span class="spacing">module <a id="dec:module Hopac.Extra.DirCh" href="#def:module%20Hopac.Extra.DirCh">DirCh</a> =
@@ -93,145 +59,194 @@ a {
   val <a id="dec:val Hopac.Extra.SwapCh.swap" href="#def:val%20Hopac.Extra.SwapCh.swap">swap</a>: <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt; -&gt; 'a -&gt; Alt&lt;'a&gt;
 </span></code></pre>
 <h2>Description</h2>
-<pre><code class="fsharp">namespace Hopac.Extra
+<div class="description"><pre><code class="fsharp hljs">namespace Hopac.Extra
 </code></pre>
-<div class="nested"><pre><code class="fsharp">type <a id="def:type Hopac.Extra.InCh" href="#dec:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt;
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.InCh" href="#dec:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt;
 </code></pre>
-<div class="nested"><p> A directional input channel.</div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.OutCh" href="#dec:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> A directional output channel.</div>
-<pre><code class="fsharp">module <a id="def:module Hopac.Extra.DirCh" href="#dec:module%20Hopac.Extra.DirCh">DirCh</a> =
-</code></pre>
-<div class="nested"><p> Operations on directional channels.<pre><code class="fsharp">module <a id="def:module Hopac.Extra.DirCh.Now" href="#dec:module%20Hopac.Extra.DirCh.Now">Now</a> =
-</code></pre>
-<div class="nested"><p> Immediate or non-workflow operations on directional channels.<pre><code class="fsharp">val <a id="def:val Hopac.Extra.DirCh.Now.create" href="#dec:val%20Hopac.Extra.DirCh.Now.create">create</a>: unit -&gt; <a href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt; * <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> Creates a new pair of directional channels.  The created channels are associated so that giving a value on the output channel allows the value to be taken on the input channel.</div>
+<p> A directional input channel.</p>
 </div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.DirCh.create" href="#dec:val%20Hopac.Extra.DirCh.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt; * <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;&gt;
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.OutCh" href="#dec:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;
 </code></pre>
-<div class="nested"><p> Creates a new pair of directional channels.  The created channels are associated so that giving a value on the output channel allows the value to be taken on the input channel.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.DirCh.take" href="#dec:val%20Hopac.Extra.DirCh.take">take</a>: <a href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt; -&gt; Alt&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> An alternative to take a value to be given on the associated output channel.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.DirCh.give" href="#dec:val%20Hopac.Extra.DirCh.give">give</a>: <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt; -&gt; 'a -&gt; Alt&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> An alternative to give a value to be taken on the associated input channel.</div>
+<p> A directional output channel.</p>
 </div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.IMap" href="#dec:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; when 'k: equality
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.DirCh" href="#dec:module%20Hopac.Extra.DirCh">DirCh</a> =
 </code></pre>
-<div class="nested"><p> Write once map or dictionary of key-value pairs.</p><p> This data structure is designed for situations in which one or more writer jobs fill a map that one or more reader jobs query.  When a job queries a key-value pair, the job is suspended, unless the map already holds the key-value pair, and resumed once the map is filled with the queried key-value pair.  Once the writers have finished filling the map, the map can be explicitly closed, which means that future and pending queries will be completed immediately.</p><p> The goal is to allow fine grained concurrency between the writers and the readers.  In particular, readers do not need to wait until the map is complete, but can instead proceed as soon as their queries can be answered. On the other hand, it should be straightforward to make sure that the end result is consistent, because filling a write once map is a monotonic process: key-value pairs can be added, but not redefined or removed; map can be closed, but not reopened.</div>
-<pre><code class="fsharp">module <a id="def:module Hopac.Extra.IMap" href="#dec:module%20Hopac.Extra.IMap">IMap</a> =
+<p> Operations on directional channels.</p>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.DirCh.Now" href="#dec:module%20Hopac.Extra.DirCh.Now">Now</a> =
 </code></pre>
-<div class="nested"><p> Operations on write once maps.<pre><code class="fsharp">module <a id="def:module Hopac.Extra.IMap.Now" href="#dec:module%20Hopac.Extra.IMap.Now">Now</a> =
+<p> Immediate or non-workflow operations on directional channels.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.DirCh.Now.create" href="#dec:val%20Hopac.Extra.DirCh.Now.create">create</a>: unit -&gt; <a href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt; * <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;
 </code></pre>
-<div class="nested"><p> Immediate operations on write once maps.<pre><code class="fsharp">val <a id="def:val Hopac.Extra.IMap.Now.create" href="#dec:val%20Hopac.Extra.IMap.Now.create">create</a>: unit -&gt; <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt;
-</code></pre>
-<div class="nested"><p> Creates a new write once map.</div>
+<p> Creates a new pair of directional channels.  The created channels are associated so that giving a value on the output channel allows the value to be taken on the input channel.</p>
 </div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.IMap.create" href="#dec:val%20Hopac.Extra.IMap.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt;&gt;
-</code></pre>
-<div class="nested"><p> Returns a job that creates a new write once map.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.IMap.close" href="#dec:val%20Hopac.Extra.IMap.close">close</a>: <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Returns a job that closes the map and answers pending queries negatively.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.IMap.fill" href="#dec:val%20Hopac.Extra.IMap.fill">fill</a>: <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; -&gt; 'k -&gt; 'v -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Returns a job that adds the given key-value pair to the write once map. If the map already has pending queries for the key-value pair, those queries will be answered positively.</p><p> It is considered an error if the map already holds a key-value pair with the same key.  It is also considered an error if the map has been closed.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.IMap.query" href="#dec:val%20Hopac.Extra.IMap.query">query</a>: <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; -&gt; 'k -&gt; Alt&lt;option&lt;'v&gt;&gt;
-</code></pre>
-<div class="nested"><p> Returns an alternative that tries to read the value associated with the given key.  The alternative becomes enabled once there is some value associated with the key in the map or after the map has been closed, in which case the result will be none.</div>
 </div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.MChan" href="#dec:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt;
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.DirCh.create" href="#dec:val%20Hopac.Extra.DirCh.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt; * <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt;&gt;
 </code></pre>
-<div class="nested"><p> Represents a multicast channel for one to many communication.</div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.MPort" href="#dec:type%20Hopac.Extra.MPort">MPort</a>&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> Represents a port for listening to a multicast channel.</div>
-<pre><code class="fsharp">module <a id="def:module Hopac.Extra.Multicast" href="#dec:module%20Hopac.Extra.Multicast">Multicast</a> =
-</code></pre>
-<div class="nested"><p> Operations on multicast channels.<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Multicast.create" href="#dec:val%20Hopac.Extra.Multicast.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt;&gt;
-</code></pre>
-<div class="nested"><p> Creates a new multicast channel.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Multicast.port" href="#dec:val%20Hopac.Extra.Multicast.port">port</a>: <a href="#def:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.MPort">MPort</a>&lt;'a&gt;&gt;
-</code></pre>
-<div class="nested"><p> Creates a new port for listening to the given multicast channel.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Multicast.multicast" href="#dec:val%20Hopac.Extra.Multicast.multicast">multicast</a>: <a href="#def:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt; -&gt; 'a -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Sends a message to all of the ports listening to the multicast channel.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Multicast.recv" href="#dec:val%20Hopac.Extra.Multicast.recv">recv</a>: <a href="#def:type%20Hopac.Extra.MPort">MPort</a>&lt;'a&gt; -&gt; Alt&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> Alternative to receive a message from the given port.</div>
+<p> Creates a new pair of directional channels.  The created channels are associated so that giving a value on the output channel allows the value to be taken on the input channel.</p>
 </div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.SelectableQueue" href="#dec:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt;
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.DirCh.take" href="#dec:val%20Hopac.Extra.DirCh.take">take</a>: <a href="#def:type%20Hopac.Extra.InCh">InCh</a>&lt;'a&gt; -&gt; Alt&lt;'a&gt;
 </code></pre>
-<div class="nested"><p> Represents a selectable buffered queue.</div>
-<pre><code class="fsharp">module <a id="def:module Hopac.Extra.SelectableQueue" href="#dec:module%20Hopac.Extra.SelectableQueue">SelectableQueue</a> =
-</code></pre>
-<div class="nested"><p> Implements a selectable buffered queue similar to what is described in the paper ''Kill-Safe Synchronization Abstractions'' by Matthew Flatt and Robert Bruce Findler.  Note that Hopac doesn't, at least not yet, provide all the operations on threads necessary to make the abstraction kill-safe as described in the paper.  Even without the full kill-safety properties this queue can be quite useful and serves as an interesting example of Concurrent ML -style programming making use of a dynamic number of alternatives.<pre><code class="fsharp">val <a id="def:val Hopac.Extra.SelectableQueue.create" href="#dec:val%20Hopac.Extra.SelectableQueue.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt;&gt;
-</code></pre>
-<div class="nested"><p> Creates a new selectable queue.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.SelectableQueue.send" href="#dec:val%20Hopac.Extra.SelectableQueue.send">send</a>: <a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt; -&gt; 'a -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Constructs a job that sends the given message to the selectable queue.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.SelectableQueue.take" href="#dec:val%20Hopac.Extra.SelectableQueue.take">take</a>: <a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt; -&gt; ('a -&gt; bool) -&gt; Alt&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> Constructs an alternative that takes a message that satisfies the given predicate from the specified selectable queue.</div>
+<p> An alternative to take a value to be given on the associated output channel.</p>
 </div>
-<pre><code class="fsharp">module <a id="def:module Hopac.Extra.Stream" href="#dec:module%20Hopac.Extra.Stream">Stream</a> =
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.DirCh.give" href="#dec:val%20Hopac.Extra.DirCh.give">give</a>: <a href="#def:type%20Hopac.Extra.OutCh">OutCh</a>&lt;'a&gt; -&gt; 'a -&gt; Alt&lt;unit&gt;
 </code></pre>
-<div class="nested"><p> Operations for programming with (synchronous) streams.  Both the inputs and the outputs of these stream combinators are given explicitly so that streams can be combined flexibly.<pre><code class="fsharp">type <a id="def:type Hopac.Extra.Stream.In" href="#dec:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; = Alt&lt;'x&gt;
-</code></pre>
-<div class="nested"><p> For flexibility, input to stream combinators is represented as alternatives.  Typically the alternative takes a message on a channel, but other alternatives can also be used.</div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.Stream.Out" href="#dec:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; = 'x -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> For flexibility, output of stream combinators is represented as action job constructors.  Typically the job gives a message on a channel, but other actions can also be used.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.imp" href="#dec:val%20Hopac.Extra.Stream.imp">imp</a>: (<a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; #Job&lt;unit&gt;) -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt;&gt;
-</code></pre>
-<div class="nested"><p> Creates a new channel and passes it as the output action to the given partially applied stream.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.filterFun" href="#dec:val%20Hopac.Extra.Stream.filterFun">filterFun</a>: ('x -&gt; bool) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that forwards those messages from the given input to the output that satisfy the given predicate.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.filterJob" href="#dec:val%20Hopac.Extra.Stream.filterJob">filterJob</a>: ('x -&gt; #Job&lt;bool&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that forwards those messages from the given input to the output that satisfy the given predicate.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.iterateFun" href="#dec:val%20Hopac.Extra.Stream.iterateFun">iterateFun</a>: 'x -&gt; ('x -&gt; 'x) -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that iterates the given operation to create a stream of messages.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.iterateJob" href="#dec:val%20Hopac.Extra.Stream.iterateJob">iterateJob</a>: 'x -&gt; ('x -&gt; #Job&lt;'x&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that iterates the given operation to create a stream of messages.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.mapFun" href="#dec:val%20Hopac.Extra.Stream.mapFun">mapFun</a>: ('x -&gt; 'y ) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'y&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that maps messages from the given input to the given output with the given operation.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.mapJob" href="#dec:val%20Hopac.Extra.Stream.mapJob">mapJob</a>: ('x -&gt; #Job&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'y&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that maps messages from the given input to the given output with the given operation.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.sumWithFun" href="#dec:val%20Hopac.Extra.Stream.sumWithFun">sumWithFun</a>: ('x -&gt; 'y -&gt; 'z) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'z&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that maps messages from the given pair of inputs to the given output with the given operation.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.Stream.sumWithJob" href="#dec:val%20Hopac.Extra.Stream.sumWithJob">sumWithJob</a>: ('x -&gt; 'y -&gt; #Job&lt;'z&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'z&gt; -&gt; Job&lt;unit&gt;
-</code></pre>
-<div class="nested"><p> Creates a server that maps messages from the given pair of inputs to the given output with the given operation.</div>
+<p> An alternative to give a value to be taken on the associated input channel.</p>
 </div>
-<pre><code class="fsharp">type <a id="def:type Hopac.Extra.SwapCh" href="#dec:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> Synchronous swap channel: when two jobs communicate on a swap channel, each sends a value and receives a value.</div>
-<pre><code class="fsharp">module <a id="def:module Hopac.Extra.SwapCh" href="#dec:module%20Hopac.Extra.SwapCh">SwapCh</a> =
-</code></pre>
-<div class="nested"><p> Operations on swap channels.<pre><code class="fsharp">module <a id="def:module Hopac.Extra.SwapCh.Now" href="#dec:module%20Hopac.Extra.SwapCh.Now">Now</a> =
-</code></pre>
-<div class="nested"><p> Immediate or non-workflow operations on swap channels.<pre><code class="fsharp">val <a id="def:val Hopac.Extra.SwapCh.Now.create" href="#dec:val%20Hopac.Extra.SwapCh.Now.create">create</a>: unit -&gt; <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt;
-</code></pre>
-<div class="nested"><p> Creates a new swap channel.</div>
 </div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.SwapCh.create" href="#dec:val%20Hopac.Extra.SwapCh.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt;&gt;
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.IMap" href="#dec:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; when 'k: equality
 </code></pre>
-<div class="nested"><p> Creates a new swap channel.</div>
-<pre><code class="fsharp">val <a id="def:val Hopac.Extra.SwapCh.swap" href="#dec:val%20Hopac.Extra.SwapCh.swap">swap</a>: <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt; -&gt; 'a -&gt; Alt&lt;'a&gt;
+<p> Write once map or dictionary of key-value pairs.</p>
+<p> This data structure is designed for situations in which one or more writer jobs fill a map that one or more reader jobs query.  When a job queries a key-value pair, the job is suspended, unless the map already holds the key-value pair, and resumed once the map is filled with the queried key-value pair.  Once the writers have finished filling the map, the map can be explicitly closed, which means that future and pending queries will be completed immediately.</p>
+<p> The goal is to allow fine grained concurrency between the writers and the readers.  In particular, readers do not need to wait until the map is complete, but can instead proceed as soon as their queries can be answered. On the other hand, it should be straightforward to make sure that the end result is consistent, because filling a write once map is a monotonic process: key-value pairs can be added, but not redefined or removed; map can be closed, but not reopened.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.IMap" href="#dec:module%20Hopac.Extra.IMap">IMap</a> =
 </code></pre>
-<div class="nested"><p> Alternative to swap values with another job.</div>
+<p> Operations on write once maps.</p>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.IMap.Now" href="#dec:module%20Hopac.Extra.IMap.Now">Now</a> =
+</code></pre>
+<p> Immediate operations on write once maps.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.IMap.Now.create" href="#dec:val%20Hopac.Extra.IMap.Now.create">create</a>: unit -&gt; <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt;
+</code></pre>
+<p> Creates a new write once map.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.IMap.create" href="#dec:val%20Hopac.Extra.IMap.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt;&gt;
+</code></pre>
+<p> Returns a job that creates a new write once map.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.IMap.close" href="#dec:val%20Hopac.Extra.IMap.close">close</a>: <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Returns a job that closes the map and answers pending queries negatively.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.IMap.fill" href="#dec:val%20Hopac.Extra.IMap.fill">fill</a>: <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; -&gt; 'k -&gt; 'v -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Returns a job that adds the given key-value pair to the write once map. If the map already has pending queries for the key-value pair, those queries will be answered positively.</p>
+<p> It is considered an error if the map already holds a key-value pair with the same key.  It is also considered an error if the map has been closed.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.IMap.query" href="#dec:val%20Hopac.Extra.IMap.query">query</a>: <a href="#def:type%20Hopac.Extra.IMap">IMap</a>&lt;'k, 'v&gt; -&gt; 'k -&gt; Alt&lt;option&lt;'v&gt;&gt;
+</code></pre>
+<p> Returns an alternative that tries to read the value associated with the given key.  The alternative becomes enabled once there is some value associated with the key in the map or after the map has been closed, in which case the result will be none.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.MChan" href="#dec:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt;
+</code></pre>
+<p> Represents a multicast channel for one to many communication.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.MPort" href="#dec:type%20Hopac.Extra.MPort">MPort</a>&lt;'a&gt;
+</code></pre>
+<p> Represents a port for listening to a multicast channel.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.Multicast" href="#dec:module%20Hopac.Extra.Multicast">Multicast</a> =
+</code></pre>
+<p> Operations on multicast channels.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Multicast.create" href="#dec:val%20Hopac.Extra.Multicast.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt;&gt;
+</code></pre>
+<p> Creates a new multicast channel.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Multicast.port" href="#dec:val%20Hopac.Extra.Multicast.port">port</a>: <a href="#def:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt; -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.MPort">MPort</a>&lt;'a&gt;&gt;
+</code></pre>
+<p> Creates a new port for listening to the given multicast channel.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Multicast.multicast" href="#dec:val%20Hopac.Extra.Multicast.multicast">multicast</a>: <a href="#def:type%20Hopac.Extra.MChan">MChan</a>&lt;'a&gt; -&gt; 'a -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Sends a message to all of the ports listening to the multicast channel.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Multicast.recv" href="#dec:val%20Hopac.Extra.Multicast.recv">recv</a>: <a href="#def:type%20Hopac.Extra.MPort">MPort</a>&lt;'a&gt; -&gt; Alt&lt;'a&gt;
+</code></pre>
+<p> Alternative to receive a message from the given port.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.SelectableQueue" href="#dec:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt;
+</code></pre>
+<p> Represents a selectable buffered queue.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.SelectableQueue" href="#dec:module%20Hopac.Extra.SelectableQueue">SelectableQueue</a> =
+</code></pre>
+<p> Implements a selectable buffered queue similar to what is described in the paper ''Kill-Safe Synchronization Abstractions'' by Matthew Flatt and Robert Bruce Findler.  Note that Hopac doesn't, at least not yet, provide all the operations on threads necessary to make the abstraction kill-safe as described in the paper.  Even without the full kill-safety properties this queue can be quite useful and serves as an interesting example of Concurrent ML -style programming making use of a dynamic number of alternatives.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.SelectableQueue.create" href="#dec:val%20Hopac.Extra.SelectableQueue.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt;&gt;
+</code></pre>
+<p> Creates a new selectable queue.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.SelectableQueue.send" href="#dec:val%20Hopac.Extra.SelectableQueue.send">send</a>: <a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt; -&gt; 'a -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Constructs a job that sends the given message to the selectable queue.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.SelectableQueue.take" href="#dec:val%20Hopac.Extra.SelectableQueue.take">take</a>: <a href="#def:type%20Hopac.Extra.SelectableQueue">SelectableQueue</a>&lt;'a&gt; -&gt; ('a -&gt; bool) -&gt; Alt&lt;'a&gt;
+</code></pre>
+<p> Constructs an alternative that takes a message that satisfies the given predicate from the specified selectable queue.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.Stream" href="#dec:module%20Hopac.Extra.Stream">Stream</a> =
+</code></pre>
+<p> Operations for programming with (synchronous) streams.  Both the inputs and the outputs of these stream combinators are given explicitly so that streams can be combined flexibly.</p>
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.Stream.In" href="#dec:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; = Alt&lt;'x&gt;
+</code></pre>
+<p> For flexibility, input to stream combinators is represented as alternatives.  Typically the alternative takes a message on a channel, but other alternatives can also be used.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.Stream.Out" href="#dec:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; = 'x -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> For flexibility, output of stream combinators is represented as action job constructors.  Typically the job gives a message on a channel, but other actions can also be used.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.imp" href="#dec:val%20Hopac.Extra.Stream.imp">imp</a>: (<a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; #Job&lt;unit&gt;) -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt;&gt;
+</code></pre>
+<p> Creates a new channel and passes it as the output action to the given partially applied stream.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.filterFun" href="#dec:val%20Hopac.Extra.Stream.filterFun">filterFun</a>: ('x -&gt; bool) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that forwards those messages from the given input to the output that satisfy the given predicate.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.filterJob" href="#dec:val%20Hopac.Extra.Stream.filterJob">filterJob</a>: ('x -&gt; #Job&lt;bool&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that forwards those messages from the given input to the output that satisfy the given predicate.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.iterateFun" href="#dec:val%20Hopac.Extra.Stream.iterateFun">iterateFun</a>: 'x -&gt; ('x -&gt; 'x) -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that iterates the given operation to create a stream of messages.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.iterateJob" href="#dec:val%20Hopac.Extra.Stream.iterateJob">iterateJob</a>: 'x -&gt; ('x -&gt; #Job&lt;'x&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'x&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that iterates the given operation to create a stream of messages.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.mapFun" href="#dec:val%20Hopac.Extra.Stream.mapFun">mapFun</a>: ('x -&gt; 'y ) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'y&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that maps messages from the given input to the given output with the given operation.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.mapJob" href="#dec:val%20Hopac.Extra.Stream.mapJob">mapJob</a>: ('x -&gt; #Job&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'y&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that maps messages from the given input to the given output with the given operation.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.sumWithFun" href="#dec:val%20Hopac.Extra.Stream.sumWithFun">sumWithFun</a>: ('x -&gt; 'y -&gt; 'z) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'z&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that maps messages from the given pair of inputs to the given output with the given operation.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.Stream.sumWithJob" href="#dec:val%20Hopac.Extra.Stream.sumWithJob">sumWithJob</a>: ('x -&gt; 'y -&gt; #Job&lt;'z&gt;) -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.In">In</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Extra.Stream.Out">Out</a>&lt;'z&gt; -&gt; Job&lt;unit&gt;
+</code></pre>
+<p> Creates a server that maps messages from the given pair of inputs to the given output with the given operation.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Extra.SwapCh" href="#dec:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt;
+</code></pre>
+<p> Synchronous swap channel: when two jobs communicate on a swap channel, each sends a value and receives a value.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.SwapCh" href="#dec:module%20Hopac.Extra.SwapCh">SwapCh</a> =
+</code></pre>
+<p> Operations on swap channels.</p>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Extra.SwapCh.Now" href="#dec:module%20Hopac.Extra.SwapCh.Now">Now</a> =
+</code></pre>
+<p> Immediate or non-workflow operations on swap channels.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.SwapCh.Now.create" href="#dec:val%20Hopac.Extra.SwapCh.Now.create">create</a>: unit -&gt; <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt;
+</code></pre>
+<p> Creates a new swap channel.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.SwapCh.create" href="#dec:val%20Hopac.Extra.SwapCh.create">create</a>: unit -&gt; Job&lt;<a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt;&gt;
+</code></pre>
+<p> Creates a new swap channel.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extra.SwapCh.swap" href="#dec:val%20Hopac.Extra.SwapCh.swap">swap</a>: <a href="#def:type%20Hopac.Extra.SwapCh">SwapCh</a>&lt;'a&gt; -&gt; 'a -&gt; Alt&lt;'a&gt;
+</code></pre>
+<p> Alternative to swap values with another job.</p>
+</div>
 </div>
 </div>
 </td></tr></table></body>
