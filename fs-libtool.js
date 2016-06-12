@@ -46,11 +46,72 @@
     }
   }
 
+  function wrapWithSpan(elem) {
+    var parent = elem.parentElement
+    var span = document.createElement("span")
+    parent.replaceChild(span, elem)
+    span.appendChild(elem)
+    return span
+  }
+
+  function descriptionOf(elem) {
+    if (null === elem)
+      return null
+    if (elem.getAttribute("class") === "description")
+      return elem
+    return descriptionOf(elem.parentElement)
+  }
+
+  function removeIds(elem) {
+    elem.removeAttribute("id")
+    for (var i=0, n=elem.childElementCount; i < n; ++i)
+      removeIds(elem.children[i])
+  }
+
   var init = function(k) {
     $(document).ready(function() {
       $("code").each(function(i, block) {
-        hljs.highlightBlock(block);
-      })})
+        hljs.highlightBlock(block)
+      })
+
+      var tips = []
+
+      $("a").each(function(i, link) {
+        var href = link.getAttribute("href")
+
+        if (href.indexOf("#def:") !== 0)
+          return
+
+        var target = document.getElementById(href.substring(1).replace(/%20/, " "))
+        if (!target)
+          return
+
+        var desc = descriptionOf(target)
+        if (!desc || desc.children.count < 2)
+          return
+
+        var code = desc.children[0].children[0].cloneNode(true)
+        var p = desc.children[1].cloneNode(true)
+
+        removeIds(code)
+        removeIds(p)
+
+        var tooltip = document.createElement("span")
+        tooltip.setAttribute("class", "tooltip")
+
+        tooltip.appendChild(code)
+        tooltip.appendChild(p)
+
+        tips.push({link: link, tooltip: tooltip})
+      })
+
+      tips.forEach(tip => {
+        var span = wrapWithSpan(tip.link)
+        span.setAttribute("class", "anchor")
+
+        span.appendChild(tip.tooltip)
+      })
+    })
     k()
   }
 

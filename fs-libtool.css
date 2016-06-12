@@ -7,6 +7,9 @@ code {
   font-size: 80%;
   border-radius: 3px;
 }
+code.hljs {
+  overflow: visible;
+}
 span.h3 {
   display: inline-block;
   font-style: italic;
@@ -22,4 +25,28 @@ div.description >*:not(:first-child) {
 a {
   text-decoration: none;
   font-weight: bold;
+}
+.anchor {
+  position: relative;
+}
+.tooltip {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  padding: 1em 1em 0 1em;
+  bottom: 110%;
+  left: 50%;
+  width: 30em;
+  overflow: auto;
+  transform: translate(-50%, 0);
+  font-size: 80%;
+}
+.anchor:hover .tooltip {
+  display: inline;
+}
+.tooltip * {
+  word-break: normal;
+  white-space: normal;
 }
