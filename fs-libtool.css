@@ -38,9 +38,9 @@ a {
   padding: 1em 1em 0 1em;
   bottom: 140%;
   left: 50%;
-  width: 30em;
+  width: 40em;
   overflow: auto;
-  transform: translate(-50%, 0);
+  transform: translate(-20%, 0);
   font-size: 80%;
 }
 .anchor:hover .tooltip {
