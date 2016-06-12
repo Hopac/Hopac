@@ -1549,7 +1549,7 @@ module IVar =
 ///
 /// Both a first-order interface, with `create`, `increment` and `decrement`
 /// operations, and a higher-order interface, with `within`, `holding`, `queue`
-/// and `queueAsAlt` operations, are provided for programming with latches.
+/// and `queueAsPromise` operations, are provided for programming with latches.
 type Latch :> Alt<unit>
 #endif
 
@@ -1568,7 +1568,7 @@ module Latch =
 
   /// Creates a job that queues the given job to run as a separate concurrent
   /// job and holds the latch until the queued job either returns or fails with
-  /// an exception.  See also `Latch.queueAsAlt`.
+  /// an exception.  See also `Latch.queueAsPromise`.
   val queue: Latch -> Job<unit> -> Job<unit>
 
   /// Creates a job that queues the given job to run as a separate concurrent
