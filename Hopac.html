@@ -1551,7 +1551,7 @@ val it : int = 832040L
 <p> Represents a dynamic latch.  Latch is similar to the .Net <code class="fsharp hljs">CountdownEvent</code>.</p>
 <p> Latches are used for determining when a finite set of parallel jobs is done. If the size of the set is known a priori, then the latch can be initialized with the size as initial count and then each job just decrements the latch.</p>
 <p> If the size is unknown (dynamic), then a latch is initialized with a count of one, the a priori known jobs are queued to the latch and then the latch is decremented.  A queue operation increments the count immediately and decrements the count after the job is finished.</p>
-<p> Both a first-order interface, with <code class="fsharp hljs">create</code>, <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.Now.increment">increment</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.decrement">decrement</a></code> operations, and a higher-order interface, with <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.within">within</a></code>, <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.holding">holding</a></code>, <code class="fsharp hljs">queue</code> and <code class="fsharp hljs">queueAsAlt</code> operations, are provided for programming with latches.</p>
+<p> Both a first-order interface, with <code class="fsharp hljs">create</code>, <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.Now.increment">increment</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.decrement">decrement</a></code> operations, and a higher-order interface, with <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.within">within</a></code>, <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.holding">holding</a></code>, <code class="fsharp hljs">queue</code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.queueAsPromise">queueAsPromise</a></code> operations, are provided for programming with latches.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Latch" href="#dec:module%20Hopac.Latch">Latch</a> =
 </code></pre>
@@ -1566,7 +1566,7 @@ val it : int = 832040L
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.queue" href="#dec:val%20Hopac.Latch.queue">queue</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
 </code></pre>
-<p> Creates a job that queues the given job to run as a separate concurrent job and holds the latch until the queued job either returns or fails with an exception.  See also <code class="fsharp hljs">Latch.queueAsAlt</code>.</p>
+<p> Creates a job that queues the given job to run as a separate concurrent job and holds the latch until the queued job either returns or fails with an exception.  See also <code class="fsharp hljs"><a href="#def:module%20Hopac.Latch">Latch</a>.<a href="#def:val%20Hopac.Latch.queueAsPromise">queueAsPromise</a></code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.queueAsPromise" href="#dec:val%20Hopac.Latch.queueAsPromise">queueAsPromise</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
 </code></pre>
