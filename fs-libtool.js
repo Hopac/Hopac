@@ -82,7 +82,7 @@
         if (href.indexOf("#def:") !== 0)
           return
 
-        var target = document.getElementById(href.substring(1).replace(/%20/, " "))
+        var target = document.getElementById(href.substring(1).replace(/%20/g, " "))
         if (!target)
           return
 
