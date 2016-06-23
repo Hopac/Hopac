@@ -67,7 +67,7 @@ type Server (params) =
 
 ## Call Patterns
 
-### SyncOnReply: `unit -> Alt<Reply>`
+### CommitOnReply: `unit -> Alt<Reply>`
 
 ```fsharp
 server: opCh *<- Reply
@@ -87,7 +87,7 @@ type Id () =
   member s.New = reqCh :> Alt<_>
 ```
 
-### SyncOnRequest: `Request -> Alt<unit>`
+### CommitOnRequest: `Request -> Alt<unit>`
 
 ```fsharp
 server: opCh ^=> fun Request -> // ...
@@ -111,7 +111,7 @@ type Stack<'x> () =
   member s.Push (x: 'x) = pushCh *<- x
 ```
 
-### SyncOnRequest: `Request -> Alt<Reply>`
+### CommitOnRequest: `Request -> Alt<Reply>`
 
 ```fsharp
 server: opCh ^=> function Request replyIv ->
@@ -123,7 +123,7 @@ server: opCh ^=> function Request replyIv ->
 client: opCh *<-=>- fun replyIv -> Request replyIv
 ```
 
-### SyncOnReply: `Request -> Alt<Reply>`
+### CommitOnReply: `Request -> Alt<Reply>`
 
 ```fsharp
 server: opCh ^=> function Request (replyCh, nack) ->
