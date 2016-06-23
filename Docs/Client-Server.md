@@ -111,7 +111,7 @@ type Stack<'x> () =
   member s.Push (x: 'x) = pushCh *<- x
 ```
 
-### SyncOnRequest: `Request -> Alt<unit>`
+### SyncOnRequest: `Request -> Alt<Reply>`
 
 ```fsharp
 server: opCh ^=> function Request replyIv ->
@@ -123,7 +123,7 @@ server: opCh ^=> function Request replyIv ->
 client: opCh *<-=>- fun replyIv -> Request replyIv
 ```
 
-### SyncOnReply: `Request -> Alt<unit>`
+### SyncOnReply: `Request -> Alt<Reply>`
 
 ```fsharp
 server: opCh ^=> function Request (replyCh, nack) ->
