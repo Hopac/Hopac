@@ -10,14 +10,14 @@ type Server =
    // ...
    opChN: Ch<RequestN>}
 
-let server params =
+let create params =
   let chs = {opCh1 = Ch ()
              // ...
              opChN = Ch ()}
   // ...
   let rec loop state =
-    // "server" ops
     // ...
+    // "server" ops
     let op1 (*...*) = (*...*) chs.opCh1 (*...*)
     // ...
     let opN (*...*) = (*...*) chs.opChN (*...*)
@@ -44,10 +44,10 @@ type Server (params) =
   // ...
   let opChN = Ch ()
 
-  do (*...*)
+  do // ...
      let rec loop state =
-       // "server" ops
        // ...
+       // "server" ops
        let op1 (*...*) = (*...*) opCh1 (*...*)
        // ...
        let opN (*...*) = (*...*) opCh2 (*...*)
