@@ -1113,8 +1113,13 @@ module Alt =
   val inline random: (uint64 -> #Alt<'x>) -> Alt<'x>
 
   /// `chooser xAs` is like `choose xAs` except that the order in which the
-  /// alternatives from the sequence are considered will be determined at random
-  /// each time the alternative is used.  See also: `<~>`.
+  /// alternatives from the sequence are instantiated will be determined at
+  /// random each time the alternative is used.  See also: `<~>`.
+#if DOC
+  ///
+  /// Note that randomization only applies to the instantiation order.  It makes
+  /// no difference after instantiation.
+#endif
   val chooser:  seq<#Alt<'x>> -> Alt<'x>
 
   //# After actions
@@ -2391,9 +2396,12 @@ module Infixes =
   val inline ( <|>* ): Alt<'x> -> Alt<'x> -> Promise<'x>
 
   /// `xA1 <~> xA2` is like `xA1 <|> xA2` except that the order in which `xA1`
-  /// and `xA2` are considered is determined at random every time the
+  /// and `xA2` are instantiated is determined at random every time the
   /// alternative is used.  See also: `chooser`.
 #if DOC
+  ///
+  /// Note that randomization only applies to the instantiation order.  It makes
+  /// no difference after instantiation.
   ///
   /// WARNING: Chained uses of `<~>` do not lead to uniform distributions.
   /// Consider the expression `xA1 <~> xA2 <~> xA3`.  It parenhesizes as `(xA1
