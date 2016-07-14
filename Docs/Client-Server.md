@@ -77,6 +77,11 @@ server: opCh *<- Reply
 client: opCh
 ```
 
+This is a specialized pattern that should only be used when
+* the reply is cheap to compute, because it is computed every time the operation
+  is made available by the server, and
+* there are no request parameters.
+
 #### Example: Unique id server
 
 ```fsharp
@@ -97,6 +102,9 @@ server: opCh ^=> fun Request -> // ...
 client: opCh *<- Request
 ```
 
+This is a specialized pattern that should only be used when
+* the operation cannot fail, because failure cannot be signaled to client.
+
 #### Example: Stack
 
 ```fsharp
@@ -110,6 +118,8 @@ type Stack<'x> () =
   member s.Pop = popCh :> Alt<_>
   member s.Push (x: 'x) = pushCh *<- x
 ```
+
+Note that the above uses two distinct call patterns.
 
 ### CommitOnRequest: `Request -> Alt<Reply>`
 
