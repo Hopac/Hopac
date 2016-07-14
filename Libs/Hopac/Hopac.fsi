@@ -711,7 +711,8 @@ module Job =
   //# Interop
 
   /// Creates a job that performs the asynchronous operation defined by the
-  /// given pair of begin and end operations.
+  /// given pair of `doBegin` and `doEnd` operations.  See also:
+  /// `Alt.fromBeginEnd`.
 #if DOC
   ///
   /// Reference implementation:
@@ -724,16 +725,27 @@ module Job =
   ///>   |> ignore
   ///>   xI
 #endif
-  val inline fromBeginEnd: (AsyncCallback * obj -> IAsyncResult) -> (IAsyncResult -> 'x) -> Job<'x>
+  val inline fromBeginEnd: doBegin: (AsyncCallback * obj -> IAsyncResult)
+                 -> doEnd: (IAsyncResult -> 'x)
+                 -> Job<'x>
 
   /// `fromEndBegin doEnd doBegin` is equivalent to `fromBeginEnd doBegin
   /// doEnd`.
-  val inline fromEndBegin: (IAsyncResult -> 'x) -> (AsyncCallback * obj -> IAsyncResult) -> Job<'x>
+  val inline fromEndBegin: doEnd: (IAsyncResult -> 'x)
+                 -> doBegin: (AsyncCallback * obj -> IAsyncResult)
+                 -> Job<'x>
 
+  /// Creates a job that starts the given async operation and waits for it to
+  /// complete.  See also: `Alt.fromAsync`.
   val inline fromAsync: Async<'x> -> Job<'x>
 
-  val inline byStartingTask:     (unit -> Task<'x>) -> Job<'x>
-  val inline byStartingUnitTask: (unit -> Task)     -> Job<unit>
+  /// Creates a job that calls the given function to start a task and waits for
+  /// it to complete.  See also: `Alt.fromTask`.
+  val inline fromTask:     (unit -> Task<'x>) -> Job<'x>
+
+  /// Creates a job that calls the given function to start a task and waits for
+  /// it to complete.  See also: `Alt.fromUnitTask`.
+  val inline fromUnitTask: (unit -> Task)     -> Job<unit>
 
   /// Creates a job that waits for the given task to finish and then returns the
   /// result of the task.  Note that this does not start the task.  Make sure
@@ -1222,15 +1234,39 @@ module Alt =
 
   //# Interop
 
-  val inline fromBeginEndCancel: (AsyncCallback * obj -> IAsyncResult)
-                       -> (IAsyncResult -> 'x)
-                       -> (IAsyncResult -> unit)
-                       -> Alt<'x>
+  /// Creates an alternative that performs the cancellable asynchronous
+  /// operation defined by the given `doBegin`, `doEnd` and `doCancel`
+  /// operations.  See also: `Job.fromBeginEnd`.
+  val inline fromBeginEnd: doBegin: (AsyncCallback * obj -> IAsyncResult)
+                 -> doEnd: (IAsyncResult -> 'x)
+                 -> doCancel: (IAsyncResult -> unit)
+                 -> Alt<'x>
 
+  /// Creates an alternative that, when instantiated, starts the given
+  /// cancellable async operation and waits for it to complete.  If some other
+  /// alternative is committed to in a choice before the operation completes,
+  /// then the operation is cancelled.  See also: `Job.fromAsync`.
+#if DOC
+  ///
+  /// WARNING: The async operation is started on whichever thread (and
+  /// synchronization context) the job happens to be executed on.  Transfer the
+  /// async operation explicitly to the desired context when necessary.
+#endif
   val inline fromAsync: Async<'x> -> Alt<'x>
 
-  val inline fromCancellableTask:     (CancellationToken -> Task<'x>) -> Alt<'x>
-  val inline fromCancellableUnitTask: (CancellationToken -> Task)     -> Alt<unit>
+  /// Creates an alternative that, when instantiated, calls the given function
+  /// with a cancellation token to start a cancellable task and waits for it to
+  /// complete.  If some other alternative is committed to in a choice before
+  /// the task completes, then the token will be cancelled.  See also:
+  /// `Job.fromTask`.
+  val inline fromTask:     (CancellationToken -> Task<'x>) -> Alt<'x>
+
+  /// Creates an alternative that, when instantiated, calls the given function
+  /// with a cancellation token to start a cancellable task and waits for it to
+  /// complete.  If some other alternative is committed to in a choice before
+  /// the task completes, then the token will be cancelled.  See also:
+  /// `Job.fromUnitTask`.
+  val inline fromUnitTask: (CancellationToken -> Task)     -> Alt<unit>
 
   //# Debugging
 

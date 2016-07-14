@@ -622,9 +622,9 @@ module Alt =
       override xA'.DoJob (wr, xK) = xA.DoJob (&wr, xK)
       override xA'.TryAlt (wr, i, xK, xE) = xA.TryAlt (&wr, i, xK, xE)}
 
-  let inline fromBeginEndCancel (doBegin: AsyncCallback * obj -> IAsyncResult)
-                                (doEnd: IAsyncResult -> 'x)
-                                (doCancel: IAsyncResult -> unit) =
+  let inline fromBeginEnd (doBegin: AsyncCallback * obj -> IAsyncResult)
+                          (doEnd: IAsyncResult -> 'x)
+                          (doCancel: IAsyncResult -> unit) =
     {new FromBeginEnd<'x> () with
       override xJ'.DoBegin (acb, s) = doBegin (acb, s)
       override xJ'.DoEnd (iar) = doEnd iar
@@ -632,12 +632,12 @@ module Alt =
 
   let inline fromAsync (xA: Async<'x>) =
     let (doBegin, doEnd, doCancel) = Async.AsBeginEnd (fun () -> xA)
-    fromBeginEndCancel (fun (acb, s) -> doBegin ((), acb, s)) doEnd doCancel
+    fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd doCancel
 
-  let inline fromCancellableTask (t2xT: CancellationToken -> Task<'x>) =
+  let inline fromTask (t2xT: CancellationToken -> Task<'x>) =
     {new TaskToAlt<_> () with
       override xA'.Start t = t2xT t} :> Alt<_>
-  let inline fromCancellableUnitTask (t2uT: CancellationToken -> Task) =
+  let inline fromUnitTask (t2uT: CancellationToken -> Task) =
     {new TaskToAlt () with
       override xA'.Start t = t2uT t} :> Alt<_>
 
@@ -1405,15 +1405,15 @@ module Job =
     let (doBegin, doEnd, _) = Async.AsBeginEnd (fun () -> xA)
     fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd
 
-  let inline byStartingTask (u2xT: unit -> Task<'x>) =
+  let inline fromTask (u2xT: unit -> Task<'x>) =
     {new TaskToJob<_> () with
       override xJ'.Start () = u2xT ()} :> Job<'x>
-  let inline byStartingUnitTask (u2uT: unit -> Task) =
+  let inline fromUnitTask (u2uT: unit -> Task) =
     {new TaskToJob () with
       override xJ'.Start () = u2uT ()} :> Job<unit>
 
-  let inline awaitTask (xT: Task<'x>) = byStartingTask (fun () -> xT)
-  let inline awaitUnitTask (uT: Task) = byStartingUnitTask (fun () -> uT)
+  let inline awaitTask (xT: Task<'x>) = fromTask (fun () -> xT)
+  let inline awaitUnitTask (uT: Task) = fromUnitTask (fun () -> uT)
 
   let inline bindTask (x2yJ: 'x -> #Job<'y>) (xT: Task<'x>) =
     {new BindTask<'x, 'y> () with

@@ -19,7 +19,7 @@ do let doTaskAltBinds n =
        do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
-         do! dI <|> Alt.fromCancellableTask ^ fun _ -> Task.FromResult ()
+         do! dI <|> Alt.fromTask ^ fun _ -> Task.FromResult ()
      }
      |> run
      let d = timer.Elapsed
