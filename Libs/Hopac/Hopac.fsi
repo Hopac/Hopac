@@ -53,10 +53,6 @@
 /// and it is preferable to construct longer sequences of concurrent operations
 /// to run.
 ///
-/// For some infix operators there are both `Job` and `Alt` level versions.  The
-/// `Alt` level versions end with a question mark `?` that indicates the
-/// selective nature of the operation.
-///
 /// Some higher-order operations make sense to use with both non-concurrent user
 /// defined functions and with user defined concurrent jobs and in such cases
 /// there are often two versions of the higher-order functions, with one having
