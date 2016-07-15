@@ -2104,7 +2104,7 @@ type JobBuilder () =
     Job.fromAsync xA >>= x2yJ
   member inline __.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Job.bindTask x2yJ xT
-  [<Obsolete "The non-generic Task Bind overload will be removed, use `Job.awaitUnitTask`.">]
+  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
   member inline __.Bind (uT: Task, u2xJ: unit -> Job<'x>) : Job<'x> =
     Job.bindUnitTask u2xJ uT
   member inline __.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
@@ -2117,7 +2117,7 @@ type JobBuilder () =
   member inline __.ReturnFrom (xO: IObservable<'x>) = xO.onceAlt :> Job<_>
   member inline __.ReturnFrom (xA: Async<'x>) : Job<'x> = Job.fromAsync xA
   member inline __.ReturnFrom (xT: Task<'x>) : Job<'x> = Job.awaitTask xT
-  [<Obsolete "The non-generic Task ReturnFrom overload will be removed, use `Job.awaitUnitTask`.">]
+  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
   member inline __.ReturnFrom (uT: Task) : Job<unit> = Job.awaitUnitTask uT
   member inline __.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
   member inline __.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =

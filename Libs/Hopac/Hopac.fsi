@@ -2678,6 +2678,7 @@ type JobBuilder =
   member inline Bind: IObservable<'x> * ('x   -> Job<'y>) -> Job<'y>
   member inline Bind:       Async<'x> * ('x   -> Job<'y>) -> Job<'y>
   member inline Bind:        Task<'x> * ('x   -> Job<'y>) -> Job<'y>
+  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
   member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
   member inline Bind:         Job<'x> * ('x   -> Job<'y>) -> Job<'y>
 
@@ -2692,6 +2693,7 @@ type JobBuilder =
   member inline ReturnFrom: IObservable<'x> -> Job<'x>
   member inline ReturnFrom:       Async<'x> -> Job<'x>
   member inline ReturnFrom:        Task<'x> -> Job<'x>
+  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
   member inline ReturnFrom:        Task     -> Job<unit>
   member inline ReturnFrom:         Job<'x> -> Job<'x>
 
