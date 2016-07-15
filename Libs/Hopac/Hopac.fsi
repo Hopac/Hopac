@@ -771,7 +771,7 @@ module Job =
   /// `bindTask x2yJ xT` is equivalent to `awaitTask xT >>= x2yJ`.
   val inline bindTask:     ('x   -> #Job<'y>) -> Task<'x> -> Job<'y>
 
-  /// `bindUnitTask u2xJ uT` is equivalent to `awaitTask uT >>= u2xJ`.
+  /// `bindUnitTask u2xJ uT` is equivalent to `awaitUnitTask uT >>= u2xJ`.
   val inline bindUnitTask: (unit -> #Job<'y>) -> Task     -> Job<'y>
 
   //# Debugging
