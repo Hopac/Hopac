@@ -1,8 +1,5 @@
-// --------------------------------------------------------------------------------------
-// FAKE build script
-// --------------------------------------------------------------------------------------
-
 #r @"packages/FAKE/tools/FakeLib.dll"
+
 open Fake
 open Fake.Git
 open Fake.AssemblyInfoFile
@@ -12,175 +9,118 @@ open Fake.PaketTemplate
 open System.IO
 open System
 
+let inline (^) x = x
 
-// --------------------------------------------------------------------------------------
-// START TODO: Provide project-specific details below
-// --------------------------------------------------------------------------------------
-
-// Information about the project are used
-//  - for version and project name in generated AssemblyInfo file
-//  - by the generated NuGet package
-//  - to run tests and to publish documentation on GitHub gh-pages
-//  - for documentation, you also need to edit info in "docs/tools/generate.fsx"
-
-// The name of the project
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
 let project = "Hopac"
 
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#."
-
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
 let description = "Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous, concurrent and reactive programs. Hopac is licensed under a MIT-style license. See project website for further information."
-
-// List of author names (for NuGet package)
 let authors = ["Housemarque Inc."]
-
 let company = "Housemarque Inc."
 let copyright = "© Housemarque Inc."
+let tags = "f#, fsharp, parallel, async, concurrent, reactive"
 
 let keyFile = "../../Hopac.snk"
 
-// Tags for your project (for NuGet package)
-let tags = "f#, fsharp, parallel, async, concurrent, reactive"
+let strongName = Environment.GetEnvironmentVariable "HOPAC_STRONG_NAME" <> null
 
-// Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
-
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted
-let gitOwner = "Hopac"
-let gitHome = "https://github.com/" + gitOwner
-
-// The name of the project on GitHub
-let gitName = "Hopac"
-
-// The url for the raw files hosted
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/Hopac"
-
-// --------------------------------------------------------------------------------------
-// END TODO: The rest of the file includes standard build steps
-// --------------------------------------------------------------------------------------
-
-// Read additional information from the release notes document
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
+
 type ProjectType = FSharp | CSharp
 
-let strongName = System.Environment.GetEnvironmentVariable("HOPAC_STRONG_NAME") <> null
-
 type Project =
-    { Type: ProjectType
-      Name: string
-      Folder: string
-      ProjectFile: string
-      StrongName: bool }
+  {Type: ProjectType
+   Name: string
+   Folder: string
+   ProjectFile: string
+   StrongName: bool}
 
 let coreProjects =
-    ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
-    |> List.map (fun projectName ->
-        let folder = "Libs" @@ projectName
-        let projectType, projectFile =
-            !! (folder + "/*")
-            |> Seq.choose (fun file ->
-                match  (Path.GetExtension file).ToLower() with
-                | ".fsproj" -> Some (FSharp, file)
-                | ".csproj" -> Some (CSharp, file)
-                | _ -> None)
-            |> Seq.toList
-            |> function
-               | h :: _ -> h
-               | _ -> failwithf "Project folder %s does not contain project file." projectName
-        { Type = projectType
-          Name = projectName
-          Folder = folder
-          ProjectFile = projectFile
-          StrongName = strongName })
+  ["Hopac.Core"; "Hopac"; "Hopac.Platform.Net"]
+  |> List.map ^ fun projectName ->
+       let folder = "Libs" @@ projectName
+       let projectType, projectFile =
+         !! (folder + "/*")
+         |> Seq.choose ^ fun file ->
+              match Path.GetExtension(file).ToLower() with
+               | ".fsproj" -> Some (FSharp, file)
+               | ".csproj" -> Some (CSharp, file)
+               | _         -> None
+         |> Seq.toList
+         |> function
+             | h::_ -> h
+             | _    -> failwithf "Project folder %s does not contain project file." projectName
+       {Type = projectType
+        Name = projectName
+        Folder = folder
+        ProjectFile = projectFile
+        StrongName = strongName}
 
-// Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" <| fun _ ->
-    coreProjects
-    |> List.iter (fun project ->
-        let attrs =
-          [ Attribute.Title project.Name
-            Attribute.Product project.Name
-            Attribute.Description summary
-            Attribute.Version release.AssemblyVersion
-            Attribute.FileVersion release.AssemblyVersion
-            Attribute.Company company
-            Attribute.Copyright copyright
-          ]
-
-        let attrs =
-          if project.StrongName then
-            Attribute.KeyFile keyFile :: attrs
-          else attrs
-
-        attrs
-        |> match project.Type with
+Target "AssemblyInfo" ^ fun _ ->
+  coreProjects
+  |> List.iter ^ fun project ->
+       [Attribute.Title project.Name
+        Attribute.Product project.Name
+        Attribute.Description summary
+        Attribute.Version release.AssemblyVersion
+        Attribute.FileVersion release.AssemblyVersion
+        Attribute.Company company
+        Attribute.Copyright copyright]
+       |> fun attrs ->
+            if project.StrongName
+            then Attribute.KeyFile keyFile :: attrs
+            else attrs
+       |> match project.Type with
            | FSharp -> CreateFSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.fs")
-           | CSharp -> Seq.filter (fun a -> a.Name <> "KeyFile") >> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs"))
+           | CSharp -> Seq.filter ^ fun a -> a.Name <> "KeyFile"
+                    >> CreateCSharpAssemblyInfo (project.Folder @@ "AssemblyInfo.cs")
 
-// --------------------------------------------------------------------------------------
-// Clean build results & restore NuGet packages
+Target "Clean" ^ fun _ ->
+  CleanDirs ["bin"]
 
-Target "Clean" <| fun _ ->
-    CleanDirs ["bin"]
-
-// --------------------------------------------------------------------------------------
-// Build library & test project
-
-Target "Build" <| fun _ ->
-    coreProjects
-    |> List.map (fun project -> project.ProjectFile)
-    |> MSBuildRelease "bin" "Rebuild"
-    |> ignore
-
-// --------------------------------------------------------------------------------------
-// Build NuGet packages
-
-Target "PaketBootstrap" <| fun _ ->
-  ExecProcess (fun info ->
-    info.FileName <- "./paket.bootstrapper.exe"
-    info.WorkingDirectory <- ".")
-    TimeSpan.MaxValue
+Target "Build" ^ fun _ ->
+  coreProjects
+  |> List.map ^ fun project -> project.ProjectFile
+  |> MSBuildRelease "bin" "Rebuild"
   |> ignore
 
-Target "PaketTemplate" <| fun _ ->
-  PaketTemplate (fun p ->
-    { p with
-        TemplateType = PaketTemplateType.File
-        Id = Some <| if strongName then "Hopac-StrongName" else "Hopac"
-        Files = [ PaketFileInfo.Include ("bin", "lib/net45") ; PaketFileInfo.Exclude "bin/FSharp.Core*"]
-        Authors = authors
-        Owners = authors
-        Copyright = Some "Copyright 2015"
-        Summary = [summary]
-        Description = [description]
-        Version = Some release.NugetVersion
-        ReleaseNotes = release.Notes
-        Tags = [tags]
-        IconUrl = Some "https://avatars2.githubusercontent.com/u/10173903"
-        ProjectUrl = Some "https://github.com/Hopac/Hopac"
-        LicenseUrl = Some "https://github.com/Hopac/Hopac/blob/master/LICENSE.md"
-        TemplateFilePath = Some "./Hopac.template"
-        Dependencies = ["FSharp.Core", PaketDependencyVersionInfo.GreaterOrEqual (PaketDependencyVersion.Version "3.1.2.5")]
-     })
+Target "PaketBootstrap" ^ fun _ ->
+  TimeSpan.MaxValue
+  |> ExecProcess ^ fun info ->
+       info.FileName <- "./paket.bootstrapper.exe"
+       info.WorkingDirectory <- "."
+  |> ignore
 
-Target "Package" <| fun _ ->
-  Pack (fun p ->
+Target "PaketTemplate" ^ fun _ ->
+  PaketTemplate ^ fun p ->
     {p with
-      TemplateFile = "./Hopac.template"
-      OutputPath = "nuget"
-      ToolPath = "paket.exe"
-    })
+       TemplateType = PaketTemplateType.File
+       Id = Some ^ if strongName then "Hopac-StrongName" else "Hopac"
+       Files = [PaketFileInfo.Include ("bin", "lib/net45")
+                PaketFileInfo.Exclude "bin/FSharp.Core*"]
+       Authors = authors
+       Owners = authors
+       Copyright = Some "Copyright 2015"
+       Summary = [summary]
+       Description = [description]
+       Version = Some release.NugetVersion
+       ReleaseNotes = release.Notes
+       Tags = [tags]
+       IconUrl = Some "https://avatars2.githubusercontent.com/u/10173903"
+       ProjectUrl = Some "https://github.com/Hopac/Hopac"
+       LicenseUrl = Some "https://github.com/Hopac/Hopac/blob/master/LICENSE.md"
+       Dependencies = [("FSharp.Core",
+                        GreaterOrEqual (PaketDependencyVersion.Version "3.1.2.5"))]
+       TemplateFilePath = Some "./Hopac.template"}
 
+Target "Package" ^ fun _ ->
+  Pack ^ fun p ->
+    {p with
+       TemplateFile = "./Hopac.template"
+       OutputPath = "nuget"
+       ToolPath = "paket.exe"}
 
 Target "BuildPackage" DoNothing
-
-// --------------------------------------------------------------------------------------
-// Run all targets by default. Invoke 'build <Target>' to override
 
 Target "All" DoNothing
 
