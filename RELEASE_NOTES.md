@@ -13,7 +13,7 @@
 * Added various missing operators for symmetry.
 * Added `IVar.tryFillFailure`.
 
-#### 0.1.4 - 2015-05-09
+#### 0.1.4 - 2016-05-09
 * New package Hopac-StrongName for those requiring it.
 
 #### 0.1.3 - 15.12.2015
