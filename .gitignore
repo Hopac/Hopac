@@ -4,6 +4,7 @@
 *~
 .\#*
 .fake
+Hopac.template
 \#*\#
 bin
 build_PRIVATE.cmd
@@ -12,5 +13,3 @@ nuget
 obj
 packages
 paket.exe
-
-Hopac.template
