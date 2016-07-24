@@ -1,6 +1,6 @@
 FSharp.Core
-Rx-Core
-Rx-Interfaces
-Rx-Linq
-Rx-Main
-Rx-PlatformServices
+System.Reactive.Core
+System.Reactive.Interfaces
+System.Reactive.Linq
+System.Reactive
+System.Reactive.PlatformServices

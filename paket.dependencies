@@ -2,9 +2,9 @@ source https://www.nuget.org/api/v2
 
 nuget FSharp.Core >= 3.1.2.5
 
-nuget FsCheck 2.2.2 framework: >= net45
-nuget Rx-Core 2.2.5 framework: >= net45
-nuget Rx-Interfaces 2.2.5 framework: >= net45
-nuget Rx-Linq 2.2.5 framework: >= net45
-nuget Rx-Main 2.2.5 framework: >= net45
-nuget Rx-PlatformServices 2.2.5 framework: >= net45
+nuget FsCheck >= 2.5.0 framework: >= net45
+nuget System.Reactive.Core >= 3.0.0 framework: >= net45
+nuget System.Reactive.Interfaces >= 3.0.0 framework: >= net45
+nuget System.Reactive.Linq >= 3.0.0 framework: >= net45
+nuget System.Reactive >= 3.0.0 framework: >= net45
+nuget System.Reactive.PlatformServices >= 3.0.0 framework: >= net45
