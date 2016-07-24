@@ -44,7 +44,6 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assembly.cs" />
     <Compile Include="Communication\Ch.cs" />
     <Compile Include="Communication\IVar.cs" />
     <Compile Include="Communication\Latch.cs" />
