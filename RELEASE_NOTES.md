@@ -4,7 +4,8 @@
 #### 0.2.1 - 2016-06-05
 * Improved structure and formatting of the reference manual.
 * Changed internal stack limit setting mechanism for trampolining.
-* Potentially breaking change: `Stream.Builder.Plus` method was renamed into `Stream.Builder.Combine`.
+* Potentially breaking change: `Stream.Builder.Plus` method was renamed into
+  `Stream.Builder.Combine`.
 * Added `Stream.tryPickJob` and `Stream.tryPickFun`.
 * Fixed `Job.using` to not raise in case given disposable reference is `null`.
 
@@ -29,16 +30,24 @@
 #### 0.1.1 - 2015-11-23
 * XML documentation was missing from `0.1.0`.
 * Updated `FSharp.Core` dependency to `4.0.0.1`.
-* Redesigned infix operator symbols to allow most common expressions to be written without parentheses and also added several new infix operators.  See the documentation for details.
-* Moved all infix operators to the `Hopac.Infixes` module so that one only has to open one module to use infix operators.
-* Introduced `Alt.prepare*` and `Alt.after*` combinators for clarity and uniformity to replace `delay`, `guard` and `wrap`.
+* Redesigned infix operator symbols to allow most common expressions to be
+  written without parentheses and also added several new infix operators.  See
+  the documentation for details.
+* Moved all infix operators to the `Hopac.Infixes` module so that one only has
+  to open one module to use infix operators.
+* Introduced `Alt.prepare*` and `Alt.after*` combinators for clarity and
+  uniformity to replace `delay`, `guard` and `wrap`.
 * Added `Job.isolate` as a workaround for scheduling issues.
 * Minor additions: `Seq.foldFromJob`, `Proc.bind`, `Proc.map`.
 
 #### 0.1.0 - 2015-11-23
-* Redesigned infix operator symbols to allow most common expressions to be written without parentheses and also added several new infix operators.  See the documentation for details.
-* Moved all infix operators to the `Hopac.Infixes` module so that one only has to open one module to use infix operators.
-* Introduced `Alt.prepare*` and `Alt.after*` combinators for clarity and uniformity to replace `delay`, `guard` and `wrap`.
+* Redesigned infix operator symbols to allow most common expressions to be
+  written without parentheses and also added several new infix operators.  See
+  the documentation for details.
+* Moved all infix operators to the `Hopac.Infixes` module so that one only has
+  to open one module to use infix operators.
+* Introduced `Alt.prepare*` and `Alt.after*` combinators for clarity and
+  uniformity to replace `delay`, `guard` and `wrap`.
 * Added `Job.isolate` as a workaround for scheduling issues.
 * Minor additions: `Seq.foldFromJob`, `Proc.bind`, `Proc.map`.
 
@@ -46,7 +55,8 @@
 * Fixed a bug in exception propagation of delayed promises.
 
 #### 0.0.0.47 - 2015-05-27
-* Fixed a bug in counting the number of active worker threads, which is only used by `Scheduler.wait`.
+* Fixed a bug in counting the number of active worker threads, which is only
+  used by `Scheduler.wait`.
 
 #### 0.0.0.46 - 2015-05-24
 * Changed to use `FSharp.Core` from NuGet.
@@ -57,16 +67,22 @@
 * Added basic `Stream.buffer` combinator.
 * Renamed `Stream.subscribe*` to `Stream.consume*` to better describe semantics.
 * Doc refinements.
-* Added `Stream.pullOn`, `Stream.skipWhileJob`, `Stream.skipWhileFun`, `Stream.pullOn`, `Stream.foldBack`, `Stream.mapIgnore`,
-`Stream.ambAll`, `Stream.appendAll`, `Stream.mergeAll` and `Stream.switchAll`
+* Added `Stream.pullOn`, `Stream.skipWhileJob`, `Stream.skipWhileFun`,
+  `Stream.pullOn`, `Stream.foldBack`, `Stream.mapIgnore`, `Stream.ambAll`,
+  `Stream.appendAll`, `Stream.mergeAll` and `Stream.switchAll`
 * Fixed to start reading the serialized variable immediately as documented.
 * Added `Stream.subscribe*` as a shorthand for `Stream.iter* |> queue`.
-* Added mutable `Stream.Property<'x>` that generates property change notifications for e.g. WPF data binding.
+* Added mutable `Stream.Property<'x>` that generates property change
+  notifications for e.g. WPF data binding.
 * Added `doFinalizeJob` and `doFinalizeFun`.
 * Experimental wrapper for streams that tracks space safety via phantom types.
-* Changed `groupByJob` and `groupByFun` to take an additional function/job for forming new groups.
-* Added `Stream.tailsMapFun` and `Stream.initsMapFun` these are useful for lifting the `Stream.tails` and `Stream.inits` functions.
-* Added `keepFollowing1` and renamed `keepLatest` to `keepPreceding` to make the naming more symmetric although the concepts of "following" and "preceding" aren't really fully symmetric (unless you allow time travel).
+* Changed `groupByJob` and `groupByFun` to take an additional function/job for
+  forming new groups.
+* Added `Stream.tailsMapFun` and `Stream.initsMapFun` these are useful for
+  lifting the `Stream.tails` and `Stream.inits` functions.
+* Added `keepFollowing1` and renamed `keepLatest` to `keepPreceding` to make the
+  naming more symmetric although the concepts of "following" and "preceding"
+  aren't really fully symmetric (unless you allow time travel).
 * A slightly more performant implementation of `keepLatestFuns`.
 * Renamed from `lazify` to `keepLatest`.
 * Lazification of live streams.
@@ -77,13 +93,17 @@
 * Removed superfluous methods from `Async.OnWithSchedulerBuilder`.
 
 #### 0.0.0.44 - 2015-03-02
-* Fixed to properly remove waiter in case it timed out rather than was signalled.
+* Fixed to properly remove waiter in case it timed out rather than was
+  signalled.
 * Signal when top timed changes to improve timer accuracy.
 * Add a test of the job computation builder.
 * Remove redundant builder methods.
-* Added `Job.tryFinallyFunDelay`, `Job.tryFinallyJobDelay`, `Job.tryWithDelay` and `Job.whileDoDelay`.
+* Added `Job.tryFinallyFunDelay`, `Job.tryFinallyJobDelay`, `Job.tryWithDelay`
+  and `Job.whileDoDelay`.
 * Added `Stream.mapConst`.
-* Removed `Stream.subscribeOnFirst`, `Stream.subscribeDuring` and `Stream.subscribingTo`, because `Stream.ofObservable` easily covers all of those use cases.
+* Removed `Stream.subscribeOnFirst`, `Stream.subscribeDuring` and
+  `Stream.subscribingTo`, because `Stream.ofObservable` easily covers all of
+  those use cases.
 
 #### 0.0.0.43 - 2015-02-28
 * Scale work sharing by the number of cores.
@@ -107,23 +127,30 @@
 * Added `Job.Scheduler.bind` for wrapping external asynchronous events.
 * Added `Alt.withNackFun`.
 * Inlineable `withNack` avoids closure allocation.
-* Added experimental support for running async comptations on the main synchronization context, which must be explicitly configured by application code.
-* Added `IObservable<'x>.onceAltOn` extension method for conveniently interfacing Hopac with suitable observables.
+* Added experimental support for running async comptations on the main
+  synchronization context, which must be explicitly configured by application
+  code.
+* Added `IObservable<'x>.onceAltOn` extension method for conveniently
+  interfacing Hopac with suitable observables.
 * Added `TopLevel.startDelay` and `TopLevel.queueDelay` for convenience.
-* Renamed `Builder.Join` to `Builder.Plus` and recognized that `Zero´ must also be abstract.
+* Renamed `Builder.Join` to `Builder.Plus` and recognized that `Zero´ must also
+  be abstract.
 
 #### 0.0.0.41 - 2015-02-11
 * Make sure `StaticData` is initialized, fix for #52.
 * Don't capture context, fix for #53.
 * Added `Promise.Now.never`.
-* Optimized anonymous class initialization patterns: small time and space improvement across the board.
+* Optimized anonymous class initialization patterns: small time and space
+  improvement across the board.
 * Another MissingMethodException workaround.
 
 #### 0.0.0.40 - 2015-02-06
-* Changed the priority queue to a simple leftist heap and added some extra logic to purge abandoned timeouts while merging. See #50.
+* Changed the priority queue to a simple leftist heap and added some extra logic
+  to purge abandoned timeouts while merging. See #50.
 * Added `TopLevel.memo` as an alias for `Promise.Now.delay`.
 * Added `Stream.takeAndSkipUntil`.
-* Disable inlining of `Latch.Now.create` as an attempt to work around a `MissingMethodException`.
+* Disable inlining of `Latch.Now.create` as an attempt to work around a
+  `MissingMethodException`.
 * Fixing `combineLatest` to properly discard unmatched elements.
 * Add more reference implementations to the docs.
 * Renamed `Stream.switchOn` to `Stream.switchTo`.
@@ -153,7 +180,8 @@
 
 #### 0.0.0.37 - 2015-01-21
 * Merge Hopac.Extra package.
-* Renamed `Streams.finallyFun` to `Streams.onCloseFun` to emphasize semantic differences.
+* Renamed `Streams.finallyFun` to `Streams.onCloseFun` to emphasize semantic
+  differences.
 * Added `Streams.subscribeDuring`.
 * Added `Streams.subscribe` to easily convert observables to streams.
 * Added `Streams.finallyJob`.
@@ -164,9 +192,10 @@
 * Flexible typing.
 * `select` and `pick` are not necessary.
 * Added `Streams.scanFrom*` and `Streams.foldFrom*`.
-* Reduced the synchronization properties of StreamVar and StreamSrc.
+* Reduced the synchronization properties of `StreamVar` and `StreamSrc`.
 * Added `Alt.raises` and `Streams.error`.
-* Added experimental `IAsyncDisposable` interface and associated `Job.usingAsync` combinator.
+* Added experimental `IAsyncDisposable` interface and associated
+  `Job.usingAsync` combinator.
 * Added `Streams.tails`.
 * Added `Alt.Ignore`.
 * Generalized `MVar.modifyFun` and `MVar.modifyJob` to alternatives.
@@ -175,8 +204,10 @@
 * Fixed to refer to Xamarin.iOS rather than MonoTouch.
 
 #### 0.0.0.34 - 2014-12-19
-* Removed ThreadPool and WaitHandle extension methods, because they are not supported on PCL profiles.
-* Removed Scheduler ThreadPriority option, because ThreadPriority is not supported on PCL profiles.
+* Removed ThreadPool and WaitHandle extension methods, because they are not
+  supported on PCL profiles.
+* Removed Scheduler ThreadPriority option, because ThreadPriority is not
+  supported on PCL profiles.
 * Reorganized to PCL and platform libraries.
 
 #### 0.0.0.33 - 2014-12-11
@@ -190,7 +221,8 @@
 * Fixed bug in delayed promises as selective operations.
 
 #### 0.0.0.30 - 2014-11-19
-* Fixed a couple of (exception handling) cases where nacks were not triggered correctly.
+* Fixed a couple of (exception handling) cases where nacks were not triggered
+  correctly.
 * Added non-operator versions of bind, map and wrap for convenience.
 * Reintroduced lazy promises.
 * Enhanced timeOut to work with zero and infinite time spans.
@@ -213,10 +245,11 @@
 
 #### 0.0.0.24 - 2014-07-27
 * Switched to .Net framework 4.5 (was 4.5.1).
-* Removed For array overload to avoid typing issue.  Array.iterJob should now be used in performance critical cases.
-* Added experimental Async &lt;-&gt; Job interop support.
-* Renamed &lt;|&gt; to &lt;|&gt;? and added &lt;|&gt; with result type restricted to Job.
+* Removed For array overload to avoid typing issue.  `Array.iterJob` should now
+  be used in performance critical cases.
+* Added experimental Async <-> Job interop support.
+* Renamed `<|>` to `<|>?` and added `<|>` with result type restricted to `Job`.
 * IVar is now inherited from Promise and both now have low level polling ops.
 
 #### 0.0.0.23 - 2014-07-22
-* Fixed bug in Ch.Try.give introduced in previous version.</releaseNotes>
+* Fixed bug in `Ch.Try.give` introduced in previous version.
