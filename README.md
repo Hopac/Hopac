@@ -1,11 +1,14 @@
-# Hopac
+[ [Hopac](http://hopac.github.io/Hopac/Hopac.html) ]
 
 Hopac is a [Concurrent ML](http://cml.cs.uchicago.edu/) style concurrent
 programming library for F#.
 
-Library Reference: [Hopac](http://hopac.github.io/Hopac/Hopac.html), [Hopac.Experimental](http://hopac.github.io/Hopac/Hopac.Experimental.html)
+[![NuGet version](https://badge.fury.io/nu/Hopac.svg)](https://badge.fury.io/nu/Hopac) [![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/srux0s4jy3ahvb84?svg=true)](https://ci.appveyor.com/project/VesaKarvonen/hopac) [![Travis Build Status](https://travis-ci.org/Hopac/Hopac.svg?branch=master)](https://travis-ci.org/Hopac/Hopac)
 
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/3l7omyrsbm1yioet)](https://ci.appveyor.com/project/vasily-kirichenko/hopac)
-[![Travis Build Status](https://travis-ci.org/Hopac/Hopac.svg?branch=master)](https://travis-ci.org/Hopac/Hopac)
+Here is a Bash script to get started:
 
-[![NuGet version](https://badge.fury.io/nu/Hopac.svg)](https://badge.fury.io/nu/Hopac)
+```sh
+git clone --recursive https://github.com/Hopac/Hopac.git
+cd Hopac
+./build.sh test
+```
