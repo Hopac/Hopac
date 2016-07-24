@@ -8,6 +8,7 @@ environment:
     CYG_ARCH: x86
 
 install:
+  - 'git submodule update --init --recursive'
   - 'appveyor DownloadFile http://cygwin.com/setup-%CYG_ARCH%.exe -FileName setup.exe'
   - 'setup.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P git >NUL'
   - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
