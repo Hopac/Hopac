@@ -1,4 +1,4 @@
-#### 0.3.0 - 2016-07-20
+#### 0.3.0 - 2016-07-XX
 * Redesigned interop primitives with other async mechanisms.
 
 #### 0.2.1 - 2016-06-05
