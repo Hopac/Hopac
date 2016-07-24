@@ -5,10 +5,8 @@
 .\#*
 .gh-pages
 .nuget
-Hopac.template
 \#*\#
 bin
-build_PRIVATE.cmd
 obj
 packages
 paket.exe
