@@ -181,7 +181,13 @@ EOF
 }
 
 build-sln() {
-  for SOLUTION in Hopac.sln ; do
+  if [ -z "$RUN" ] ; then
+    local SOLUTIONS="Hopac.sln Todo.sln"
+  else
+    local SOLUTIONS="Hopac.sln"
+  fi
+
+  for SOLUTION in $SOLUTIONS ; do
     for CONFIG in Debug Release ; do
       $BUILD /nologo /verbosity:quiet /p:Configuration=$CONFIG $SOLUTION
     done
