@@ -3,13 +3,12 @@
 *.userprefs
 *~
 .\#*
-.fake
+.gh-pages
+.nuget
 Hopac.template
 \#*\#
 bin
 build_PRIVATE.cmd
-gh-pages
-nuget
 obj
 packages
 paket.exe

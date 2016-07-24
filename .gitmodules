@@ -1,0 +1,3 @@
+[submodule "FsiRefGen"]
+	path = FsiRefGen
+	url = https://github.com/polytypic/FsiRefGen.git
