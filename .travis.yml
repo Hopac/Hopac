@@ -2,6 +2,9 @@ language: csharp
 
 sudo: false
 
+env:
+ - CONFIGS=Release
+
 mono:
  - latest
 

@@ -109,13 +109,17 @@ export NOTES="$(cat RELEASE_NOTES.md         |
 
 ################################################################################
 
-if [ -z "$RUN" ] ; then
-  export SOLUTIONS="Hopac.sln Todo.sln"
-else
-  export SOLUTIONS="Hopac.sln"
+if [ -z "$SOLUTIONS" ] ; then
+  if [ -z "$RUN" ] ; then
+    export SOLUTIONS="Hopac.sln Todo.sln"
+  else
+    export SOLUTIONS="Hopac.sln"
+  fi
 fi
 
-export CONFIGS="Debug Release"
+if [ -z "$CONFIGS" ] ; then
+  export CONFIGS="Debug Release"
+fi
 
 ################################################################################
 
@@ -252,7 +256,7 @@ build() {
 }
 
 tests() {
-  for CONFIG in Debug Release ; do
+  for CONFIG in $CONFIGS ; do
     for TEST in $(ls Tests) ; do
       echo "$TEST ($CONFIG)"
       $RUN "Tests/$TEST/bin/$CONFIG/$TEST.exe"

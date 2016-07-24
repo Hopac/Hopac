@@ -2,6 +2,7 @@ platform: Any CPU
 
 environment:
   global:
+    CONFIGS: Debug
     HOPAC_STRONG_NAME: 1
     CYG_ROOT: C:/cygwin
     CYG_CACHE: C:/cygwin/var/cache/setup
