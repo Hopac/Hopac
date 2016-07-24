@@ -53,5 +53,4 @@
       <Name>Hopac.Core</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\..\.paket\paket.targets" />
 </Project>
