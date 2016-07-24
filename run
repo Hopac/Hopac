@@ -264,6 +264,10 @@ case "$1" in
   "build")
     build
     ;;
+  "rebuild")
+    clean
+    build
+    ;;
   "tests")
     build
     tests
