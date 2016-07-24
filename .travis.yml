@@ -5,7 +5,5 @@ sudo: false
 mono:
  - latest
 
-solution: Hopac.sln
-
 script:
- - ./build.sh test
+ - ./run tests

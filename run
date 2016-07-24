@@ -192,9 +192,13 @@ generate-docs() {
     git clone -b gh-pages $PROJECT_URL .gh-pages
   fi
 
-  ./FsiRefGen/run --out .gh-pages/$VERSION --name Hopac -- \
-      Libs/Hopac/Hopac.fsi                        \
-      Libs/Hopac/Stream.fsi                       \
+  ./FsiRefGen/run             \
+      --out .gh-pages         \
+      --name Hopac            \
+      --icon $ICON_URL        \
+      --                      \
+      Libs/Hopac/Hopac.fsi    \
+      Libs/Hopac/Stream.fsi   \
       Libs/Hopac/TopLevel.fsi
 }
 
@@ -206,7 +210,7 @@ build() {
   build-nupkg
 }
 
-run-tests() {
+tests() {
   for CONFIG in Debug Release ; do
     for TEST in $(ls Tests) ; do
       echo "$TEST ($CONFIG)"
@@ -218,7 +222,10 @@ run-tests() {
 
 publish-docs() {
   pushd .gh-pages
-  git add $VERSION
+  mkdir -p $VERSION
+  cp *.html *.css *.js $VERSION/
+  git add $VERSION/*
+  git add *.html *.css *.js
   git commit -m "Updated docs for $VERSION"
   git push
   popd
@@ -257,14 +264,17 @@ case "$1" in
   "build")
     build
     ;;
-  "test")
+  "tests")
     build
-    run-tests
+    tests
+    ;;
+  "generate-docs")
+    generate-docs
     ;;
   "publish")
     clean
     build
-    run-tests
+    tests
     publish
     ;;
   *)

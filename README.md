@@ -10,5 +10,5 @@ Here is a Bash script to get started:
 ```sh
 git clone --recursive https://github.com/Hopac/Hopac.git
 cd Hopac
-./build.sh test
+./run tests
 ```
