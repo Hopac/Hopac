@@ -78,6 +78,16 @@ export ICON_URL="https://avatars2.githubusercontent.com/u/10173903"
 
 ################################################################################
 
+if [ -n "$HOPAC_STRONG_NAME" ] ; then
+  export KEYFILE="../../Hopac.snk"
+  export NUPKG_ID="Hopac-StrongName"
+else
+  export KEYFILE=""
+  export NUPKG_ID="Hopac"
+fi
+
+################################################################################
+
 export VERSION="$(cat RELEASE_NOTES.md                |
                   grep -e '^#### '                    |
                   sed -e 's/^#### *\([^ ]*\) .*/\1/g' |
@@ -109,6 +119,24 @@ get-deps() {
   run-paket install
 }
 
+attrs() {
+  local ATTRS="AssemblyTitleAttribute(\"$1\")
+AssemblyProductAttribute(\"$1\")
+AssemblyDescriptionAttribute(\"$SUMMARY\")
+AssemblyVersionAttribute(\"$VERSION\")
+AssemblyFileVersionAttribute(\"$VERSION\")
+AssemblyCompanyAttribute(\"$COMPANY\")
+AssemblyCopyrightAttribute(\"$COPYRIGHT\")
+"
+
+  if [ -n "$KEYFILE" ] ; then
+    ATTRS="AssemblyKeyFileAttribute(\"$KEYFILE\")
+$ATTRS"
+  fi
+
+  echo -n "$ATTRS"
+}
+
 generate-infos() {
   for LIB in Hopac Hopac.Platform.Net ; do
     overwrite-changed Libs/$LIB/AssemblyInfo.fs <<EOF
@@ -118,13 +146,7 @@ namespace System
 
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("$LIB")>]
-[<assembly: AssemblyProductAttribute("$LIB")>]
-[<assembly: AssemblyDescriptionAttribute("$SUMMARY")>]
-[<assembly: AssemblyVersionAttribute("$VERSION")>]
-[<assembly: AssemblyFileVersionAttribute("$VERSION")>]
-[<assembly: AssemblyCompanyAttribute("$COMPANY")>]
-[<assembly: AssemblyCopyrightAttribute("$COPYRIGHT")>]
+$(attrs $LIB | sed -e 's#^#[<assembly: #g' -e 's#$#>]#g')
 
 do ()
 EOF
@@ -136,13 +158,7 @@ EOF
 
 using System.Reflection;
 
-[assembly: AssemblyTitleAttribute("$LIB")]
-[assembly: AssemblyProductAttribute("$LIB")]
-[assembly: AssemblyDescriptionAttribute("$SUMMARY")]
-[assembly: AssemblyVersionAttribute("$VERSION")]
-[assembly: AssemblyFileVersionAttribute("$VERSION")]
-[assembly: AssemblyCompanyAttribute("$COMPANY")]
-[assembly: AssemblyCopyrightAttribute("$COPYRIGHT")]
+$(attrs $LIB | sed -e 's#^#[assembly: #g' -e 's#$#]#g')
 EOF
   done
 }
@@ -162,7 +178,7 @@ build-nupkg() {
 
   overwrite-changed $TEMPLATE <<EOF
 type file
-id Hopac
+id $NUPKG_ID
 version $VERSION
 summary $SUMMARY
 description $DESCRIPTION
@@ -279,7 +295,12 @@ case "$1" in
     clean
     build
     tests
-    publish
+    if [ -n "$KEYFILE" ] ; then
+      publish
+    else
+      echo
+      echo "You may publish .nuget/$NUPKG_ID.$VERSION.nupkg manually."
+    fi
     ;;
   *)
     echo "Unknown command '$command'."
