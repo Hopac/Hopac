@@ -1,3 +1,6 @@
+p {
+  hyphens: auto;
+}
 p > code.hljs {
   display: inline;
   padding: 1px;
@@ -6,6 +9,7 @@ code {
   font-family: "Lucida Console", Monaco, monospace;
   font-size: 80%;
   border-radius: 3px;
+  hyphens: none;
 }
 code.hljs {
   overflow: visible;
