@@ -5,9 +5,11 @@
 if hash xbuild &> /dev/null ; then
   export BUILD=xbuild
   export RUN=mono
+  export FSI=fsharpi
 elif hash msbuild.exe &> /dev/null ; then
   export BUILD=msbuild.exe
   export RUN=
+  export FSI=fsianycpu.exe
 else
   echo "Couldn't find build command."
   exit 1
@@ -286,22 +288,18 @@ EOF
   publish-docs
 }
 
+repl() {
+  rlwrap -t dumb $FSI --use:Hopac.fsx
+}
+
 ################################################################################
 
 case "$1" in
-  "clean")
-    clean
-    ;;
   "build")
     build
     ;;
-  "rebuild")
+  "clean")
     clean
-    build
-    ;;
-  "tests")
-    build
-    tests
     ;;
   "generate-docs")
     generate-docs
@@ -316,6 +314,18 @@ case "$1" in
       echo
       echo "You may publish .nuget/$NUPKG_ID.$VERSION.nupkg manually."
     fi
+    ;;
+  "rebuild")
+    clean
+    build
+    ;;
+  "repl")
+    build
+    repl
+    ;;
+  "tests")
+    build
+    tests
     ;;
   *)
     echo "Unknown command '$1'."
