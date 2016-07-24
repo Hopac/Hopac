@@ -1,4 +1,4 @@
-[ [Hopac](http://hopac.github.io/Hopac/Hopac.html) ]
+[ [Reference](http://hopac.github.io/Hopac/Hopac.html) ]
 
 Hopac is a [Concurrent ML](http://cml.cs.uchicago.edu/) style concurrent
 programming library for F#.
