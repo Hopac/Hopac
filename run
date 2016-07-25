@@ -320,7 +320,7 @@ case "$1" in
     generate-docs
     build-nupkg
     tests
-    if [ -n "$KEYFILE" ] ; then
+    if [ -z "$KEYFILE" ] ; then
       publish
     else
       echo
