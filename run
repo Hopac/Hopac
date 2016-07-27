@@ -7,7 +7,7 @@ if hash xbuild &> /dev/null ; then
   RUN=mono
   FSI=fsharpi
 elif hash msbuild.exe &> /dev/null ; then
-  BUILD=msbuild.exe
+  BUILD="msbuild.exe /maxcpucount"
   RUN=
   FSI=fsianycpu.exe
 else
