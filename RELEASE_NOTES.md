@@ -1,5 +1,9 @@
-#### 0.3.0 - 2016-07-XX
-* Redesigned interop primitives with other async mechanisms.
+#### 0.3.0 - 2016-07-28
+* Introduced new optimized primitives for `Task`, `Async` and `Begin-End`
+  interop (see reference), obsoleting interop primitives `Async.toJob`,
+  `Async.toAlt`, `Task.awaitJob`, and `Task.bindJob`.
+* Deprecated `JobBuilder.Bind` and `JobBuilder.ReturnFrom` overloads with
+  non-generic `Task` as argument, because they cause type-inference problems.
 
 #### 0.2.1 - 2016-06-05
 * Improved structure and formatting of the reference manual.
