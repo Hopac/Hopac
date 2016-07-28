@@ -1,3 +1,25 @@
+nav {
+  height: 1em;
+}
+.navbar {
+  position: fixed;
+  background: oldlace;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px;
+  width: 100%;
+  margin: 0;
+  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.10);
+  z-index: 1;
+}
+.navbar > * {
+  margin-left: 2em;
+  margin-right: 2em;
+}
+.navbar > * > * {
+  margin-right: 0.5em;
+}
 p {
   hyphens: auto;
 }
