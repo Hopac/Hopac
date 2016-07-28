@@ -262,13 +262,15 @@ generate_docs() {
     git clone -b gh-pages $PROJECT_URL .gh-pages
   fi
 
-  ./FsiRefGen/run             \
-      --out .gh-pages         \
-      --name Hopac            \
-      --icon $ICON_URL        \
-      --                      \
-      Libs/Hopac/Hopac.fsi    \
-      Libs/Hopac/Stream.fsi   \
+  ./FsiRefGen/run                \
+      --out .gh-pages            \
+      --name Hopac               \
+      --icon $ICON_URL           \
+      --version $VERSION         \
+      --project-url $PROJECT_URL \
+      --                         \
+      Libs/Hopac/Hopac.fsi       \
+      Libs/Hopac/Stream.fsi      \
       Libs/Hopac/TopLevel.fsi
 }
 
