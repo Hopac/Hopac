@@ -2,7 +2,9 @@
 
 (function() {
   // XXX navbar hack
-  window.addEventListener("hashchange", function() { scrollBy(0, -40) })
+  function navbarHack() { scrollBy(0, -40) }
+
+  window.addEventListener("hashchange", navbarHack)
 
   function hop(op, k) {setTimeout(function() {op(k)}, 0)}
   function ignore() {}
@@ -73,6 +75,8 @@
 
   var init = function(k) {
     $(document).ready(function() {
+      navbarHack()
+
       $("code").each(function(i, block) {
         hljs.highlightBlock(block)
       })
