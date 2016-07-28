@@ -375,23 +375,28 @@ benchmarks() {
   done
 }
 
+pull_submodules() {
+  git submodule foreach git pull origin master
+}
+
 ################################################################################
 
 while [ $# != 0 ] ; do
   COMMAND="$1"
   shift
   case "$COMMAND" in
-    "-x")             set -x ;;
-    "benchmarks")     benchmarks ;;
-    "build")          build ;;
-    "build_nupkg")    build_nupkg ;;
-    "clean")          clean ;;
-    "generate_docs")  generate_docs ;;
-    "publish")        publish ;;
-    "publish_docs")   publish_docs ;;
-    "repl")           repl ;;
-    "restore")        restore ;;
-    "tests")          tests ;;
+    "-x")              set -x ;;
+    "benchmarks")      benchmarks ;;
+    "build")           build ;;
+    "build_nupkg")     build_nupkg ;;
+    "clean")           clean ;;
+    "generate_docs")   generate_docs ;;
+    "pull_submodules") pull_submodules ;;
+    "publish")         publish ;;
+    "publish_docs")    publish_docs ;;
+    "repl")            repl ;;
+    "restore")         restore ;;
+    "tests")           tests ;;
     *)
       echo "Unknown command: '$COMMAND'"
       exit 1
