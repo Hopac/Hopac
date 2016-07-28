@@ -21,7 +21,6 @@ did() {
   local VAR=DID_$1
   if [ -z ${!VAR} ] ; then
     eval "$VAR=1"
-    echo "Performing $1"
     return 1
   else
     return 0
