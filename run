@@ -304,48 +304,51 @@ repl() {
 
 ################################################################################
 
-case "$1" in
-  "build")
-    build
-    ;;
-  "clean")
-    clean
-    ;;
-  "generate-docs")
-    generate-docs
-    ;;
-  "publish")
-    clean
-    build
-    generate-docs
-    build-nupkg
-    tests
-    if [ -z "$KEYFILE" ] ; then
-      publish
-    else
-      echo
-      echo "You may publish .nuget/$NUPKG_ID.$VERSION.nupkg manually."
-    fi
-    ;;
-  "rebuild")
-    clean
-    build
-    ;;
-  "repl")
-    SOLUTIONS=Hopac.sln
-    CONFIGS=Release
-    build
-    repl
-    ;;
-  "restore")
-    restore
-    ;;
-  "tests")
-    build
-    tests
-    ;;
-  *)
-    echo "Unknown command: '$1'"
-    exit 1
-    ;;
-esac
+while [ $# != 0 ] ; do
+  COMMAND="$1"
+  shift
+  case "$COMMAND" in
+    "-x")
+      set -x
+      ;;
+    "build")
+      build
+      ;;
+    "clean")
+      clean
+      ;;
+    "generate-docs")
+      generate-docs
+      ;;
+    "publish")
+      clean
+      build
+      generate-docs
+      build-nupkg
+      tests
+      if [ -z "$KEYFILE" ] ; then
+        publish
+      else
+        echo
+        echo "You may publish .nuget/$NUPKG_ID.$VERSION.nupkg manually."
+      fi
+      ;;
+    "repl")
+      SOLUTIONS=Hopac.sln
+      CONFIGS=Release
+      build
+      repl
+      ;;
+    "restore")
+      restore
+      ;;
+    "tests")
+      build
+      tests
+      ;;
+    *)
+      echo "Unknown command: '$1'"
+      exit 1
+      ;;
+  esac
+done
