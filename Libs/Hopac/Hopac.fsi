@@ -741,7 +741,8 @@ module Job =
   ///
   /// WARNING: The async operation is started on whichever thread (and
   /// synchronization context) the job happens to be executed on.  Transfer the
-  /// async operation explicitly to the desired context when necessary.
+  /// async operation explicitly, e.g. by using `Async.SwitchToContext`, to the
+  /// desired context when necessary.
 #endif
   val inline fromAsync: Async<'x> -> Job<'x>
 
@@ -1256,7 +1257,8 @@ module Alt =
   ///
   /// WARNING: The async operation is started on whichever thread (and
   /// synchronization context) the job happens to be executed on.  Transfer the
-  /// async operation explicitly to the desired context when necessary.
+  /// async operation explicitly, e.g. by using `Async.SwitchToContext`, to the
+  /// desired context when necessary.
 #endif
   val inline fromAsync: Async<'x> -> Alt<'x>
 
