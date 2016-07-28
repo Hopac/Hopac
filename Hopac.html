@@ -1089,6 +1089,7 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.fromAsync" href="#dec:val%20Hopac.Job.fromAsync">fromAsync</a>: <a href="#def:module%20Hopac.Extensions.Async">Async</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
 <p> Creates a job that starts the given async operation and waits for it to complete.  See also: <code class="fsharp hljs"><a href="#def:module%20Hopac.Alt">Alt</a>.<a href="#def:val%20Hopac.Alt.fromAsync">fromAsync</a></code>.</p>
+<p> WARNING: The async operation is started on whichever thread (and synchronization context) the job happens to be executed on.  Transfer the async operation explicitly to the desired context when necessary.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.fromTask" href="#dec:val%20Hopac.Job.fromTask">fromTask</a>: (unit -&gt; <a href="#def:type%20Hopac.Extensions.Task">Task</a>&lt;'x&gt;) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
