@@ -9,4 +9,4 @@ mono:
  - latest
 
 script:
- - ./run tests
+ - ./run -x tests

@@ -16,4 +16,4 @@ install:
   - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
 
 build_script:
-  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && ./run tests"'
+  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && ./run -x tests"'
