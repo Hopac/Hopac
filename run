@@ -339,6 +339,11 @@ $NOTES
 
 EOF
 
+    read -p "Enter Y to proceed: " INPUT
+    if [ "$INPUT" != "Y" ] ; then
+      exit 1
+    fi
+
     publish_nupkg
     publish_docs
     tag_release
