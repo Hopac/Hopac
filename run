@@ -398,7 +398,13 @@ while [ $# != 0 ] ; do
     "restore")         restore ;;
     "tests")           tests ;;
     *)
-      echo "Unknown command: '$COMMAND'"
+      echo "Unknown command: '$COMMAND'
+
+If you are using Bash, you can execute
+
+  source run.complete
+
+to get autocompletion for this script."
       exit 1
       ;;
   esac
