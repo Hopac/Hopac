@@ -737,6 +737,12 @@ module Job =
 
   /// Creates a job that starts the given async operation and waits for it to
   /// complete.  See also: `Alt.fromAsync`.
+#if DOC
+  ///
+  /// WARNING: The async operation is started on whichever thread (and
+  /// synchronization context) the job happens to be executed on.  Transfer the
+  /// async operation explicitly to the desired context when necessary.
+#endif
   val inline fromAsync: Async<'x> -> Job<'x>
 
   /// Creates a job that calls the given function to start a task and waits for
