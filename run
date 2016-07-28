@@ -17,6 +17,17 @@ fi
 
 ################################################################################
 
+did() {
+  local VAR=DID_$1
+  if [ -z ${!VAR} ] ; then
+    eval "$VAR=1"
+    echo "Performing $1"
+    return 1
+  else
+    return 0
+  fi
+}
+
 equals() {
   if [ -f "$1" -a -f "$2" ] ; then
     diff -q "$1" "$2" > /dev/null
@@ -25,7 +36,7 @@ equals() {
   fi
 }
 
-overwrite-changed() {
+overwrite_changed() {
   cat > .tmp
   if ! equals .tmp "$1" ; then
     cp .tmp "$1"
@@ -33,7 +44,7 @@ overwrite-changed() {
   rm .tmp
 }
 
-check-clean() {
+check_git_clean() {
   local BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   if [ "master" != "$BRANCH" ] ; then
     echo "Have you merged your changes to master? (currently on $BRANCH)"
@@ -56,7 +67,7 @@ $CHANGES"
   fi
 }
 
-run-paket() {
+run_paket() {
   local PAKET=.paket/paket.exe
 
   if [ ! -f $PAKET ] ; then
@@ -124,6 +135,8 @@ fi
 ################################################################################
 
 clean() {
+  if did clean ; then return 0 ; fi
+
   find Libs -name bin | xargs rm -rf
   find Libs -name obj | xargs rm -rf
 
@@ -134,7 +147,9 @@ clean() {
 }
 
 restore() {
-  run-paket restore
+  if did restore ; then return 0 ; fi
+
+  run_paket restore
 }
 
 attrs() {
@@ -167,9 +182,11 @@ $ATTRS"
   echo -n "$ATTRS"
 }
 
-generate-infos() {
+generate_infos() {
+  if did generate_infos ; then return 0 ; fi
+
   for LIB in Hopac Hopac.Platform.Net ; do
-    overwrite-changed Libs/$LIB/AssemblyInfo.fs <<EOF
+    overwrite_changed Libs/$LIB/AssemblyInfo.fs <<EOF
 // NOTE: This is a generated file.
 
 namespace System
@@ -183,7 +200,7 @@ EOF
   done
 
   for LIB in Hopac.Core ; do
-    overwrite-changed Libs/$LIB/AssemblyInfo.cs <<EOF
+    overwrite_changed Libs/$LIB/AssemblyInfo.cs <<EOF
 // NOTE: This is a generated file.
 
 using System.Reflection;
@@ -194,7 +211,12 @@ EOF
   done
 }
 
-build-sln() {
+build() {
+  if did build ; then return 0 ; fi
+
+  restore
+  generate_infos
+
   for SOLUTION in $SOLUTIONS ; do
     for CONFIG in $CONFIGS ; do
       $BUILD /nologo /verbosity:quiet /p:Configuration=$CONFIG $SOLUTION
@@ -202,12 +224,14 @@ build-sln() {
   done
 }
 
-build-nupkg() {
+build_nupkg() {
+  if did build_nupkg ; then return 0 ; fi
+
+  build
+
   mkdir -p .nuget
-
   local TEMPLATE=.nuget/Hopac.template
-
-  overwrite-changed $TEMPLATE <<EOF
+  overwrite_changed $TEMPLATE <<EOF
 type file
 id $NUPKG_ID
 version $VERSION
@@ -229,10 +253,12 @@ files
 dependencies FSharp.Core >= 3.1.2.5
 EOF
 
-  run-paket pack output .nuget templatefile $TEMPLATE
+  run_paket pack output .nuget templatefile $TEMPLATE
 }
 
-generate-docs() {
+generate_docs() {
+  if did generate_docs ; then return 0 ; fi
+
   if [ ! -d .gh-pages ] ; then
     git clone -b gh-pages $PROJECT_URL .gh-pages
   fi
@@ -247,13 +273,11 @@ generate-docs() {
       Libs/Hopac/TopLevel.fsi
 }
 
-build() {
-  restore
-  generate-infos
-  build-sln
-}
-
 tests() {
+  if did tests ; then return 0 ; fi
+
+  build
+
   for CONFIG in $CONFIGS ; do
     for TEST in $(ls Tests) ; do
       echo "$TEST ($CONFIG)"
@@ -263,7 +287,11 @@ tests() {
   done
 }
 
-publish-docs() {
+publish_docs() {
+  if did publish_docs ; then return 0 ; fi
+
+  generate_docs
+
   pushd .gh-pages
   mkdir -p $VERSION
   cp *.html *.css *.js $VERSION/
@@ -274,14 +302,34 @@ publish-docs() {
   popd
 }
 
-publish-nupkg() {
+publish_nupkg() {
+  if did publish_nupkg ; then return 0 ; fi
+
+  build_nupkg
+
   paket push url https://www.nuget.org file .nuget/Hopac.$VERSION.nupkg
+}
+
+tag_release() {
+  if did tag_release ; then return 0 ; fi
+
   git tag -a $VERSION -m $VERSION
   git push --follow-tags
 }
 
 publish() {
-  cat <<EOF
+  if did publish ; then return 0 ; fi
+
+  check_git_clean
+
+  clean
+  build
+  generate_docs
+  build_nupkg
+  tests
+
+  if [ -z "$KEYFILE" ] ; then
+    cat <<EOF
 
 You are about to publish Hopac.
 
@@ -292,13 +340,19 @@ $NOTES
 
 EOF
 
-  check-clean
-
-  publish-nupkg
-  publish-docs
+    publish_nupkg
+    publish_docs
+    tag_release
+  else
+    echo
+    echo "You may publish .nuget/$NUPKG_ID.$VERSION.nupkg manually."
+  fi
 }
 
 repl() {
+  SOLUTIONS=Hopac.sln
+  CONFIGS=Release
+  build
   rlwrap -t dumb $FSI --use:Hopac.fsx
 }
 
@@ -308,46 +362,18 @@ while [ $# != 0 ] ; do
   COMMAND="$1"
   shift
   case "$COMMAND" in
-    "-x")
-      set -x
-      ;;
-    "build")
-      build
-      ;;
-    "clean")
-      clean
-      ;;
-    "generate-docs")
-      generate-docs
-      ;;
-    "publish")
-      clean
-      build
-      generate-docs
-      build-nupkg
-      tests
-      if [ -z "$KEYFILE" ] ; then
-        publish
-      else
-        echo
-        echo "You may publish .nuget/$NUPKG_ID.$VERSION.nupkg manually."
-      fi
-      ;;
-    "repl")
-      SOLUTIONS=Hopac.sln
-      CONFIGS=Release
-      build
-      repl
-      ;;
-    "restore")
-      restore
-      ;;
-    "tests")
-      build
-      tests
-      ;;
+    "-x")             set -x ;;
+    "build")          build ;;
+    "build_nupkg")    build_nupkg ;;
+    "clean")          clean ;;
+    "generate_docs")  generate_docs ;;
+    "publish")        publish ;;
+    "publish_docs")   publish_docs ;;
+    "repl")           repl ;;
+    "restore")        restore ;;
+    "tests")          tests ;;
     *)
-      echo "Unknown command: '$1'"
+      echo "Unknown command: '$COMMAND'"
       exit 1
       ;;
   esac
