@@ -1,6 +1,9 @@
 "use strict";
 
 (function() {
+  // XXX navbar hack
+  window.addEventListener("hashchange", function() { scrollBy(0, -40) })
+
   function hop(op, k) {setTimeout(function() {op(k)}, 0)}
   function ignore() {}
   function queue(op) {hop(op, ignore)}
