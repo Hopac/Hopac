@@ -357,7 +357,20 @@ repl() {
   SOLUTIONS=Hopac.sln
   CONFIGS=Release
   build
+
   rlwrap -t dumb $FSI --use:Hopac.fsx
+}
+
+benchmarks() {
+  SOLUTIONS=Hopac.sln
+  CONFIGS=Release
+  build
+
+  for BENCHMARK in $(ls Benchmarks) ; do
+    echo "$BENCHMARK"
+    $RUN "Benchmarks/$BENCHMARK/bin/Release/$BENCHMARK.exe"
+    echo
+  done
 }
 
 ################################################################################
@@ -367,6 +380,7 @@ while [ $# != 0 ] ; do
   shift
   case "$COMMAND" in
     "-x")             set -x ;;
+    "benchmarks")     benchmarks ;;
     "build")          build ;;
     "build_nupkg")    build_nupkg ;;
     "clean")          clean ;;
