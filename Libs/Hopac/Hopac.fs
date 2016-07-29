@@ -1901,6 +1901,7 @@ module Extensions =
           | null -> Worker.PushNew (&wr, JobWork<'x> (xJ', xK))
           | _    -> start wr.Scheduler xA xK}
 
+    [<Obsolete "`Async.toJobOn` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toJobOn (context: SynchronizationContext) (xA: Async<'x>) =
       match context with
        | null ->
@@ -1915,6 +1916,7 @@ module Extensions =
        | null -> f x
        | ctxt -> ctxt.Post ((fun _ -> f x), null)
 
+    [<Obsolete "`Async.toAltOn` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
       Alt.withNackJob <| fun nack ->
       {new Job<Alt<'x>> () with

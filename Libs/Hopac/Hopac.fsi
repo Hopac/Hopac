@@ -2069,6 +2069,7 @@ module Extensions =
     /// synchronization context for execution and then waits until the operation
     /// finishes.  As a special case, `toJobOn null xA` is equivalent to `toJob
     /// xA`.  See also: `toAlt`, `toAltOn`.
+    [<Obsolete "`Async.toJobOn` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toJobOn: SynchronizationContext -> Async<'x> -> Job<'x>
 
     /// Creates an alternative that, when instantiated, starts the given async
@@ -2092,6 +2093,7 @@ module Extensions =
     /// the alternative is not committed to, the async operation is cancelled.
     /// As a special case, `toAltOn null xA` is equivalent to `toAlt xA`.  See
     /// also: `toJob`, `toJobOn`.
+    [<Obsolete "`Async.toAltOn` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toAltOn: SynchronizationContext -> Async<'x> -> Alt<'x>
 
     /// Creates an async operation that starts the given job on the specified
@@ -2670,7 +2672,7 @@ module Proc =
 /// In the above, an ellipsis denotes either a job, an ordinary expression or a
 /// pattern.  A job workflow can also directly bind and return from async
 /// operations, which will be started on a Hopac worker thread (see
-/// `Async.toJob`), tasks (see `Task.awaitJob`) and observables (see
+/// `Job.fromAsync`), tasks (see `Job.awaitTask`) and observables (see
 /// `IObservable<'x>.onceAlt`).
 ///
 /// Note that the `Job` module provides more combinators for constructing jobs.
