@@ -2022,7 +2022,7 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 </code></pre>
 <p> Creates an alternative that, using the given job constructor, constructs a query with a reply channel and a nack, sends it to the query channel and commits on taking the reply from the reply channel.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.*&lt;+-&gt;-">*&lt;+-&gt;-</a></code>.</p>
 <p> Reference implementation:</p>
-<pre><code class="fsharp hljs">let ( <a href="#def:val%20Hopac.Infixes.*&lt;+-&gt;=">*&lt;+-&gt;=</a> ) qCh rCh2n2qJ = <a href="#def:module%20Hopac.Alt">Alt</a>.<a href="#def:val%20Hopac.Alt.withNackJob">withNackJob</a> ^ fun nack -&gt;
+<pre><code class="fsharp hljs">let ( <a href="#def:val%20Hopac.Infixes.*&lt;+-&gt;=">*&lt;+-&gt;=</a> ) qCh rCh2n2qJ = <a href="#def:module%20Hopac.Alt">Alt</a>.<a href="#def:val%20Hopac.Alt.withNackJob">withNackJob</a> &lt;| fun nack -&gt;
   let rCh = <a href="#def:type%20Hopac.Ch">Ch</a>&lt;_&gt; ()
   rCh2n2qJ rCh nack <a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a> fun q -&gt;
   qCh <a href="#def:val%20Hopac.Infixes.*&lt;+">*&lt;+</a> q <a href="#def:val%20Hopac.Infixes.&gt;&gt;-.">&gt;&gt;-.</a>
@@ -2045,7 +2045,7 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 </code></pre>
 <p> Creates an alternative that, using the given job constructor, constructs a query with a reply variable, commits on giving the query and reads the reply variable.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.*&lt;-=&gt;-">*&lt;-=&gt;-</a></code>.</p>
 <p> Reference implementation:</p>
-<pre><code class="fsharp hljs">let ( <a href="#def:val%20Hopac.Infixes.*&lt;-=&gt;=">*&lt;-=&gt;=</a> ) qCh rI2qJ = <a href="#def:module%20Hopac.Alt">Alt</a>.<a href="#def:val%20Hopac.Alt.prepareJob">prepareJob</a> ^ fun () -&gt;
+<pre><code class="fsharp hljs">let ( <a href="#def:val%20Hopac.Infixes.*&lt;-=&gt;=">*&lt;-=&gt;=</a> ) qCh rI2qJ = <a href="#def:module%20Hopac.Alt">Alt</a>.<a href="#def:val%20Hopac.Alt.prepareJob">prepareJob</a> &lt;| fun () -&gt;
   let rI = <a href="#def:type%20Hopac.IVar">IVar</a>&lt;_&gt; ()
   rI2qJ rI <a href="#def:val%20Hopac.Infixes.&gt;&gt;-">&gt;&gt;-</a> fun q -&gt;
   qCh <a href="#def:val%20Hopac.Infixes.*&lt;-">*&lt;-</a> q <a href="#def:val%20Hopac.Infixes.^=&gt;.">^=&gt;.</a>
@@ -2230,7 +2230,7 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 <p> Creates a job that either runs the given jobs sequentially, like <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.&lt;&amp;&gt;">&lt;&amp;&gt;</a></code>, or as two separate parallel jobs and returns a pair of their results.</p>
 <p> Note that when the jobs are run in parallel and both of them raise an exception then the created job raises an <code class="fsharp hljs">AggregateException</code>.</p>
 <p> Note that, because it is not guaranteed that the jobs would always be run as separate parallel jobs, a job such as</p>
-<pre><code class="fsharp hljs">let mayDeadlock = delay ^ fun () -&gt;
+<pre><code class="fsharp hljs">let mayDeadlock = delay &lt;| fun () -&gt;
   let c = <a href="#def:type%20Hopac.Ch">Ch</a> ()
   <a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.give">give</a> c () <a href="#def:val%20Hopac.Infixes.&lt;*&gt;">&lt;*&gt;</a> <a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.take">take</a> c
 </code></pre>
