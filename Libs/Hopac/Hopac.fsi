@@ -2298,7 +2298,7 @@ module Infixes =
   ///
   /// Reference implementation:
   ///
-  ///> let ( *<+->= ) qCh rCh2n2qJ = Alt.withNackJob ^ fun nack ->
+  ///> let ( *<+->= ) qCh rCh2n2qJ = Alt.withNackJob <| fun nack ->
   ///>   let rCh = Ch<_> ()
   ///>   rCh2n2qJ rCh nack >>= fun q ->
   ///>   qCh *<+ q >>-.
@@ -2333,7 +2333,7 @@ module Infixes =
   ///
   /// Reference implementation:
   ///
-  ///> let ( *<-=>= ) qCh rI2qJ = Alt.prepareJob ^ fun () ->
+  ///> let ( *<-=>= ) qCh rI2qJ = Alt.prepareJob <| fun () ->
   ///>   let rI = IVar<_> ()
   ///>   rI2qJ rI >>- fun q ->
   ///>   qCh *<- q ^=>.
@@ -2568,7 +2568,7 @@ module Infixes =
   /// Note that, because it is not guaranteed that the jobs would always be run
   /// as separate parallel jobs, a job such as
   ///
-  ///> let mayDeadlock = delay ^ fun () ->
+  ///> let mayDeadlock = delay <| fun () ->
   ///>   let c = Ch ()
   ///>   Ch.give c () <*> Ch.take c
   ///
