@@ -14,13 +14,13 @@
     var ops = Array.prototype.slice.call(arguments)
     return function(k) {
       var n = ops.length
+      function co() {
+        if (!--n)
+          k()
+      }
       if (!n) {
         k()
       } else {
-        function co() {
-          if (!--n)
-            k()
-        }
         for (var i=0; i<ops.length; ++i)
           ops[i](co)
       }
@@ -112,7 +112,7 @@
         tips.push({link: link, tooltip: tooltip})
       })
 
-      tips.forEach(tip => {
+      tips.forEach(function (tip) {
         var span = wrapWithSpan(tip.link)
         span.setAttribute("class", "anchor")
 
