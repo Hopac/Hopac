@@ -1,3 +1,6 @@
+#### 0.3.1 - 2016-07-30
+* Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.
+
 #### 0.3.0 - 2016-07-28
 * Introduced new optimized primitives for `Task`, `Async` and `Begin-End`
   interop (see reference), obsoleting interop primitives `Async.toJob`,
