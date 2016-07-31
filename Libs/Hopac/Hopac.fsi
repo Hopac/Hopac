@@ -748,7 +748,7 @@ module Job =
 
   /// Creates an async operation that starts the given job and waits for it to
   /// complete.
-  val toAsync: Job<'x> -> Async<'x>
+  val   toAsync: Job<'x> -> Async<'x>
 
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromTask`.
@@ -1272,7 +1272,7 @@ module Alt =
   /// alternative by making a cancellation alternative available.  Note that
   /// cancellation is not transactional and `Alt.toAsync >> Alt.fromAsync` is
   /// not the identity function.  See also: `Job.toAsync`.
-  val toAsync: Alt<'x> -> Async<'x>
+  val   toAsync: Alt<'x> -> Async<'x>
 
   /// Creates an alternative that, when instantiated, calls the given function
   /// with a cancellation token to start a cancellable task and waits for it to
