@@ -1893,7 +1893,7 @@ module Extensions =
     let inline startIn (context: SynchronizationContext) sr xA xK =
       context.Post ((fun _ -> start sr xA xK), null)
 
-    [<Obsolete "`Async.toJob` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toJob` will be removed as interop primitives are being revised. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toJob (xA: Async<'x>) =
       {new Job<'x> () with
         override xJ'.DoJob (wr, xK) =
@@ -1901,7 +1901,7 @@ module Extensions =
           | null -> Worker.PushNew (&wr, JobWork<'x> (xJ', xK))
           | _    -> start wr.Scheduler xA xK}
 
-    [<Obsolete "`Async.toJobOn` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toJobOn` will be removed as interop primitives are being revised. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toJobOn (context: SynchronizationContext) (xA: Async<'x>) =
       match context with
        | null ->
@@ -1916,7 +1916,7 @@ module Extensions =
        | null -> f x
        | ctxt -> ctxt.Post ((fun _ -> f x), null)
 
-    [<Obsolete "`Async.toAltOn` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toAltOn` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
       Alt.withNackJob <| fun nack ->
       {new Job<Alt<'x>> () with
@@ -1938,7 +1938,7 @@ module Extensions =
           override uK'.DoCont (_, _) = ts.Cancel () ; ts.Dispose ()})
          xAK.DoCont (&wr, Alt.tryFinallyFun rI ts.Dispose)}
 
-    [<Obsolete "`Async.toAlt` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toAlt` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAlt (xA: Async<'x>) = toAltOn null xA
 
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =

@@ -2062,14 +2062,14 @@ module Extensions =
     /// thread or synchronization context switching async operation in your
     /// async operation.
 #endif
-    [<Obsolete "`Async.toJob` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toJob` will be removed as interop primitives are being revised. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toJob: Async<'x> -> Job<'x>
 
     /// Creates a job that posts the given async operation to the specified
     /// synchronization context for execution and then waits until the operation
     /// finishes.  As a special case, `toJobOn null xA` is equivalent to `toJob
     /// xA`.  See also: `toAlt`, `toAltOn`.
-    [<Obsolete "`Async.toJobOn` has been deprecated. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toJobOn` will be removed as interop primitives are being revised. Use `Job.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toJobOn: SynchronizationContext -> Async<'x> -> Job<'x>
 
     /// Creates an alternative that, when instantiated, starts the given async
@@ -2084,7 +2084,7 @@ module Extensions =
     /// thread or synchronization context switching async operation in your
     /// async operation.
 #endif
-    [<Obsolete "`Async.toAlt` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toAlt` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toAlt: Async<'x> -> Alt<'x>
 
     /// Creates an alternative that, when instantiated, posts the given async
@@ -2093,7 +2093,7 @@ module Extensions =
     /// the alternative is not committed to, the async operation is cancelled.
     /// As a special case, `toAltOn null xA` is equivalent to `toAlt xA`.  See
     /// also: `toJob`, `toJobOn`.
-    [<Obsolete "`Async.toAltOn` has been deprecated. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
+    [<Obsolete "`Async.toAltOn` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     val toAltOn: SynchronizationContext -> Async<'x> -> Alt<'x>
 
     /// Creates an async operation that starts the given job on the specified
