@@ -9,7 +9,7 @@ open Hopac
 
 /// Convenience bindings for programming with Hopac.
 [<AutoOpen>]
-module TopLevel =
+module Hopac =
   /// Represents a non-deterministic stream of values called a choice stream.
   type Stream<'x> = Stream.Stream<'x>
 
@@ -134,4 +134,39 @@ module TopLevel =
 
   /// Use object as job.  This function is a NOP and is provided as a kind of
   /// syntactic alternative to using a type ascription or an `upcast`.
+  val inline asJob: Job<'x> -> Job<'x>
+
+[<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+module TopLevel =
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  type Stream<'x> = Stream.Stream<'x>
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val job: JobBuilder
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val onMain: Extensions.Async.OnWithSchedulerBuilder
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline queue:                Job<unit> -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline queueIgnore:          Job<_>    -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline queueDelay: (unit -> #Job<_>)   -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline server:               Job<Void> -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline start:                Job<unit> -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline startIgnore:          Job<_>    -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline startDelay: (unit -> #Job<_>)   -> unit
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline run: Job<'x> -> 'x
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline timeOut:       TimeSpan -> Alt<unit>
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline timeOutMillis: int      -> Alt<unit>
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline memo: Job<'x> -> Promise<'x>
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
+  val inline asAlt: Alt<'x> -> Alt<'x>
+  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
   val inline asJob: Job<'x> -> Job<'x>

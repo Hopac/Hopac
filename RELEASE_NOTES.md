@@ -2,6 +2,9 @@
 * Added `Job.toAsync` and marked `Async.ofJobOn` and `Async.Global.ofJob` as
   obsolete.
 * Added `Alt.toAsync`.
+* Renamed the `TopLevel` module to `Hopac`.  This rename is part of eliminating
+  the scheduler concept and was made so that one can refer to e.g `Hopac.run`
+  making it obvious where the functionality is coming from.
 
 #### 0.3.1 - 2016-07-30
 * Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.
