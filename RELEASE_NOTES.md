@@ -9,6 +9,7 @@
   home for the same functionality.
 * Marked `Job.startWithFinalizer` as obsolete.  Use the `Proc` abstraction
   instead.
+* Marked the `Timer` module for removal.  Use the `Hopac` module.
 
 #### 0.3.1 - 2016-07-30
 * Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.

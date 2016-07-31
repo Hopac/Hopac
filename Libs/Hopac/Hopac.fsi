@@ -1276,10 +1276,12 @@ module Alt =
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Operations on a wall-clock timer.
+[<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
 module Timer =
 
   /// Operations on the global wall-clock timer.  The global timer is implicitly
   /// associated with the global scheduler.
+  [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
   module Global =
     /// Creates an alternative that, after instantiation, becomes available
     /// after the specified time span.
@@ -1340,13 +1342,13 @@ module Timer =
     /// `IVar.tryFill` as soon as the timeout is no longer useful.  This allows
     /// the timer mechanism to release the memory held by the timeout.
 #endif
+    [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
     val timeOut:       TimeSpan -> Alt<unit>
 
     /// `timeOutMillis n` is equivalent to `timeOut << TimeSpan.FromMilliseconds
     /// <| float n`.
+    [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
     val timeOutMillis: int      -> Alt<unit>
-
-////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
 /// Represents a promise to produce a result at some point in the future.

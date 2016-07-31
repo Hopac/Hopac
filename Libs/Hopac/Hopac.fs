@@ -1570,7 +1570,9 @@ module Proc =
 
 ////////////////////////////////////////////////////////////////////////////////
 
+[<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
 module Timer =
+  [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
   module Global =
     type [<AllowNullLiteral>] WorkTimedUnitCont =
       inherit WorkTimed
@@ -1606,7 +1608,9 @@ module Timer =
             (WorkTimedUnitCont (Environment.TickCount + ms, i, uE.pk, uK))
            uE.TryElse (&wr, i+1)}
 
+    [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
     let timeOut (span: System.TimeSpan) = timeOutTicks span.Ticks
+    [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
     let timeOutMillis (ms: int) = timeOutTicks (int64 ms * 10000L)
 
 ////////////////////////////////////////////////////////////////////////////////
