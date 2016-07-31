@@ -399,6 +399,173 @@ open Infixes
 
 ////////////////////////////////////////////////////////////////////////////////
 
+module Scheduler =
+  open System.Reflection
+
+  type Create =
+    {Foreground: option<bool>
+     IdleHandler: option<Job<int>>
+     MaxStackSize: option<int>
+     NumWorkers: option<int>
+//     Priority: option<ThreadPriority>
+     TopLevelHandler: option<exn -> Job<unit>>}
+    static member Def: Create =
+      {Foreground = None
+       IdleHandler = None
+       MaxStackSize = None
+       NumWorkers = None
+//       Priority = None
+       TopLevelHandler = None}
+
+  module Global =
+    let mutable create = Create.Def
+
+    let setCreate (c: Create) =
+      create <- c
+
+  let create (c: Create) =
+    let create =
+      match StaticData.createScheduler with
+       | null -> StaticData.Init () ; StaticData.createScheduler
+       | create -> create
+    create.Invoke
+     (Option.orDefaultOf c.Foreground,
+      Option.orDefaultOf c.IdleHandler,
+      Option.orDefaultOf c.MaxStackSize,
+      (match c.NumWorkers with
+        | None -> Environment.ProcessorCount
+        | Some n ->
+          if n < 1 then
+            failwithf "Invalid number of workers specified: %d" n
+          n),
+//      (match c.Priority with
+//        | None -> ThreadPriority.Normal
+//        | Some p -> p)
+      Option.orDefaultOf c.TopLevelHandler)
+
+  let startWithActions (sr: Scheduler)
+                       (eF: exn -> unit)
+                       (xF: 'x -> unit)
+                       (xJ: Job<'x>) =
+    Worker.RunOnThisThread (sr, xJ, {new Cont_State<'x, Cont<unit>> () with
+     override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
+     override xK'.DoHandle (wr, e) =
+      Handler.Terminate (&wr, xK'.State)
+      eF e
+     override xK'.DoWork (wr) =
+      Handler.Terminate (&wr, xK'.State)
+      xF xK'.Value
+     override xK'.DoCont (wr, x) =
+      Handler.Terminate (&wr, xK'.State)
+      xF x})
+
+  let startIgnore (sr: Scheduler) (xJ: Job<'x>) =
+    Worker.RunOnThisThread (sr, xJ, Handler<'x, unit> ())
+
+  let inline start (sr: Scheduler) (uJ: Job<unit>) =
+    startIgnore sr uJ
+
+  let queueIgnore (sr: Scheduler) (xJ: Job<'x>) =
+    Scheduler.PushNew (sr, {new WorkQueue () with
+     override w'.DoWork (wr) =
+      let handler = Handler<_, _> ()
+      wr.Handler <- handler
+      xJ.DoJob (&wr, handler)})
+
+  let inline queue sr (uJ: Job<unit>) =
+    queueIgnore sr uJ
+
+  let server (sr: Scheduler) (vJ: Job<Void>) =
+    Worker.RunOnThisThread (sr, vJ, null)
+
+  let run (sr: Scheduler) (xJ: Job<'x>) =
+    let xK' = {new Cont_State<_, _, _, Cont<unit>> () with
+     override xK'.GetProc (wr) =
+      Handler.GetProc (&wr, &xK'.State3)
+     override xK'.DoHandle (wr, e) =
+      Handler.Terminate (&wr, xK'.State3)
+      xK'.State1 <- e
+      Condition.Pulse (xK', &xK'.State2)
+     override xK'.DoWork (wr) =
+      Handler.Terminate (&wr, xK'.State3)
+      Condition.Pulse (xK', &xK'.State2)
+     override xK'.DoCont (wr, x) =
+      Handler.Terminate (&wr, xK'.State3)
+      xK'.Value <- x
+      Condition.Pulse (xK', &xK'.State2)}
+    Worker.RunOnThisThread (sr, xJ, xK')
+    Condition.Wait (xK', &xK'.State2)
+    match xK'.State1 with
+     | null -> xK'.Value
+     | e -> Util.forward e
+
+  let wait (sr: Scheduler) =
+    if sr.NumActive > 0 then
+      Interlocked.Increment &sr.NumPulseWaiters |> ignore
+      Monitor.Enter sr
+      while sr.NumActive > 0 do
+        Monitor.Wait sr |> ignore
+      Monitor.Exit sr
+      Interlocked.Decrement &sr.NumPulseWaiters |> ignore
+
+  let kill (sr: Scheduler) =
+    Scheduler.Kill sr
+
+////////////////////////////////////////////////////////////////////////////////
+
+[<AutoOpen>]
+module Global =
+
+  let reallyInitGlobalScheduler () =
+    StaticData.Init ()
+    let t = typeof<Scheduler>
+    Monitor.Enter t
+    match StaticData.globalScheduler with
+     | null ->
+       if StaticData.isMono then
+         if System.GC.MaxGeneration = 0 then
+           StaticData.writeLine.Invoke "WARNING: You are using the Boehm GC, \
+            which means that parallel programs cannot scale.  Please configure \
+            your program to use the SGen GC."
+       elif not System.Runtime.GCSettings.IsServerGC then
+         StaticData.writeLine.Invoke "WARNING: You are using single-threaded \
+          workstation garbage collection, which means that parallel programs \
+          cannot scale.  Please configure your program to use server garbage \
+          collection."
+       let sr = Scheduler.create Scheduler.Global.create
+       StaticData.globalScheduler <- sr
+       Monitor.Exit t
+       sr
+     | sr ->
+       Monitor.Exit t
+       sr
+
+  let inline initGlobalScheduler () =
+    match StaticData.globalScheduler with
+     | null -> reallyInitGlobalScheduler ()
+     | sr -> sr
+
+  let reallyInitGlobalTimer () =
+    let sr = initGlobalScheduler ()
+    let t = typeof<Timer>
+    Monitor.Enter t
+    match StaticData.globalTimer with
+     | null ->
+       let tr = Timer sr
+       StaticData.globalTimer <- tr
+       Monitor.Exit t
+       tr
+     | tr ->
+       Monitor.Exit t
+       tr
+
+  let inline initGlobalTimer () =
+    match StaticData.globalTimer with
+     | null -> reallyInitGlobalTimer ()
+     | tr -> tr
+
+////////////////////////////////////////////////////////////////////////////////
+
 module Alt =
   let inline always (x: 'x) = Always<'x> (x) :> Alt<'x>
 
@@ -639,179 +806,34 @@ module Alt =
     let (doBegin, doEnd, doCancel) = Async.AsBeginEnd (fun () -> xA)
     fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd doCancel
 
+  let toAsync (xA: Alt<'x>) =
+    // XXX can be optimized
+    async.Bind (Async.CancellationToken, fun token ->
+    Async.FromContinuations <| fun (x2u, e2u, c2u) ->
+      let cancelled = IVar ()
+      let registration = token.Register (fun () ->
+        OperationCanceledException ()
+        |> IVar.fillFailure cancelled
+        |> Scheduler.startIgnore (initGlobalScheduler ()))
+      let ctx = SynchronizationContext.Current
+      Worker.RunOnThisThread (initGlobalScheduler (), cancelled <|> xA, {new Cont_State<'x, Cont<unit>>() with
+       override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
+       override xK'.DoHandle (wr, e) =
+         registration.Dispose ()
+         if cancelled.Full then passOn ctx (downcast e) c2u else passOn ctx e e2u
+       override xK'.DoWork (wr) =
+         registration.Dispose ()
+         passOn ctx xK'.Value x2u
+       override xK'.DoCont (wr, x) =
+         registration.Dispose ()
+         passOn ctx x x2u}))
+
   let inline fromTask (t2xT: CancellationToken -> Task<'x>) =
     {new TaskToAlt<_> () with
       override xA'.Start t = t2xT t} :> Alt<_>
   let inline fromUnitTask (t2uT: CancellationToken -> Task) =
     {new TaskToAlt () with
       override xA'.Start t = t2uT t} :> Alt<_>
-
-////////////////////////////////////////////////////////////////////////////////
-
-module Scheduler =
-  open System.Reflection
-
-  type Create =
-    {Foreground: option<bool>
-     IdleHandler: option<Job<int>>
-     MaxStackSize: option<int>
-     NumWorkers: option<int>
-//     Priority: option<ThreadPriority>
-     TopLevelHandler: option<exn -> Job<unit>>}
-    static member Def: Create =
-      {Foreground = None
-       IdleHandler = None
-       MaxStackSize = None
-       NumWorkers = None
-//       Priority = None
-       TopLevelHandler = None}
-
-  module Global =
-    let mutable create = Create.Def
-
-    let setCreate (c: Create) =
-      create <- c
-
-  let create (c: Create) =
-    let create =
-      match StaticData.createScheduler with
-       | null -> StaticData.Init () ; StaticData.createScheduler
-       | create -> create
-    create.Invoke
-     (Option.orDefaultOf c.Foreground,
-      Option.orDefaultOf c.IdleHandler,
-      Option.orDefaultOf c.MaxStackSize,
-      (match c.NumWorkers with
-        | None -> Environment.ProcessorCount
-        | Some n ->
-          if n < 1 then
-            failwithf "Invalid number of workers specified: %d" n
-          n),
-//      (match c.Priority with
-//        | None -> ThreadPriority.Normal
-//        | Some p -> p)
-      Option.orDefaultOf c.TopLevelHandler)
-
-  let startWithActions (sr: Scheduler)
-                       (eF: exn -> unit)
-                       (xF: 'x -> unit)
-                       (xJ: Job<'x>) =
-    Worker.RunOnThisThread (sr, xJ, {new Cont_State<'x, Cont<unit>> () with
-     override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
-     override xK'.DoHandle (wr, e) =
-      Handler.Terminate (&wr, xK'.State)
-      eF e
-     override xK'.DoWork (wr) =
-      Handler.Terminate (&wr, xK'.State)
-      xF xK'.Value
-     override xK'.DoCont (wr, x) =
-      Handler.Terminate (&wr, xK'.State)
-      xF x})
-
-  let startIgnore (sr: Scheduler) (xJ: Job<'x>) =
-    Worker.RunOnThisThread (sr, xJ, Handler<'x, unit> ())
-
-  let inline start (sr: Scheduler) (uJ: Job<unit>) =
-    startIgnore sr uJ
-
-  let queueIgnore (sr: Scheduler) (xJ: Job<'x>) =
-    Scheduler.PushNew (sr, {new WorkQueue () with
-     override w'.DoWork (wr) =
-      let handler = Handler<_, _> ()
-      wr.Handler <- handler
-      xJ.DoJob (&wr, handler)})
-
-  let inline queue sr (uJ: Job<unit>) =
-    queueIgnore sr uJ
-
-  let server (sr: Scheduler) (vJ: Job<Void>) =
-    Worker.RunOnThisThread (sr, vJ, null)
-
-  let run (sr: Scheduler) (xJ: Job<'x>) =
-    let xK' = {new Cont_State<_, _, _, Cont<unit>> () with
-     override xK'.GetProc (wr) =
-      Handler.GetProc (&wr, &xK'.State3)
-     override xK'.DoHandle (wr, e) =
-      Handler.Terminate (&wr, xK'.State3)
-      xK'.State1 <- e
-      Condition.Pulse (xK', &xK'.State2)
-     override xK'.DoWork (wr) =
-      Handler.Terminate (&wr, xK'.State3)
-      Condition.Pulse (xK', &xK'.State2)
-     override xK'.DoCont (wr, x) =
-      Handler.Terminate (&wr, xK'.State3)
-      xK'.Value <- x
-      Condition.Pulse (xK', &xK'.State2)}
-    Worker.RunOnThisThread (sr, xJ, xK')
-    Condition.Wait (xK', &xK'.State2)
-    match xK'.State1 with
-     | null -> xK'.Value
-     | e -> Util.forward e
-
-  let wait (sr: Scheduler) =
-    if sr.NumActive > 0 then
-      Interlocked.Increment &sr.NumPulseWaiters |> ignore
-      Monitor.Enter sr
-      while sr.NumActive > 0 do
-        Monitor.Wait sr |> ignore
-      Monitor.Exit sr
-      Interlocked.Decrement &sr.NumPulseWaiters |> ignore
-
-  let kill (sr: Scheduler) =
-    Scheduler.Kill sr
-
-////////////////////////////////////////////////////////////////////////////////
-
-[<AutoOpen>]
-module Global =
-
-  let reallyInitGlobalScheduler () =
-    StaticData.Init ()
-    let t = typeof<Scheduler>
-    Monitor.Enter t
-    match StaticData.globalScheduler with
-     | null ->
-       if StaticData.isMono then
-         if System.GC.MaxGeneration = 0 then
-           StaticData.writeLine.Invoke "WARNING: You are using the Boehm GC, \
-            which means that parallel programs cannot scale.  Please configure \
-            your program to use the SGen GC."
-       elif not System.Runtime.GCSettings.IsServerGC then
-         StaticData.writeLine.Invoke "WARNING: You are using single-threaded \
-          workstation garbage collection, which means that parallel programs \
-          cannot scale.  Please configure your program to use server garbage \
-          collection."
-       let sr = Scheduler.create Scheduler.Global.create
-       StaticData.globalScheduler <- sr
-       Monitor.Exit t
-       sr
-     | sr ->
-       Monitor.Exit t
-       sr
-
-  let inline initGlobalScheduler () =
-    match StaticData.globalScheduler with
-     | null -> reallyInitGlobalScheduler ()
-     | sr -> sr
-
-  let reallyInitGlobalTimer () =
-    let sr = initGlobalScheduler ()
-    let t = typeof<Timer>
-    Monitor.Enter t
-    match StaticData.globalTimer with
-     | null ->
-       let tr = Timer sr
-       StaticData.globalTimer <- tr
-       Monitor.Exit t
-       tr
-     | tr ->
-       Monitor.Exit t
-       tr
-
-  let inline initGlobalTimer () =
-    match StaticData.globalTimer with
-     | null -> reallyInitGlobalTimer ()
-     | tr -> tr
 
 ////////////////////////////////////////////////////////////////////////////////
 

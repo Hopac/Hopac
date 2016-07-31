@@ -1266,6 +1266,14 @@ module Alt =
 #endif
   val inline fromAsync: Async<'x> -> Alt<'x>
 
+  /// Creates an async operation that starts the given alternative and waits for
+  /// it to be committed to.  If the async operation is cancelled before the
+  /// alternative is committed to, an attempt is made to also cancel the
+  /// alternative by making a cancellation alternative available.  Note that
+  /// cancellation is not transactional and `Alt.toAsync >> Alt.fromAsync` is
+  /// not the identity function.  See also: `Job.toAsync`.
+  val toAsync: Alt<'x> -> Async<'x>
+
   /// Creates an alternative that, when instantiated, calls the given function
   /// with a cancellation token to start a cancellable task and waits for it to
   /// complete.  If some other alternative is committed to in a choice before
