@@ -1190,11 +1190,13 @@ module Job =
     override xK'.DoWork (wr) = xK'.Term (&wr)
     override xK'.DoCont (wr, _) = xK'.Term (&wr)
 
+  [<Obsolete "Use the `Proc` abstraction.">]
   let startWithFinalizerIgnore (fJ: Job<unit>) (xJ: Job<_>) =
     {new Job<unit> () with
       override uJ'.DoJob (wr, uK) =
        Worker.Push (&wr, uK)
        Job.Do (xJ, &wr, Finalizer<_> (wr.Scheduler, fJ))}
+  [<Obsolete "Use the `Proc` abstraction.">]
   let inline startWithFinalizer fJ (uJ: Job<unit>) =
     startWithFinalizerIgnore fJ uJ
 

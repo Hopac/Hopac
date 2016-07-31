@@ -317,12 +317,14 @@ module Job =
   /// case where a job is garbage collected.  For fault tolerance the `Proc`
   /// abstraction may be preferable.
 #endif
+  [<Obsolete "Use the `Proc` abstraction.">]
   val inline startWithFinalizer:       finalizer: Job<unit> -> Job<unit> -> Job<unit>
 
   /// Creates a job that immediately starts running the given job as a separate
   /// concurrent job like `start`, but also attaches a finalizer to the started
   /// job.  `startWithFinalizerIgnore finalizerJ xJ` is equivalent to
   /// `Job.Ignore xJ |> startWithFinalizer finalizerJ`.
+  [<Obsolete "Use the `Proc` abstraction.">]
   val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_>    -> Job<unit>
 
   //# Basic jobs
@@ -374,8 +376,7 @@ module Job =
   /// `join xJJ` is equivalent to `bind id xJJ`.
   val inline join: Job<#Job<'x>> -> Job<'x>
 
-  /// Creates a job that immediately terminates the current job.  See also:
-  /// `startWithFinalizer`.
+  /// Creates a job that immediately terminates the current job.
 #if DOC
   ///
   /// Note that when a job aborts, it is considered to be equivalent to having

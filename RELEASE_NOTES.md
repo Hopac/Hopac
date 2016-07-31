@@ -7,6 +7,8 @@
   making it obvious where the functionality is coming from.
 * Marked the `Job.Global` module as obsolete.  The `Hopac` module is the new
   home for the same functionality.
+* Marked `Job.startWithFinalizer` as obsolete.  Use the `Proc` abstraction
+  instead.
 
 #### 0.3.1 - 2016-07-30
 * Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.
