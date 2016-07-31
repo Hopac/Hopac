@@ -869,14 +869,22 @@ module Mailbox =
 ////////////////////////////////////////////////////////////////////////////////
 
 module Job =
+  [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
   module Global =
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let startWithActions eF xF xJ =
       Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let startIgnore xJ = Scheduler.startIgnore (initGlobalScheduler ()) xJ
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let inline start (uJ: Job<unit>) = startIgnore uJ
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let queueIgnore xJ = Scheduler.queueIgnore (initGlobalScheduler ()) xJ
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let inline queue (uJ: Job<unit>) = queueIgnore uJ
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
 
   //////////////////////////////////////////////////////////////////////////////

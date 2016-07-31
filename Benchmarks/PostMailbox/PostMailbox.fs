@@ -57,7 +57,7 @@ module MbSendNow =
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
     let mMb = Mailbox ()
-    Job.Global.server
+    server
      (Job.forever
        (mMb >>- fun msg ->
         if msg = max then ping.Set ()))
@@ -113,7 +113,7 @@ module ChSendNow =
     let max = Array.last data
     use ping = new ManualResetEventSlim ()
     let ch = Ch ()
-    Job.Global.server
+    server
      (Job.forever
        (ch >>- fun msg ->
         if msg = max then ping.Set ()))

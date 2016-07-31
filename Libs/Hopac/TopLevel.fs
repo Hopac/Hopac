@@ -15,6 +15,7 @@ module Hopac =
   let inline startIgnore x = Job.Global.startIgnore x
   let inline startDelay x = Job.Global.startIgnore <| Job.delay x
   let inline start x = Job.Global.start x
+  let inline startWithActions e2u x2u xJ = Job.Global.startWithActions e2u x2u xJ
   let inline queueIgnore x = Job.Global.queueIgnore x
   let inline queueDelay x = Job.Global.queueIgnore <| Job.delay x
   let inline queue x = Job.Global.queue x

@@ -20,10 +20,10 @@ module ActorModel =
     AT (fun aCh -> Job.result (A aCh))
   let start (uA: AT<'a, unit>) : Actor<'a> =
     let aCh = Ch.Now.create ()
-    Job.Global.start (unAT uA aCh)
+    Hopac.start (unAT uA aCh)
     A aCh
   let send (aA: Actor<'a>) (a: 'a) : unit =
-    Job.Global.start (Ch.give (unA aA) a)
+    Hopac.start (Ch.give (unA aA) a)
 
 module HopacModel =
   open System.Collections.Generic

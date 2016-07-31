@@ -185,6 +185,7 @@ module Job =
   /// Note that in a typical program there should only be a few points (maybe
   /// just one) where jobs are started or run outside of job workflows.
 #endif
+  [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
   module Global =
     /// Queues the job for execution on the global scheduler.  See also:
     /// `start`, `server`.
@@ -193,10 +194,12 @@ module Job =
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.queue` instead.
 #endif
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val inline queue:       Job<unit> -> unit
 
     /// Queues the job for execution on the global scheduler.  `queueIgnore xJ`
     /// is equivalent to `Job.Ignore xJ |> queue`.
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val queueIgnore: Job<_>    -> unit
 
     /// Like `Job.Global.start`, but the given job is known never to return
@@ -206,6 +209,7 @@ module Job =
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.server` instead.
 #endif
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val server:      Job<Void> -> unit
 
     /// Starts running the given job on the global scheduler, but does not wait
@@ -215,11 +219,13 @@ module Job =
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Job.start` instead.
 #endif
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val inline start:       Job<unit> -> unit
 
     /// Starts running the given job on the global scheduler, but does not wait
     /// for the job to finish.  `startIgnore xJ` is equivalent to `Job.Ignore xJ
     /// |> start`.
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val startIgnore: Job<_>    -> unit
 
     /// Starts running the given job on the global scheduler, but does not wait
@@ -231,6 +237,7 @@ module Job =
     /// should instead use `Job.start` with the desired exception handling
     /// construct (e.g. `Job.tryIn` or `Job.catch`).
 #endif
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
     /// Starts running the given job on the global scheduler and then blocks the
@@ -250,6 +257,7 @@ module Job =
     /// needed, because within a workflow the result of a job can be obtained by
     /// binding.
 #endif
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val run: Job<'x> -> 'x
 
   //# Spawning jobs

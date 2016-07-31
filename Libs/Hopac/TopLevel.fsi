@@ -19,8 +19,8 @@ module Hopac =
   val job: JobBuilder
 
   /// Builder for running an async workflow on the main synchronization context
-  /// and interoperating with the Hopac global scheduler.  The application must
-  /// call `Hopac.Extensions.Async.setMain` to configure Hopac with the main
+  /// and interoperating with Hopac.  The application must call
+  /// `Hopac.Extensions.Async.setMain` to configure Hopac with the main
   /// synchronization context.
 #if DOC
   ///
@@ -31,61 +31,63 @@ module Hopac =
 
   //# Starting jobs
 
-  /// Queues the given job for execution on the global scheduler.  See also:
-  /// `start`, `server`.
+  /// Queues the given job for execution.  See also: `start`, `server`.
 #if DOC
   ///
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.queue` instead.
-  ///
-  /// This is the same function as `Job.Global.queue`.
 #endif
   val inline queue:                Job<unit> -> unit
 
-  /// Queues the given job for execution on the global scheduler.  `queueIgnore
-  /// xJ` is equivalent to `Job.Ignore xJ |> queue`.
+  /// Queues the given job for execution.  `queueIgnore xJ` is equivalent to
+  /// `Job.Ignore xJ |> queue`.
   val inline queueIgnore:          Job<_>    -> unit
 
-  /// Queues the given delayed job for execution on the global scheduler.
-  /// `queueDelay u2xJ` is equivalent to `queueIgnore <| Job.delay u2xJ`.
+  /// Queues the given delayed job for execution.  `queueDelay u2xJ` is
+  /// equivalent to `queueIgnore <| Job.delay u2xJ`.
   val inline queueDelay: (unit -> #Job<_>)   -> unit
 
-  /// Starts running the given job on the global scheduler like `start`, but the
-  /// given job is known never to return normally, so the job can be spawned in
-  /// an even more lightweight manner.
+  /// Starts running the given job like `start`, but the given job is known
+  /// never to return normally, so the job can be spawned in an even more
+  /// lightweight manner.
 #if DOC
   ///
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.server` instead.
-  ///
-  /// This is the same function as `Job.Global.server`.
 #endif
   val inline server:               Job<Void> -> unit
 
-  /// Starts running the given job on the global scheduler, but does not wait
-  /// for the job to finish.  See also: `queue`, `server`.
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// See also: `queue`, `server`.
 #if DOC
   ///
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.start` instead.
-  ///
-  /// This is the same function as `Job.Global.start`.
 #endif
   val inline start:                Job<unit> -> unit
 
-  /// Starts running the given job on the global scheduler, but does not wait
-  /// for the job to finish.  `startIgnore xJ` is equivalent to `Job.Ignore xJ
-  /// |> start`.
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
   val inline startIgnore:          Job<_>    -> unit
 
-  /// Starts running the given delayed job on the global scheduler, but does not
-  /// wait for the job to finish.  `startDelay u2xJ` is equivalent to
-  /// `startIgnore <| Job.delay u2xJ`.
+  /// Starts running the given delayed job, but does not wait for the job to
+  /// finish.  `startDelay u2xJ` is equivalent to `startIgnore <| Job.delay
+  /// u2xJ`.
   val inline startDelay: (unit -> #Job<_>)   -> unit
 
-  /// Starts running the given job on the global scheduler and then blocks the
-  /// current thread waiting for the job to either return successfully or fail.
-  /// See also: `start`.
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// Upon the failure or success of the job, one of the given actions is called
+  /// once.
+#if DOC
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should instead use `Job.start` with the desired exception handling
+  /// construct (e.g. `Job.tryIn` or `Job.catch`).
+#endif
+  val inline startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
+
+  /// Starts running the given job and then blocks the current thread waiting
+  /// for the job to either return successfully or fail.  See also: `start`.
 #if DOC
   ///
   /// WARNING: Use of `run` should be considered carefully, because calling
@@ -104,8 +106,6 @@ module Hopac =
   /// Note that using this function from within a job workflow should never be
   /// needed, because within a workflow the result of a job can be obtained by
   /// binding.
-  ///
-  /// This is the same function as `Job.Global.run`.
 #endif
   val inline run: Job<'x> -> 'x
 

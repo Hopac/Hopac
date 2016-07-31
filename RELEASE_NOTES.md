@@ -5,6 +5,8 @@
 * Renamed the `TopLevel` module to `Hopac`.  This rename is part of eliminating
   the scheduler concept and was made so that one can refer to e.g `Hopac.run`
   making it obvious where the functionality is coming from.
+* Marked the `Job.Global` module as obsolete.  The `Hopac` module is the new
+  home for the same functionality.
 
 #### 0.3.1 - 2016-07-30
 * Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.
