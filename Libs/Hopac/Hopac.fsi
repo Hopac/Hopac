@@ -27,38 +27,6 @@
 /// systems without the need to extend the primitives of Hopac.  The reference
 /// implementations can also be seen as examples of how various primitives can
 /// be used to implement more complex operations.
-///
-/// As can quickly be observed, the various primitives and modules of Hopac are
-/// named and structured using a number of patterns.
-///
-/// Many modules contain a module named `Global`, which contains operations
-/// bound to the global scheduler that is implicitly managed by the Hopac
-/// library.  The global scheduler is created when an operation, such as
-/// `Job.Global.run`, requires it.  If a program never uses an operation that
-/// requires the global scheduler, then no global scheduler will be created.
-/// This allows programs to be written that explicitly manage their own local
-/// schedulers.
-///
-/// Modules for various communication primitives contain a module named `Now`,
-/// which contains operations that can be efficiently performed as
-/// non-concurrent operations.  For example, there is a concurrent `Ch.create`
-/// operation, which needs to be run to create a new channel and also a
-/// `Ch.Now.create` function that directly creates a new channel.  In cases
-/// where such efficient non-concurrent functions are provided, you should
-/// prefer to use them, because they avoid the overhead of running concurrent
-/// operations.  However, in cases where operations really need to perform
-/// concurrent operations, such as starting a concurrent server, you should
-/// prefer not to encapsulate those operations as ordinary functions, because
-/// running individual concurrent operations via some scheduler incurs overheads
-/// and it is preferable to construct longer sequences of concurrent operations
-/// to run.
-///
-/// Some higher-order operations make sense to use with both non-concurrent user
-/// defined functions and with user defined concurrent jobs and in such cases
-/// there are often two versions of the higher-order functions, with one having
-/// the suffix `Fun` and the other having the suffix `Job`.  You should prefer
-/// the `Job` version when you need to perform concurrent operations and
-/// otherwise the `Fun` version.
 namespace Hopac
 
 open System.Threading
@@ -152,9 +120,8 @@ type IAsyncDisposable =
 /// Represents a lightweight thread of execution.
 ///
 /// Jobs are defined using expression builders like the `JobBuilder`, accessible
-/// via the `TopLevel.job` binding, or using monadic combinators and can then be
-/// executed on some `Scheduler` such as the global scheduler accessible via the
-/// `Job.Global` module.
+/// via the `Hopac.job` binding, or using monadic combinators and can then be
+/// executed using e.g. `Hopac.run`.
 ///
 /// For example, here is a function that creates a job that computes Fibonacci
 /// numbers:
@@ -869,10 +836,10 @@ module Job =
 #if DOC
   ///
   /// Note that every actual Hopac worker thread has its own PRNG state and is
-  /// initialized with a distinct seed.  However, when you `TopLevel.start` or
-  /// `TopLevel.run` jobs from some non worker thread, it is possible that
+  /// initialized with a distinct seed.  However, when you `Hopac.start` or
+  /// `Hopac.run` jobs from some non worker thread, it is possible that
   /// successive executions generate the same sequence of numbers.  In the
-  /// extremely rare case that could be a problem, use `TopLevel.queue` or
+  /// extremely rare case that could be a problem, use `Hopac.queue` or
   /// `switchToWorker`.
 #endif
   module Random =
