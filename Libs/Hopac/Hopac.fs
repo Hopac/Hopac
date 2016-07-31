@@ -36,6 +36,11 @@ module Util =
   let aggrExn (exns: ResizeArray<exn>) =
     if exns.Count = 1 then exns.[0] else upcast AggregateException exns
 
+  let inline passOn (context: SynchronizationContext) x f =
+    match context with
+     | null -> f x
+     | ctxt -> ctxt.Post ((fun _ -> f x), null)
+
   module Option =
     let orDefaultOf x =
       match x with
@@ -1405,6 +1410,15 @@ module Job =
     let (doBegin, doEnd, _) = Async.AsBeginEnd (fun () -> xA)
     fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd
 
+  let toAsync (xJ: Job<'x>) =
+    Async.FromContinuations <| fun (x2u, e2u, _) ->
+      let ctx = SynchronizationContext.Current
+      Worker.RunOnThisThread (initGlobalScheduler (), xJ, {new Cont_State<'x, Cont<unit>>() with
+       override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
+       override xK'.DoHandle (wr, e) = passOn ctx e e2u
+       override xK'.DoWork (wr) = passOn ctx xK'.Value x2u
+       override xK'.DoCont (wr, x) = passOn ctx x x2u})
+
   let inline fromTask (u2xT: unit -> Task<'x>) =
     {new TaskToJob<_> () with
       override xJ'.Start () = u2xT ()} :> Job<'x>
@@ -1911,11 +1925,6 @@ module Extensions =
            override xJ'.DoJob (wr, xK) =
             startIn context wr.Scheduler xA xK}
 
-    let inline passOn (context: SynchronizationContext) x f =
-      match context with
-       | null -> f x
-       | ctxt -> ctxt.Post ((fun _ -> f x), null)
-
     [<Obsolete "`Async.toAltOn` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
       Alt.withNackJob <| fun nack ->
@@ -1941,6 +1950,7 @@ module Extensions =
     [<Obsolete "`Async.toAlt` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAlt (xA: Async<'x>) = toAltOn null xA
 
+    [<Obsolete "`Async.ofJobOn` will be removed as interop primitives and scheduling are being revised. Use `Job.toAsync`.">]
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
       assert (null <> sr)
       Async.FromContinuations <| fun (x2u, e2u, _) ->
@@ -2001,6 +2011,7 @@ module Extensions =
        | ctxt -> ctxt
 
     module Global =
+      [<Obsolete "`Async.Global.ofJob` will be removed as interop primitives and scheduling are being revised. Use `Job.toAsync`.">]
       let ofJob (xJ: Job<'x>) =
         ofJobOn (initGlobalScheduler ()) xJ
 
@@ -2045,7 +2056,7 @@ module Extensions =
       this.State <- 2
       match this.dispose with
        | null -> ()
-       | disp -> Async.passOn this.context () disp.Dispose
+       | disp -> passOn this.context () disp.Dispose
     static member inline Commit (this: ObserveOnce<'x>,
                                  onCommit: unit -> unit) =
       if 2 <> this.State then
@@ -2056,7 +2067,7 @@ module Extensions =
     static member inline Post (this: ObserveOnce<'x>,
                                observable: IObservable<'x>) =
       if 0 = this.State then
-        Async.passOn this.context () <| fun () ->
+        passOn this.context () <| fun () ->
         this.dispose <- observable.Subscribe this
         if 0 <> Interlocked.CompareExchange (&this.State, 1, 0) then
           ObserveOnce<'x>.DisposeHere this

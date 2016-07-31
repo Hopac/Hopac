@@ -746,6 +746,10 @@ module Job =
 #endif
   val inline fromAsync: Async<'x> -> Job<'x>
 
+  /// Creates an async operation that starts the given job and waits for it to
+  /// complete.
+  val toAsync: Job<'x> -> Async<'x>
+
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromTask`.
   val inline fromTask:     (unit -> Task<'x>) -> Job<'x>
@@ -2099,6 +2103,7 @@ module Extensions =
     /// Creates an async operation that starts the given job on the specified
     /// scheduler and then waits until the started job finishes.  See also:
     /// `Job.Scheduler`, `Async.Global.ofJob`.
+    [<Obsolete "`Async.ofJobOn` will be removed as interop primitives and scheduling are being revised. Use `Job.toAsync`.">]
     val ofJobOn: Scheduler -> Job<'x> -> Async<'x>
 
     /// Builder for async workflows.  The methods in this builder delegate to
@@ -2142,6 +2147,7 @@ module Extensions =
       /// Creates an async operation that starts the given job on the global
       /// scheduler and then waits until the started job finishes.  See also:
       /// `Async.ofJobOn`.
+      [<Obsolete "`Async.Global.ofJob` will be removed as interop primitives and scheduling are being revised. Use `Job.toAsync`.">]
       val ofJob: Job<'x> -> Async<'x>
 
       /// Creates a builder for running an async workflow on the main

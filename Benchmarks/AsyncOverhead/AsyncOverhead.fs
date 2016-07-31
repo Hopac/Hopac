@@ -15,13 +15,12 @@ do let doTaskAltBinds n =
      let timer = Stopwatch.StartNew ()
      printf "Task-as-Alt-in-Job binds: "
      let dI = IVar ()
-     job {
+     run ^ job {
        do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
          do! dI <|> Alt.fromTask ^ fun _ -> Task.FromResult ()
      }
-     |> run
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
 
@@ -34,13 +33,12 @@ do let doAsyncAltBinds n =
      let timer = Stopwatch.StartNew ()
      printf "Async-as-Alt-in-Job binds: "
      let dI = IVar ()
-     job {
+     run ^ job {
        do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
          do! dI <|> Alt.fromAsync ^ async { return () }
      }
-     |> run
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
 
@@ -52,13 +50,12 @@ do let doAsyncAltBinds n =
 do let doJobAsyncBinds n =
      let timer = Stopwatch.StartNew ()
      printf "Job-in-Async binds: "
-     async {
+     Async.RunSynchronously ^ async {
        do! Async.SwitchToThreadPool ()
        for i=1 to n do
          do ignore i
-         do! Async.Global.ofJob ^ job { return () }
+         do! Job.toAsync ^ job { return () }
      }
-     |> Async.RunSynchronously
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
 
@@ -70,13 +67,12 @@ do let doJobAsyncBinds n =
 do let doAsyncJobBinds n =
      let timer = Stopwatch.StartNew ()
      printf "Async-in-Job binds: "
-     job {
+     run ^ job {
        do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
          do! Job.fromAsync ^ async { return () }
      }
-     |> run
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
 
