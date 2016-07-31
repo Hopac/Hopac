@@ -308,7 +308,7 @@ publish_nupkg() {
 
   build_nupkg
 
-  paket push url https://www.nuget.org file .nuget/Hopac.$VERSION.nupkg
+  run_paket push url https://www.nuget.org file .nuget/Hopac.$VERSION.nupkg
 }
 
 tag_release() {
