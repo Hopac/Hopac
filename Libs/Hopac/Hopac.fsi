@@ -1687,7 +1687,7 @@ type Latch =
 
 /// Operations on latches.
 module Latch =
-  // Higher-order interface ----------------------------------------------------
+  //# Higher-order interface
 
   /// Creates a job that creates a new latch, passes it to the given function to
   /// create a new job to run and then awaits for the latch to open.
@@ -1709,7 +1709,7 @@ module Latch =
   /// of the queued job.
   val queueAsPromise: Latch -> Job<'x> -> Job<Promise<'x>>
 
-  // First-order interface -----------------------------------------------------
+  //# First-order interface
 
   /// Immediate operations on latches.
   module Now =
