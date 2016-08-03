@@ -1855,7 +1855,7 @@ module MVar =
 #if DOC
 ///
 /// Bounded synchronous mailboxes are a useful tool for coordinating work among
-/// co-operating processes.  They provide slack in the form of buffering between
+/// co-operating jobs.  They provide slack in the form of buffering between
 /// producers and consumers allowing them to proceed in parallel.  They also
 /// provide back-pressure in the form of blocking producers when consumers
 /// cannot keep up.
