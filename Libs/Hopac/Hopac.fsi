@@ -1725,7 +1725,7 @@ module Latch =
   /// the latch are resumed.
   val inline decrement: Latch -> Job<unit>
 
-  // Await interface -----------------------------------------------------------
+  //# Await interface
 
   /// Returns an alternative that becomes available once the latch opens.
   val inline await: Latch -> Alt<unit>
