@@ -903,10 +903,10 @@ module Job =
 /// the arguments, negative acknowledgment token and a channel to the server and
 /// then synchronize using a `take` operation on the channel for the reply.  See
 /// `withNackJob` for an illustrative toy example.
-///
-/// Note that `Alt` is a subtype of `Job`.  You can use an alternative in any
-/// context that requires a job.
-type Alt<'x> :> Job<'x>
+type Alt<'x> =
+  /// `Alt<'x>` is a subtype of `Job<'x>`.  You can use an alternative in any
+  /// context that requires a job.
+  inherit Job<'x>
 #endif
 
 /// Operations on first-class synchronous operations or alternatives.
@@ -1358,7 +1358,24 @@ module Timer =
 /// compute results in parallel in regular patterns, combinators such as `<*>`,
 /// `Job.conCollect` and `Seq.Con.mapJob` may be easier to use and provide
 /// improved performance.
-type Promise<'x> :> Alt<'x>
+type Promise<'x> =
+  /// `Promise<'x>` is a subtype of `Alt<'x>` and `xPr :> Alt<'x>` is equivalent
+  /// to `Promise.read xPr`.
+  inherit Alt<'x>
+
+  /// Creates a promise whose value is computed lazily with the given job when
+  /// an attempt is made to read the promise.  Although the job is not started
+  /// immediately, the effect is that the delayed job will be run as a separate
+  /// job, which means it is possible to communicate with it as long the delayed
+  /// job is started before trying to communicate with it.
+  new: Job<'x> -> Promise<'x>
+
+  /// Creates a promise with the given value.
+  new:     'x  -> Promise<'x>
+
+  /// Creates a promise with the given failure exception.
+  new: exn     -> Promise<'x>
+
 #endif
 
 /// Operations on promises.
@@ -1431,10 +1448,13 @@ module Promise =
 /// operation, but in situations where buffering is needed, some other message
 /// passing mechanism such as a bounded mailbox, `BoundedMb<_>`, or unbounded
 /// mailbox, `Mailbox<_>`, may be preferable.
-///
-/// Note that `Ch<'x>` is a subtype of `Alt<'x>` and `xCh :> Alt<'x>` is
-/// equivalent to `Ch.take xCh`.
-type Ch<'x> :> Alt<'x>
+type Ch<'x> =
+  /// `Ch<'x>` is a subtype of `Alt<'x>` and `xCh :> Alt<'x>` is equivalent to
+  /// `Ch.take xCh`.
+  inherit Alt<'x>
+
+  /// Creates a new channel.
+  new: unit -> Ch<'x>
 #endif
 
 /// Operations on synchronous channels.
@@ -1527,10 +1547,19 @@ module Ch =
 /// is possible because write once variables do not support simple rendezvous
 /// like channels do.  When simple rendezvous is necessary, a channel should be
 /// used instead.
-///
-/// Note that `IVar` is a subtype of `Promise` and `IVar.read xI` is equivalent
-/// to `xI :> Alt<'x>`.
-type IVar<'x> :> Promise<'x>
+type IVar<'x> =
+  /// `IVar<'x>` is a subtype of `Promise<'x>` and `IVar.read xI` is equivalent
+  /// to `xI :> Alt<'x>`.
+  inherit Promise<'x>
+
+  /// Creates a new write once variable.
+  new: unit -> IVar<'x>
+
+  /// Creates a new write once variable with the given value.
+  new: 'x   -> IVar<'x>
+
+  /// Creates a new write once variable with the given failure exception.
+  new: exn  -> IVar<'x>
 #endif
 
 /// Operations on write once variables.
@@ -1629,7 +1658,13 @@ module IVar =
 /// Both a first-order interface, with `create`, `increment` and `decrement`
 /// operations, and a higher-order interface, with `within`, `holding`, `queue`
 /// and `queueAsPromise` operations, are provided for programming with latches.
-type Latch :> Alt<unit>
+type Latch =
+  /// `Latch` is a subtype of `Alt<unit>` and `Latch.await l` is equivalent to
+  /// `l :> Alt<unit>`.
+  inherit Alt<unit>
+
+  /// Creates a new latch with the specified initial count.
+  new: int -> Latch
 #endif
 
 /// Operations on latches.
@@ -1723,18 +1758,24 @@ module Latch =
 /// `AutoResetEvent` using serialized variables:
 ///
 ///> type AutoResetEvent (init: bool) =
-///>   let set = if init then mvarFull () else mvar ()
-///>   let unset = if init then mvar () else mvarFull ()
+///>   let set = if init then MVar (()) else MVar ()
+///>   let unset = if init then MVar () else MVar (())
 ///>   member this.Set = unset <|> set >>= MVar.fill set
 ///>   member this.Wait = set ^=> MVar.fill unset
 ///
 /// The idea is to use two serialized variables to represent the state of the
 /// synchronization object.  At most one of the variables, representing the
 /// state of the synchronization object, is full at any time.
-///
-/// Note that `MVar` is a subtype of `Alt` and `xM :> Alt<'x>` is equivalent to
-/// `MVar.take xM`.
-type MVar<'x> :> Alt<'x>
+type MVar<'x> =
+  /// `MVar<'x>` is a subtype of `Alt<'x>` and `xM :> Alt<'x>` is equivalent to
+  /// `MVar.take xM`.
+  inherit Alt<'x>
+
+  /// Creates a new serialized variable that is initially empty.
+  new: unit -> MVar<'x>
+
+  /// Creates a new serialized variable that initially contains the given value.
+  new: 'x   -> MVar<'x>
 #endif
 
 /// Operations on serialized variables.
@@ -1859,10 +1900,13 @@ module BoundedMb =
 /// bounded, a bounded mailbox, `BoundedMb<_>`, should be preferred.  In
 /// situations where buffering is not needed, a channel, `Ch<_>`, should be
 /// preferred.
-///
-/// Note that `Mailbox<'x>` is a subtype of `Alt<'x>` and `xMb :> Alt<'x>` is
-/// equivalent to `Mailbox.take xMb`.
-type Mailbox<'x> :> Alt<'x>
+type Mailbox<'x> =
+  /// `Mailbox<'x>` is a subtype of `Alt<'x>` and `xMb :> Alt<'x>` is equivalent
+  /// to `Mailbox.take xMb`.
+  inherit Alt<'x>
+
+  /// Creates a new mailbox.
+  new: unit -> Mailbox<'x>
 #endif
 
 /// Operations on buffered mailboxes.
@@ -1907,7 +1951,9 @@ module Mailbox =
 /// structures or interlocked operations should be faster.  On the other hand,
 /// suspending and resuming a job is several orders of magnitude faster than
 /// suspending and resuming a native thread.
-type Lock
+type Lock =
+  /// Creates a new lock.
+  new: unit -> Lock
 #endif
 
 /// Operations on mutual exclusion locks.
@@ -2594,7 +2640,10 @@ module Infixes =
 /// simply not necessary.  However, when process objects are known to be needed,
 /// it is better to allocate them eagerly by directly starting processes using
 /// `Proc.start` or `Proc.queue`.
-type Proc :> Alt<unit>
+type Proc =
+  /// `Proc` is a subtype of `Alt<unit>` and `p :> Alt<unit>` is equivalent to
+  /// `Proc.join p`.
+  inherit Alt<unit>
 #endif
 
 /// Operations on processes.
