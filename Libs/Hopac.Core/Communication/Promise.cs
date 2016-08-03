@@ -20,24 +20,29 @@ namespace Hopac {
     internal const int HasExn = 3;
     internal const int MakeLocked = 4;  // Greater than any state.
 
-    /// Unsafe.
+    /// <summary>Creates a promise that will never be fulfilled.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Promise() { this.State = Running; }
+    public Promise() { this.State = Running; }
 
-    /// Internal implementation detail.
+    /// <summary>Creates a promise whose value is computed lazily with the given
+    /// job when an attempt is made to read the promise.  Although the job is
+    /// not started immediately, the effect is that the delayed job will be run
+    /// as a separate job, which means it is possible to communicate with it as
+    /// long the delayed job is started before trying to communicate with
+    /// it.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(Job<T> tJ) {
       this.Readers = new Fulfill(this, tJ);
     }
 
-    /// Internal implementation detail.
+    /// <summary>Creates a promise with the given value.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(T value) {
       this.Value = value;
       this.State = HasValue;
     }
 
-    /// Internal implementation detail.
+    /// <summary>Creates a promise with the given failure exception.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(Exception e) {
       this.Readers = new Fail<T>(e); // We assume failures are infrequent.
