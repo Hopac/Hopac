@@ -1,4 +1,4 @@
-#### 0.3.2 - 2016-XX-XX
+#### 0.3.2 - 2016-08-04
 * Added `Job.toAsync` and marked `Async.ofJobOn` and `Async.Global.ofJob` as
   obsolete.
 * Added `Alt.toAsync`.
