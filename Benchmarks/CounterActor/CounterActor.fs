@@ -77,7 +77,7 @@ module MbMsg =
     return CA inMb
   }
 
-  let add (CA inMb) (n: int64) = Mailbox.Global.send inMb (Add n)
+  let add (CA inMb) (n: int64) = Mailbox.Now.send inMb (Add n)
   let getAndReset (CA inMb) : Job<int64> = Job.delay <| fun () ->
     let replyVar = IVar ()
     inMb *<<+ GetAndReset replyVar >>=.

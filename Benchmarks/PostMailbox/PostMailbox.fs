@@ -61,7 +61,7 @@ module MbSendNow =
      (Job.forever
        (mMb >>- fun msg ->
         if msg = max then ping.Set ()))
-    data |> Array.iter (fun i -> Mailbox.Global.send mMb i)
+    data |> Array.iter (fun i -> Mailbox.Now.send mMb i)
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
@@ -117,7 +117,7 @@ module ChSendNow =
      (Job.forever
        (ch >>- fun msg ->
         if msg = max then ping.Set ()))
-    data |> Array.iter (fun i -> Ch.Global.send ch i)
+    data |> Array.iter (fun i -> Ch.Now.send ch i)
     let d1 = timer.Elapsed
     ping.Wait ()
     let d2 = timer.Elapsed
