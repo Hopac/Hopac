@@ -19,7 +19,7 @@ module ActorModel =
   let self : AT<'a, Actor<'a>> =
     AT (fun aCh -> Job.result (A aCh))
   let start (uA: AT<'a, unit>) : Actor<'a> =
-    let aCh = Ch.Now.create ()
+    let aCh = Ch ()
     Hopac.start (unAT uA aCh)
     A aCh
   let send (aA: Actor<'a>) (a: 'a) : unit =

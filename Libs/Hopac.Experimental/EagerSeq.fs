@@ -11,8 +11,8 @@ module EagerSeq =
   // TBD: Consider refactoring these.
 
   module Now =
-    let empty () = {EagerSeq = IVar.Now.createFull None}
-    let singleton x = {EagerSeq = IVar.Now.createFull (Some (x, empty ()))}
+    let empty () = {EagerSeq = IVar None}
+    let singleton x = {EagerSeq = IVar (Some (x, empty ()))}
 
   let inline node () = {EagerSeq = IVar ()}
 

@@ -46,7 +46,7 @@ module IMap =
      | _ -> failwith "Map is closed."
     match k2vI.TryGetValue k with
      | (false, _) ->
-       k2vI.Add (k, IVar.Now.createFull (Some v))
+       k2vI.Add (k, IVar (Some v))
        Job.unit ()
      | (true, vI) ->
        if IVar.Now.isFull vI then

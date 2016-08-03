@@ -123,7 +123,7 @@ module HopacPromise =
       let prime = nats.Value
       {Value = prime;
        Next =
-        Promise.Now.delay (nats.Next >>= filter (fun x -> x % prime <> 0) >>- sieve)}
+        Promise<Stream<_>> (nats.Next >>= filter (fun x -> x % prime <> 0) >>- sieve)}
     iterate (fun x -> x+1) 2 >>- sieve
 
   let primes n = Job.delay <| fun () ->
