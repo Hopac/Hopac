@@ -357,16 +357,27 @@ module Stream =
 
   /// Generator functions for `generateFuns`.
   type [<AbstractClass>] GenerateFuns<'s, 'x> =
+    /// Default constructor.
     new: unit -> GenerateFuns<'s, 'x>
+
+    /// Called to determine whether to generate more.
     abstract  While: 's -> bool
+
+    /// Called to compute next state.
     abstract   Next: 's -> 's
+
+    /// Called to extract value from state.
     abstract Select: 's -> 'x
 
   /// Generates a stream from the given state using the given function object.
   val generateFuns: 's -> GenerateFuns<'s, 'x> -> Stream<'x>
 
   /// Generates a stream.
-  val inline generateFun: 's -> ('s -> bool) -> ('s -> 's) -> ('s -> 'x) -> Stream<'x>
+  val inline generateFun: initial: 's
+                -> doWhile: ('s -> bool)
+                -> doNext: ('s -> 's)
+                -> doSelect: ('s -> 'x)
+                -> Stream<'x>
 
   /// Returns an infinite stream of repeated applications of the given job to
   /// the given initial value.
@@ -511,7 +522,7 @@ module Stream =
 
   /// Functions for collecting elements from a live stream to be lazified.
   type [<AbstractClass>] KeepPrecedingFuns<'x, 'y> =
-    /// Empty constructor.
+    /// Default constructor.
     new: unit -> KeepPrecedingFuns<'x, 'y>
 
     /// Called to begin the next batch of elements.
@@ -1141,16 +1152,31 @@ module Stream =
   /// then used to implement `Bind`, `For` and `While` to get a builder with
   /// consistent semantics.
   type [<AbstractClass>] Builder =
+    /// Default constructor.
     new: unit -> Builder
-    member inline Bind: Stream<'x> * ('x -> Stream<'y>) -> Stream<'y>
+
+    /// Called to combine two streams.
     abstract Combine: Stream<'x> * Stream<'x> -> Stream<'x>
-    member inline Delay: (unit -> Stream<'x>) -> Stream<'x>
-    member inline For: seq<'x> * ('x -> Stream<'y>) -> Stream<'y>
-    member inline TryWith: Stream<'x> * (exn -> Stream<'x>) -> Stream<'x>
-    member While: (unit -> bool) * Stream<'x> -> Stream<'x>
-    member inline Yield: 'x -> Stream<'x>
-    member inline YieldFrom: Stream<'x> -> Stream<'x>
+    /// Called to obtain the zero or unit stream corresponding to the `Combine`
+    /// method.
     abstract Zero: unit -> Stream<'x>
+
+    /// `this.Bind (xs, x2ys)` is equivalent to `mapJoin (fun x y ->
+    /// this.Combine (x, y)) x2ys xs`.
+    member inline Bind: Stream<'x> * ('x -> Stream<'y>) -> Stream<'y>
+    /// `this.Delay u2xs` is equivalent to `delay u2xs`.
+    member inline Delay: (unit -> Stream<'x>) -> Stream<'x>
+    /// `this.For (xs, x2ys)` is equivalent to `this.Bind (ofSeq xs, x2ys)`
+    member inline For: seq<'x> * ('x -> Stream<'y>) -> Stream<'y>
+    /// `this.TryWith (xs, e2xs)` is equivalent to `catch e2xs xs`.
+    member inline TryWith: Stream<'x> * (exn -> Stream<'x>) -> Stream<'x>
+    /// `this.While (u2b, xs)` is equivalent to `delay <| fun () -> if u2b ()
+    /// then this.Combine (xs, this.While (u2b, xs)) else this.Zero ()`
+    member While: (unit -> bool) * Stream<'x> -> Stream<'x>
+    /// `this.Yield x` is equivalent to `one x`.
+    member inline Yield: 'x -> Stream<'x>
+    /// `this.YieldFrom xs` is equivalent to `xs`.
+    member inline YieldFrom: Stream<'x> -> Stream<'x>
 
   /// This builder joins substreams with `amb` to produce a stream with the
   /// first results.
