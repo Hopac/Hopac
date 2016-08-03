@@ -1363,6 +1363,9 @@ type Promise<'x> =
   /// to `Promise.read xPr`.
   inherit Alt<'x>
 
+  /// Creates a promise that will never be fulfilled.
+  new: unit    -> Promise<'x>
+
   /// Creates a promise whose value is computed lazily with the given job when
   /// an attempt is made to read the promise.  Although the job is not started
   /// immediately, the effect is that the delayed job will be run as a separate
@@ -1375,7 +1378,6 @@ type Promise<'x> =
 
   /// Creates a promise with the given failure exception.
   new: exn     -> Promise<'x>
-
 #endif
 
 /// Operations on promises.
@@ -1399,6 +1401,7 @@ module Promise =
     val inline withFailure: exn -> Promise<'x>
 
     /// Creates a promise that will never be fulfilled.
+    [<Obsolete "Just use the constructor.">]
     val never: unit -> Promise<'x>
 
     /// Returns true iff the given promise has already been fulfilled (either

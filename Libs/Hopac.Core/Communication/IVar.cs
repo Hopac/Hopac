@@ -11,7 +11,7 @@ namespace Hopac {
   public class IVar<T> : Promise<T> {
     /// <summary>Creates a new write once variable.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
-    public IVar() { this.State = Running; }
+    public IVar() { }
 
     /// <summary>Creates a new write once variable with the given value.</summary>
     [MethodImpl(AggressiveInlining.Flag)]

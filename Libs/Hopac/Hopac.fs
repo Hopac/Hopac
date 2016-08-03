@@ -1515,7 +1515,6 @@ module Promise =
     {new Job<Promise<'x>> () with
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
-       pr.State <- Promise<'x>.Running
        xPrK.Value <- pr
        Worker.Push (&wr, xPrK)
        Job.Do (xJ, &wr, Promise<'x>.Fulfill (pr))}
@@ -1523,7 +1522,6 @@ module Promise =
     {new Job<Promise<'x>> () with
       override self.DoJob (wr, xPrK) =
        let pr = Promise<'x> ()
-       pr.State <- Promise<'x>.Running
        Worker.PushNew (&wr, Promise<'x>.Fulfill (pr, xJ))
        Cont.Do (xPrK, &wr, pr)}
   module Now =
@@ -1531,7 +1529,7 @@ module Promise =
     let inline withValue (x: 'x) = Promise<'x> (x)
     let inline withFailure (e: exn) = Promise<'x> (e)
     [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let never () = let p = Promise<'x> () in p.State <- Promise<'x>.Running ; p
+    let never () = Promise ()
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let isFulfilled (xP: Promise<'x>) = xP.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]

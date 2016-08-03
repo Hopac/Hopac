@@ -27,7 +27,7 @@ module Hopac =
   let inline timeOut x = Timer.Global.timeOut x
   let inline timeOutMillis x = Timer.Global.timeOutMillis x
 
-  let inline memo x = Promise.Now.delay x
+  let inline memo (xJ: Job<'x>) = Promise<'x> xJ
 
 [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
 module TopLevel =

@@ -14,7 +14,7 @@ namespace Hopac {
     internal volatile int State;
     internal Cont<T> Readers;
 
-    internal const int Delayed = 0; // Default.
+    internal const int Delayed = 0;
     internal const int Running = 1;
     internal const int HasValue = 2;
     internal const int HasExn = 3;
@@ -22,7 +22,7 @@ namespace Hopac {
 
     /// Unsafe.
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Promise() { }
+    internal Promise() { this.State = Running; }
 
     /// Internal implementation detail.
     [MethodImpl(AggressiveInlining.Flag)]

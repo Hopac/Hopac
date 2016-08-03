@@ -12,7 +12,7 @@ open Hopac.Timer.Global
 module Stream =
   let inline (^) x = x
   let imp () = failwith "Impossible"
-  let inline memo x = Promise.Now.delay x
+  let inline memo xJ = Promise<'x> (xJ :> Job<'x>)
   let inline queue x = Job.Global.queue x
   let inline start x = Job.Global.start x
   let inline server x = Job.Global.server x
@@ -79,7 +79,7 @@ module Stream =
            (i :?> IVar<_>) *<= c |> start
            propertyChangedEvent.Trigger (this, ValueChangedEventArgs)
          | Nil -> imp ()
-    member this.Tap () = Promise.Now.withValue var
+    member this.Tap () = Promise var
 
   type Var<'x> = {mutable var: Cons<'x>}
 
@@ -91,7 +91,7 @@ module Stream =
       match Interlocked.Exchange (&v.var, c) with
        | Cons (_, i) -> (i :?> IVar<_>) *<= c
        | Nil -> imp ()
-    let tap v = Promise.Now.withValue v.var
+    let tap v = Promise v.var
 
   type MVar<'x> = {mvar: Hopac.MVar<Cons<'x>>}
 
@@ -118,11 +118,11 @@ module Stream =
 
   let nilj<'x> = Job.result Nil :> Job<Cons<'x>>
   let nila<'x> = Alt.always Nil :> Alt<Cons<'x>>
-  let inline nil<'x> = Promise.Now.withValue Nil :> Stream<'x>
+  let inline nil<'x> = Promise Nil :> Stream<'x>
   let inline consj x xs = Job.result (Cons (x, xs))
   let inline consa x xs = Alt.always (Cons (x, xs))
-  let inline cons x xs = Promise.Now.withValue (Cons (x, xs))
-  let inline error e = Promise.Now.withFailure e :> Stream<_>
+  let inline cons x xs = Promise (Cons (x, xs))
+  let inline error (e: exn) = Promise<Cons<_>> e :> Stream<_>
   let onej x = Job.result (Cons (x, nil))
   let one x = cons x nil
   let inline delay (u2xs: _ -> #Job<Cons<_>>) = memo (Job.delay u2xs)
@@ -130,10 +130,11 @@ module Stream =
 
   let fix (xs2xs: Stream<'x> -> #Stream<'x>) =
     let xs = Promise () // XXX publish interface for this?
+    xs.State <- Promise<'x>.Delayed
     xs.Readers <- Promise<_>.Fulfill (xs, Job.delay <| fun () -> xs2xs xs)
     xs :> Stream<_>
 
-  let inline never<'x> = Promise.Now.never () :> Stream<'x>
+  let inline never<'x> = Promise () :> Stream<'x>
 
   let rec ofEnum (xs: IEnumerator<'x>) = thunk <| fun () ->
     if xs.MoveNext () then Cons (xs.Current, ofEnum xs) else xs.Dispose () ; Nil
