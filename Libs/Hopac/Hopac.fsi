@@ -100,8 +100,8 @@ type IAsyncDisposable =
   ///>     ...
   ///
   /// In such a case, one can still use the above two variable disposal pattern
-  /// by spawning a process that forwards the disposal request to the server
-  /// request channel before the server loop is started:
+  /// by spawning a job that forwards the disposal request to the server request
+  /// channel before the server loop is started:
   ///
   ///> requestDisposeIVar >>=. requestCh *<- RequestDispose |> start
   ///
@@ -2627,49 +2627,55 @@ module Infixes =
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
-/// Represents a joinable lightweight thread of execution.
+/// Represents a handle to a (started, running or terminated) job.
 ///
-/// A process object makes it possible to determine when a process is known to
-/// have been terminated.  An example use for process objects would be a system
-/// where critical resources are managed by a server process and those critical
-/// resources need to be released even in case a client process suffers from a
-/// fault and is terminated before properly releasing resources.
+/// A handle makes it possible to determine when a job is known to have been
+/// terminated.  An example use for handles would be a system where critical
+/// resources are managed by a server job and those critical resources need to
+/// be released even in case a client job suffers from a fault and is terminated
+/// before properly releasing resources.
 ///
-/// For performance reasons, Hopac creates process objects lazily for simple
-/// jobs, because for many uses of lightweight threads such a capability is
-/// simply not necessary.  However, when process objects are known to be needed,
-/// it is better to allocate them eagerly by directly starting processes using
-/// `Proc.start` or `Proc.queue`.
+/// For performance reasons, Hopac creates handles lazily for simple jobs,
+/// because for many uses of lightweight threads such a capability is simply not
+/// necessary.  However, when handles are known to be needed, it is better to
+/// allocate them eagerly by directly starting jobs using `Proc.start` or
+/// `Proc.queue`.
 type Proc =
   /// `Proc` is a subtype of `Alt<unit>` and `p :> Alt<unit>` is equivalent to
   /// `Proc.join p`.
   inherit Alt<unit>
 #endif
 
-/// Operations on processes.
+/// Operations on handles.
 module Proc =
-  /// Creates a job that queues a new process.  See also: `start`, `Job.queue`.
+  //# Spawning jobs with handles
+
+  /// Creates a job that queues a new job with a handle.  See also: `start`,
+  /// `Job.queue`.
   val inline queue:       Job<unit> -> Job<Proc>
 
-  /// Creates a job that queues a new process.  `queueIgnore xJ` is equivalent
-  /// to `Job.Ignore xJ |> queue`.
+  /// Creates a job that queues a new job with a handle.  `queueIgnore xJ` is
+  /// equivalent to `Job.Ignore xJ |> queue`.
   val queueIgnore: Job<_>    -> Job<Proc>
 
-  /// Creates a job that starts a new process.  See also: `queue`, `Job.start`.
+  /// Creates a job that starts a new job with a handle.  See also: `queue`,
+  /// `Job.start`.
   val inline start:       Job<unit> -> Job<Proc>
 
-  /// Creates a job that starts a new process.  `startIgnore xJ` is equivalent
-  /// to `Job.Ignore xJ |> start`.
+  /// Creates a job that starts a new job with a handle.  `startIgnore xJ` is
+  /// equivalent to `Job.Ignore xJ |> start`.
   val startIgnore: Job<_>    -> Job<Proc>
 
-  /// Creates a job that calls the given job contructor with the current
-  /// process.
+  //# Access to handle
+
+  /// Creates a job that calls the given job contructor with the handle
+  /// of the current job.
 #if DOC
   ///
   /// Note that this is an `O(n)` operation where `n` is the number of
   /// continuation or stack frames of the current job.  In most cases this
-  /// should not be an issue, but if you need to repeatedly access the process
-  /// object of the current job it may be advantageous to cache it in a local
+  /// should not be an issue, but if you need to repeatedly access the proc
+  /// handle of the current job it may be advantageous to cache it in a local
   /// variable.
 #endif
   val inline bind: (Proc -> #Job<'x>) -> Job<'x>
@@ -2677,12 +2683,14 @@ module Proc =
   /// `map p2x` is equivalent to `bind (p2x >> result)`.
   val  inline map: (Proc ->      'x)  -> Job<'x>
 
-  /// Returns a job that returns the current process.  `self ()` is equivalent
-  /// to `bind result`.
+  /// Returns a job that returns the handle of the current job.  `self ()` is
+  /// equivalent to `bind result`.
   val inline self: unit -> Job<Proc>
 
-  /// Returns an alternative that becomes available once the process is known to
-  /// have been terminated for any reason.
+  //# Joining
+
+  /// Returns an alternative that becomes available once the job corresponding
+  /// to the handle is known to have been terminated for any reason.
   val inline join: Proc -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
