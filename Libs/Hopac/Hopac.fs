@@ -840,11 +840,14 @@ module Alt =
 module Ch =
   module Now =
     let inline create () = Ch<'x> ()
-  module Global =
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xCh: Ch<'x>) (x: 'x) =
       Ch<'x>.Send (initGlobalScheduler (), xCh, x)
-  let create () = ctor Now.create ()
+  [<Obsolete "Will be removed.">]
+  module Global =
+    [<Obsolete "Renamed to `Ch.Now.send`.">]
+    let inline send (xCh: Ch<'x>) (x: 'x) =
+      Now.send xCh x
+  let create () = ctor Ch<'x> ()
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   module Try =
     let inline give (xCh: Ch<'x>) (x: 'x) = ChTryGive<'x> (xCh, x) :> Job<bool>
@@ -857,11 +860,14 @@ module Ch =
 module Mailbox =
   module Now =
     let inline create () = Mailbox<'x> ()
-  module Global =
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
     let send (xMb: Mailbox<'x>) (x: 'x) =
       Mailbox<'x>.Send (initGlobalScheduler (), xMb, x)
-  let create () = ctor Now.create ()
+  [<Obsolete "Will be removed.">]
+  module Global =
+    [<Obsolete "Renamed to `Mailbox.Now.send`.">]
+    let inline send (xMb: Mailbox<'x>) (x: 'x) =
+      Now.send xMb x
+  let create () = ctor Mailbox ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
   let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>

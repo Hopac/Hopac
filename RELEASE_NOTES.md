@@ -10,6 +10,8 @@
 * Marked `Job.startWithFinalizer` as obsolete.  Use the `Proc` abstraction
   instead.
 * Marked the `Timer` module for removal.  Use the `Hopac` module.
+* Moved `Ch.Global.send -> Ch.Now.send` and `Mailbox.Global.send ->
+  Mailbox.Now.send`.  This is part of eliminating the scheduler concept.
 
 #### 0.3.1 - 2016-07-30
 * Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.

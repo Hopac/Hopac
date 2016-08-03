@@ -1464,14 +1464,23 @@ module Ch =
     /// Creates a new channel.
     val inline create: unit -> Ch<'x>
 
+    /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
+    /// equivalent to `Ch.send xCh x |> TopLevel.start`.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Ch.send` instead.
+    val send: Ch<'x> -> 'x -> unit
+
   /// Operations bound to the global scheduler.
+  [<Obsolete "Will be removed.">]
   module Global =
     /// Sends the given value to the specified channel.  `Ch.Global.send xCh x`
     /// is equivalent to `Ch.send xCh x |> TopLevel.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Ch.send` instead.
-    val send: Ch<'x> -> 'x -> unit
+    [<Obsolete "Renamed to `Ch.Now.send`.">]
+    val inline send: Ch<'x> -> 'x -> unit
 
   /// Creates a job that creates a new channel.
   val create: unit -> Job<Ch<'x>>
@@ -1916,14 +1925,23 @@ module Mailbox =
     /// Creates a new mailbox.
     val inline create: unit -> Mailbox<'x>
 
+    /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
+    /// x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Mailbox.send` instead.
+    val send: Mailbox<'x> -> 'x -> unit
+
   /// Operations bound to the global scheduler.
+  [<Obsolete "Will be removed.">]
   module Global =
     /// Sends the given value to the specified mailbox.  `Mailbox.Global.send
     /// xMb x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Mailbox.send` instead.
-    val send: Mailbox<'x> -> 'x -> unit
+    [<Obsolete "Renamed to `Mailbox.Now.send`.">]
+    val inline send: Mailbox<'x> -> 'x -> unit
 
   /// Creates a job that creates a new mailbox.
   val create: unit -> Job<Mailbox<'x>>
