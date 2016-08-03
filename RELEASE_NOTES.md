@@ -12,6 +12,9 @@
 * Marked the `Timer` module for removal.  Use the `Hopac` module.
 * Moved `Ch.Global.send -> Ch.Now.send` and `Mailbox.Global.send ->
   Mailbox.Now.send`.  This is part of eliminating the scheduler concept.
+* Marked `*.create` functions obsolete where a constructor will do the job.
+  Originally constructors were treated quite differently from other functions in
+  F#.  Today the differences are smaller and not enough to justify duplication.
 
 #### 0.3.1 - 2016-07-30
 * Marked `Async.toJobOn` and `Async.toAltOn` as obsolete.

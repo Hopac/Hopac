@@ -173,14 +173,17 @@ module Util =
 
 module IVar =
   module Now =
+    [<Obsolete "Just use the constructor.">]
     let inline create () = IVar<'x> ()
+    [<Obsolete "Just use the constructor.">]
     let inline createFull (x: 'x) = IVar<'x> (x)
+    [<Obsolete "Just use the constructor.">]
     let inline createFailure (e: exn) = IVar<'x> (e)
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let isFull (xI: IVar<'x>) = xI.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xI: IVar<'x>) : 'x = xI.Get ()
-
+  [<Obsolete "Just use the constructor.">]
   let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline tryFill (xI: IVar<'x>) (x: 'x) =
@@ -839,6 +842,7 @@ module Alt =
 
 module Ch =
   module Now =
+    [<Obsolete "Just use the constructor.">]
     let inline create () = Ch<'x> ()
     let send (xCh: Ch<'x>) (x: 'x) =
       Ch<'x>.Send (initGlobalScheduler (), xCh, x)
@@ -847,6 +851,7 @@ module Ch =
     [<Obsolete "Renamed to `Ch.Now.send`.">]
     let inline send (xCh: Ch<'x>) (x: 'x) =
       Now.send xCh x
+  [<Obsolete "Just use the constructor.">]
   let create () = ctor Ch<'x> ()
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   module Try =
@@ -859,6 +864,7 @@ module Ch =
 
 module Mailbox =
   module Now =
+    [<Obsolete "Just use the constructor.">]
     let inline create () = Mailbox<'x> ()
     let send (xMb: Mailbox<'x>) (x: 'x) =
       Mailbox<'x>.Send (initGlobalScheduler (), xMb, x)
@@ -867,6 +873,7 @@ module Mailbox =
     [<Obsolete "Renamed to `Mailbox.Now.send`.">]
     let inline send (xMb: Mailbox<'x>) (x: 'x) =
       Now.send xMb x
+  [<Obsolete "Just use the constructor.">]
   let create () = ctor Mailbox ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
@@ -1623,8 +1630,10 @@ module Timer =
 
 module Lock =
   module Now =
+    [<Obsolete "Just use the constructor.">]
     let inline create () = Lock ()
-  let create () = ctor Now.create ()
+  [<Obsolete "Just use the constructor.">]
+  let create () = ctor Lock ()
   let inline duringFun (l: Lock) (xF: unit -> 'x) =
     LockDuringFun<'x> (l, xF) :> Job<'x>
   let inline duringJob (l: Lock) (xJ: Job<'x>) =
@@ -1644,10 +1653,14 @@ module Cond =
 
 module MVar =
   module Now =
+    [<Obsolete "Just use the constructor.">]
     let inline create () = MVar<'x> ()
+    [<Obsolete "Just use the constructor.">]
     let inline createFull (x: 'x) = MVar<'x> (x)
+  [<Obsolete "Just use the constructor.">]
   let create () = ctor Now.create ()
-  let createFull x = ctor Now.createFull x
+  [<Obsolete "Just use the constructor.">]
+  let createFull x = ctor MVar<'x> x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
     xM ^=> (x2xy >> fun (x, y) -> fill xM x >>-. y)
@@ -2199,13 +2212,13 @@ type EmbeddedJobBuilder () =
 
 module Latch =
   module Now =
-    [<MethodImpl(MethodImplOptions.NoInlining)>]
-    let create initial = Latch (initial)
+    [<MethodImpl(MethodImplOptions.NoInlining); Obsolete "Just use the constructor.">]
+    let create initial = Latch initial
     let inline increment (l: Latch) = l.Increment ()
   let inline decrement (l: Latch) = l.Decrement ()
   let inline await (l: Latch) = l :> Alt<_>
   let within (l2xJ: Latch -> #Job<'x>) = Job.delay <| fun () ->
-    let l = Now.create 1
+    let l = Latch 1
     Job.tryFinallyJob
       (Job.delayWith l2xJ l)
       (decrement l >>=. l)
@@ -2221,29 +2234,29 @@ module Latch =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type BoundedMb<'x> = {putCh: Ch<'x>; takeCh: Ch<'x>}
-
-module BoundedMb =
-  let create capacity =
-    if capacity <= 0 then
-      if capacity < 0 then
-        failwithf "Negative capacity"
-      else
-        Job.thunk <| fun () ->
-        let theCh = Ch ()
-        {putCh = theCh; takeCh = theCh}
+type BoundedMb<'x> (capacity) =
+  do if capacity < 0 then failwithf "Negative capacity"
+  let takeCh = Ch<'x> ()
+  let putCh =
+    if capacity = 0 then
+      takeCh
     else
-      Job.delay <| fun () ->
-      let self = {putCh = Ch (); takeCh = Ch ()}
+      let putCh = Ch<'x> ()
       let queue = Queue<_>()
-      let put = self.putCh ^-> queue.Enqueue
-      let take () = self.takeCh *<- queue.Peek () ^-> (queue.Dequeue >> ignore)
-      let proc = Job.delay <| fun () ->
+      let put = putCh ^-> queue.Enqueue
+      let take () = takeCh *<- queue.Peek () ^-> (queue.Dequeue >> ignore)
+      Job.Global.server << Job.forever << Job.delay <| fun () ->
         match queue.Count with
          | 0 -> put
          | n when n = capacity -> take ()
          | _ -> take () <|> put
-      Job.foreverServer proc >>-. self
+      putCh
+  member t.Put x = putCh *<- x
+  member t.Take = takeCh :> Alt<_>
 
-  let put xB x = xB.putCh *<- x
-  let take xB = xB.takeCh :> Alt<_>
+module BoundedMb =
+  [<Obsolete "Just use the constructor.">]
+  let inline create capacity = Job.thunk <| fun () ->
+    BoundedMb<_> (capacity)
+  let inline put (xB: BoundedMb<_>) x = xB.Put x
+  let inline take (xB: BoundedMb<_>) = xB.Take

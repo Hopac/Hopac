@@ -1387,12 +1387,15 @@ module Promise =
     /// immediately, the effect is that the delayed job will be run as a
     /// separate job, which means it is possible to communicate with it as long
     /// the delayed job is started before trying to communicate with it.
+    [<Obsolete "Just use the constructor.">]
     val inline delay: Job<'x> -> Promise<'x>
 
     /// Creates a promise with the given value.
+    [<Obsolete "Just use the constructor.">]
     val inline withValue:   'x  -> Promise<'x>
 
     /// Creates a promise with the given failure exception.
+    [<Obsolete "Just use the constructor.">]
     val inline withFailure: exn -> Promise<'x>
 
     /// Creates a promise that will never be fulfilled.
@@ -1462,6 +1465,7 @@ module Ch =
   /// Immediate or non-workflow operations on synchronous channels.
   module Now =
     /// Creates a new channel.
+    [<Obsolete "Just use the constructor.">]
     val inline create: unit -> Ch<'x>
 
     /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
@@ -1483,6 +1487,7 @@ module Ch =
     val inline send: Ch<'x> -> 'x -> unit
 
   /// Creates a job that creates a new channel.
+  [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<Ch<'x>>
 
   /// Creates an alternative that, at instantiation time, offers to give the
@@ -1576,12 +1581,15 @@ module IVar =
   /// Immediate or non-workflow operations on write once variables.
   module Now =
     /// Creates a new write once variable.
+    [<Obsolete "Just use the constructor.">]
     val inline create:        unit -> IVar<'x>
 
     /// Creates a new write once variable with the given value.
+    [<Obsolete "Just use the constructor.">]
     val inline createFull:    'x   -> IVar<'x>
 
     /// Creates a new write once variable with the given failure exception.
+    [<Obsolete "Just use the constructor.">]
     val inline createFailure: exn  -> IVar<'x>
 
     /// Returns true iff the given write once variable has already been filled
@@ -1604,6 +1612,7 @@ module IVar =
     val get: IVar<'x> -> 'x
 
   /// Creates a job that creates a new write once variable.
+  [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<IVar<'x>>
 
   /// Creates a job that writes the given value to the given write once
@@ -1705,6 +1714,7 @@ module Latch =
   /// Immediate operations on latches.
   module Now =
     /// Creates a new latch with the specified initial count.
+    [<Obsolete "Just use the constructor.">]
     val create: initial: int -> Latch
 
     /// Increments the counter of the latch.
@@ -1790,20 +1800,25 @@ type MVar<'x> =
 /// Operations on serialized variables.
 module MVar =
   /// Immediate or non-workflow operations on serialized variables.
+  [<Obsolete "Will be removed.">]
   module Now =
     /// Creates a new serialized variable that is initially empty.
+    [<Obsolete "Just use the constructor.">]
     val inline create:     unit -> MVar<'x>
 
     /// Creates a new serialized variable that initially contains the given
     /// value.
+    [<Obsolete "Just use the constructor.">]
     val inline createFull: 'x   -> MVar<'x>
 
   /// Creates a job that creates a new serialized variable that is initially
   /// empty.
+  [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<MVar<'x>>
 
   /// Creates a job that creates a new serialized variable that initially
   /// contains the given value.
+  [<Obsolete "Just use the constructor.">]
   val createFull: 'x -> Job<MVar<'x>>
 
   /// Creates a job that writes the given value to the serialized variable.  It
@@ -1878,26 +1893,34 @@ module MVar =
 /// performance can be improved significantly.  If you run into a case where the
 /// performance of `BoundedMb<_>` becomes problematic, please submit an issue.
 #endif
-type BoundedMb<'x>
+type BoundedMb<'x> =
+  /// Creates a new bounded mailbox.
+  new: int -> BoundedMb<'x>
+
+  [<Obsolete "This is an internal implementation detail.  Do not depend on.">]
+  member Put: 'x -> Alt<unit>
+  [<Obsolete "This is an internal implementation detail.  Do not depend on.">]
+  member Take: Alt<'x>
 
 /// Operations on bounded synchronous mailboxes.
 module BoundedMb =
   /// Returns a job that creates a new bounded mailbox with a buffer of the
   /// specified maximum capacity.  Note that a bounded mailbox with a capacity
   /// of `0` behaves exactly the same as a channel, `Ch<_>`.
-  val create: capacity: int -> Job<BoundedMb<'x>>
+  [<Obsolete "Just use the constructor.">]
+  val inline create: capacity: int -> Job<BoundedMb<'x>>
 
   /// Selective synchronous operation to put a message to a bounded mailbox.
   /// `put` operations are processed in FIFO order and become enabled as soon as
   /// there is room in the bounded buffer.  If the buffer capacity is `0`, `put`
   /// behaves exactly like `Ch.give`.
-  val put: BoundedMb<'x> -> 'x -> Alt<unit>
+  val inline put: BoundedMb<'x> -> 'x -> Alt<unit>
 
   /// Selective synchronous operation to take a message from a bounded mailbox.
   /// `take` operations are processed in FIFO order and become enabled as soon
   /// as there are messages in the bounded buffer.  If the buffer capacity is
   /// `0`, `take` behaves exactly like `Ch.take`.
-  val take: BoundedMb<'x> -> Alt<'x>
+  val inline take: BoundedMb<'x> -> Alt<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1923,6 +1946,7 @@ module Mailbox =
   /// Immediate or non-workflow operations on buffered mailboxes.
   module Now =
     /// Creates a new mailbox.
+    [<Obsolete "Just use the constructor.">]
     val inline create: unit -> Mailbox<'x>
 
     /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
@@ -1944,6 +1968,7 @@ module Mailbox =
     val inline send: Mailbox<'x> -> 'x -> unit
 
   /// Creates a job that creates a new mailbox.
+  [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<Mailbox<'x>>
 
   /// Creates a job that sends the given value to the specified mailbox.  This
@@ -1977,11 +2002,14 @@ type Lock =
 /// Operations on mutual exclusion locks.
 module Lock =
   /// Immediate or non-workflow operations on locks.
+  [<Obsolete "Will be removed.">]
   module Now =
     /// Creates a new lock.
+    [<Obsolete "Just use the constructor.">]
     val inline create: unit -> Lock
 
   /// Creates a job that creates a new mutual exclusion lock.
+  [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<Lock>
 
   /// Creates a job that runs the given job so that the lock is held during the
