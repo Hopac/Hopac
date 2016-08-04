@@ -650,6 +650,17 @@ module <a id="dec:module Hopac.Hopac" href="#def:module%20Hopac.Hopac">Hopac</a>
 <p> Hopac is a library for F# with the aim of making it easier to write correct, modular and efficient parallel, asynchronous, concurrent and reactive programs.  The design of Hopac draws inspiration from languages such as Concurrent ML and Cilk.  Similar to Concurrent ML, Hopac provides message passing primitives and supports the construction of first-class synchronous abstractions, see <code class="fsharp hljs"><a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt;</code>.  Parallel jobs (lightweight threads) in Hopac are created using techniques similar to the F# Async framework, see <code class="fsharp hljs"><a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt;</code>.  Hopac runs parallel jobs using a work distributing scheduler in a non-preemptive fashion.  Hopac also includes an implementation of choice streams, see <code class="fsharp hljs"><a href="#def:module%20Hopac.Stream">Stream</a>.<a href="#def:type%20Hopac.Stream.Stream">Stream</a>&lt;_&gt;</code>, that offers a simple approach to reactive programming.</p>
 <p> Before you begin using Hopac, make sure that you have configured your F# interactive and your application to use server garbage collection.  By default, .Net uses single-threaded workstation garbage collection, which makes it impossible for parallel programs to scale.</p>
 <p> The documentation of many of the primitives contains a reference implementation.  In most cases, actual implementations are optimized by taking advantage of internal implementation details and may be significantly faster than the reference implementation.  The reference implementations are given for a number of reasons.  First of all, they hopefully help to better understand the semantics of the primitives.  In some cases, the reference implementations also demonstrate how you can interface Hopac with other systems without the need to extend the primitives of Hopac.  The reference implementations can also be seen as examples of how various primitives can be used to implement more complex operations.</p>
+<p> Here is a diagram of some of Hopac's types:</p>
+<pre><code class="fsharp hljs">                           <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt;
+                            |
+                           <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt;
+                            |
+      +-------+--------+----+-----+--------+--------+
+      |       |        |          |        |        |
+     <a href="#def:type%20Hopac.Ch">Ch</a>&lt;_&gt;  <a href="#def:type%20Hopac.Latch">Latch</a>   <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;_&gt;  <a href="#def:type%20Hopac.MVar">MVar</a>&lt;_&gt;  <a href="#def:type%20Hopac.Proc">Proc</a>   <a href="#def:type%20Hopac.Promise">Promise</a>&lt;_&gt;
+                                                    |
+                                                  <a href="#def:type%20Hopac.IVar">IVar</a>&lt;_&gt;
+</code></pre>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Void" href="#dec:type%20Hopac.Void">Void</a>
 </code></pre>
 <p> A type that has no public constructors to indicate that a job or function does not return normally.</p>
