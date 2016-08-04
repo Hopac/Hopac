@@ -247,7 +247,7 @@ module Stream =
 
   /// An empty or closed choice stream.  `nil` is also the identity element for
   /// the `merge` and `append` combinators.  `nil` is equivalent to
-  /// `Promise.Now.withValue Nil`.
+  /// `Promise Nil`.
   val   inline nil<'x> : Stream<'x>
 
   /// A choice stream that never produces any values and never closes.  While
@@ -261,7 +261,7 @@ module Stream =
   /// See also: `delay`.
 #if DOC
   ///
-  /// `cons x xs` is equivalent to `Promise.Now.withValue (Cons (x, xs))`.
+  /// `cons x xs` is equivalent to `Promise (Cons (x, xs))`.
   ///
   /// Note that `cons` and `nil` directly correspond to the ordinary list
   /// constructors `::` and `[]` and, aside from the obvious notational
@@ -274,7 +274,7 @@ module Stream =
   /// lazy streams and to avoid unbounded eager recursion.
 #if DOC
   ///
-  /// `delay u2xs` is equivalent to `Promise.Now.delay <| Job.delay u2xs`.
+  /// `delay u2xs` is equivalent to `Promise (Job.delay u2xs)`.
   ///
   /// Note that with `delay`, `cons` and `nil`, you can express arbitrary lazy
   /// streams.  For example,
