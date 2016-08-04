@@ -156,13 +156,13 @@ module ActorModel =
   type Actor<'a> = A of Ch<'a>
   let unA (A aCh) = aCh
   let start (uA: ActorThread<'a, unit>) : Actor<'a> =
-    let aCh = Ch.Now.create ()
-    Job.Global.start (unAT uA aCh)
+    let aCh = Ch ()
+    Hopac.start (unAT uA aCh)
     A aCh
   let self : ActorThread<'a, Actor<'a>> =
     AT (fun aCh -> Job.result (A aCh))
   let send (aA: Actor<'a>) (a: 'a) : unit =
-    Job.Global.start (Ch.give (unA aA) a)
+    Hopac.start (Ch.give (unA aA) a)
 ```
 
 As can be seen above, it is fairly straightforward to encode an actor model
@@ -274,7 +274,7 @@ mailbox and starts a job with that mailbox:
 
 ```fsharp
 let actor (body: Mailbox<'m> -> Job<unit>) : Job<Actor<'m>> = Job.delay <| fun () ->
-  let mA = mb ()
+  let mA = Mailbox ()
   Job.start (body mA) >>-. mA
 ```
 
@@ -302,7 +302,7 @@ would be an
 
 ```fsharp
 let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->
-  let i = ivar ()
+  let i = IVar ()
   mA <<-+ i2m i >>. i
 ```
 

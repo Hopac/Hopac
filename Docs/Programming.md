@@ -199,7 +199,7 @@ the concurrent server job:
 
 ```fsharp
 let cell (x: 'a) : Job<Cell<'a>> = job {
-  let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
+  let c = {reqCh = Ch (); replyCh = Ch ()}
   let rec server x = job {
         let! req = Ch.take c.reqCh
         match req with
@@ -342,7 +342,7 @@ let put (c: Cell<'a>) (x: 'a) : Job<unit> =
 let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
 
 let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
-  let c = {reqCh = Ch.Now.create (); replyCh = Ch.Now.create ()}
+  let c = {reqCh = Ch (); replyCh = Ch ()}
   let rec server x =
     Ch.take c.reqCh >>= function
      | Get ->
@@ -444,7 +444,7 @@ The `cell` constructor then creates the channels and starts the server loop:
 
 ```fsharp
 let cell x = Job.delay <| fun () ->
-  let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
+  let c = {getCh = Ch (); putCh = Ch ()}
   let rec server x =
     Alt.choose [Ch.take c.putCh   ^=> fun x -> server x
                 Ch.give c.getCh x ^=> fun () -> server x]
@@ -478,7 +478,7 @@ for that purpose.  Using `iterate` we would write:
 
 ```fsharp
 let cell x = Job.delay <| fun () ->
-  let c = {getCh = Ch.Now.create (); putCh = Ch.Now.create ()}
+  let c = {getCh = Ch (); putCh = Ch ()}
   Job.server << Job.iterate x <| fun x ->
         Alt.choose [Ch.take c.putCh
                     Ch.give c.getCh x ^->. x]
@@ -612,9 +612,9 @@ code.  Here is a small snippet of a sketch of what the end result could look
 like:
 
 ```fsharp
-let ch_1 = Ch.Now.create ()
-let ch_2 = Ch.Now.create ()
-let ch_3 = Ch.Now.create ()
+let ch_1 = Ch ()
+let ch_2 = Ch ()
+let ch_3 = Ch ()
 // ...
 let bMoved = ref false
 // ...
@@ -858,7 +858,7 @@ example, the following job might deadlock:
 
 ```fsharp
 let notSafe = Job.delay <| fun () ->
-  let c = Ch.Now.create ()
+  let c = Ch ()
   Ch.take c <*> Ch.give c ()
 ```
 
@@ -1277,7 +1277,7 @@ Now, to integrate this concept of time with Hopac, we'll have a time server with
 which we communicate through a timer request channel.
 
 ```fsharp
-let timerReqCh : Ch<Ticks * Ch<unit>> = Ch.Now.create ()
+let timerReqCh : Ch<Ticks * Ch<unit>> = Ch ()
 ```
 
 Via the channel, a client can send a request to the server to send back a
@@ -1289,7 +1289,7 @@ that *encapsulates the whole protocol* for interacting with the time server:
 ```fsharp
 let atTime (atTime: Ticks) : Alt<unit> =
   Alt.prepareJob <| fun () ->
-  let replyCh : Ch<unit> = Ch.Now.create ()
+  let replyCh : Ch<unit> = Ch ()
   Ch.send timerReqCh (atTime, replyCh) >>-.
   Ch.take replyCh
 ```
@@ -1529,7 +1529,7 @@ The `acquire` operation is where we'll use `withNackJob`:
 
 ```fsharp
 let acquire s (Lock lock) = Alt.withNackJob <| fun abortAlt ->
-  let replyCh = Ch.Now.create ()
+  let replyCh = Ch ()
   Ch.send s.reqCh (Acquire (lock, replyCh, abortAlt)) >>-.
   Ch.take replyCh
 ```
@@ -1559,7 +1559,7 @@ active locks, of the lock server.
 ```fsharp
 let start = Job.delay <| fun () ->
   let locks = Dictionary<int64, Queue<Ch<unit> * Alt<unit>>>()
-  let s = {unique = 0L; reqCh = Ch.Now.create ()}
+  let s = {unique = 0L; reqCh = Ch ()}
   (Job.server << Job.forever)
    (Ch.take s.reqCh >>= function
      | Acquire (lock, replyCh, abortAlt) ->
