@@ -27,7 +27,7 @@
   val <a id="dec:val Hopac.Job.server" href="#def:val%20Hopac.Job.server">server</a>:      <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Void">Void</a>&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.Job.start" href="#def:val%20Hopac.Job.start">start</a>:       <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.Job.startIgnore" href="#def:val%20Hopac.Job.startIgnore">startIgnore</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt;    -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
-  <a id="Hopac.Job.basic-jobs" href="#Hopac.Job.basic-jobs" class="h3">// Basic jobs</a>
+  <a id="Hopac.Job.basic-combinators" href="#Hopac.Job.basic-combinators" class="h3">// Basic combinators</a>
   val <a id="dec:val Hopac.Job.result" href="#def:val%20Hopac.Job.result">result</a>: 'x   -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
   val   <a id="dec:val Hopac.Job.unit" href="#def:val%20Hopac.Job.unit">unit</a>: unit -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.Job.bind" href="#def:val%20Hopac.Job.bind">bind</a>:      ('x   -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;
@@ -158,25 +158,25 @@
   <a id="dec:new Hopac.Promise.2.new" href="#def:new%20Hopac.Promise.2.new">new</a>:     'x  -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
   <a id="dec:new Hopac.Promise.3.new" href="#def:new%20Hopac.Promise.3.new">new</a>: exn     -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
 </span><span class="spacing">module <a id="dec:module Hopac.Promise" href="#def:module%20Hopac.Promise">Promise</a> =
+  val <a id="dec:val Hopac.Promise.queue" href="#def:val%20Hopac.Promise.queue">queue</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
+  val <a id="dec:val Hopac.Promise.start" href="#def:val%20Hopac.Promise.start">start</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
+  val <a id="dec:val Hopac.Promise.read" href="#def:val%20Hopac.Promise.read">read</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
 <span class="spacing">  module <a id="dec:module Hopac.Promise.Now" href="#def:module%20Hopac.Promise.Now">Now</a> =
     val <a id="dec:val Hopac.Promise.Now.isFulfilled" href="#def:val%20Hopac.Promise.Now.isFulfilled">isFulfilled</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; bool
     val <a id="dec:val Hopac.Promise.Now.get" href="#def:val%20Hopac.Promise.Now.get">get</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; 'x
-</span>  val <a id="dec:val Hopac.Promise.queue" href="#def:val%20Hopac.Promise.queue">queue</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
-  val <a id="dec:val Hopac.Promise.start" href="#def:val%20Hopac.Promise.start">start</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
-  val <a id="dec:val Hopac.Promise.read" href="#def:val%20Hopac.Promise.read">read</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
-</span></code></pre>
+</span></span></code></pre>
 <pre><code class="fsharp hljs"><span class="spacing">type <a id="dec:type Hopac.Ch" href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; =
   inherit <a id="dec:inherit Hopac.Ch.Alt" href="#def:inherit%20Hopac.Ch.Alt">Alt</a>&lt;'x&gt;
   <a id="dec:new Hopac.Ch.new" href="#def:new%20Hopac.Ch.new">new</a>: unit -&gt; <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt;
 </span><span class="spacing">module <a id="dec:module Hopac.Ch" href="#def:module%20Hopac.Ch">Ch</a> =
-<span class="spacing">  module <a id="dec:module Hopac.Ch.Now" href="#def:module%20Hopac.Ch.Now">Now</a> =
-    val <a id="dec:val Hopac.Ch.Now.send" href="#def:val%20Hopac.Ch.Now.send">send</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; unit
-</span>  val <a id="dec:val Hopac.Ch.give" href="#def:val%20Hopac.Ch.give">give</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
+  val <a id="dec:val Hopac.Ch.give" href="#def:val%20Hopac.Ch.give">give</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
   val <a id="dec:val Hopac.Ch.send" href="#def:val%20Hopac.Ch.send">send</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.Ch.take" href="#def:val%20Hopac.Ch.take">take</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
 <span class="spacing">  module <a id="dec:module Hopac.Ch.Try" href="#def:module%20Hopac.Ch.Try">Try</a> =
     val <a id="dec:val Hopac.Ch.Try.give" href="#def:val%20Hopac.Ch.Try.give">give</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;bool&gt;
     val <a id="dec:val Hopac.Ch.Try.take" href="#def:val%20Hopac.Ch.Try.take">take</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;option&lt;'x&gt;&gt;
+</span><span class="spacing">  module <a id="dec:module Hopac.Ch.Now" href="#def:module%20Hopac.Ch.Now">Now</a> =
+    val <a id="dec:val Hopac.Ch.Now.send" href="#def:val%20Hopac.Ch.Now.send">send</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; unit
 </span></span></code></pre>
 <pre><code class="fsharp hljs"><span class="spacing">type <a id="dec:type Hopac.IVar" href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; =
   inherit <a id="dec:inherit Hopac.IVar.Promise" href="#def:inherit%20Hopac.IVar.Promise">Promise</a>&lt;'x&gt;
@@ -184,31 +184,31 @@
   <a id="dec:new Hopac.IVar.1.new" href="#def:new%20Hopac.IVar.1.new">new</a>: 'x   -&gt; <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt;
   <a id="dec:new Hopac.IVar.2.new" href="#def:new%20Hopac.IVar.2.new">new</a>: exn  -&gt; <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt;
 </span><span class="spacing">module <a id="dec:module Hopac.IVar" href="#def:module%20Hopac.IVar">IVar</a> =
-<span class="spacing">  module <a id="dec:module Hopac.IVar.Now" href="#def:module%20Hopac.IVar.Now">Now</a> =
-    val <a id="dec:val Hopac.IVar.Now.isFull" href="#def:val%20Hopac.IVar.Now.isFull">isFull</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; bool
-    val <a id="dec:val Hopac.IVar.Now.get" href="#def:val%20Hopac.IVar.Now.get">get</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x
-</span>  val    <a id="dec:val Hopac.IVar.fill" href="#def:val%20Hopac.IVar.fill">fill</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
+  val    <a id="dec:val Hopac.IVar.fill" href="#def:val%20Hopac.IVar.fill">fill</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.IVar.tryFill" href="#def:val%20Hopac.IVar.tryFill">tryFill</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val    <a id="dec:val Hopac.IVar.fillFailure" href="#def:val%20Hopac.IVar.fillFailure">fillFailure</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; exn -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.IVar.tryFillFailure" href="#def:val%20Hopac.IVar.tryFillFailure">tryFillFailure</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; exn -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.IVar.read" href="#def:val%20Hopac.IVar.read">read</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
-</span></code></pre>
+<span class="spacing">  module <a id="dec:module Hopac.IVar.Now" href="#def:module%20Hopac.IVar.Now">Now</a> =
+    val <a id="dec:val Hopac.IVar.Now.isFull" href="#def:val%20Hopac.IVar.Now.isFull">isFull</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; bool
+    val <a id="dec:val Hopac.IVar.Now.get" href="#def:val%20Hopac.IVar.Now.get">get</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x
+</span></span></code></pre>
 <pre><code class="fsharp hljs"><span class="spacing">type <a id="dec:type Hopac.Latch" href="#def:type%20Hopac.Latch">Latch</a> =
   inherit <a id="dec:inherit Hopac.Latch.Alt" href="#def:inherit%20Hopac.Latch.Alt">Alt</a>&lt;unit&gt;
   <a id="dec:new Hopac.Latch.new" href="#def:new%20Hopac.Latch.new">new</a>: int -&gt; <a href="#def:type%20Hopac.Latch">Latch</a>
 </span><span class="spacing">module <a id="dec:module Hopac.Latch" href="#def:module%20Hopac.Latch">Latch</a> =
+  <a id="Hopac.Latch.await" href="#Hopac.Latch.await" class="h3">// Await</a>
+  val <a id="dec:val Hopac.Latch.await" href="#def:val%20Hopac.Latch.await">await</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
   <a id="Hopac.Latch.higher-order-interface" href="#Hopac.Latch.higher-order-interface" class="h3">// Higher-order interface</a>
   val <a id="dec:val Hopac.Latch.within" href="#def:val%20Hopac.Latch.within">within</a>: (<a href="#def:type%20Hopac.Latch">Latch</a> -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
   val <a id="dec:val Hopac.Latch.holding" href="#def:val%20Hopac.Latch.holding">holding</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
   val <a id="dec:val Hopac.Latch.queue" href="#def:val%20Hopac.Latch.queue">queue</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
   val <a id="dec:val Hopac.Latch.queueAsPromise" href="#def:val%20Hopac.Latch.queueAsPromise">queueAsPromise</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
   <a id="Hopac.Latch.first-order-interface" href="#Hopac.Latch.first-order-interface" class="h3">// First-order interface</a>
+  val <a id="dec:val Hopac.Latch.decrement" href="#def:val%20Hopac.Latch.decrement">decrement</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
 <span class="spacing">  module <a id="dec:module Hopac.Latch.Now" href="#def:module%20Hopac.Latch.Now">Now</a> =
     val <a id="dec:val Hopac.Latch.Now.increment" href="#def:val%20Hopac.Latch.Now.increment">increment</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; unit
-</span>  val <a id="dec:val Hopac.Latch.decrement" href="#def:val%20Hopac.Latch.decrement">decrement</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
-  <a id="Hopac.Latch.await-interface" href="#Hopac.Latch.await-interface" class="h3">// Await interface</a>
-  val <a id="dec:val Hopac.Latch.await" href="#def:val%20Hopac.Latch.await">await</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
-</span></code></pre>
+</span></span></code></pre>
 <pre><code class="fsharp hljs"><span class="spacing">type <a id="dec:type Hopac.MVar" href="#def:type%20Hopac.MVar">MVar</a>&lt;'x&gt; =
   inherit <a id="dec:inherit Hopac.MVar.Alt" href="#def:inherit%20Hopac.MVar.Alt">Alt</a>&lt;'x&gt;
   <a id="dec:new Hopac.MVar.new" href="#def:new%20Hopac.MVar.new">new</a>: unit -&gt; <a href="#def:type%20Hopac.MVar">MVar</a>&lt;'x&gt;
@@ -230,11 +230,11 @@
   inherit <a id="dec:inherit Hopac.Mailbox.Alt" href="#def:inherit%20Hopac.Mailbox.Alt">Alt</a>&lt;'x&gt;
   <a id="dec:new Hopac.Mailbox.new" href="#def:new%20Hopac.Mailbox.new">new</a>: unit -&gt; <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt;
 </span><span class="spacing">module <a id="dec:module Hopac.Mailbox" href="#def:module%20Hopac.Mailbox">Mailbox</a> =
+  val <a id="dec:val Hopac.Mailbox.send" href="#def:val%20Hopac.Mailbox.send">send</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
+  val <a id="dec:val Hopac.Mailbox.take" href="#def:val%20Hopac.Mailbox.take">take</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
 <span class="spacing">  module <a id="dec:module Hopac.Mailbox.Now" href="#def:module%20Hopac.Mailbox.Now">Now</a> =
     val <a id="dec:val Hopac.Mailbox.Now.send" href="#def:val%20Hopac.Mailbox.Now.send">send</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; 'x -&gt; unit
-</span>  val <a id="dec:val Hopac.Mailbox.send" href="#def:val%20Hopac.Mailbox.send">send</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
-  val <a id="dec:val Hopac.Mailbox.take" href="#def:val%20Hopac.Mailbox.take">take</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
-</span></code></pre>
+</span></span></code></pre>
 <pre><code class="fsharp hljs"><span class="spacing">type <a id="dec:type Hopac.Lock" href="#def:type%20Hopac.Lock">Lock</a> =
   <a id="dec:new Hopac.Lock.new" href="#def:new%20Hopac.Lock.new">new</a>: unit -&gt; <a href="#def:type%20Hopac.Lock">Lock</a>
 </span><span class="spacing">module <a id="dec:module Hopac.Lock" href="#def:module%20Hopac.Lock">Lock</a> =
@@ -625,7 +625,7 @@ module <a id="dec:module Hopac.Hopac" href="#def:module%20Hopac.Hopac">Hopac</a>
 </span>  <a id="Hopac.Hopac.computation-expression-builders" href="#Hopac.Hopac.computation-expression-builders" class="h3">// Computation expression builders</a>
   val <a id="dec:val Hopac.Hopac.job" href="#def:val%20Hopac.Hopac.job">job</a>: <a href="#def:type%20Hopac.JobBuilder">JobBuilder</a>
   val <a id="dec:val Hopac.Hopac.onMain" href="#def:val%20Hopac.Hopac.onMain">onMain</a>: <a href="#def:module%20Hopac.Extensions">Extensions</a>.<a href="#def:module%20Hopac.Extensions.Async">Async</a>.<a href="#def:type%20Hopac.Extensions.Async.OnWithSchedulerBuilder">OnWithSchedulerBuilder</a>
-  <a id="Hopac.Hopac.starting-jobs" href="#Hopac.Hopac.starting-jobs" class="h3">// Starting jobs</a>
+  <a id="Hopac.Hopac.spawning-jobs" href="#Hopac.Hopac.spawning-jobs" class="h3">// Spawning jobs</a>
   val <a id="dec:val Hopac.Hopac.queue" href="#def:val%20Hopac.Hopac.queue">queue</a>:                <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt; -&gt; unit
   val <a id="dec:val Hopac.Hopac.queueIgnore" href="#def:val%20Hopac.Hopac.queueIgnore">queueIgnore</a>:          <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt;    -&gt; unit
   val <a id="dec:val Hopac.Hopac.queueDelay" href="#def:val%20Hopac.Hopac.queueDelay">queueDelay</a>: (unit -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt;)   -&gt; unit
@@ -1390,6 +1390,18 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Promise" href="#dec:module%20Hopac.Promise">Promise</a> =
 </code></pre>
 <p> Operations on promises.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.queue" href="#dec:val%20Hopac.Promise.queue">queue</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
+</code></pre>
+<p> Creates a job that creates a promise, whose value is computed with the given job, which is scheduled to be run as a separate concurrent job.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Promise.start">start</a></code>, <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.queue">queue</a></code>.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.start" href="#dec:val%20Hopac.Promise.start">start</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
+</code></pre>
+<p> Creates a job that creates a promise, whose value is computed with the given job, which is immediately started to run as a separate concurrent job.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Promise.queue">queue</a></code>, <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.queue">queue</a></code>.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.read" href="#dec:val%20Hopac.Promise.read">read</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
+</code></pre>
+<p> Creates an alternative for reading the promise.  If the promise was delayed, it is started as a separate job.</p>
+</div>
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Promise.Now" href="#dec:module%20Hopac.Promise.Now">Now</a> =
 </code></pre>
 <p> Immediate or non-workflow operations on promises.</p>
@@ -1403,18 +1415,6 @@ val it : int = 832040L
 <p> Returns the value or raises the failure exception that the promise has been fulfilled with.  It is considered an error if the promise has not yet been fulfilled.</p>
 <p> This operation is mainly provided for advanced uses of promises such as when creating more complex data structures that make internal use of promises.  Using this to poll promises is not generally a good idea.</p>
 </div>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.queue" href="#dec:val%20Hopac.Promise.queue">queue</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
-</code></pre>
-<p> Creates a job that creates a promise, whose value is computed with the given job, which is scheduled to be run as a separate concurrent job.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Promise.start">start</a></code>, <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.queue">queue</a></code>.</p>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.start" href="#dec:val%20Hopac.Promise.start">start</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
-</code></pre>
-<p> Creates a job that creates a promise, whose value is computed with the given job, which is immediately started to run as a separate concurrent job.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Promise.queue">queue</a></code>, <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.queue">queue</a></code>.</p>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.read" href="#dec:val%20Hopac.Promise.read">read</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
-</code></pre>
-<p> Creates an alternative for reading the promise.  If the promise was delayed, it is started as a separate job.</p>
 </div>
 </div>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Ch" href="#dec:type%20Hopac.Ch">Ch</a>&lt;'x&gt; =
@@ -1435,15 +1435,6 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Ch" href="#dec:module%20Hopac.Ch">Ch</a> =
 </code></pre>
 <p> Operations on synchronous channels.</p>
-<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Ch.Now" href="#dec:module%20Hopac.Ch.Now">Now</a> =
-</code></pre>
-<p> Immediate or non-workflow operations on synchronous channels.</p>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Ch.Now.send" href="#dec:val%20Hopac.Ch.Now.send">send</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; unit
-</code></pre>
-<p> Sends the given value to the specified channel.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:module%20Hopac.Ch.Now">Now</a>.<a href="#def:val%20Hopac.Ch.Now.send">send</a>&nbsp;xCh&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a>&nbsp;xCh&nbsp;x&nbsp;|&gt;&nbsp;TopLevel.start</code>.</p>
-<p> Note that using this function in a job workflow is not optimal and you should use <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a></code> instead.</p>
-</div>
-</div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Ch.give" href="#dec:val%20Hopac.Ch.give">give</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
 </code></pre>
 <p> Creates an alternative that, at instantiation time, offers to give the given value on the given channel, and becomes available when another job offers to take the value.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.*&lt;-">*&lt;-</a></code>.</p>
@@ -1469,6 +1460,15 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Ch.Try.take" href="#dec:val%20Hopac.Ch.Try.take">take</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;option&lt;'x&gt;&gt;
 </code></pre>
 <p> Creates a job that attempts to take a value from another job waiting on the given channel.  Note that the other side of the communication must be blocked on the channel for communication to happen.</p>
+</div>
+</div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Ch.Now" href="#dec:module%20Hopac.Ch.Now">Now</a> =
+</code></pre>
+<p> Immediate or non-workflow operations on synchronous channels.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Ch.Now.send" href="#dec:val%20Hopac.Ch.Now.send">send</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; unit
+</code></pre>
+<p> Sends the given value to the specified channel.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:module%20Hopac.Ch.Now">Now</a>.<a href="#def:val%20Hopac.Ch.Now.send">send</a>&nbsp;xCh&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a>&nbsp;xCh&nbsp;x&nbsp;|&gt;&nbsp;TopLevel.start</code>.</p>
+<p> Note that using this function in a job workflow is not optimal and you should use <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a></code> instead.</p>
 </div>
 </div>
 </div>
@@ -1498,20 +1498,6 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.IVar" href="#dec:module%20Hopac.IVar">IVar</a> =
 </code></pre>
 <p> Operations on write once variables.</p>
-<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.IVar.Now" href="#dec:module%20Hopac.IVar.Now">Now</a> =
-</code></pre>
-<p> Immediate or non-workflow operations on write once variables.</p>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.IVar.Now.isFull" href="#dec:val%20Hopac.IVar.Now.isFull">isFull</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; bool
-</code></pre>
-<p> Returns true iff the given write once variable has already been filled (either with a value or with a failure).</p>
-<p> This operation is mainly provided for advanced uses of write once variables such as when creating more complex data structures that make internal use of write once variables.  Using this to poll write once variables is not generally a good idea.</p>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.IVar.Now.get" href="#dec:val%20Hopac.IVar.Now.get">get</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x
-</code></pre>
-<p> Returns the value or raises the failure exception written to the write once variable.  It is considered an error if the write once variable has not yet been written to.</p>
-<p> This operation is mainly provided for advanced uses of write once variables such as when creating more complex data structures that make internal use of write once variables.  Using this to poll write once variables is not generally a good idea.</p>
-</div>
-</div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.IVar.fill" href="#dec:val%20Hopac.IVar.fill">fill</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
 </code></pre>
 <p> Creates a job that writes the given value to the given write once variable.  It is an error to write to a single write once variable more than once.  This assumption may be used to optimize the implementation of <code class="fsharp hljs"><a href="#def:val%20Hopac.IVar.fill">fill</a></code> and incorrect usage leads to undefined behavior.</p>
@@ -1534,6 +1520,20 @@ val it : int = 832040L
 </code></pre>
 <p> Creates an alternative that becomes available after the write once variable has been written to.</p>
 </div>
+<div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.IVar.Now" href="#dec:module%20Hopac.IVar.Now">Now</a> =
+</code></pre>
+<p> Immediate or non-workflow operations on write once variables.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.IVar.Now.isFull" href="#dec:val%20Hopac.IVar.Now.isFull">isFull</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; bool
+</code></pre>
+<p> Returns true iff the given write once variable has already been filled (either with a value or with a failure).</p>
+<p> This operation is mainly provided for advanced uses of write once variables such as when creating more complex data structures that make internal use of write once variables.  Using this to poll write once variables is not generally a good idea.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.IVar.Now.get" href="#dec:val%20Hopac.IVar.Now.get">get</a>: <a href="#def:type%20Hopac.IVar">IVar</a>&lt;'x&gt; -&gt; 'x
+</code></pre>
+<p> Returns the value or raises the failure exception written to the write once variable.  It is considered an error if the write once variable has not yet been written to.</p>
+<p> This operation is mainly provided for advanced uses of write once variables such as when creating more complex data structures that make internal use of write once variables.  Using this to poll write once variables is not generally a good idea.</p>
+</div>
+</div>
 </div>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Latch" href="#dec:type%20Hopac.Latch">Latch</a> =
 </code></pre>
@@ -1543,7 +1543,7 @@ val it : int = 832040L
 <p> Both a first-order interface, with <code class="fsharp hljs">create</code>, <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.Now.increment">increment</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.decrement">decrement</a></code> operations, and a higher-order interface, with <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.within">within</a></code>, <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.holding">holding</a></code>, <code class="fsharp hljs">queue</code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Latch.queueAsPromise">queueAsPromise</a></code> operations, are provided for programming with latches.</p>
 <div class="description"><pre><code class="fsharp hljs">inherit <a id="def:inherit Hopac.Latch.Alt" href="#dec:inherit%20Hopac.Latch.Alt">Alt</a>&lt;unit&gt;
 </code></pre>
-<p> <code class="fsharp hljs"><a href="#def:type%20Hopac.Latch">Latch</a></code> is a subtype of <code class="fsharp hljs"><a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;</code> and <code class="fsharp hljs"><a href="#def:module%20Hopac.Latch">Latch</a>.<a href="#def:val%20Hopac.Latch.await">await</a>&nbsp;l</code> is equivalent to <code class="fsharp hljs">l&nbsp;:&gt;&nbsp;<a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;</code>.</p>
+<p> <code class="fsharp hljs"><a href="#def:type%20Hopac.Latch">Latch</a></code> is a subtype of <code class="fsharp hljs"><a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;</code> and <code class="fsharp hljs"><a href="#def:module%20Hopac.Latch">Latch</a>.await&nbsp;l</code> is equivalent to <code class="fsharp hljs">l&nbsp;:&gt;&nbsp;<a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs"><a id="def:new Hopac.Latch.new" href="#dec:new%20Hopac.Latch.new">new</a>: int -&gt; <a href="#def:type%20Hopac.Latch">Latch</a>
 </code></pre>
@@ -1553,6 +1553,10 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Latch" href="#dec:module%20Hopac.Latch">Latch</a> =
 </code></pre>
 <p> Operations on latches.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.await" href="#dec:val%20Hopac.Latch.await">await</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
+</code></pre>
+<p> Returns an alternative that becomes available once the latch opens.</p>
+</div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.within" href="#dec:val%20Hopac.Latch.within">within</a>: (<a href="#def:type%20Hopac.Latch">Latch</a> -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
 <p> Creates a job that creates a new latch, passes it to the given function to create a new job to run and then awaits for the latch to open.</p>
@@ -1569,6 +1573,10 @@ val it : int = 832040L
 </code></pre>
 <p> Creates a job that queues the given job to run as a separate concurrent job and holds the latch until the queued job either returns or fails with an exception.  A promise is returned for observing the result or failure of the queued job.</p>
 </div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.decrement" href="#dec:val%20Hopac.Latch.decrement">decrement</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
+</code></pre>
+<p> Returns a job that explicitly decrements the counter of the latch.  When the counter reaches <code class="fsharp hljs">0</code>, the latch becomes open and operations awaiting the latch are resumed.</p>
+</div>
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Latch.Now" href="#dec:module%20Hopac.Latch.Now">Now</a> =
 </code></pre>
 <p> Immediate operations on latches.</p>
@@ -1576,14 +1584,6 @@ val it : int = 832040L
 </code></pre>
 <p> Increments the counter of the latch.</p>
 </div>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.decrement" href="#dec:val%20Hopac.Latch.decrement">decrement</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
-</code></pre>
-<p> Returns a job that explicitly decrements the counter of the latch.  When the counter reaches <code class="fsharp hljs">0</code>, the latch becomes open and operations awaiting the latch are resumed.</p>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Latch.await" href="#dec:val%20Hopac.Latch.await">await</a>: <a href="#def:type%20Hopac.Latch">Latch</a> -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
-</code></pre>
-<p> Returns an alternative that becomes available once the latch opens.</p>
 </div>
 </div>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.MVar" href="#dec:type%20Hopac.MVar">MVar</a>&lt;'x&gt; =
@@ -1691,6 +1691,14 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Mailbox" href="#dec:module%20Hopac.Mailbox">Mailbox</a> =
 </code></pre>
 <p> Operations on buffered mailboxes.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Mailbox.send" href="#dec:val%20Hopac.Mailbox.send">send</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
+</code></pre>
+<p> Creates a job that sends the given value to the specified mailbox.  This operation never blocks.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.*&lt;&lt;+">*&lt;&lt;+</a></code>.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Mailbox.take" href="#dec:val%20Hopac.Mailbox.take">take</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
+</code></pre>
+<p> Creates an alternative that becomes available when the mailbox contains at least one value and, if committed to, takes a value from the mailbox.</p>
+</div>
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Mailbox.Now" href="#dec:module%20Hopac.Mailbox.Now">Now</a> =
 </code></pre>
 <p> Immediate or non-workflow operations on buffered mailboxes.</p>
@@ -1699,14 +1707,6 @@ val it : int = 832040L
 <p> Sends the given value to the specified mailbox.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:module%20Hopac.Mailbox.Now">Now</a>.<a href="#def:val%20Hopac.Mailbox.Now.send">send</a>&nbsp;xMb&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:val%20Hopac.Mailbox.send">send</a>&nbsp;xMb&nbsp;x&nbsp;|&gt;&nbsp;TopLevel.start</code>.</p>
 <p> Note that using this function in a job workflow is not optimal and you should use <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:val%20Hopac.Mailbox.send">send</a></code> instead.</p>
 </div>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Mailbox.send" href="#dec:val%20Hopac.Mailbox.send">send</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; 'x -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
-</code></pre>
-<p> Creates a job that sends the given value to the specified mailbox.  This operation never blocks.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.*&lt;&lt;+">*&lt;&lt;+</a></code>.</p>
-</div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Mailbox.take" href="#dec:val%20Hopac.Mailbox.take">take</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
-</code></pre>
-<p> Creates an alternative that becomes available when the mailbox contains at least one value and, if committed to, takes a value from the mailbox.</p>
 </div>
 </div>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Lock" href="#dec:type%20Hopac.Lock">Lock</a> =
