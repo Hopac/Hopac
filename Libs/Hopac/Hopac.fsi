@@ -1394,6 +1394,20 @@ type Promise<'x> =
 
 /// Operations on promises.
 module Promise =
+  /// Creates a job that creates a promise, whose value is computed with the
+  /// given job, which is scheduled to be run as a separate concurrent job.  See
+  /// also: `start`, `Job.queue`.
+  val queue: Job<'x> -> Job<Promise<'x>>
+
+  /// Creates a job that creates a promise, whose value is computed with the
+  /// given job, which is immediately started to run as a separate concurrent
+  /// job.  See also: `queue`, `Job.queue`.
+  val start: Job<'x> -> Job<Promise<'x>>
+
+  /// Creates an alternative for reading the promise.  If the promise was
+  /// delayed, it is started as a separate job.
+  val inline read: Promise<'x> -> Alt<'x>
+
   /// Immediate or non-workflow operations on promises.
   module Now =
     /// Creates a promise whose value is computed lazily with the given job when
@@ -1433,20 +1447,6 @@ module Promise =
     /// promises.  Using this to poll promises is not generally a good idea.
     val get: Promise<'x> -> 'x
 
-  /// Creates a job that creates a promise, whose value is computed with the
-  /// given job, which is scheduled to be run as a separate concurrent job.  See
-  /// also: `start`, `Job.queue`.
-  val queue: Job<'x> -> Job<Promise<'x>>
-
-  /// Creates a job that creates a promise, whose value is computed with the
-  /// given job, which is immediately started to run as a separate concurrent
-  /// job.  See also: `queue`, `Job.queue`.
-  val start: Job<'x> -> Job<Promise<'x>>
-
-  /// Creates an alternative for reading the promise.  If the promise was
-  /// delayed, it is started as a separate job.
-  val inline read: Promise<'x> -> Alt<'x>
-
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
@@ -1477,19 +1477,6 @@ type Ch<'x> =
 
 /// Operations on synchronous channels.
 module Ch =
-  /// Immediate or non-workflow operations on synchronous channels.
-  module Now =
-    /// Creates a new channel.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Ch<'x>
-
-    /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
-    /// equivalent to `Ch.send xCh x |> TopLevel.start`.
-    ///
-    /// Note that using this function in a job workflow is not optimal and you
-    /// should use `Ch.send` instead.
-    val send: Ch<'x> -> 'x -> unit
-
   /// Operations bound to the global scheduler.
   [<Obsolete "Will be removed.">]
   module Global =
@@ -1554,6 +1541,19 @@ module Ch =
     /// be blocked on the channel for communication to happen.
     val inline take: Ch<'x> -> Job<option<'x>>
 
+  /// Immediate or non-workflow operations on synchronous channels.
+  module Now =
+    /// Creates a new channel.
+    [<Obsolete "Just use the constructor.">]
+    val inline create: unit -> Ch<'x>
+
+    /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
+    /// equivalent to `Ch.send xCh x |> TopLevel.start`.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Ch.send` instead.
+    val send: Ch<'x> -> 'x -> unit
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
@@ -1593,39 +1593,6 @@ type IVar<'x> =
 
 /// Operations on write once variables.
 module IVar =
-  /// Immediate or non-workflow operations on write once variables.
-  module Now =
-    /// Creates a new write once variable.
-    [<Obsolete "Just use the constructor.">]
-    val inline create:        unit -> IVar<'x>
-
-    /// Creates a new write once variable with the given value.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFull:    'x   -> IVar<'x>
-
-    /// Creates a new write once variable with the given failure exception.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFailure: exn  -> IVar<'x>
-
-    /// Returns true iff the given write once variable has already been filled
-    /// (either with a value or with a failure).
-    ///
-    /// This operation is mainly provided for advanced uses of write once
-    /// variables such as when creating more complex data structures that make
-    /// internal use of write once variables.  Using this to poll write once
-    /// variables is not generally a good idea.
-    val isFull: IVar<'x> -> bool
-
-    /// Returns the value or raises the failure exception written to the write
-    /// once variable.  It is considered an error if the write once variable has
-    /// not yet been written to.
-    ///
-    /// This operation is mainly provided for advanced uses of write once
-    /// variables such as when creating more complex data structures that make
-    /// internal use of write once variables.  Using this to poll write once
-    /// variables is not generally a good idea.
-    val get: IVar<'x> -> 'x
-
   /// Creates a job that creates a new write once variable.
   [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<IVar<'x>>
@@ -1674,6 +1641,39 @@ module IVar =
   /// variable has been written to.
   val inline read: IVar<'x> -> Alt<'x>
 
+  /// Immediate or non-workflow operations on write once variables.
+  module Now =
+    /// Creates a new write once variable.
+    [<Obsolete "Just use the constructor.">]
+    val inline create:        unit -> IVar<'x>
+
+    /// Creates a new write once variable with the given value.
+    [<Obsolete "Just use the constructor.">]
+    val inline createFull:    'x   -> IVar<'x>
+
+    /// Creates a new write once variable with the given failure exception.
+    [<Obsolete "Just use the constructor.">]
+    val inline createFailure: exn  -> IVar<'x>
+
+    /// Returns true iff the given write once variable has already been filled
+    /// (either with a value or with a failure).
+    ///
+    /// This operation is mainly provided for advanced uses of write once
+    /// variables such as when creating more complex data structures that make
+    /// internal use of write once variables.  Using this to poll write once
+    /// variables is not generally a good idea.
+    val isFull: IVar<'x> -> bool
+
+    /// Returns the value or raises the failure exception written to the write
+    /// once variable.  It is considered an error if the write once variable has
+    /// not yet been written to.
+    ///
+    /// This operation is mainly provided for advanced uses of write once
+    /// variables such as when creating more complex data structures that make
+    /// internal use of write once variables.  Using this to poll write once
+    /// variables is not generally a good idea.
+    val get: IVar<'x> -> 'x
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
@@ -1702,6 +1702,11 @@ type Latch =
 
 /// Operations on latches.
 module Latch =
+  //# Await
+
+  /// Returns an alternative that becomes available once the latch opens.
+  val inline await: Latch -> Alt<unit>
+
   //# Higher-order interface
 
   /// Creates a job that creates a new latch, passes it to the given function to
@@ -1726,6 +1731,11 @@ module Latch =
 
   //# First-order interface
 
+  /// Returns a job that explicitly decrements the counter of the latch.  When
+  /// the counter reaches `0`, the latch becomes open and operations awaiting
+  /// the latch are resumed.
+  val inline decrement: Latch -> Job<unit>
+
   /// Immediate operations on latches.
   module Now =
     /// Creates a new latch with the specified initial count.
@@ -1734,16 +1744,6 @@ module Latch =
 
     /// Increments the counter of the latch.
     val inline increment: Latch -> unit
-
-  /// Returns a job that explicitly decrements the counter of the latch.  When
-  /// the counter reaches `0`, the latch becomes open and operations awaiting
-  /// the latch are resumed.
-  val inline decrement: Latch -> Job<unit>
-
-  //# Await
-
-  /// Returns an alternative that becomes available once the latch opens.
-  val inline await: Latch -> Alt<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1814,18 +1814,6 @@ type MVar<'x> =
 
 /// Operations on serialized variables.
 module MVar =
-  /// Immediate or non-workflow operations on serialized variables.
-  [<Obsolete "Will be removed.">]
-  module Now =
-    /// Creates a new serialized variable that is initially empty.
-    [<Obsolete "Just use the constructor.">]
-    val inline create:     unit -> MVar<'x>
-
-    /// Creates a new serialized variable that initially contains the given
-    /// value.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFull: 'x   -> MVar<'x>
-
   /// Creates a job that creates a new serialized variable that is initially
   /// empty.
   [<Obsolete "Just use the constructor.">]
@@ -1887,6 +1875,18 @@ module MVar =
   /// Creates an alternative that becomes available when the variable contains a
   /// value and, if committed to, takes the value from the variable.
   val inline take: MVar<'x> -> Alt<'x>
+
+  /// Immediate or non-workflow operations on serialized variables.
+  [<Obsolete "Will be removed.">]
+  module Now =
+    /// Creates a new serialized variable that is initially empty.
+    [<Obsolete "Just use the constructor.">]
+    val inline create:     unit -> MVar<'x>
+
+    /// Creates a new serialized variable that initially contains the given
+    /// value.
+    [<Obsolete "Just use the constructor.">]
+    val inline createFull: 'x   -> MVar<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1958,19 +1958,6 @@ type Mailbox<'x> =
 
 /// Operations on buffered mailboxes.
 module Mailbox =
-  /// Immediate or non-workflow operations on buffered mailboxes.
-  module Now =
-    /// Creates a new mailbox.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Mailbox<'x>
-
-    /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
-    /// x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
-    ///
-    /// Note that using this function in a job workflow is not optimal and you
-    /// should use `Mailbox.send` instead.
-    val send: Mailbox<'x> -> 'x -> unit
-
   /// Operations bound to the global scheduler.
   [<Obsolete "Will be removed.">]
   module Global =
@@ -1994,6 +1981,19 @@ module Mailbox =
   /// least one value and, if committed to, takes a value from the mailbox.
   val inline take: Mailbox<'x> -> Alt<'x>
 
+  /// Immediate or non-workflow operations on buffered mailboxes.
+  module Now =
+    /// Creates a new mailbox.
+    [<Obsolete "Just use the constructor.">]
+    val inline create: unit -> Mailbox<'x>
+
+    /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
+    /// x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
+    ///
+    /// Note that using this function in a job workflow is not optimal and you
+    /// should use `Mailbox.send` instead.
+    val send: Mailbox<'x> -> 'x -> unit
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #if DOC
@@ -2016,13 +2016,6 @@ type Lock =
 
 /// Operations on mutual exclusion locks.
 module Lock =
-  /// Immediate or non-workflow operations on locks.
-  [<Obsolete "Will be removed.">]
-  module Now =
-    /// Creates a new lock.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Lock
-
   /// Creates a job that creates a new mutual exclusion lock.
   [<Obsolete "Just use the constructor.">]
   val create: unit -> Job<Lock>
@@ -2034,6 +2027,13 @@ module Lock =
   /// Creates a job that calls the given function so that the lock is held
   /// during the execution of the function.
   val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
+
+  /// Immediate or non-workflow operations on locks.
+  [<Obsolete "Will be removed.">]
+  module Now =
+    /// Creates a new lock.
+    [<Obsolete "Just use the constructor.">]
+    val inline create: unit -> Lock
 
 ////////////////////////////////////////////////////////////////////////////////
 
