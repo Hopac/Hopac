@@ -27,6 +27,18 @@
 /// systems without the need to extend the primitives of Hopac.  The reference
 /// implementations can also be seen as examples of how various primitives can
 /// be used to implement more complex operations.
+///
+/// Here is a diagram of some of Hopac's types:
+///
+///>                            Job<_>
+///>                             |
+///>                            Alt<_>
+///>                             |
+///>       +-------+--------+----+-----+--------+--------+
+///>       |       |        |          |        |        |
+///>      Ch<_>  Latch   Mailbox<_>  MVar<_>  Proc   Promise<_>
+///>                                                     |
+///>                                                   IVar<_>
 namespace Hopac
 
 open System.Threading
