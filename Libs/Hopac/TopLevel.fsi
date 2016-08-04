@@ -29,7 +29,7 @@ module Hopac =
 #endif
   val onMain: Extensions.Async.OnWithSchedulerBuilder
 
-  //# Starting jobs
+  //# Spawning jobs
 
   /// Queues the given job for execution.  See also: `start`, `server`.
 #if DOC

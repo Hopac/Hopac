@@ -306,7 +306,7 @@ module Job =
   [<Obsolete "Use the `Proc` abstraction.">]
   val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_>    -> Job<unit>
 
-  //# Basic jobs
+  //# Basic combinators
 
   /// Creates a job with the given result.  See also: `lift`, `thunk`, `unit`.
   val result: 'x   -> Job<'x>
@@ -1740,7 +1740,7 @@ module Latch =
   /// the latch are resumed.
   val inline decrement: Latch -> Job<unit>
 
-  //# Await interface
+  //# Await
 
   /// Returns an alternative that becomes available once the latch opens.
   val inline await: Latch -> Alt<unit>
