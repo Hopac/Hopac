@@ -170,7 +170,7 @@ type Cell<'a> = {
 ```
 
 The `put` operation is a
-job[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.job)
+job[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Hopac.job)
 that simply
 gives[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Ch.give)
 the `Put` request to the server via the request channel:
@@ -301,7 +301,7 @@ synchronous channels.
 #### On Notation
 
 There are two ways to write jobs in Hopac.  One way is to use the
-`job`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.job)
+`job`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Hopac.job)
 workflow builder like we did in the previous section.  The other way is to
 directly use the monadic combinators,
 `result`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.result)
@@ -593,7 +593,7 @@ chooses[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
 from two alternatives.  The first one is the given `stop` alternative and in
 case that is committed to, the value obtained from `stop` is given to the
 `aborted` action.  The second alternative starts a
-`timeOut`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+`timeOut`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Hopac.timeOut)
 alternative for the current value of `duration` and in case that is committed
 to, the value received from `start` is given to the `finished` action.
 Whichever of those alternatives becomes enabled first will then be committed to
@@ -650,7 +650,7 @@ Starting and Waiting for Jobs
 
 After running through the introductory examples, let's take a step back and just
 play a bit with jobs.  Here is a simple job that has a loop that first
-sleeps[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+sleeps[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Hopac.timeOut)
 for a second and then prints a given message:
 
 ```fsharp
@@ -1233,7 +1233,7 @@ reply in a form that can then be invoked an arbitrary number of times.
 
 Recall in the Kismet sketch it was mentioned that simulations like games often
 have their own notion of time and that the wall-clock time provided by `timeOut`
-[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Timer.Global.timeOut)
+[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Hopac.timeOut)
 probably doesn't provide the desired semantics.  A simple game might be designed
 to update the simulation of the game world 60 times per second to match with a
 60Hz display devices.  Rather than complicate all the calculations done in the

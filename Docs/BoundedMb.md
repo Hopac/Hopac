@@ -84,7 +84,7 @@ mechanism[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Alt)
 already provides for those.  Because the `put` and `take` operations are
 provided as alternatives, a client can selectively synchronize on any number of
 operations on bounded mailboxes,
-timeouts[*](https://hopac.github.io/Hopac/Hopac.html#dec:val%20Hopac.Timer.Global.timeOutMillis)
+timeouts[*](https://hopac.github.io/Hopac/Hopac.html#dec:val%20Hopac.Hopac.timeOutMillis)
 and other synchronous operations:
 
 ```fsharp

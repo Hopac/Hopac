@@ -85,9 +85,9 @@ and
 one can define a thread of execution, represented by the type
 `Job<'x>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Job),
 and such threads can be started with
-`start`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Job.Global.start).
+`start`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Hopac.start).
 Any number of channels can be created using
-`ch`[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.TopLevel.ch)
+`ch`[*](http://hopac.github.io/Hopac/Hopac.html#dec:new%20Hopac.Ch.new)
 and the channel type
 `Ch<'x>`[*](http://hopac.github.io/Hopac/Hopac.html#def:type%20Hopac.Ch)
 is parameterized with the message type.  Within a thread of execution one can
