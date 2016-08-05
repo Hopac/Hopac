@@ -1387,7 +1387,7 @@ type Promise<'x> =
   /// an attempt is made to read the promise.  Although the job is not started
   /// immediately, the effect is that the delayed job will be run as a separate
   /// job, which means it is possible to communicate with it as long the delayed
-  /// job is started before trying to communicate with it.
+  /// job is started before trying to communicate with it.  See also: `memo`.
   new: Job<'x> -> Promise<'x>
 
   /// Creates a promise with the given value.

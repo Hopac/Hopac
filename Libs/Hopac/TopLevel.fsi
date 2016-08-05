@@ -190,8 +190,7 @@ module Hopac =
   //# Promises
 
   /// Creates a promise whose value is computed lazily with the given job when
-  /// an attempt is made to read the promise.  This is the same function as
-  /// `Promise.Now.delay`.
+  /// an attempt is made to read the promise.
   val inline memo: Job<'x> -> Promise<'x>
 
   //# Type ascription helpers
