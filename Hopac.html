@@ -1379,7 +1379,7 @@ val it : int = 832040L
 </div>
 <div class="description"><pre><code class="fsharp hljs"><a id="def:new Hopac.Promise.1.new" href="#dec:new%20Hopac.Promise.1.new">new</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
 </code></pre>
-<p> Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.</p>
+<p> Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Hopac.memo">memo</a></code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs"><a id="def:new Hopac.Promise.2.new" href="#dec:new%20Hopac.Promise.2.new">new</a>: 'x -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
 </code></pre>
@@ -3335,7 +3335,7 @@ module <a id="def:module Hopac.Hopac" href="#dec:module%20Hopac.Hopac">Hopac</a>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Hopac.memo" href="#dec:val%20Hopac.Hopac.memo">memo</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
 </code></pre>
-<p> Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.  This is the same function as <code class="fsharp hljs"><a href="#def:module%20Hopac.Promise">Promise</a>.<a href="#def:module%20Hopac.Promise.Now">Now</a>.<a href="#def:val%20Hopac.Promise.Now.delay">delay</a></code>.</p>
+<p> Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Hopac.asAlt" href="#dec:val%20Hopac.Hopac.asAlt">asAlt</a>: <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
 </code></pre>
