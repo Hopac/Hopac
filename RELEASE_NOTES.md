@@ -1,3 +1,6 @@
+#### 0.3.4 - 2016-08-05
+* Fixed `FSharp.Core ~> 3` dependency once again. :(
+
 #### 0.3.3 - 2016-08-05
 * Added `Hopac.startAsTask` and `Hopac.queueAsTask` for interop with tasks.
 
