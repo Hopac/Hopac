@@ -11,9 +11,39 @@ open System.Threading.Tasks
 
 let inline (^) x = x
 
-do let doAltAsyncBinds n =
+do let doAsTasks n =
+     printf "Jobs-started-as-Tasks: "
      let timer = Stopwatch.StartNew ()
+     run ^ job {
+       for i=1 to n do
+         do ignore i
+         do! Hopac.startAsTask ^ job { return () }
+     }
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doAsTasks n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
+do let doAsTasks n =
+     printf "Jobs-queued-as-Tasks:  "
+     let timer = Stopwatch.StartNew ()
+     run ^ job {
+       for i=1 to n do
+         do ignore i
+         do! Hopac.queueAsTask ^ job { return () }
+     }
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doAsTasks n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
+do let doAltAsyncBinds n =
      printf "Alt-in-Async binds: "
+     let timer = Stopwatch.StartNew ()
      Async.RunSynchronously ^ async {
        do! Async.SwitchToThreadPool ()
        for i=1 to n do
@@ -29,8 +59,8 @@ do let doAltAsyncBinds n =
      System.Threading.Thread.Sleep 100
 
 do let doAsyncAltBinds n =
-     let timer = Stopwatch.StartNew ()
      printf "Async-as-Alt-in-Job binds: "
+     let timer = Stopwatch.StartNew ()
      let dI = IVar ()
      run ^ job {
        do! Job.Scheduler.switchToWorker ()
@@ -47,8 +77,8 @@ do let doAsyncAltBinds n =
      System.Threading.Thread.Sleep 100
 
 do let doTaskAltBinds n =
-     let timer = Stopwatch.StartNew ()
      printf "Task-as-Alt-in-Job binds: "
+     let timer = Stopwatch.StartNew ()
      let dI = IVar ()
      run ^ job {
        do! Job.Scheduler.switchToWorker ()
@@ -65,8 +95,8 @@ do let doTaskAltBinds n =
      System.Threading.Thread.Sleep 100
 
 do let doJobAsyncBinds n =
-     let timer = Stopwatch.StartNew ()
      printf "Job-in-Async binds: "
+     let timer = Stopwatch.StartNew ()
      Async.RunSynchronously ^ async {
        do! Async.SwitchToThreadPool ()
        for i=1 to n do
@@ -82,8 +112,8 @@ do let doJobAsyncBinds n =
      System.Threading.Thread.Sleep 100
 
 do let doAsyncJobBinds n =
-     let timer = Stopwatch.StartNew ()
      printf "Async-in-Job binds: "
+     let timer = Stopwatch.StartNew ()
      run ^ job {
        do! Job.Scheduler.switchToWorker ()
        for i=1 to n do

@@ -1,3 +1,6 @@
+#### 0.3.3 - 2016-08-05
+* Added `Hopac.startAsTask` and `Hopac.queueAsTask` for interop with tasks.
+
 #### 0.3.2 - 2016-08-04
 * Added `Job.toAsync` and marked `Async.ofJobOn` and `Async.Global.ofJob` as
   obsolete.

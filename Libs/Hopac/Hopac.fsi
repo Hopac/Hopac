@@ -207,6 +207,11 @@ module Job =
     [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     val startIgnore: Job<_>    -> unit
 
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
+    val queueAsTask: Job<'x> -> Task<'x>
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
+    val startAsTask: Job<'x> -> Task<'x>
+
     /// Starts running the given job on the global scheduler, but does not wait
     /// for the job to finish.  Upon the failure or success of the job, one of
     /// the given actions is called once.

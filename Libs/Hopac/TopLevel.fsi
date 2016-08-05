@@ -3,6 +3,7 @@
 namespace Hopac
 
 open System
+open System.Threading.Tasks
 open Hopac
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,17 +76,6 @@ module Hopac =
   /// u2xJ`.
   val inline startDelay: (unit -> #Job<_>)   -> unit
 
-  /// Starts running the given job, but does not wait for the job to finish.
-  /// Upon the failure or success of the job, one of the given actions is called
-  /// once.
-#if DOC
-  ///
-  /// Note that using this function in a job workflow is not optimal and you
-  /// should instead use `Job.start` with the desired exception handling
-  /// construct (e.g. `Job.tryIn` or `Job.catch`).
-#endif
-  val inline startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
-
   /// Starts running the given job and then blocks the current thread waiting
   /// for the job to either return successfully or fail.  See also: `start`.
 #if DOC
@@ -108,6 +98,27 @@ module Hopac =
   /// binding.
 #endif
   val inline run: Job<'x> -> 'x
+
+  //# Interop
+
+  /// Queues the task for execution.  The result can be obtained from the
+  /// returned task.
+  val inline queueAsTask: Job<'x> -> Task<'x>
+
+  /// Starts running the given job.  The result can be obtained from the
+  /// returned task.
+  val inline startAsTask: Job<'x> -> Task<'x>
+
+  /// Starts running the given job, but does not wait for the job to finish.
+  /// Upon the failure or success of the job, one of the given actions is called
+  /// once.
+#if DOC
+  ///
+  /// Note that using this function in a job workflow is not optimal and you
+  /// should instead use `Job.start` with the desired exception handling
+  /// construct (e.g. `Job.tryIn` or `Job.catch`).
+#endif
+  val inline startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
   //# Timeouts
 

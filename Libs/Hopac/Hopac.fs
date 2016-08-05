@@ -899,6 +899,32 @@ module Job =
     let server vJ = Scheduler.server (initGlobalScheduler ()) vJ
     [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let run xJ = Scheduler.run (initGlobalScheduler ()) xJ
+    let inline tcsHandler (xTCS: TaskCompletionSource<_>) =
+      {new Cont_State<'x, Cont<unit>>() with
+        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
+        override xK'.DoHandle (wr, e) =
+         Handler.Terminate (&wr, xK'.State)
+         xTCS.SetException e
+        override xK'.DoWork (wr) =
+         Handler.Terminate (&wr, xK'.State)
+         xTCS.SetResult xK'.Value
+        override xK'.DoCont (wr, x) =
+         Handler.Terminate (&wr, xK'.State)
+         xTCS.SetResult x}
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
+    let queueAsTask (xJ: Job<'x>) =
+      let xTCS = TaskCompletionSource<'x> ()
+      Scheduler.PushNew (initGlobalScheduler (), {new WorkQueue () with
+       override w'.DoWork (wr) =
+        let handler = tcsHandler xTCS
+        wr.Handler <- handler
+        xJ.DoJob (&wr, handler)})
+      xTCS.Task
+    [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
+    let startAsTask (xJ: Job<'x>) =
+      let xTCS = TaskCompletionSource<'x> ()
+      Worker.RunOnThisThread (initGlobalScheduler (), xJ, tcsHandler xTCS)
+      xTCS.Task
 
   //////////////////////////////////////////////////////////////////////////////
 
