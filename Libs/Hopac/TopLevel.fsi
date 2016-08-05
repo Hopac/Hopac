@@ -101,7 +101,7 @@ module Hopac =
 
   //# Interop
 
-  /// Queues the task for execution.  The result can be obtained from the
+  /// Queues the given job for execution.  The result can be obtained from the
   /// returned task.
   val inline queueAsTask: Job<'x> -> Task<'x>
 
