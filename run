@@ -329,6 +329,8 @@ publish() {
   build_nupkg
   tests
 
+  check_git_clean
+
   if [ -z "$KEYFILE" ] ; then
     cat <<EOF
 
