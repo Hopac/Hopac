@@ -1,2 +1,3 @@
-FsCheck
+group Tests
 FSharp.Core
+FsCheck

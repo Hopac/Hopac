@@ -1,3 +1,4 @@
+group Benchmarks
 FSharp.Core
 System.Reactive.Core
 System.Reactive.Interfaces
