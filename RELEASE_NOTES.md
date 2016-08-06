@@ -1,5 +1,6 @@
 #### 0.3.5 - 2016-08-06
 * Faster `Job.fromAsync`.
+* Added `Job.bindAsync`.
 
 #### 0.3.4 - 2016-08-05
 * Fixed `FSharp.Core ~> 3` dependency once again. :(

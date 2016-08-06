@@ -743,6 +743,9 @@ module Job =
   /// complete.
   val   toAsync: Job<'x> -> Async<'x>
 
+  /// `bindAsync x2yJ xA` is equivalent to `fromAsync xA >>= x2yJ`.
+  val inline bindAsync: ('x -> #Job<'y>) -> Async<'x> -> Job<'y>
+
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromTask`.
   val inline fromTask:     (unit -> Task<'x>) -> Job<'x>

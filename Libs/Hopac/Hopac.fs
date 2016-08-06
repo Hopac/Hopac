@@ -1488,6 +1488,12 @@ module Job =
           Worker.RunOnThisThread (sr, FailWork (exn, xK))
         Async.StartWithContinuations (xA, success, failure, failure)}
 
+  let inline bindAsync (x2yJ: 'x -> #Job<'y>) (xA: Async<'x>) =
+    {new BindAsync<'x, 'y> () with
+      override yJ'.Do (x) = upcast x2yJ x
+      override yJ'.Start (xK) =
+        Async.StartWithContinuations (xA, xK.Success, xK.Failure, xK.Failure)} :> Job<_>
+
   let toAsync (xJ: Job<'x>) =
     Async.FromContinuations <| fun (x2u, e2u, _) ->
       let ctx = SynchronizationContext.Current
@@ -2200,7 +2206,7 @@ type JobBuilder () =
   member inline __.Bind (xO: IObservable<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     xO.onceAlt >>= x2yJ
   member inline __.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
-    Job.fromAsync xA >>= x2yJ
+    Job.bindAsync x2yJ xA
   member inline __.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
     Job.bindTask x2yJ xT
   [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]

@@ -11,33 +11,39 @@ open System.Threading.Tasks
 
 let inline (^) x = x
 
-do let doAsTasks n =
-     printf "Jobs-started-as-Tasks: "
+do let doAsyncJobBinds n =
+     printf "Job.fromAsync: "
      let timer = Stopwatch.StartNew ()
      run ^ job {
+       do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
-         do! Hopac.startAsTask ^ job { return () }
+         do! Job.fromAsync ^ async.Zero ()
+         do! Job.fromAsync ^ async.Zero ()
      }
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
+
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
-     doAsTasks n
+     doAsyncJobBinds n
      GC.Collect ()
      System.Threading.Thread.Sleep 100
 
-do let doAsTasks n =
-     printf "Jobs-queued-as-Tasks:  "
+do let doAsyncJobBinds n =
+     printf "Job.bindAsync: "
      let timer = Stopwatch.StartNew ()
      run ^ job {
+       do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
-         do! Hopac.queueAsTask ^ job { return () }
+         do! async.Zero ()
+         do! async.Zero ()
      }
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
+
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
-     doAsTasks n
+     doAsyncJobBinds n
      GC.Collect ()
      System.Threading.Thread.Sleep 100
 
@@ -111,20 +117,33 @@ do let doJobAsyncBinds n =
      GC.Collect ()
      System.Threading.Thread.Sleep 100
 
-do let doAsyncJobBinds n =
-     printf "Async-in-Job binds: "
+do let doAsTasks n =
+     printf "Jobs-started-as-Tasks: "
      let timer = Stopwatch.StartNew ()
      run ^ job {
-       do! Job.Scheduler.switchToWorker ()
        for i=1 to n do
          do ignore i
-         do! Job.fromAsync ^ async.Zero ()
+         do! Hopac.startAsTask ^ job { return () }
      }
      let d = timer.Elapsed
      printfn "%d hops in %A" n d
-
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
-     doAsyncJobBinds n
+     doAsTasks n
+     GC.Collect ()
+     System.Threading.Thread.Sleep 100
+
+do let doAsTasks n =
+     printf "Jobs-queued-as-Tasks:  "
+     let timer = Stopwatch.StartNew ()
+     run ^ job {
+       for i=1 to n do
+         do ignore i
+         do! Hopac.queueAsTask ^ job { return () }
+     }
+     let d = timer.Elapsed
+     printfn "%d hops in %A" n d
+   for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
+     doAsTasks n
      GC.Collect ()
      System.Threading.Thread.Sleep 100
 
