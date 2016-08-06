@@ -732,7 +732,7 @@ module Job =
   /// complete.  See also: `Alt.fromAsync`.
 #if DOC
   ///
-  /// WARNING: The async operation is started on whichever thread (and
+  /// Note that the async operation is started on whichever thread (and
   /// synchronization context) the job happens to be executed on.  Transfer the
   /// async operation explicitly, e.g. by using `Async.SwitchToContext`, to the
   /// desired context when necessary.
@@ -1252,7 +1252,7 @@ module Alt =
   /// then the operation is cancelled.  See also: `Job.fromAsync`.
 #if DOC
   ///
-  /// WARNING: The async operation is started on whichever thread (and
+  /// Note that the async operation is started on whichever thread (and
   /// synchronization context) the job happens to be executed on.  Transfer the
   /// async operation explicitly, e.g. by using `Async.SwitchToContext`, to the
   /// desired context when necessary.
