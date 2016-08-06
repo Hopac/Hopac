@@ -16,7 +16,7 @@ namespace Hopac.Core {
   }
 
   ///
-  public sealed class BindAsyncCont<X, Y> : Work, IBindAsyncCont<X> {
+  internal sealed class BindAsyncCont<X, Y> : Work, IBindAsyncCont<X> {
     private Scheduler sr;
     private BindAsync<X, Y> ba;
     private Cont<Y> yK;
