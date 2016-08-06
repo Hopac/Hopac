@@ -38,9 +38,6 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Release\AsyncOverhead.xml</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors>
-    </WarningsAsErrors>
     <Prefer32Bit>false</Prefer32Bit>
     <OtherFlags>--warnon:1182</OtherFlags>
     <DebugSymbols>true</DebugSymbols>
