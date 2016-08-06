@@ -2997,9 +2997,8 @@ module Scheduler =
   /// fail.
 #if DOC
   ///
-  /// WARNING: Like with `Job.Global.run`, use of `run` should be considered
-  /// carefully, because calling `run` from an arbitrary thread can cause
-  /// deadlock.
+  /// WARNING: Use of `run` should be considered carefully, because calling
+  /// `run` from an arbitrary thread can cause deadlock.
   ///
   /// A call of `run xJ` is safe when the call is not made from within a Hopac
   /// worker thread and the job `xJ` does not perform operations that might
