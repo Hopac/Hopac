@@ -1477,9 +1477,16 @@ module Job =
                           (doBegin: AsyncCallback * obj -> IAsyncResult) =
     fromBeginEnd doBegin doEnd
 
-  let inline fromAsync (xA: Async<'x>) =
-    let (doBegin, doEnd, _) = Async.AsBeginEnd (fun () -> xA)
-    fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd
+  let fromAsync (xA: Async<'x>) =
+    {new Job<'x> () with
+      override xJ'.DoJob (wr, xK) =
+        let sr = wr.Scheduler
+        let success = fun x ->
+          xK.Value <- x
+          Worker.RunOnThisThread (sr, xK)
+        let failure = fun exn ->
+          Worker.RunOnThisThread (sr, FailWork (exn, xK))
+        Async.StartWithContinuations (xA, success, failure, failure)}
 
   let toAsync (xJ: Job<'x>) =
     Async.FromContinuations <| fun (x2u, e2u, _) ->

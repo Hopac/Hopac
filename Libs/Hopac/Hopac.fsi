@@ -737,7 +737,7 @@ module Job =
   /// async operation explicitly, e.g. by using `Async.SwitchToContext`, to the
   /// desired context when necessary.
 #endif
-  val inline fromAsync: Async<'x> -> Job<'x>
+  val fromAsync: Async<'x> -> Job<'x>
 
   /// Creates an async operation that starts the given job and waits for it to
   /// complete.
