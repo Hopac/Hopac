@@ -1,3 +1,6 @@
+#### 0.3.6 - 2016-08-06
+* Added `Job.fromContinuations`.
+
 #### 0.3.5 - 2016-08-06
 * Faster `Job.fromAsync`.
 * Added `Job.bindAsync`.

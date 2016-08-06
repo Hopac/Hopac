@@ -1477,16 +1477,15 @@ module Job =
                           (doBegin: AsyncCallback * obj -> IAsyncResult) =
     fromBeginEnd doBegin doEnd
 
-  let fromAsync (xA: Async<'x>) =
-    {new Job<'x> () with
-      override xJ'.DoJob (wr, xK) =
-        let sr = wr.Scheduler
-        let success = fun x ->
-          xK.Value <- x
-          Worker.RunOnThisThread (sr, xK)
-        let failure = fun exn ->
-          Worker.RunOnThisThread (sr, FailWork (exn, xK))
-        Async.StartWithContinuations (xA, success, failure, failure)}
+  let inline fromContinuations (go: ('x -> unit) -> (exn -> unit) -> unit) =
+    {new FromAsync<'x> () with
+      override xJ'.Start (xK) =
+        go xK.Success xK.Failure} :> Job<_>
+
+  let fromAsync xA =
+    {new FromAsync<'x> () with
+      override xJ'.Start (xK) =
+        Async.StartWithContinuations (xA, xK.Success, xK.Failure, xK.Failure)} :> Job<_>
 
   let inline bindAsync (x2yJ: 'x -> #Job<'y>) (xA: Async<'x>) =
     {new BindAsync<'x, 'y> () with

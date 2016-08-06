@@ -56,4 +56,33 @@ namespace Hopac.Core {
       this.Start(new BindAsyncCont<X, Y>(wr.Scheduler, this, yK));
     }
   }
+
+  ///
+  public sealed class FromAsyncCont<X> {
+    private Scheduler sr;
+    private Cont<X> xK;
+    internal FromAsyncCont(Scheduler sr, Cont<X> xK) {
+      this.sr = sr;
+      this.xK = xK;
+    }
+    ///
+    public void Success(X x) {
+      var xK = this.xK;
+      xK.Value = x;
+      Worker.RunOnThisThread(sr, xK);
+    }
+    ///
+    public void Failure(Exception e) {
+      Worker.RunOnThisThread(sr, new FailWork(e, xK));
+    }
+  }
+
+  ///
+  public abstract class FromAsync<X> : Job<X> {
+    ///
+    public abstract void Start(FromAsyncCont<X> xK);
+    internal override void DoJob(ref Worker wr, Cont<X> xK) {
+      this.Start(new FromAsyncCont<X>(wr.Scheduler, xK));
+    }
+  }
 }

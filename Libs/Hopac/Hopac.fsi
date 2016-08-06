@@ -728,6 +728,11 @@ module Job =
                  -> doBegin: (AsyncCallback * obj -> IAsyncResult)
                  -> Job<'x>
 
+  /// Creates a job that starts an asynchronous operation by calling the given
+  /// function with success and failure continuations of which exactly one must
+  /// be called once.
+  val inline fromContinuations: (('x -> unit) -> (exn -> unit) -> unit) -> Job<'x>
+
   /// Creates a job that starts the given async operation and waits for it to
   /// complete.  See also: `Alt.fromAsync`.
 #if DOC
