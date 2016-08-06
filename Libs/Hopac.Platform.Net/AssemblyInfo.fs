@@ -7,8 +7,8 @@ open System.Reflection
 [<assembly: AssemblyTitleAttribute("Hopac.Platform.Net")>]
 [<assembly: AssemblyProductAttribute("Hopac.Platform.Net")>]
 [<assembly: AssemblyDescriptionAttribute("A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.")>]
-[<assembly: AssemblyVersionAttribute("0.3.4")>]
-[<assembly: AssemblyFileVersionAttribute("0.3.4")>]
+[<assembly: AssemblyVersionAttribute("0.3.5")>]
+[<assembly: AssemblyFileVersionAttribute("0.3.5")>]
 [<assembly: AssemblyCompanyAttribute("Housemarque Inc.")>]
 [<assembly: AssemblyCopyrightAttribute("© Housemarque Inc.")>]
 
