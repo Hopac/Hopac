@@ -48,11 +48,21 @@ namespace Hopac.Core {
         DoHandleNull(ref wr, e);
     }
 
+    internal static void PrintExn(String header, Exception e) {
+      var first = true;
+      do {
+        StaticData.writeLine((first ? header : "Caused by: ") + e.ToString());
+        first = false;
+        e = e.InnerException;
+      } while (null != e);
+      StaticData.writeLine("No other causes.");
+    }
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     internal static void DoHandleNull(ref Worker wr, Exception e) {
       var tlh = wr.Scheduler.TopLevelHandler;
       if (null == tlh) {
-        StaticData.writeLine("Unhandled exception: " + e.ToString());
+        PrintExn("Unhandled exception: ", e);
       } else {
         var uK = new Cont();
         wr.Handler = uK;
@@ -65,7 +75,7 @@ namespace Hopac.Core {
         throw new NotImplementedException(); // XXX Top level handler has no process.
       }
       internal override void DoHandle(ref Worker wr, Exception e) {
-        StaticData.writeLine("Top level handler raised: " + e.ToString());
+        PrintExn("Top level handler raised: ", e);
       }
       internal override void DoWork(ref Worker wr) { }
       internal override void DoCont(ref Worker wr, Unit value) { }
