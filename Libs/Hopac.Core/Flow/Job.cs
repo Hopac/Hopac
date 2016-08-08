@@ -46,6 +46,50 @@ namespace Hopac {
     }
 
     ///
+    public abstract class JobUsing<X, Y> : Job<Y> where X : IDisposable {
+      private X x;
+      ///
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Job<Y> InternalInit(X x) { this.x = x; return this; }
+      ///
+      public abstract Job<Y> Do(X x);
+      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
+        var yKK = new ContUsing(this, yK);
+        wr.Handler = yKK;
+        Do(this.x).DoJob(ref wr, yKK);
+      }
+      private sealed class ContUsing : Cont<Y> {
+        private JobUsing<X, Y> yJ;
+        private Cont<Y> yK;
+        internal ContUsing(JobUsing<X, Y> yJ, Cont<Y> yK) {
+          this.yJ = yJ;
+          this.yK = yK;
+        }
+        [MethodImpl(AggressiveInlining.Flag)]
+        internal Cont<Y> Dispose(ref Worker wr) {
+          var yK = this.yK;
+          wr.Handler = yK;
+          var x = this.yJ.x;
+          if (null != x)
+            x.Dispose();
+          return yK;
+        }
+        internal override Proc GetProc(ref Worker wr) {
+          return Handler.GetProc(ref wr, ref yK);
+        }
+        internal override void DoHandle(ref Worker wr, Exception e) {
+          Handler.DoHandle(Dispose(ref wr), ref wr, e);
+        }
+        internal override void DoWork(ref Worker wr) {
+          Dispose(ref wr).DoCont(ref wr, this.Value);
+        }
+        internal override void DoCont(ref Worker wr, Y y) {
+          Dispose(ref wr).DoCont(ref wr, y);
+        }
+      }
+    }
+
+    ///
     public abstract class JobFor<S, R, F> : Job<F> {
       ///
       public abstract Job<R> Init(out S s);

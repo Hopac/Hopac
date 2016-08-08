@@ -2,8 +2,6 @@
 
 namespace Hopac
 
-#nowarn "1204" // Warning for using LanguagePrimitives.IntrinsicFunctions.Dispose
-
 open System
 open System.Collections.Generic
 open System.Diagnostics
@@ -1135,28 +1133,13 @@ module Job =
        wr.Handler <- yK'
        (x2yJ x).DoJob (&wr, yK')}
 
-  open LanguagePrimitives.IntrinsicFunctions
+  let inline using (x: 'x when 'x :> IDisposable) (x2yJ: 'x -> #Job<'y>) =
+    {new JobUsing<_, _>() with
+      override yJ'.Do x = upcast x2yJ x}.InternalInit(x)
 
-  let using (x: 'x when 'x :> IDisposable) (x2yJ: 'x -> #Job<'y>) =
-    // REMINDER: Dispose() of managed resources is an optimization.  Do not
-    // implement Finalize() for managed resources.  See:
-    //   http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/
-    {new Job<'y> () with
-      override yJ'.DoJob (wr, yK_) =
-       let yK' =
-         {new Cont_State<'y, _> () with
-           override yK'.GetProc (wr) = Handler.GetProc (&wr, &yK'.State)
-           override yK'.DoHandle (wr, e) =
-            let yK = yK'.State
-            wr.Handler <- yK ; Dispose x ; Handler.DoHandle (yK, &wr, e)
-           override yK'.DoWork (wr) =
-            let yK = yK'.State
-            wr.Handler <- yK ; Dispose x ; yK.DoCont (&wr, yK'.Value)
-           override yK'.DoCont (wr, y) =
-            let yK = yK'.State
-            wr.Handler <- yK ; Dispose x ; yK.DoCont (&wr, y)}.Init(yK_)
-       wr.Handler <- yK'
-       (x2yJ x).DoJob (&wr, yK')}
+  let inline useIn (x2yJ: 'x -> #Job<'y>) (x: 'x when 'x :> IDisposable) =
+    {new JobUsing<_, _>() with
+      override yJ'.Do x = upcast x2yJ x}.InternalInit(x)
 
   let catch (xJ: Job<'x>) =
     {new Job<Choice<'x, exn>> () with

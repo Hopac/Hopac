@@ -468,6 +468,10 @@ module Job =
 
   //# Finalization
 
+  /// `useIn x2yJ x` is equivalent to `using x x2yJ` and can be more convenient
+  /// to use in pipelines (i.e. `x |> useIn x2yJ`).
+  val inline useIn:      ('x -> #Job<'y>) -> 'x -> Job<'y> when 'x :> IDisposable
+
   /// Implements the `use` construct for jobs.  The `Dispose` method of the
   /// given disposable object is called after running the job constructed with
   /// the disposable object.  See also: `abort`, `usingAsync`.
@@ -485,7 +489,7 @@ module Job =
   /// finalizers.  In cases where you need to ensure scoped disposal, make sure
   /// that the job does not abort before returning.
 #endif
-  val using:      'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IDisposable
+  val inline using:      'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IDisposable
 
   /// Implements an experimental `use` like construct for asynchronously
   /// disposable resources.  The `DisposeAsync` method of the asynchronously

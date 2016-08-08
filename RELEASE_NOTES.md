@@ -1,3 +1,6 @@
+#### 0.3.7 - 2016-08-08
+* Added `Job.useIn`, a flipped version of `Job.using`, and optimized both.
+
 #### 0.3.6 - 2016-08-06
 * Added `Job.fromContinuations`.
 
