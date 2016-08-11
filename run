@@ -70,14 +70,18 @@ $CHANGES"
   fi
 }
 
-paket() {
-  local PAKET=.paket/paket.exe
+PAKET=.paket/paket.exe
 
-  if [ ! -f $PAKET ] ; then
-    $RUN .paket/paket.bootstrapper.exe -s
+paket_bootstrap() {
+  if did paket_bootstrap ; then return 0 ; fi
+  $RUN .paket/paket.bootstrapper.exe -s --max-file-age=60
+  if [ ! -x $PAKET ] ; then
     chmod +x $PAKET
   fi
+}
 
+paket() {
+  paket_bootstrap
   $RUN $PAKET "$@"
 }
 
