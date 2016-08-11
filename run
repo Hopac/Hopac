@@ -385,6 +385,27 @@ pull_submodules() {
   git submodule foreach git pull origin master
 }
 
+watch() {
+  echo "watch: $*"
+
+  fswatch --latency 2              \
+          -0                       \
+          --exclude '\.gh-pages.*' \
+          --exclude '\.nuget.*'    \
+          --exclude '\.paket.*'    \
+          --exclude '\.tmp.*'      \
+          --exclude '\.git.*'      \
+          --exclude 'packages.*'   \
+          --exclude '.*#.*'        \
+          --exclude '.*/bin.*'     \
+          --exclude '.*/obj.*'     \
+          --exclude '.*\.proj'     \
+          .                        \
+  | nice xargs -0 -t -n 1 -I {} ./run $*
+
+  exit
+}
+
 ################################################################################
 
 while [ $# != 0 ] ; do
@@ -403,6 +424,7 @@ while [ $# != 0 ] ; do
     "repl")            repl ;;
     "restore")         restore ;;
     "tests")           tests ;;
+    "watch")           watch "$@" ;;
     *)
       echo "Unknown command: '$COMMAND'
 
