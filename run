@@ -70,11 +70,11 @@ $CHANGES"
   fi
 }
 
-run_paket() {
+paket() {
   local PAKET=.paket/paket.exe
 
   if [ ! -f $PAKET ] ; then
-    $RUN .paket/paket.bootstrapper.exe
+    $RUN .paket/paket.bootstrapper.exe -s
     chmod +x $PAKET
   fi
 
@@ -152,7 +152,7 @@ clean() {
 restore() {
   if did restore ; then return 0 ; fi
 
-  run_paket restore
+  paket --silent restore
 }
 
 attrs() {
@@ -256,7 +256,7 @@ files
 dependencies FSharp.Core >= 3.1.2.5
 EOF
 
-  run_paket pack output .nuget templatefile $TEMPLATE
+  paket --silent pack output .nuget templatefile $TEMPLATE
 }
 
 generate_docs() {
@@ -312,7 +312,7 @@ publish_nupkg() {
 
   build_nupkg
 
-  run_paket push url https://www.nuget.org file .nuget/Hopac.$VERSION.nupkg
+  paket push url https://www.nuget.org file .nuget/Hopac.$VERSION.nupkg
 }
 
 tag_release() {
