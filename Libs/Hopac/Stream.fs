@@ -545,6 +545,45 @@ module Stream =
   let consumeFun f xs = iterFun f xs |> queue
   let consume xs = iter xs |> queue
 
+  type Pipelined<'x> =
+    | Value of 'x
+    | Exn of exn
+    | Done
+
+  let mapPipelinedJob (degree: int) (x2yJ: 'x -> #Job<'y>) (xs: Stream<'x>) =
+    if degree < 1 then
+      failwithf "degree must be 1 or greater, given %d" degree
+    elif degree = 1 then
+      mapJob x2yJ xs
+    else
+      delay <| fun () ->
+      let inCh = Ch ()
+      let resultCh = Ch ()
+      inCh >>= fun (x, rCh) ->
+          Job.tryInDelay (fun () -> x2yJ x)
+            (Value >> Ch.give rCh)
+            (Exn >> Ch.give rCh)
+      |> Job.foreverServer
+      |> Job.forN degree
+      >>=. Job.tryIn (xs
+                      |> iterJob ^ fun x ->
+                           let rCh = Ch ()
+                           inCh *<- (x, rCh) >>=.
+                           resultCh *<+ (rCh :> Job<_>))
+             (fun () -> resultCh *<- Job.result Done)
+             (Exn >> Job.result >> Ch.give resultCh)
+      |> start
+      let rec loop () =
+        resultCh >>=* fun rCh ->
+          rCh >>- function
+           | Value y -> Cons (y, loop ())
+           | Exn e   -> raise e
+           | Done    -> Nil
+      loop ()
+
+  let mapPipelinedFun (slack: int) (x2y: 'x -> 'y) (xs: Stream<'x>) =
+    mapPipelinedJob slack (Job.lift x2y) xs
+
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray ()
     iterFun ys.Add xs >>-. ys

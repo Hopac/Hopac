@@ -705,19 +705,27 @@ module Stream =
   ///>                  | Cons (x, xs) ->
   ///>                    f x >>=* fun y -> cons y <| mapJob f xs
 #endif
-  val mapJob: ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
+  val mapJob:                         ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
   /// Returns a stream that produces elements passed through the given function
   /// whenever the given streams produces elements.  `mapFun x2y` is equivalent
   /// to `mapJob (Job.lift x2y)`.
-  val mapFun: ('x ->      'y)  -> Stream<'x> -> Stream<'y>
+  val mapFun:                         ('x ->      'y)  -> Stream<'x> -> Stream<'y>
+
+  /// `mapPipelinedJob degree x2yJ xs` is like `mapJob x2yJ xs` except that up
+  /// to `degree` number of jobs constructed with `x2yJ` may be run in parallel.
+  val mapPipelinedJob: degree: int -> ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
+
+  /// `mapPipelinedFun degree x2y xs` is like `mapFun x2y xs` except that up to
+  /// `degree` number of invocations of `x2y` may be run in parallel.
+  val mapPipelinedFun: degree: int -> ('x ->      'y)  -> Stream<'x> -> Stream<'y>
 
   /// Returns a stream that produces the given element each time the given
   /// stream produces an element.
-  val mapConst:           'y   -> Stream<'x> -> Stream<'y>
+  val mapConst:                                   'y   -> Stream<'x> -> Stream<'y>
 
   /// `xs |> mapIgnore` is equivalent to `xs |> mapConst ()`.
-  val mapIgnore:                  Stream<'x> -> Stream<unit>
+  val mapIgnore:                                          Stream<'x> -> Stream<unit>
 
   //# Filtering by value
 

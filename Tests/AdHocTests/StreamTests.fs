@@ -5,6 +5,7 @@ module StreamTests
 open FsCheck
 open System
 open System.Numerics
+open System.Threading
 open Hopac
 open Hopac.Infixes
 
@@ -43,6 +44,22 @@ let run () =
   |> testEq [2;3;4;5;6;7;8]
 
   // The following are some quickly written naive property based test
+
+  do let n = ref 0
+     let m = ref 0
+     quick <| fun (xs: list<int>) ->
+       Stream.ofList xs
+       |> Stream.mapPipelinedJob 10 ^ fun x ->
+            let n' = Interlocked.Increment n
+            if n' > 10 then failwithf "Too many in parallel."
+            m := max !m n'
+            timeOutMillis (Math.Abs (x % 10)) >>- fun () ->
+            Interlocked.Decrement n |> ignore
+            x
+       |> Stream.toList |> run = xs
+     if !m <> 10
+     then printfn "Not OK? Effective degree only %d with mapPipelinedJob %d." !m 10
+     else printfn "OK, reached effective degree %d with mapPipelinedJob." !m
 
   quick <| fun (toTake: uint8) ->
     let n = ref 0
