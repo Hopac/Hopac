@@ -1492,6 +1492,9 @@ module Job =
     {new TaskToJob () with
       override xJ'.Start () = u2uT ()} :> Job<unit>
 
+  let inline liftTask x2yT x = fromTask (fun () -> x2yT x)
+  let inline liftUnitTask x2uT x = fromUnitTask (fun () -> x2uT x)
+
   let inline awaitTask (xT: Task<'x>) = fromTask (fun () -> xT)
   let inline awaitUnitTask (uT: Task) = fromUnitTask (fun () -> uT)
 

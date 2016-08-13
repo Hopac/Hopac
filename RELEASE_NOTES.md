@@ -1,5 +1,6 @@
 #### 0.3.8 - 2016-XX-XX
 * Added `Stream.pipelinedMapFun` and `Stream.pipelinedMapJob`.
+* Added `Job.liftTask` and `Job.liftUnitTask`.
 
 #### 0.3.7 - 2016-08-08
 * Added `Job.useIn`, a flipped version of `Job.using`, and optimized both.

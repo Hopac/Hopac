@@ -763,6 +763,13 @@ module Job =
   /// it to complete.  See also: `Alt.fromUnitTask`.
   val inline fromUnitTask: (unit -> Task)     -> Job<unit>
 
+  /// `liftTask x2yT` is equivalent to `fun x -> fromTask <| fun () -> x2yT x`.
+  val inline liftTask:     ('x -> Task<'y>) -> 'x -> Job<'y>
+
+  /// `liftUnitTask x2uT` is equivalent to `fun x -> fromUnitTask <| fun () ->
+  /// x2uT x`.
+  val inline liftUnitTask: ('x -> Task)     -> 'x -> Job<unit>
+
   /// Creates a job that waits for the given task to finish and then returns the
   /// result of the task.  Note that this does not start the task.  Make sure
   /// that the task is started correctly.  See also: `fromTask`.
