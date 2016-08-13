@@ -350,8 +350,6 @@ publish() {
   check_git_clean
 
   if [ -z "$KEYFILE" ] ; then
-    check_release_date
-
     cat <<EOF
 
 You are about to publish Hopac.
@@ -362,6 +360,7 @@ Release notes:
 $NOTES
 
 EOF
+    check_release_date
 
     read -p "Enter Y to proceed: " INPUT
     if [ "$INPUT" != "Y" ] ; then
