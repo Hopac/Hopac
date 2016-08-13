@@ -550,6 +550,10 @@ module Stream =
     | Exn of exn
     | Done
 
+  type [<Struct>] Struct<'x1, 'x2> (x1: 'x1, x2: 'x2) =
+    member t.Get1 = x1
+    member t.Get2 = x2
+
   let mapPipelinedJob (degree: int) (x2yJ: 'x -> #Job<'y>) (xs: Stream<'x>) =
     if degree < 1 then
       failwithf "degree must be 1 or greater, given %d" degree
@@ -559,7 +563,9 @@ module Stream =
       delay <| fun () ->
       let inCh = Ch ()
       let resultCh = Ch ()
-      inCh >>= fun (x, rCh) ->
+      inCh >>= fun (s: Struct<_, _>) ->
+          let x = s.Get1
+          let rCh = s.Get2
           Job.tryInDelay (fun () -> x2yJ x)
             (Value >> Ch.give rCh)
             (Exn >> Ch.give rCh)
@@ -568,7 +574,7 @@ module Stream =
       >>=. Job.tryIn (xs
                       |> iterJob ^ fun x ->
                            let rCh = Ch ()
-                           inCh *<- (x, rCh) >>=.
+                           inCh *<- Struct (x, rCh) >>=.
                            resultCh *<+ (rCh :> Job<_>))
              (fun () -> resultCh *<- Job.result Done)
              (Exn >> Job.result >> Ch.give resultCh)
