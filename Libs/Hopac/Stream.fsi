@@ -714,10 +714,16 @@ module Stream =
 
   /// `mapPipelinedJob degree x2yJ xs` is like `mapJob x2yJ xs` except that up
   /// to `degree` number of jobs constructed with `x2yJ` may be run in parallel.
+  ///
+  /// Note that due to the sequential nature of streams, this simply isn't an
+  /// effective solution for fine grained parallel processing.
   val mapPipelinedJob: degree: int -> ('x -> #Job<'y>) -> Stream<'x> -> Stream<'y>
 
   /// `mapPipelinedFun degree x2y xs` is like `mapFun x2y xs` except that up to
   /// `degree` number of invocations of `x2y` may be run in parallel.
+  ///
+  /// Note that due to the sequential nature of streams, this simply isn't an
+  /// effective solution for fine grained parallel processing.
   val mapPipelinedFun: degree: int -> ('x ->      'y)  -> Stream<'x> -> Stream<'y>
 
   /// Returns a stream that produces the given element each time the given
