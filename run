@@ -326,6 +326,16 @@ tag_release() {
   git push --follow-tags
 }
 
+check_release_date() {
+  local RELEASE_DATE="$(head -n 1 RELEASE_NOTES.md | sed -e 's#.* \(.*-.*-.*\)$#\1#g')"
+  local CURRENT_DATE="$(date '+%Y-%m-%d')"
+
+  if [ "$RELEASE_DATE" != "$CURRENT_DATE" ] ; then
+    echo "Release notes specify date as $RELEASE_DATE, but current date is $CURRENT_DATE."
+    return 1
+  fi
+}
+
 publish() {
   if did publish ; then return 0 ; fi
 
@@ -340,6 +350,8 @@ publish() {
   check_git_clean
 
   if [ -z "$KEYFILE" ] ; then
+    check_release_date
+
     cat <<EOF
 
 You are about to publish Hopac.
