@@ -51,7 +51,7 @@ check_git_clean() {
   local BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   if [ "master" != "$BRANCH" ] ; then
     echo "Have you merged your changes to master? (currently on $BRANCH)"
-    exit 1
+    return 1
   fi
 
   local CHANGES="$(git status --porcelain)"
@@ -60,13 +60,13 @@ check_git_clean() {
 
 Changes:
 $CHANGES"
-    exit 1
+    return 1
   fi
 
   local BEHIND="$(git rev-list --count @{upstream}..HEAD)"
   if [ "0" != "$BEHIND" ] ; then
     echo "Have you pushed everything to upstream? ($BEHIND commits behind upstream)"
-    exit 1
+    return 1
   fi
 }
 
@@ -353,7 +353,7 @@ EOF
 
     read -p "Enter Y to proceed: " INPUT
     if [ "$INPUT" != "Y" ] ; then
-      exit 1
+      return 1
     fi
 
     publish_nupkg
