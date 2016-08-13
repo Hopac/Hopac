@@ -2820,16 +2820,14 @@ module Proc =
 type JobBuilder =
   new: unit -> JobBuilder
 
-  member inline Bind: IObservable<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:       Async<'x> * ('x   -> Job<'y>) -> Job<'y>
-  member inline Bind:        Task<'x> * ('x   -> Job<'y>) -> Job<'y>
-  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
-  member inline Bind:         Job<'x> * ('x   -> Job<'y>) -> Job<'y>
+  member inline Bind: IObservable<'x> * ('x -> Job<'y>) -> Job<'y>
+  member inline Bind:       Async<'x> * ('x -> Job<'y>) -> Job<'y>
+  member inline Bind:        Task<'x> * ('x -> Job<'y>) -> Job<'y>
+  member inline Bind:         Job<'x> * ('x -> Job<'y>) -> Job<'y>
 
-  member inline Combine: Job<unit> * Job<'x> -> Job<'x>
+  member inline Combine: Job<unit> * (unit -> Job<'x>) -> Job<'x>
 
-  member inline Delay: (unit -> Job<'x>) -> Job<'x>
+  member inline Delay: (unit -> Job<'x>) -> (unit -> Job<'x>)
 
   member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
 
@@ -2838,19 +2836,22 @@ type JobBuilder =
   member inline ReturnFrom: IObservable<'x> -> Job<'x>
   member inline ReturnFrom:       Async<'x> -> Job<'x>
   member inline ReturnFrom:        Task<'x> -> Job<'x>
-  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline ReturnFrom:        Task     -> Job<unit>
   member inline ReturnFrom:         Job<'x> -> Job<'x>
 
-  member inline TryFinally: Job<'x> * (unit -> unit) -> Job<'x>
+  member inline Run: (unit -> Job<'x>) -> Job<'x>
 
-  member inline TryWith: Job<'x> * (exn -> Job<'x>) -> Job<'x>
-
+  member inline TryFinally: (unit -> Job<'x>) * (unit -> unit) -> Job<'x>
+  member inline TryWith: (unit -> Job<'x>) * (exn -> Job<'x>) -> Job<'x>
   member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
 
-  member inline While: (unit -> bool) * Job<unit> -> Job<unit>
+  member inline While: (unit -> bool) * (unit -> Job<unit>) -> Job<unit>
 
   member inline Zero: unit -> Job<unit>
+
+  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
+  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
+  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
+  member inline ReturnFrom:        Task     -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2906,7 +2907,7 @@ type EmbeddedJob<'x> = struct
 type EmbeddedJobBuilder =
   inherit JobBuilder
   new: unit -> EmbeddedJobBuilder
-  member Run: Job<'x> -> EmbeddedJob<'x>
+  member Run: (unit -> Job<'x>) -> EmbeddedJob<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 

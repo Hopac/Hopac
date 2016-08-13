@@ -2188,38 +2188,41 @@ open Extensions
 ////////////////////////////////////////////////////////////////////////////////
 
 type JobBuilder () =
-  member inline __.Bind (xO: IObservable<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+  member inline __.Bind (xO: IObservable<'x>, x2yJ: 'x -> Job<'y>) =
     xO.onceAlt >>= x2yJ
-  member inline __.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+  member inline __.Bind (xA: Async<'x>, x2yJ: 'x -> Job<'y>) =
     Job.bindAsync x2yJ xA
-  member inline __.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
+  member inline __.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) =
     Job.bindTask x2yJ xT
-  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline __.Bind (uT: Task, u2xJ: unit -> Job<'x>) : Job<'x> =
-    Job.bindUnitTask u2xJ uT
-  member inline __.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) : Job<'y> =
-    xJ >>= x2yJ
-  member inline __.Combine (uJ: Job<unit>, xJ: Job<'x>) : Job<'x> = uJ >>=. xJ
-  member inline __.Delay (u2xJ: unit -> Job<'x>) : Job<'x> = Job.delay u2xJ
-  member inline __.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) : Job<unit> =
+  member inline __.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) = xJ >>= x2yJ
+  member inline __.Combine (uJ: Job<unit>, u2xJ: unit -> Job<'x>) = uJ >>= u2xJ
+  member inline __.Delay (u2xJ: unit -> Job<'x>) = u2xJ
+  member inline __.For (xs: seq<'x>, x2uJ: 'x -> Job<unit>) =
     Seq.iterJob x2uJ xs
-  member inline __.Return (x: 'x) : Job<'x> = Job.result x
+  member inline __.Return (x: 'x) = Job.result x
   member inline __.ReturnFrom (xO: IObservable<'x>) = xO.onceAlt :> Job<_>
-  member inline __.ReturnFrom (xA: Async<'x>) : Job<'x> = Job.fromAsync xA
-  member inline __.ReturnFrom (xT: Task<'x>) : Job<'x> = Job.awaitTask xT
-  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline __.ReturnFrom (uT: Task) : Job<unit> = Job.awaitUnitTask uT
-  member inline __.ReturnFrom (xJ: Job<'x>) : Job<'x> = xJ
-  member inline __.TryFinally (xJ: Job<'x>, u2u: unit -> unit) : Job<'x> =
-    Job.tryFinallyFun xJ u2u
-  member inline __.TryWith (xJ: Job<'x>, e2xJ: exn -> Job<'x>) : Job<'x> =
-    Job.tryWith xJ e2xJ
+  member inline __.ReturnFrom (xA: Async<'x>) = Job.fromAsync xA
+  member inline __.ReturnFrom (xT: Task<'x>) = Job.awaitTask xT
+  member inline __.ReturnFrom (xJ: Job<'x>) = xJ
+  member inline __.Run (u2xJ: unit -> Job<'x>) = Job.delay u2xJ
+  member inline __.TryFinally (u2xJ: unit -> Job<'x>, u2u: unit -> unit) =
+    Job.tryFinallyFunDelay u2xJ u2u
+  member inline __.TryWith (u2xJ: unit -> Job<'x>, e2xJ: exn -> Job<'x>) =
+    Job.tryWithDelay u2xJ e2xJ
   member inline __.Using (x: 'x, x2yJ: 'x -> Job<'y>) : Job<'y>
       when 'x :> IDisposable =
     Job.using x x2yJ
-  member inline __.While (u2b: unit -> bool, uJ: Job<unit>) : Job<unit> =
-    Job.whileDo u2b uJ
-  member inline __.Zero () : Job<unit> = Job.unit ()
+  member inline __.While (u2b: unit -> bool, u2uJ: unit -> Job<unit>) =
+    Job.whileDoDelay u2b u2uJ
+  member inline __.Zero () = Job.unit ()
+
+  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
+  member inline __.Bind (uT: Task, u2xJ: unit -> Job<'x>) =
+    Job.bindUnitTask u2xJ uT
+  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
+  member inline __.ReturnFrom (uT: Task) = Job.awaitUnitTask uT
+
+////////////////////////////////////////////////////////////////////////////////
 
 type EmbeddedJob<'x> = struct
     val Job: Job<'x>
@@ -2228,7 +2231,8 @@ type EmbeddedJob<'x> = struct
 
 type EmbeddedJobBuilder () =
   inherit JobBuilder ()
-  member this.Run (xJ: Job<'x>) : EmbeddedJob<'x> = EmbeddedJob<'x> (xJ)
+  member this.Run (xJ: unit -> Job<'x>) : EmbeddedJob<'x> =
+    EmbeddedJob<'x> (Job.delay xJ)
 
 ////////////////////////////////////////////////////////////////////////////////
 

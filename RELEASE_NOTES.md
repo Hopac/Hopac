@@ -1,3 +1,15 @@
+#### 0.3.9 - 2016-08-XX
+* Potentially breaking changes to `JobBuilder` (and `job`):
+  * `Delay` was changed to be the identity function,
+  * `Run` was introduced to perform `Job.delay`,
+  * `Combine`, `TryFinally`, `TryWith` and `While` now take a `unit -> Job<_>`
+    rather than a `Job<_>`.
+  This change allows `Combine`, `TryFinally`, `TryWith` and `While` to be mapped
+  to primitives that perform implicit delay and therefore avoid an `Job.delay`
+  wrapper.
+* `EmbeddedJob.Run` was also changed to take a `unit -> Job<_>` rather than a
+  `Job<_>`.
+
 #### 0.3.8 - 2016-08-13
 * Added `Stream.mapPipelinedFun` and `Stream.mapPipelinedJob`.
 * Added `Job.liftTask` and `Job.liftUnitTask`.
