@@ -562,7 +562,7 @@ module Stream =
     else
       delay <| fun () ->
       let inCh = Ch ()
-      let resultCh = Ch ()
+      let resultMb = Mailbox ()
       inCh >>= fun (s: Struct<_, _>) ->
           let x = s.Get1
           let rCh = s.Get2
@@ -575,12 +575,12 @@ module Stream =
                       |> iterJob ^ fun x ->
                            let rCh = Ch ()
                            inCh *<- Struct (x, rCh) >>=.
-                           resultCh *<+ (rCh :> Job<_>))
-             (fun () -> resultCh *<- Job.result Done)
-             (Exn >> Job.result >> Ch.give resultCh)
+                           resultMb *<<+ (rCh :> Job<_>))
+             (fun () -> resultMb *<<+ Job.result Done)
+             (Exn >> Job.result >> Mailbox.send resultMb)
       |> start
       let rec loop () =
-        resultCh >>=* fun rCh ->
+        resultMb >>=* fun rCh ->
           rCh >>- function
            | Value y -> Cons (y, loop ())
            | Exn e   -> raise e
