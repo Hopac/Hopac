@@ -4,9 +4,8 @@
   * `Run` was introduced to perform `Job.delay`,
   * `Combine`, `TryFinally`, `TryWith` and `While` now take a `unit -> Job<_>`
     rather than a `Job<_>`.
-  This change allows `Combine`, `TryFinally`, `TryWith` and `While` to be mapped
-  to primitives that perform implicit delay and therefore avoid a `Job.delay`
-  wrapper.
+  This change makes it so that the `... ; ...`, `try-finally`, `try-with` and
+  `while` constructs avoid a separate `Job.delay` wrapper and perform better.
 * `EmbeddedJob.Run` was also changed to take a `unit -> Job<_>` rather than a
   `Job<_>`.
 
