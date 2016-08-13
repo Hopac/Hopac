@@ -765,7 +765,7 @@ module Job =
 
   /// Creates a job that waits for the given task to finish and then returns the
   /// result of the task.  Note that this does not start the task.  Make sure
-  /// that the task is started correctly.
+  /// that the task is started correctly.  See also: `fromTask`.
 #if DOC
   ///
   /// Reference implementation:
@@ -782,6 +782,7 @@ module Job =
 
   /// Creates a job that waits until the given task finishes.  Note that this
   /// does not start the task.  Make sure that the task is started correctly.
+  /// See also: `fromUnitTask`.
   val inline awaitUnitTask: Task     -> Job<unit>
 
   /// `bindTask x2yJ xT` is equivalent to `awaitTask xT >>= x2yJ`.
