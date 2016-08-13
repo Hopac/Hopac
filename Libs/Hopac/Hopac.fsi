@@ -2227,37 +2227,43 @@ module Extensions =
     /// Builder for async workflows.  The methods in this builder delegate to
     /// the default `async` builder.
     type [<AbstractClass>] OnWithSchedulerBuilder =
+      ///
       new: unit -> OnWithSchedulerBuilder
-
+      ///
       abstract Scheduler: Scheduler
+      ///
       abstract Context: SynchronizationContext
-
+      ///
       member inline Bind:  Task<'x> * ('x -> Async<'y>) -> Async<'y>
+      ///
       member inline Bind:   Job<'x> * ('x -> Async<'y>) -> Async<'y>
+      ///
       member inline Bind: Async<'x> * ('x -> Async<'y>) -> Async<'y>
-
+      ///
       member inline Combine: Async<unit> * Async<'x> -> Async<'x>
-
+      ///
       member inline Delay: (unit -> Async<'x>) -> Async<'x>
-
+      ///
       member inline For: seq<'x> * ('x -> Async<unit>) -> Async<unit>
-
+      ///
       member inline Return: 'x -> Async<'x>
-
+      ///
       member inline ReturnFrom:  Task<'x> -> Async<'x>
+      ///
       member inline ReturnFrom:   Job<'x> -> Async<'x>
+      ///
       member inline ReturnFrom: Async<'x> -> Async<'x>
-
+      ///
       member inline TryFinally: Async<'x> * (unit -> unit) -> Async<'x>
-
+      ///
       member inline TryWith: Async<'x> * (exn -> Async<'x>) -> Async<'x>
-
+      ///
       member inline Using: 'x * ('x -> Async<'y>) -> Async<'y> when 'x :> IDisposable
-
+      ///
       member inline While: (unit -> bool) * Async<unit> -> Async<unit>
-
+      ///
       member inline Zero: unit -> Async<unit>
-
+      ///
       member inline Run: Async<'x> -> Job<'x>
 
     /// Operations on the global scheduler.
@@ -2818,36 +2824,44 @@ module Proc =
 /// performance.
 #endif
 type JobBuilder =
+  ///
   new: unit -> JobBuilder
-
+  ///
   member inline Bind: IObservable<'x> * ('x -> Job<'y>) -> Job<'y>
+  ///
   member inline Bind:       Async<'x> * ('x -> Job<'y>) -> Job<'y>
+  ///
   member inline Bind:        Task<'x> * ('x -> Job<'y>) -> Job<'y>
+  ///
   member inline Bind:         Job<'x> * ('x -> Job<'y>) -> Job<'y>
-
+  ///
   member inline Combine: Job<unit> * (unit -> Job<'x>) -> Job<'x>
-
+  ///
   member inline Delay: (unit -> Job<'x>) -> (unit -> Job<'x>)
-
+  ///
   member inline For: seq<'x> * ('x -> Job<unit>) -> Job<unit>
-
+  ///
   member inline Return: 'x -> Job<'x>
-
+  ///
   member inline ReturnFrom: IObservable<'x> -> Job<'x>
+  ///
   member inline ReturnFrom:       Async<'x> -> Job<'x>
+  ///
   member inline ReturnFrom:        Task<'x> -> Job<'x>
+  ///
   member inline ReturnFrom:         Job<'x> -> Job<'x>
-
+  ///
   member inline Run: (unit -> Job<'x>) -> Job<'x>
-
+  ///
   member inline TryFinally: (unit -> Job<'x>) * (unit -> unit) -> Job<'x>
+  ///
   member inline TryWith: (unit -> Job<'x>) * (exn -> Job<'x>) -> Job<'x>
+  ///
   member inline Using: 'x * ('x -> Job<'y>) -> Job<'y> when 'x :> IDisposable
-
+  ///
   member inline While: (unit -> bool) * (unit -> Job<unit>) -> Job<unit>
-
+  ///
   member inline Zero: unit -> Job<unit>
-
   [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
   member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
   [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
