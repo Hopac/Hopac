@@ -1,7 +1,7 @@
 #### 0.3.9 - 2016-08-14
 * `JobBuilder.Delay` was changed to be the identity function,
 * `JobBuilder.Run` was introduced to perform `Job.delay`,
-* `EmbeddedJob.Run` was also changed to take a `unit -> Job<_>`,
+* `EmbeddedJobBuilder.Run` was also changed to take a `unit -> Job<_>`,
 * `JobBuilder.Combine`, `JobBuilder.TryFinally`, `JobBuilder.TryWith` and
   `JobBuilder.While` now take a `unit -> Job<_>` rather than a `Job<_>`.
 
