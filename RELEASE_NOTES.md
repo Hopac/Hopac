@@ -4,6 +4,7 @@
 * `EmbeddedJob.Run` was also changed to take a `unit -> Job<_>`,
 * `JobBuilder.Combine`, `JobBuilder.TryFinally`, `JobBuilder.TryWith` and
   `JobBuilder.While` now take a `unit -> Job<_>` rather than a `Job<_>`.
+
 These potentially breaking changes make it so that the `... ; ...`,
 `try-finally`, `try-with` and `while` constructs of `job` avoid a separate
 `Job.delay` wrapper and perform better.

@@ -116,9 +116,10 @@ VERSION="$(cat RELEASE_NOTES.md                |
            head -n 1)"
 
 N="$(cat RELEASE_NOTES.md           |
-     grep -n -e '^ *$'              |
+     grep -n -e '^####'             |
      sed -e 's#^\([0-9]*\).*$#\1#g' |
-     head -n 1)"
+     head -n 2                      |
+     tail -n 1)"
 
 NOTES="$(cat RELEASE_NOTES.md         |
          head -n $((N-1))             |
