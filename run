@@ -23,7 +23,7 @@ fi
 
 did() {
   local VAR=DID_$1
-  if [ -z ${!VAR} ] ; then
+  if [ -z "${!VAR}" ] ; then
     eval "$VAR=1"
     return 1
   else
@@ -32,7 +32,7 @@ did() {
 }
 
 equals() {
-  if [ -f "$1" -a -f "$2" ] ; then
+  if [ -f "$1" ] && [ -f "$2" ] ; then
     diff -q "$1" "$2" > /dev/null
   else
     return 1
@@ -48,13 +48,15 @@ overwrite_changed() {
 }
 
 check_git_clean() {
-  local BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+  local BRANCH
+  BRANCH="$(git rev-parse --abbrev-ref HEAD)"
   if [ "master" != "$BRANCH" ] ; then
     echo "Have you merged your changes to master? (currently on $BRANCH)"
     return 1
   fi
 
-  local CHANGES="$(git status --porcelain)"
+  local CHANGES
+  CHANGES="$(git status --porcelain)"
   if [ "" != "$CHANGES" ] ; then
     echo "Have you committed all local changes?
 
@@ -63,7 +65,8 @@ $CHANGES"
     return 1
   fi
 
-  local BEHIND="$(git rev-list --count @{upstream}..HEAD)"
+  local BEHIND
+  BEHIND="$(git rev-list --count '@{upstream}..HEAD')"
   if [ "0" != "$BEHIND" ] ; then
     echo "Have you pushed everything to upstream? ($BEHIND commits behind upstream)"
     return 1
@@ -110,20 +113,17 @@ fi
 
 ################################################################################
 
-VERSION="$(cat RELEASE_NOTES.md                |
-           grep -e '^#### '                    |
+VERSION="$(grep -e '^#### ' RELEASE_NOTES.md   |
            sed -e 's/^#### *\([^ ]*\) .*/\1/g' |
            head -n 1)"
 
-N="$(cat RELEASE_NOTES.md           |
-     grep -n -e '^####'             |
-     sed -e 's#^\([0-9]*\).*$#\1#g' |
-     head -n 2                      |
+N="$(grep -n -e '^####' RELEASE_NOTES.md |
+     sed -e 's#^\([0-9]*\).*$#\1#g'      |
+     head -n 2                           |
      tail -n 1)"
 
-NOTES="$(cat RELEASE_NOTES.md         |
-         head -n $((N-1))             |
-         sed -e 's#^\(.*\)$#    \1#g' |
+NOTES="$(head -n $((N-1)) RELEASE_NOTES.md |
+         sed -e 's#^\(.*\)$#    \1#g'      |
          tail -n $((N-2)))"
 
 ################################################################################
@@ -145,8 +145,8 @@ fi
 clean() {
   if did clean ; then return 0 ; fi
 
-  find Libs -name bin | xargs rm -rf
-  find Libs -name obj | xargs rm -rf
+  find Libs -name bin -print0 | xargs -0 rm -rf
+  find Libs -name obj -print0 | xargs -0 rm -rf
 
   rm -rf .gh-pages
   rm -rf .nuget
@@ -227,7 +227,7 @@ build() {
 
   for SOLUTION in $SOLUTIONS ; do
     for CONFIG in $CONFIGS ; do
-      $BUILD /nologo /verbosity:quiet /p:Configuration=$CONFIG $SOLUTION
+      $BUILD /nologo /verbosity:quiet /p:Configuration="$CONFIG" "$SOLUTION"
     done
   done
 }
@@ -239,7 +239,7 @@ build_nupkg() {
 
   mkdir -p .nuget
   local TEMPLATE=.nuget/Hopac.template
-  overwrite_changed $TEMPLATE <<EOF
+  overwrite_changed "$TEMPLATE" <<EOF
 type file
 id $NUPKG_ID
 version $VERSION
@@ -261,25 +261,25 @@ files
 dependencies FSharp.Core >= 3.1.2.5
 EOF
 
-  paket --silent pack output .nuget templatefile $TEMPLATE
+  paket --silent pack output .nuget templatefile "$TEMPLATE"
 }
 
 generate_docs() {
   if did generate_docs ; then return 0 ; fi
 
   if [ ! -d .gh-pages ] ; then
-    git clone -b gh-pages $PROJECT_URL .gh-pages
+    git clone -b gh-pages "$PROJECT_URL" .gh-pages
   fi
 
-  ./FsiRefGen/run                \
-      --out .gh-pages            \
-      --name Hopac               \
-      --icon $ICON_URL           \
-      --version $VERSION         \
-      --project-url $PROJECT_URL \
-      --                         \
-      Libs/Hopac/Hopac.fsi       \
-      Libs/Hopac/Stream.fsi      \
+  ./FsiRefGen/run                  \
+      --out .gh-pages              \
+      --name Hopac                 \
+      --icon "$ICON_URL"           \
+      --version "$VERSION"         \
+      --project-url "$PROJECT_URL" \
+      --                           \
+      Libs/Hopac/Hopac.fsi         \
+      Libs/Hopac/Stream.fsi        \
       Libs/Hopac/TopLevel.fsi
 }
 
@@ -288,13 +288,15 @@ tests() {
 
   build
 
+  pushd Tests &> /dev/null
   for CONFIG in $CONFIGS ; do
-    for TEST in $(ls Tests) ; do
+    for TEST in * ; do
       echo "$TEST ($CONFIG)"
-      $RUN "Tests/$TEST/bin/$CONFIG/$TEST.exe"
+      $RUN "$TEST/bin/$CONFIG/$TEST.exe"
       echo
     done
   done
+  popd &> /dev/null
 }
 
 publish_docs() {
@@ -303,10 +305,10 @@ publish_docs() {
   generate_docs
 
   pushd .gh-pages
-  mkdir -p $VERSION
-  cp *.html *.css *.js $VERSION/
-  git add $VERSION/*
-  git add *.html *.css *.js
+  mkdir -p "$VERSION"
+  cp ./*.html ./*.css ./*.js "$VERSION"/
+  git add "$VERSION"/*
+  git add ./*.html ./*.css ./*.js
   git commit -m "Updated docs for $VERSION"
   git push
   popd
@@ -317,19 +319,21 @@ publish_nupkg() {
 
   build_nupkg
 
-  paket push url https://www.nuget.org file .nuget/Hopac.$VERSION.nupkg
+  paket push url https://www.nuget.org file ".nuget/Hopac.$VERSION.nupkg"
 }
 
 tag_release() {
   if did tag_release ; then return 0 ; fi
 
-  git tag -a $VERSION -m $VERSION
+  git tag -a "$VERSION" -m "$VERSION"
   git push --follow-tags
 }
 
 check_release_date() {
-  local RELEASE_DATE="$(head -n 1 RELEASE_NOTES.md | sed -e 's#.* \(.*-.*-.*\)$#\1#g')"
-  local CURRENT_DATE="$(date '+%Y-%m-%d')"
+  local RELEASE_DATE
+  RELEASE_DATE="$(head -n 1 RELEASE_NOTES.md | sed -e 's#.* \(.*-.*-.*\)$#\1#g')"
+  local CURRENT_DATE
+  CURRENT_DATE="$(date '+%Y-%m-%d')"
 
   if [ "$RELEASE_DATE" != "$CURRENT_DATE" ] ; then
     echo "Release notes specify date as $RELEASE_DATE, but current date is $CURRENT_DATE."
@@ -338,6 +342,8 @@ check_release_date() {
 }
 
 publish() {
+  CONFIGS=Release
+
   if did publish ; then return 0 ; fi
 
   check_git_clean
@@ -363,7 +369,7 @@ $NOTES
 EOF
     check_release_date
 
-    read -p "Enter Y to proceed: " INPUT
+    read -r -p "Enter Y to proceed: " INPUT
     if [ "$INPUT" != "Y" ] ; then
       return 1
     fi
@@ -382,7 +388,7 @@ repl() {
   CONFIGS=Release
   build
 
-  rlwrap -t dumb $FSI --use:Hopac.fsx
+  rlwrap -t dumb "$FSI" --use:Hopac.fsx
 }
 
 benchmarks() {
@@ -390,11 +396,13 @@ benchmarks() {
   CONFIGS=Release
   build
 
-  for BENCHMARK in $(ls Benchmarks) ; do
+  pushd Benchmarks &> /dev/null
+  for BENCHMARK in * ; do
     echo "$BENCHMARK"
-    $RUN "Benchmarks/$BENCHMARK/bin/Release/$BENCHMARK.exe"
+    $RUN "$BENCHMARK/bin/Release/$BENCHMARK.exe"
     echo
   done
+  popd &> /dev/null
 }
 
 pull_submodules() {
