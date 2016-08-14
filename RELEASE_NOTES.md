@@ -1,13 +1,12 @@
-#### 0.3.9 - 2016-08-XX
-* Potentially breaking changes to `JobBuilder` (and `job`):
-  * `Delay` was changed to be the identity function,
-  * `Run` was introduced to perform `Job.delay`,
-  * `Combine`, `TryFinally`, `TryWith` and `While` now take a `unit -> Job<_>`
-    rather than a `Job<_>`.
-  This change makes it so that the `... ; ...`, `try-finally`, `try-with` and
-  `while` constructs avoid a separate `Job.delay` wrapper and perform better.
-* `EmbeddedJob.Run` was also changed to take a `unit -> Job<_>` rather than a
-  `Job<_>`.
+#### 0.3.9 - 2016-08-14
+* `JobBuilder.Delay` was changed to be the identity function,
+* `JobBuilder.Run` was introduced to perform `Job.delay`,
+* `EmbeddedJob.Run` was also changed to take a `unit -> Job<_>`,
+* `JobBuilder.Combine`, `JobBuilder.TryFinally`, `JobBuilder.TryWith` and
+  `JobBuilder.While` now take a `unit -> Job<_>` rather than a `Job<_>`.
+These potentially breaking changes make it so that the `... ; ...`,
+`try-finally`, `try-with` and `while` constructs of `job` avoid a separate
+`Job.delay` wrapper and perform better.
 
 #### 0.3.8 - 2016-08-13
 * Added `Stream.mapPipelinedFun` and `Stream.mapPipelinedJob`.
