@@ -7,7 +7,7 @@ open System
 open System.Threading.Tasks
 
 // This is a compile only test.
-let testSyntax (xT: Task<IDisposable>)
+let testSyntax (xT: Task<'disposable>)
                (xE: IEvent<int>)
                (xO: IObservable<float>)
                (t: Task)
@@ -22,7 +22,8 @@ let testSyntax (xT: Task<IDisposable>)
   do! uJ
   if true then
     return ()
-  use! x = xT
+  use xT' = xT
+  use! x = xT'
   for _ in xs do
     ()
   try return! uJ
