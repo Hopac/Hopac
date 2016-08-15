@@ -7,9 +7,9 @@
     <ProjectGuid>{36759B0E-103D-4985-815C-2ACFE9568334}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>ThreadRing</RootNamespace>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyName>ThreadRing</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
     <WarningLevel>4</WarningLevel>
     <Name>ThreadRing</Name>
