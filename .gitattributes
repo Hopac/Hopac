@@ -1,1 +1,4 @@
 run eol=lf
+*.fsproj eol=crlf
+*.csproj eol=crlf
+*.sln eol=crlf
