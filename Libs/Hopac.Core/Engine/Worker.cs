@@ -15,7 +15,7 @@ namespace Hopac.Core {
       this.Me = me;
     }
   }
-  
+
   unsafe internal struct Worker {
     internal Work WorkStack;
     internal Handler Handler;
@@ -110,7 +110,7 @@ namespace Hopac.Core {
 
       Scheduler.PushAllAndDec(sr, wr.WorkStack);
     }
-    
+
     internal static void Run(Scheduler sr, int me) {
       IsWorkerThread = true;
 
