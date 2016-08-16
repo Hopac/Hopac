@@ -1,3 +1,7 @@
+#### 0.3.10 - 2016-08-16
+* Changed interop primitives to avoid building up stack space in case interop
+  resumes synchronously on a worker thread.
+
 #### 0.3.9 - 2016-08-14
 * `JobBuilder.Delay` was changed to be the identity function,
 * `JobBuilder.Run` was introduced to perform `Job.delay`,
