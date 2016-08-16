@@ -2151,13 +2151,13 @@ module Extensions =
     interface IObserver<'x> with
       override this.OnError e =
         ObserveOnce<'x>.Commit (this, fun () ->
-          Worker.RunOnThisThread (this.scheduler, FailWork (e, this.xK)))
+          Worker.ContinueOnThisThread (this.scheduler, FailWork (e, this.xK)))
       override this.OnCompleted () = (this :> IObserver<'x>).OnError OnCompleted
       override this.OnNext x =
         ObserveOnce<'x>.Commit (this, fun () ->
           let xK = this.xK
           xK.Value <- x
-          Worker.RunOnThisThread (this.scheduler, xK))
+          Worker.ContinueOnThisThread (this.scheduler, xK))
 
   type IObservable<'x> with
     member this.onceAltOn (context: SynchronizationContext) =

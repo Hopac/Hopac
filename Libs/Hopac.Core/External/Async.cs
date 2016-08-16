@@ -38,11 +38,11 @@ namespace Hopac.Core {
     ///
     public void Success(X x) {
       this.x = x;
-      Worker.RunOnThisThread(sr, this);
+      Worker.ContinueOnThisThread(sr, this);
     }
     ///
     public void Failure(Exception e) {
-      Worker.RunOnThisThread(sr, new FailWork(e, yK));
+      Worker.ContinueOnThisThread(sr, new FailWork(e, yK));
     }
   }
 
@@ -69,11 +69,11 @@ namespace Hopac.Core {
     public void Success(X x) {
       var xK = this.xK;
       xK.Value = x;
-      Worker.RunOnThisThread(sr, xK);
+      Worker.ContinueOnThisThread(sr, xK);
     }
     ///
     public void Failure(Exception e) {
-      Worker.RunOnThisThread(sr, new FailWork(e, xK));
+      Worker.ContinueOnThisThread(sr, new FailWork(e, xK));
     }
   }
 

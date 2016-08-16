@@ -78,6 +78,15 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal static void ContinueOnThisThread(Scheduler sr, Work work) {
+      if (IsWorkerThread) {
+        Scheduler.PushNew(sr, work);
+      } else {
+        RunOnThisThread(sr, work);
+      }
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal static void RunOnThisThread(Scheduler sr, Work work) {
       var wr = new Worker();
       wr.Init(sr, 8000);

@@ -35,7 +35,7 @@ namespace Hopac.Core {
         yJ.Do(yJ.xT.Result).DoJob(ref wr, yK);
       }
       internal void Ready() {
-        Worker.RunOnThisThread(sr, this);
+        Worker.ContinueOnThisThread(sr, this);
       }
     }
     internal override void DoJob(ref Worker wr, Cont<Y> yK) {
@@ -79,7 +79,7 @@ namespace Hopac.Core {
           Handler.DoHandle(yK, ref wr, uT.Exception);
       }
       internal void Ready() {
-        Worker.RunOnThisThread(sr, this);
+        Worker.ContinueOnThisThread(sr, this);
       }
     }
     internal override void DoJob(ref Worker wr, Cont<Y> yK) {
@@ -111,7 +111,7 @@ namespace Hopac.Core {
       xK.DoCont(ref wr, xT.Result);
     }
     public void Ready() {
-      Worker.RunOnThisThread(this.sr, this);
+      Worker.ContinueOnThisThread(this.sr, this);
     }
   }
 
@@ -152,7 +152,7 @@ namespace Hopac.Core {
         uK.DoHandle(ref wr, uT.Exception);
     }
     internal void Ready() {
-      Worker.RunOnThisThread(this.sr, this);
+      Worker.ContinueOnThisThread(this.sr, this);
     }
   }
 
@@ -211,7 +211,7 @@ namespace Hopac.Core {
       this.DoWork(ref wr);
     }
     public void Ready() {
-      Worker.RunOnThisThread(this.sr, this);
+      Worker.ContinueOnThisThread(this.sr, this);
     }
   }
 
@@ -302,7 +302,7 @@ namespace Hopac.Core {
       this.DoWork(ref wr);
     }
     public void Ready() {
-      Worker.RunOnThisThread(this.sr, this);
+      Worker.ContinueOnThisThread(this.sr, this);
     }
   }
 
