@@ -5,7 +5,7 @@ namespace Hopac.Experimental
 open Hopac
 open Hopac.Infixes
 
-module Stream =
+module Pipe =
   type In<'x> = Alt<'x>
   type Out<'x> = 'x -> Job<unit>
 

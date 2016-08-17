@@ -50,12 +50,12 @@
     <Compile Include="IMap.fs" />
     <Compile Include="Multicast.fsi" />
     <Compile Include="Multicast.fs" />
+    <Compile Include="Pipe.fsi" />
+    <Compile Include="Pipe.fs" />
     <Compile Include="SafeStream.fsi" />
     <Compile Include="SafeStream.fs" />
     <Compile Include="SelectableQueue.fsi" />
     <Compile Include="SelectableQueue.fs" />
-    <Compile Include="Stream.fsi" />
-    <Compile Include="Stream.fs" />
     <Compile Include="SwapCh.fsi" />
     <Compile Include="SwapCh.fs" />
     <Content Include="paket.references" />

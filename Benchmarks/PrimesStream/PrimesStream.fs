@@ -189,19 +189,19 @@ module HopacStream =
 module HopacCh =
   open Hopac.Experimental
 
-  let sieve (primesOut: Stream.Out<_>) =
+  let sieve (primesOut: Pipe.Out<_>) =
     let rec sieve natsIn =
       natsIn >>= fun prime ->
       primesOut prime >>= fun () ->
       natsIn
-      |> Stream.filterFun (fun x -> x % prime <> 0)
-      |> Stream.imp
+      |> Pipe.filterFun (fun x -> x % prime <> 0)
+      |> Pipe.imp
       >>= sieve
-    Stream.iterateFun 2 (fun x -> x+1) |> Stream.imp >>= sieve |> Job.server
+    Pipe.iterateFun 2 (fun x -> x+1) |> Pipe.imp >>= sieve |> Job.server
 
   let primes n = Job.delay <| fun () ->
     let before = GC.GetTotalMemory true
-    Stream.imp sieve >>= fun primes ->
+    Pipe.imp sieve >>= fun primes ->
     let result = Array.zeroCreate n
     let last = n-1
     Job.forUpTo 0 last <| fun i ->
