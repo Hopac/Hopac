@@ -38,9 +38,7 @@
     <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
-  <ItemGroup>                     
-    <Compile Include="Alts.fsi" />
-    <Compile Include="Alts.fs" />
+  <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="DirCh.fsi" />
     <Compile Include="DirCh.fs" />
@@ -76,7 +74,7 @@
       <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
     </ProjectReference>
   </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
