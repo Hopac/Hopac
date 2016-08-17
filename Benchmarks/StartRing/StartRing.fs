@@ -77,6 +77,47 @@ module Tasks =
     printf "%9.0f ops/s - %fs\n"
      (float n / d.TotalSeconds) d.TotalSeconds
 
+module HQueue =
+  let run n =
+    printf "HQueue: "
+    let timer = Stopwatch.StartNew ()
+    run << Job.delay <| fun () ->
+      let selfCh = Ch ()
+      let rec proc n selfCh toCh = Job.delay <| fun () ->
+        if n = 0 then
+          toCh *<+ ()
+        else
+          let childCh = Ch ()
+          Hopac.queue (proc (n-1) childCh toCh)
+          childCh *<+ () >>=.
+          selfCh
+      proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
+module HStart =
+  let run n =
+    printf "HStart: "
+    let timer = Stopwatch.StartNew ()
+    run << Job.delay <| fun () ->
+      let selfCh = Ch ()
+      let rec proc n selfCh toCh = Job.delay <| fun () ->
+        if n = 0 then
+          toCh *<+ ()
+        else
+          let childCh = Ch ()
+          if (n &&& 1024) = 0 then
+            Hopac.queue (proc (n-1) childCh toCh)
+          else
+            Hopac.start (proc (n-1) childCh toCh) // Not tailcall!
+          childCh *<+ () >>=.
+          selfCh
+      proc n selfCh selfCh
+    let d = timer.Elapsed
+    printf "%9.0f ops/s - %fs\n"
+     (float n / d.TotalSeconds) d.TotalSeconds
+
 module JQueue =
   let run n =
     printf "JQueue: "
@@ -181,16 +222,16 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for f in [JQueue.run; PQueue.run; JStart.run; PStart.run] do
-     for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
+do for f in [|JQueue.run; PQueue.run; JStart.run; PStart.run; HQueue.run; HStart.run|] do
+     for n in [|10; 100; 1000; 10000; 100000; 1000000; 10000000|] do
        f n
        cleanup ()
 
-do for f in [ThPool.run; Tasks.run; Async.run] do
-     for n in [10; 100; 1000; 10000; 100000; 1000000] do
+do for f in [|ThPool.run; Tasks.run; Async.run|] do
+     for n in [|10; 100; 1000; 10000; 100000; 1000000|] do
        f n
        cleanup ()
 
-do for n in [10; 100; 1000; 10000] do
+do for n in [|10; 100; 1000; 10000|] do
      Native.run n
      cleanup ()
