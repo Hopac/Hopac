@@ -38,16 +38,16 @@ module ThPool =
   let run n =
     printf "ThPool: "
     let timer = Stopwatch.StartNew ()
-    let selfCh = new AutoResetEvent (false)
-    let rec proc n (selfCh: AutoResetEvent) (toCh: AutoResetEvent) =
+    let selfCh = new SemaphoreSlim (0)
+    let rec proc n (selfCh: SemaphoreSlim) (toCh: SemaphoreSlim) =
       if n = 0 then
-        toCh.Set () |> ignore
+        toCh.Release () |> ignore
       else
-        let childCh = new AutoResetEvent (false)
+        let childCh = new SemaphoreSlim (0)
         ThreadPool.QueueUserWorkItem (WaitCallback (fun _ ->
           proc (n-1) childCh toCh)) |> ignore
-        childCh.Set () |> ignore
-      selfCh.WaitOne () |> ignore
+        childCh.Release () |> ignore
+      selfCh.Wait ()
       selfCh.Dispose ()
     proc n selfCh selfCh
     let d = timer.Elapsed
@@ -61,16 +61,16 @@ module Tasks =
   let run n =
     printf "Tasks:  "
     let timer = Stopwatch.StartNew ()
-    let selfCh = new AutoResetEvent (false)
-    let rec proc n (selfCh: AutoResetEvent) (toCh: AutoResetEvent) =
+    let selfCh = new SemaphoreSlim (0)
+    let rec proc n (selfCh: SemaphoreSlim) (toCh: SemaphoreSlim) =
       if n = 0 then
-        toCh.Set () |> ignore
+        toCh.Release () |> ignore
       else
-        let childCh = new AutoResetEvent (false)
+        let childCh = new SemaphoreSlim (0)
         Task.Factory.StartNew (fun _ ->
           proc (n-1) childCh toCh) |> ignore
-        childCh.Set () |> ignore
-      selfCh.WaitOne () |> ignore
+        childCh.Release () |> ignore
+      selfCh.Wait () |> ignore
       selfCh.Dispose ()
     proc n selfCh selfCh
     let d = timer.Elapsed
