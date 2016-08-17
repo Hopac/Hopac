@@ -1,6 +1,6 @@
 // Copyright (C) by Housemarque, Inc.
 
-namespace Hopac.Extra
+namespace Hopac.Experimental
 
 open Hopac
 

@@ -187,7 +187,7 @@ module HopacStream =
 ////////////////////////////////////////////////////////////////////////////////
 
 module HopacCh =
-  open Hopac.Extra
+  open Hopac.Experimental
 
   let sieve (primesOut: Stream.Out<_>) =
     let rec sieve natsIn =

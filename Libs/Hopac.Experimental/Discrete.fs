@@ -49,7 +49,7 @@ module Alt =
     //let map x2y xE =
     //  xE
     //  |> choose (x2y >> Some)
-    let map x2y xE = Alt.map x2y xE
+    let map x2y xE = Alt.afterFun x2y xE
 
     let debounce (timeout: Alt<_>) (xE: Alt<'x>) =
       xE
