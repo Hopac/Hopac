@@ -5,15 +5,25 @@ namespace Hopac.Experimental
 open Hopac
 
 module Alt =
-  /// Operations for treating alternatives as a kind of discrete event sources
-  /// allowing combinators for limited froms of event throttling, mapping and
-  /// filtering.
+  /// Operations for treating a subset of alternatives as a kind of discrete
+  /// event sources with merging and switching.
 #if DOC
   ///
   /// The essence of this module is that a subset of alternatives forms a monad
   /// with plus where `once` is return, `switchMap` is bind, `never` is zero and
-  /// `merge` is plus.  Note that many forms of alternatives, like `always`, do
-  /// not combine in useful ways under this interpretation.
+  /// `merge` is plus.
+  ///
+  ///> merge never xE = merge xE never = xE
+  ///
+  ///> once x |> switchMap x2yD = x2yD x
+  ///
+  ///> xE |> switchMap once = xE
+  ///
+  ///> xE |> switchMap x2yD |> switchMap y2zD =
+  ///> xE |> switchMap ^ fun x -> x2yD x |> switchMap y2zD
+  ///
+  /// Note that many forms of alternatives, like `always`, do not combine in
+  /// useful ways under this interpretation.
   ///
   /// The limitation of technique is the one-shot or no-memory nature of the
   /// discrete event sources, which seems to make many useful combinators that
@@ -25,15 +35,10 @@ module Alt =
     val merge: Alt<'x> -> Alt<'x> -> Alt<'x>
 
     /// Given an event source, `xE`, and a function that creates a new event
-    /// source, `x2yE`, returns an event source that always produces events from
-    /// the event source created by `x2yE` based on the latest value produced by
+    /// source, `x2yE`, returns an event source that produces the event from the
+    /// event source created by `x2yE` based on the latest value produced by
     /// `xE`.
     val switchMap: ('x -> Alt<'y>) -> Alt<'x> -> Alt<'y>
-
-    /// Given a timeout and an event source, `xE`, creates an event source that
-    /// produces only the events of `xE` after which there is a period of
-    /// timeout without any events from `xE`.
-    val throttle: timeout: Alt<_> -> Alt<'x> -> Alt<'x>
 
     /// Given a pair of event sources, creates an event source that produces
     /// pairs of the latest events from the sources.
@@ -50,3 +55,8 @@ module Alt =
     /// Given a function and an event source, creates an event source that
     /// produces the mapped events.
     val map: ('x -> 'y) -> Alt<'x> -> Alt<'y>
+
+    /// Given a timeout and an event source, `xE`, creates an event source that
+    /// produces only the events of `xE` after which there is a period of
+    /// timeout without any events from `xE`.
+    val debounce: timeout: Alt<_> -> Alt<'x> -> Alt<'x>

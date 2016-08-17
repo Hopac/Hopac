@@ -7,44 +7,50 @@ open Hopac.Infixes
 
 module Alt =
   module Discrete =
+    let inline (^) x = x
+
+    let inline start (abort2xJ: Alt<'x> -> #Job<'x>) : Alt<'x> =
+      Alt.withNackJob ^ fun nack ->
+      Promise.queue ^ abort2xJ ^ nack ^=> Job.abort
+
     // The following are "primitive" operations of the discrete event source
     // subset of alternatives.  Alt.once and Alt.never are also primitives, but
     // they are defined elsewhere.
 
-    let start (abort2xJ: Alt<'x> -> #Job<'x>) : Alt<'x> =
-      Alt.withNackJob <| fun nack ->
-      Promise.queue (abort2xJ (nack ^=> Job.abort))
+    let never<'x> = Alt.never () :> Alt<'x>
 
-    let merge (lhs: Alt<'x>) (rhs: Alt<'x>) =
-      start <| fun abort -> lhs <|> rhs <|> abort
+    let merge lhs rhs =
+      lhs <|> rhs
 
-    let throttle (timeout: Alt<_>) (xA: Alt<'x>) =
-      let rec lp abort x = xA ^=> lp abort <|> timeout ^->. x <|> abort
-      start <| fun abort -> xA ^=> lp abort <|> abort
+    let once x = Alt.once x
 
-    let switchMap (x2yA: 'x -> Alt<'y>) (xA: Alt<'x>) =
-      let rec lp abort yA = yA <|> xA ^=> (x2yA >> lp abort) <|> abort
-      start <| fun abort -> lp abort abort
-
-    let combineLatest (xE: Alt<'x>) (yE: Alt<'y>) : Alt<'x * 'y> =
-      let rec gotX a x = xE ^=> gotX a <|> a <|> yE ^-> fun y -> (x, y)
-      let rec gotY a y = yE ^=> gotY a <|> a <|> xE ^-> fun x -> (x, y)
-      start <| fun a -> xE ^=> gotX a <|> yE ^=> gotY a <|> a
+    let switchMap (x2yE: 'x -> Alt<'y>) (xE: Alt<'x>) =
+      let rec lp abort yE = yE <|> xE ^=> (x2yE >> lp abort) <|> abort
+      start ^ fun abort -> lp abort abort
 
     // The following do not need to be primitive operations.
 
-    let choose (x2yO: 'x -> option<'y>) (xA: Alt<'x>) =
-      xA
-      |> switchMap (fun x ->
-         match x2yO x with
-          | None -> Alt.never ()
-          | Some y -> Alt.once y)
+    let combineLatest xE yE =
+      merge (xE |> switchMap ^ fun x -> yE ^-> fun y -> (x, y))
+            (yE |> switchMap ^ fun y -> xE ^-> fun x -> (x, y))
 
-    let filter x2b xA =
-      xA
-      |> choose (fun x ->
-         if x2b x then Some x else None)
+    let choose (x2yO: 'x -> option<'y>) (xE: Alt<'x>) =
+      xE
+      |> switchMap ^ fun x ->
+           match x2yO x with
+            | None   -> never
+            | Some y -> once y
 
-    let map x2y xA =
-      xA
-      |> choose (x2y >> Some)
+    let filter x2b xE =
+      xE
+      |> choose ^ fun x ->
+           if x2b x then Some x else None
+
+    //let map x2y xE =
+    //  xE
+    //  |> choose (x2y >> Some)
+    let map x2y xE = Alt.map x2y xE
+
+    let debounce (timeout: Alt<_>) (xE: Alt<'x>) =
+      xE
+      |> switchMap ^ (^->.) timeout
