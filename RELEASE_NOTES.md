@@ -1,3 +1,7 @@
+#### 0.3.11 - 2016-08-20
+* Added `MVar.mutateFun`, `MVar.mutateJob`, `MVar.tryMutateFun`,
+  `MVar.tryMutateJob`, `MVar.tryModifyFun`, and `MVar.tryModifyJob`.
+
 #### 0.3.10 - 2016-08-16
 * Changed interop primitives to avoid building up stack space in case interop
   resumes synchronously on a worker thread.

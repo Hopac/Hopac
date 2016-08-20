@@ -1776,9 +1776,10 @@ module Latch =
 /// Represents a serialized variable.
 ///
 /// You can use serialized variables to serialize access to a specific piece of
-/// shared state.  The idea is that one and only one concurrent job has access
-/// to that state at any one time.  This way access to the shared state is
-/// entirely serialized.
+/// shared state.  Mutation operations on serialized variables are not atomic as
+/// such.  The idea is that one and only one concurrent job has access to that
+/// state at any one time.  This way access to the shared state is entirely
+/// serialized and appears as atomic.
 ///
 /// WARNING: Unfortunately, `MVar`s are easy to use unsafely.  Do not use an
 /// `MVar` to pass information from a client to a server, for example.  Use a
@@ -1849,43 +1850,19 @@ module MVar =
   [<Obsolete "Just use the constructor.">]
   val createFull: 'x -> Job<MVar<'x>>
 
+  //# Primitives
+
   /// Creates a job that writes the given value to the serialized variable.  It
   /// is an error to write to a `MVar` that is full.  This assumption may be
   /// used to optimize the implementation and incorrect usage leads to undefined
   /// behavior.  See also: `*<<=`.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
-  /// Creates an alternative that takes the value of the serialized variable and
-  /// then fills the variable with the result of performing the given job.
-  ///
-  /// Note that this operation is not atomic as such.  However, it is a common
-  /// programming pattern to make it so that only the job that has emptied an
-  /// `MVar` by taking a value from it is allowed to fill the `MVar`.  Such an
-  /// access pattern makes operations on the `MVar` appear as atomic.
-#if DOC
-  ///
-  /// Reference implementation:
-  ///
-  ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
-  ///>   xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>-. y)
-#endif
-  val inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Alt<'y>
+  /// Creates an alternative that becomes available when the variable contains a
+  /// value and, if committed to, takes the value from the variable.
+  val inline take: MVar<'x> -> Alt<'x>
 
-  /// Creates an alternative that takes the value of the serialized variable and
-  /// then fills the variable with the result of performing the given function.
-  ///
-  /// Note that this operation is not atomic as such.  However, it is a common
-  /// programming pattern to make it so that only the job that has emptied an
-  /// `MVar` by taking a value from it is allowed to fill the `MVar`.  Such an
-  /// access pattern makes operations on the `MVar` appear as atomic.
-#if DOC
-  ///
-  /// Reference implementation:
-  ///
-  ///> let modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-  ///>   xM ^=> (x2xy >> fun (x, y) -> fill xM x >>-. y)
-#endif
-  val inline modifyFun: ('x ->      'x * 'y)  -> MVar<'x> -> Alt<'y>
+  //# Read
 
   /// Creates an alternative that becomes available when the variable contains a
   /// value and, if committed to, read the value from the variable.
@@ -1897,9 +1874,63 @@ module MVar =
 #endif
   val inline read: MVar<'x> -> Alt<'x>
 
-  /// Creates an alternative that becomes available when the variable contains a
-  /// value and, if committed to, takes the value from the variable.
-  val inline take: MVar<'x> -> Alt<'x>
+  //# Mutate
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with with the result of performing the given job.
+  val    inline mutateJob: ('x -> #Job<'x>) -> MVar<'x> -> Alt<unit>
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with with the result of performing the given job.
+  /// If the job raises an exception, the serialized variable is filled with its
+  /// original value before propagating the exception.
+  val inline tryMutateJob: ('x -> #Job<'x>) -> MVar<'x> -> Alt<unit>
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given function.
+  val    inline mutateFun: ('x ->      'x)  -> MVar<'x> -> Alt<unit>
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given function.
+  /// If the function raises an exception, the serialized variable is filled
+  /// with its original value before propagating the exception.
+  val inline tryMutateFun: ('x ->      'x)  -> MVar<'x> -> Alt<unit>
+
+  //# Modify
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given job.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let modifyJob (x2xyJ: 'x -> Job<'x * 'y>) (xM: MVar<'x>) =
+  ///>   xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>-. y)
+#endif
+  val    inline modifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Alt<'y>
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given job.  If
+  /// the job raises an exception, the serialized variable is filled with its
+  /// original value before propagating the exception.
+  val inline tryModifyJob: ('x -> #Job<'x * 'y>) -> MVar<'x> -> Alt<'y>
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given function.
+#if DOC
+  ///
+  /// Reference implementation:
+  ///
+  ///> let modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
+  ///>   xM ^=> (x2xy >> fun (x, y) -> fill xM x >>-. y)
+#endif
+  val    inline modifyFun: ('x ->      'x * 'y)  -> MVar<'x> -> Alt<'y>
+
+  /// Creates an alternative that takes the value of the serialized variable and
+  /// then fills the variable with the result of performing the given function.
+  /// If the function raises an exception, the serialized variable is filled
+  /// with its original value before propagating the exception.
+  val inline tryModifyFun: ('x ->      'x * 'y)  -> MVar<'x> -> Alt<'y>
 
   /// Immediate or non-workflow operations on serialized variables.
   [<Obsolete "Will be removed.">]

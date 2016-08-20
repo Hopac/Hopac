@@ -28,6 +28,16 @@ module Util =
   let inline dec (i: byref<int>) : int =
     let j = i-1 in i <- j ; j
 
+  let inline tryIn u2x x2y e2y =
+    let mutable e : exn = null
+    let x = try u2x ()
+            with e' ->
+              e <- e'
+              Unchecked.defaultof<_>
+    match e with
+     | null -> x2y x
+     | e    -> e2y e
+
   let forward (e: exn) : 'x =
     raise (exn ("forwarded", e))
 
@@ -1684,12 +1694,28 @@ module MVar =
   [<Obsolete "Just use the constructor.">]
   let createFull x = ctor MVar<'x> x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
-  let inline modifyFun (x2xy: 'x -> 'x * 'y) (xM: MVar<'x>) =
-    xM ^=> (x2xy >> fun (x, y) -> fill xM x >>-. y)
-  let inline modifyJob (x2xyJ: 'x -> #Job<'x * 'y>) (xM: MVar<'x>) =
-    xM ^=> (x2xyJ >=> fun (x, y) -> fill xM x >>-. y)
-  let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>-. x
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
+  let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>-. x
+  let inline success xM (x, y) = fill xM x >>-. y
+  let inline failure xM x e = fill xM x >>-! e
+  let inline mutateFun x2x   xM = xM ^=> (x2x   >>  fill xM)
+  let inline mutateJob x2xJ  xM = xM ^=> (x2xJ  >=> fill xM)
+  let inline modifyFun x2xy  xM = xM ^=> (x2xy  >>  success xM)
+  let inline modifyJob x2xyJ xM = xM ^=> (x2xyJ >=> success xM)
+  let inline tryMutate tryIn x2x xM =
+    xM ^=> fun x ->
+      tryIn <| fun () -> x2x x
+       <| fill xM
+       <| failure xM x
+  let inline tryMutateFun x2x xM = tryMutate tryIn x2x xM
+  let inline tryMutateJob x2xJ xM = tryMutate Job.tryInDelay x2xJ xM
+  let inline tryModify tryIn x2xy xM =
+    xM ^=> fun x ->
+      tryIn <| fun () -> x2xy x
+       <| success xM
+       <| failure xM x
+  let inline tryModifyFun x2xy xM = tryModify tryIn x2xy xM
+  let inline tryModifyJob x2xyJ xM = tryModify Job.tryInDelay x2xyJ xM
 
 ////////////////////////////////////////////////////////////////////////////////
 
