@@ -94,7 +94,10 @@
           return
 
         var desc = descriptionOf(target)
-        if (!desc || desc.children.count < 2)
+        if (!desc ||
+            !desc.children[0] ||
+            !desc.children[0].children[0] ||
+            !desc.children[1])
           return
 
         var code = desc.children[0].children[0].cloneNode(true)
