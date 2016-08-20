@@ -6,6 +6,40 @@ open Hopac.Extensions
 open System
 open System.Diagnostics
 
+module HopacMVar =
+  type Cell<'a> = C of MVar<'a>
+
+  let get (C c) = MVar.read c
+  let put (C c) x = MVar.mutateFun (fun _ -> x) c
+
+  let cell x = C (MVar x)
+
+  let run nCells nJobs nUpdates =
+    printf "HopacMVar: "
+    let timer = Stopwatch.StartNew ()
+    let cells = Array.zeroCreate nCells
+    let before = GC.GetTotalMemory true
+    run <| job {
+      for i=0 to nCells-1 do
+        cells.[i] <- cell i
+      do printf "%4d b/c "
+           (max 0L (GC.GetTotalMemory true - before) / int64 nCells)
+      return!
+        seq {1 .. nJobs}
+        |> Seq.map (fun _ ->
+           let rnd = Random ()
+           Job.forUpTo 1 nUpdates <| fun _ ->
+             let c = rnd.Next (0, nCells)
+             get cells.[c] >>= fun x ->
+             put cells.[c] (x+1))
+        |> Job.conIgnore
+    }
+    let d = timer.Elapsed
+    for i=0 to nCells-1 do
+      cells.[i] <- Unchecked.defaultof<_>
+    printf "%8.5f s to %d c * %d p * %d u\n"
+     d.TotalSeconds nCells nJobs nUpdates
+
 module HopacReq =
   type Request<'a> =
    | Get
@@ -30,7 +64,7 @@ module HopacReq =
     >>-. c
 
   let run nCells nJobs nUpdates =
-    printf "HopacReq: "
+    printf "HopacReq:  "
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
@@ -79,7 +113,7 @@ module HopacDyn =
     >>-. {reqCh = reqCh}
 
   let run nCells nJobs nUpdates =
-    printf "HopacDyn: "
+    printf "HopacDyn:  "
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
@@ -120,7 +154,7 @@ module HopacAlt =
     >>-. c
 
   let run nCells nJobs nUpdates =
-    printf "HopacAlt: "
+    printf "HopacAlt:  "
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
@@ -170,7 +204,7 @@ module AsyncCell =
   let get (c: Cell<'a>) : Async<'a> = c.PostAndAsyncReply Get
 
   let run nCells nJobs nUpdates =
-    printf "Async:    "
+    printf "Async:     "
     let timer = Stopwatch.StartNew ()
     let cells = Array.zeroCreate nCells
     let before = GC.GetTotalMemory true
@@ -203,9 +237,10 @@ let tick () =
     Threading.Thread.Sleep 50
 
 let test doAs m n p =
-  HopacReq.run m n p ; tick ()
-  HopacDyn.run m n p ; tick ()
-  HopacAlt.run m n p ; tick ()
+  HopacMVar.run m n p ; tick ()
+  HopacReq.run  m n p ; tick ()
+  HopacDyn.run  m n p ; tick ()
+  HopacAlt.run  m n p ; tick ()
   if doAs then AsyncCell.run m n p ; tick ()
 
 do tick ()
