@@ -14,3 +14,7 @@ let run () =
   MVar.read m |> run |> testEq 1
   MVar.read m <|> Alt.always 2 |> run |> testEq 1
   m <|> Alt.always 2 |> run |> testEq 1
+
+  let n = MVar 0
+
+  MVar.mutateFun ((+) 1) m ^->. 0 <|> MVar.modifyFun (fun n -> (n-1, n-2)) n |> run |> testEq -2

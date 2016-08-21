@@ -1698,9 +1698,13 @@ module MVar =
   let inline read xM = MVarRead xM :> Alt<_>
   let inline success xM (x, y) = fill xM x >>-. y
   let inline failure xM x e = fill xM x >>-! e
-  let inline mutateFun x2x   xM = xM ^=> (x2x   >>  fill xM)
+  let inline mutateFun x2x xM =
+    {new MVarModifyFun<_, unit> () with
+      override uA'.Do (x, _) = x2x x}.InternalInit xM
   let inline mutateJob x2xJ  xM = xM ^=> (x2xJ  >=> fill xM)
-  let inline modifyFun x2xy  xM = xM ^=> (x2xy  >>  success xM)
+  let inline modifyFun x2xy xM =
+    {new MVarModifyFun<_, _> () with
+      override yA'.Do (x, yR) = let (x, y) = x2xy x in yR <- y ; x}.InternalInit xM
   let inline modifyJob x2xyJ xM = xM ^=> (x2xyJ >=> success xM)
   let inline tryMutate tryIn x2x xM =
     xM ^=> fun x ->

@@ -226,6 +226,98 @@ namespace Hopac {
       }
     }
 
+    internal sealed class MVarModifyFunCont<T, Y> : Cont<T> {
+      private MVarModifyFun<T, Y> tm;
+      private Cont<Y> yK;
+      internal MVarModifyFunCont(MVarModifyFun<T, Y> tm, Cont<Y> yK) {
+        this.tm = tm;
+        this.yK = yK;
+      }
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref yK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        Handler.DoHandle(yK, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        DoCont(ref wr, this.Value);
+      }
+      internal override void DoCont(ref Worker wr, T t) {
+        var tm = this.tm;
+        var yK = this.yK;
+        tm.tM.Fill(ref wr, tm.Do(t, ref yK.Value));
+        Work.Do(yK, ref wr);
+      }
+    }
+
+    ///
+    public abstract class MVarModifyFun<T, Y> : Alt<Y> {
+      internal MVar<T> tM;
+      ///
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Alt<Y> InternalInit(MVar<T> tM) { this.tM = tM; return this; }
+      ///
+      public abstract T Do(T t, ref Y y);
+      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
+        var tM = this.tM;
+      Spin:
+        var state = tM.State;
+        if (state == MVar.Locked) goto Spin;
+        if (state != Interlocked.CompareExchange(ref tM.State, MVar.Locked, state))
+          goto Spin;
+
+        if (state <= MVar.Empty)
+          goto EmptyOrDemand;
+
+        var t = tM.Value;
+        tM.State = MVar.Empty;
+
+        tM.Fill(ref wr, Do(t, ref yK.Value));
+        Work.Do(yK, ref wr);
+        return;
+
+      EmptyOrDemand:
+        WaitQueue.AddTaker(ref tM.Takers, new MVarModifyFunCont<T, Y>(this, yK));
+        tM.State = MVar.Demand;
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else tE) {
+        var tM = this.tM;
+        var pkSelf = tE.pk;
+      Spin:
+        var state = tM.State;
+        if (state == MVar.Locked) goto Spin;
+        if (state != Interlocked.CompareExchange(ref tM.State, MVar.Locked, state))
+          goto Spin;
+
+        if (state <= MVar.Empty)
+          goto EmptyOrDemand;
+
+      TryPick:
+        var stSelf = Pick.TryPick(pkSelf);
+        if (stSelf > 0) goto AlreadyPicked;
+        if (stSelf < 0) goto TryPick;
+
+        Pick.SetNacks(ref wr, i, pkSelf);
+
+        var t = tM.Value;
+        tM.State = MVar.Empty;
+
+        tM.Fill(ref wr, Do(t, ref yK.Value));
+        Work.Do(yK, ref wr);
+        return;
+
+      AlreadyPicked:
+        tM.State = MVar.Full;
+        return;
+
+      EmptyOrDemand:
+        WaitQueue.AddTaker(ref tM.Takers, i, pkSelf, new MVarModifyFunCont<T, Y>(this, yK));
+        tM.State = MVar.Demand;
+        tE.TryElse(ref wr, i + 1);
+        return;
+      }
+    }
+
     ///
     public sealed class MVarFill<T> : Job<Unit> {
       private MVar<T> tM;
