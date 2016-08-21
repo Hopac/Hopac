@@ -212,7 +212,7 @@ namespace Hopac {
         Pick.SetNacks(ref wr, i, pkSelf);
 
         T t = tM.Value;
-        tM.State = MVar.Empty;
+        tM.State = MVar.Full;
         Cont.Do(tK, ref wr, t);
         return;
 
