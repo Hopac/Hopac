@@ -1695,7 +1695,7 @@ module MVar =
   let createFull x = ctor MVar<'x> x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
-  let inline read (xM: MVar<'x>) = xM ^=> fun x -> fill xM x >>-. x
+  let inline read xM = MVarRead xM :> Alt<_>
   let inline success xM (x, y) = fill xM x >>-. y
   let inline failure xM x e = fill xM x >>-! e
   let inline mutateFun x2x   xM = xM ^=> (x2x   >>  fill xM)
