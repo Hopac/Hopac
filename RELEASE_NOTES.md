@@ -1,3 +1,6 @@
+#### 0.3.12 - 2016-XX-XX
+* Optimized `MVar.read`.
+
 #### 0.3.11 - 2016-08-20
 * Added `MVar.mutateFun`, `MVar.mutateJob`, `MVar.tryMutateFun`,
   `MVar.tryMutateJob`, `MVar.tryModifyFun`, and `MVar.tryModifyJob`.
