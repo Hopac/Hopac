@@ -145,7 +145,6 @@ namespace Hopac {
     internal sealed class MVarReadCont<T> : Cont<T> {
       private MVar<T> tM;
       private Cont<T> tK;
-      ///
       internal MVarReadCont(MVar<T> tM, Cont<T> tK) {
         this.tM = tM;
         this.tK = tK;
@@ -165,13 +164,12 @@ namespace Hopac {
       }
     }
 
-    /// Internal implementation detail.
+    ///
     public sealed class MVarRead<T> : Alt<T> {
       private MVar<T> tM;
       ///
       [MethodImpl(AggressiveInlining.Flag)]
       public MVarRead(MVar<T> tM) { this.tM = tM; }
-      ///
       internal override void DoJob(ref Worker wr, Cont<T> tK) {
         var tM = this.tM;
       Spin:
@@ -211,7 +209,7 @@ namespace Hopac {
 
         Pick.SetNacks(ref wr, i, pkSelf);
 
-        T t = tM.Value;
+        var t = tM.Value;
         tM.State = MVar.Full;
         Cont.Do(tK, ref wr, t);
         return;
@@ -228,18 +226,16 @@ namespace Hopac {
       }
     }
 
-    /// Internal implementation detail.
+    ///
     public sealed class MVarFill<T> : Job<Unit> {
       private MVar<T> tM;
       private T t;
-
-      /// Internal implementation detail.
+      ///
       [MethodImpl(AggressiveInlining.Flag)]
       public MVarFill(MVar<T> tM, T t) {
         this.tM = tM;
         this.t = t;
       }
-
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         tM.Fill(ref wr, t);
         Work.Do(uK, ref wr);
