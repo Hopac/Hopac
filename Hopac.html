@@ -1635,7 +1635,7 @@ val it : int = 832040L
 <pre><code class="fsharp hljs">let sharedMap = <a href="#def:type%20Hopac.MVar">MVar</a> Map.empty
 </code></pre>
 <p> The map can then be accessed from multiple concurrent jobs, one job at a time, using the <code class="fsharp hljs"><a href="#def:type%20Hopac.MVar">MVar</a></code> operations:</p>
-<pre><code class="fsharp hljs"><a href="#def:module%20Hopac.MVar">MVar</a>.<a href="#def:val%20Hopac.MVar.modifyFun">modifyFun</a> (Map.add key <a href="#def:val%20Hopac.Stream.Src.value">value</a>) sharedMap
+<pre><code class="fsharp hljs"><a href="#def:module%20Hopac.MVar">MVar</a>.<a href="#def:val%20Hopac.MVar.mutateFun">mutateFun</a> (Map.add key <a href="#def:val%20Hopac.Stream.Src.value">value</a>) sharedMap
 <a href="#def:module%20Hopac.MVar">MVar</a>.read sharedMap <a href="#def:val%20Hopac.Infixes.&gt;&gt;-">&gt;&gt;-</a> Map.tryFind key
 </code></pre>
 <p> Another way to put the idea of serialized variables is that the variable acts as a mechanism for passing a permission token, the value contained by the variable, from one concurrent job to another.  Only the concurrent job that holds the token is allowed to fill the variable.  When used in this way, operations on the variable appear as atomic and access to the state will be serialized.</p>
