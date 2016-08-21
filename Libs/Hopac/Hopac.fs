@@ -1706,20 +1706,22 @@ module MVar =
     {new MVarModifyFun<_, _> () with
       override yA'.Do (x, yR) = let (x, y) = x2xy x in yR <- y ; x}.InternalInit xM
   let inline modifyJob x2xyJ xM = xM ^=> (x2xyJ >=> success xM)
-  let inline tryMutate tryIn x2x xM =
+  let inline tryMutateFun x2x xM =
+    {new MVarTryModifyFun<_, unit> () with
+      override uA'.Do (x, _) = x2x x}.InternalInit xM
+  let inline tryMutateJob x2xJ xM =
     xM ^=> fun x ->
-      tryIn <| fun () -> x2x x
+      Job.tryInDelay <| fun () -> x2xJ x
        <| fill xM
        <| failure xM x
-  let inline tryMutateFun x2x xM = tryMutate tryIn x2x xM
-  let inline tryMutateJob x2xJ xM = tryMutate Job.tryInDelay x2xJ xM
-  let inline tryModify tryIn x2xy xM =
+  let inline tryModifyFun x2xy xM =
+    {new MVarTryModifyFun<_, _> () with
+      override yA'.Do (x, yR) = let (x, y) = x2xy x in yR <- y ; x}.InternalInit xM
+  let inline tryModifyJob x2xyJ xM =
     xM ^=> fun x ->
-      tryIn <| fun () -> x2xy x
+      Job.tryInDelay <| fun () -> x2xyJ x
        <| success xM
        <| failure xM x
-  let inline tryModifyFun x2xy xM = tryModify tryIn x2xy xM
-  let inline tryModifyJob x2xyJ xM = tryModify Job.tryInDelay x2xyJ xM
 
 ////////////////////////////////////////////////////////////////////////////////
 
