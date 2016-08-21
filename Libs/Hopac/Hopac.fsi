@@ -1792,7 +1792,7 @@ module Latch =
 /// The map can then be accessed from multiple concurrent jobs, one job at a
 /// time, using the `MVar` operations:
 ///
-///> MVar.modifyFun (Map.add key value) sharedMap
+///> MVar.mutateFun (Map.add key value) sharedMap
 ///> MVar.read sharedMap >>- Map.tryFind key
 ///
 /// Another way to put the idea of serialized variables is that the variable
