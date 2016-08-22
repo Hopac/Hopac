@@ -2025,7 +2025,7 @@ module Mailbox =
   [<Obsolete "Will be removed.">]
   module Global =
     /// Sends the given value to the specified mailbox.  `Mailbox.Global.send
-    /// xMb x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
+    /// xMb x` is equivalent to `Mailbox.send xMb x |> Hopac.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Mailbox.send` instead.
@@ -2051,7 +2051,7 @@ module Mailbox =
     val inline create: unit -> Mailbox<'x>
 
     /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
-    /// x` is equivalent to `Mailbox.send xMb x |> TopLevel.start`.
+    /// x` is equivalent to `Mailbox.send xMb x |> Hopac.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Mailbox.send` instead.
@@ -2320,7 +2320,7 @@ module Extensions =
 
     /// Sets the main synchronization context.  This must be called by
     /// application code in order to use operations such as `onceAltOnMain` and
-    /// `TopLevel.onMain`
+    /// `Hopac.onMain`
     val setMain: SynchronizationContext -> unit
 
     /// Gets the main synchronization context.  The main synchronization context
