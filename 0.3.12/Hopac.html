@@ -1773,7 +1773,7 @@ val it : int = 832040L
 <p> Immediate or non-workflow operations on buffered mailboxes.</p>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Mailbox.Now.send" href="#dec:val%20Hopac.Mailbox.Now.send">send</a>: <a href="#def:type%20Hopac.Mailbox">Mailbox</a>&lt;'x&gt; -&gt; 'x -&gt; unit
 </code></pre>
-<p> Sends the given value to the specified mailbox.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:module%20Hopac.Mailbox.Now">Now</a>.<a href="#def:val%20Hopac.Mailbox.Now.send">send</a>&nbsp;xMb&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:val%20Hopac.Mailbox.send">send</a>&nbsp;xMb&nbsp;x&nbsp;|&gt;&nbsp;TopLevel.start</code>.</p>
+<p> Sends the given value to the specified mailbox.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:module%20Hopac.Mailbox.Now">Now</a>.<a href="#def:val%20Hopac.Mailbox.Now.send">send</a>&nbsp;xMb&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:val%20Hopac.Mailbox.send">send</a>&nbsp;xMb&nbsp;x&nbsp;|&gt;&nbsp;<a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:val%20Hopac.Hopac.start">start</a></code>.</p>
 <p> Note that using this function in a job workflow is not optimal and you should use <code class="fsharp hljs"><a href="#def:module%20Hopac.Mailbox">Mailbox</a>.<a href="#def:val%20Hopac.Mailbox.send">send</a></code> instead.</p>
 </div>
 </div>
@@ -1963,7 +1963,7 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extensions.Async.setMain" href="#dec:val%20Hopac.Extensions.Async.setMain">setMain</a>: SynchronizationContext -&gt; unit
 </code></pre>
-<p> Sets the main synchronization context.  This must be called by application code in order to use operations such as <code class="fsharp hljs"><a href="#def:member%20Hopac.Extensions.IObservable.onceAltOnMain">onceAltOnMain</a></code> and <code class="fsharp hljs">TopLevel.onMain</code></p>
+<p> Sets the main synchronization context.  This must be called by application code in order to use operations such as <code class="fsharp hljs"><a href="#def:member%20Hopac.Extensions.IObservable.onceAltOnMain">onceAltOnMain</a></code> and <code class="fsharp hljs"><a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:val%20Hopac.Hopac.onMain">onMain</a></code></p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Extensions.Async.getMain" href="#dec:val%20Hopac.Extensions.Async.getMain">getMain</a>: unit -&gt; SynchronizationContext
 </code></pre>
