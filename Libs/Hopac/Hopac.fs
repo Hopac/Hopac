@@ -38,9 +38,6 @@ module Util =
      | null -> x2y x
      | e    -> e2y e
 
-  let forward (e: exn) : 'x =
-    raise (exn ("forwarded", e))
-
   let aggrExn (exns: ResizeArray<exn>) =
     if exns.Count = 1 then exns.[0] else upcast AggregateException exns
 
@@ -508,7 +505,7 @@ module Scheduler =
     Condition.Wait (xK', &xK'.State2)
     match xK'.State1 with
      | null -> xK'.Value
-     | e -> Util.forward e
+     | e -> raise <| Exception ("Exception raised by job", e)
 
   let wait (sr: Scheduler) =
     if sr.NumActive > 0 then
