@@ -1258,18 +1258,22 @@ module Alt =
 
   //# Interop
 
-  /// Creates an alternative that performs the cancellable asynchronous
-  /// operation defined by the given `doBegin`, `doEnd` and `doCancel`
-  /// operations.  See also: `Job.fromBeginEnd`.
+  /// Creates an alternative that, when instantiated, starts the cancellable
+  /// asynchronous operation defined by the given `doBegin`, `doEnd` and
+  /// `doCancel` operations and waits for it to complete, after which the
+  /// alternative becomes available.  If some other alternative is committed to
+  /// a in a choice before the operation completes, then the operation is
+  /// cancelled. See also: `Job.fromBeginEnd`.
   val inline fromBeginEnd: doBegin: (AsyncCallback * obj -> IAsyncResult)
                  -> doEnd: (IAsyncResult -> 'x)
                  -> doCancel: (IAsyncResult -> unit)
                  -> Alt<'x>
 
   /// Creates an alternative that, when instantiated, starts the given
-  /// cancellable async operation and waits for it to complete.  If some other
-  /// alternative is committed to in a choice before the operation completes,
-  /// then the operation is cancelled.  See also: `Job.fromAsync`.
+  /// cancellable async operation and waits for it to complete, after which the
+  /// alternative becomes available.  If some other alternative is committed to
+  /// in a choice before the operation completes, then the operation is
+  /// cancelled.  See also: `Job.fromAsync`.
 #if DOC
   ///
   /// Note that the async operation is started on whichever thread (and
@@ -1289,16 +1293,16 @@ module Alt =
 
   /// Creates an alternative that, when instantiated, calls the given function
   /// with a cancellation token to start a cancellable task and waits for it to
-  /// complete.  If some other alternative is committed to in a choice before
-  /// the task completes, then the token will be cancelled.  See also:
-  /// `Job.fromTask`.
+  /// complete, after which the alternative becomes available.  If some other
+  /// alternative is committed to in a choice before the task completes, then
+  /// the token will be cancelled.  See also: `Job.fromTask`.
   val inline fromTask:     (CancellationToken -> Task<'x>) -> Alt<'x>
 
   /// Creates an alternative that, when instantiated, calls the given function
   /// with a cancellation token to start a cancellable task and waits for it to
-  /// complete.  If some other alternative is committed to in a choice before
-  /// the task completes, then the token will be cancelled.  See also:
-  /// `Job.fromUnitTask`.
+  /// complete, after which the alternative becomes available.  If some other
+  /// alternative is committed to in a choice before the task completes, then
+  /// the token will be cancelled.  See also: `Job.fromUnitTask`.
   val inline fromUnitTask: (CancellationToken -> Task)     -> Alt<unit>
 
   //# Debugging
