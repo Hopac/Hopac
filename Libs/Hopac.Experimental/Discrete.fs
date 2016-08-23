@@ -7,8 +7,6 @@ open Hopac.Infixes
 
 module Alt =
   module Discrete =
-    let inline (^) x = x
-
     let inline start (abort2xJ: Alt<'x> -> #Job<'x>) : Alt<'x> =
       Alt.withNackJob ^ fun nack ->
       Promise.queue ^ abort2xJ ^ nack ^=> Job.abort

@@ -18,7 +18,7 @@ module IMap =
 
   let create () = Job.thunk Now.create
 
-  let close kvM = Job.delay <| fun () ->
+  let close kvM = Job.delay ^ fun () ->
     let k2vI = kvM.Map
     let flushed = ResizeArray<_> ()
     lock k2vI <| fun () ->
@@ -35,10 +35,10 @@ module IMap =
        | _ ->
          ()
     flushed
-    |> Seq.iterJob (fun kvI ->
-       kvI.Value *<= None)
+    |> Seq.iterJob ^ fun kvI ->
+         kvI.Value *<= None
 
-  let fill kvM k v = Job.delay <| fun () ->
+  let fill kvM k v = Job.delay ^ fun () ->
     let k2vI = kvM.Map
     lock k2vI <| fun () ->
     match kvM.Closed with
@@ -55,7 +55,7 @@ module IMap =
 
   let query kvM k =
     match kvM.Closed with
-     | null -> Alt.prepareFun <| fun () ->
+     | null -> Alt.prepareFun ^ fun () ->
        let k2vI = kvM.Map
        lock k2vI <| fun () ->
        match k2vI.TryGetValue k with

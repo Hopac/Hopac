@@ -17,20 +17,20 @@ module SelectableQueue =
            yield !node
            node := (!node).Next}
 
-  let create () = Job.delay <| fun () ->
+  let create () = Job.delay ^ fun () ->
     let q = {SendCh = Ch (); TakeCh = Ch ()}
     let msgs = LinkedList<'a>()
     let reqs = LinkedList<('a -> bool) * Ch<'a> * Promise<unit>>()
      in nodes reqs
-        |> Seq.map (fun (reqNode: LinkedListNode<_>) ->
-           let (pred, replyCh, cancel) = reqNode.Value
-           let cancelAlt = cancel ^-> fun () -> reqs.Remove reqNode
-           match nodes msgs |> Seq.tryFind (fun x -> pred x.Value) with
-            | None         -> cancelAlt
-            | Some msgNode -> cancelAlt
-                          <|> replyCh *<- msgNode.Value ^-> fun () ->
-                                reqs.Remove reqNode
-                                msgs.Remove msgNode)
+        |> Seq.map ^ fun (reqNode: LinkedListNode<_>) ->
+             let (pred, replyCh, cancel) = reqNode.Value
+             let cancelAlt = cancel ^-> fun () -> reqs.Remove reqNode
+             match nodes msgs |> Seq.tryFind ^ fun x -> pred x.Value with
+              | None         -> cancelAlt
+              | Some msgNode -> cancelAlt
+                            <|> replyCh *<- msgNode.Value ^-> fun () ->
+                                  reqs.Remove reqNode
+                                  msgs.Remove msgNode
         |> Alt.choose
     <|> q.SendCh ^-> (LinkedListNode >> msgs.AddLast)
     <|> q.TakeCh ^-> (LinkedListNode >> reqs.AddLast)

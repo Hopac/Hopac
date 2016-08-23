@@ -40,6 +40,7 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Util.fs" />
     <Compile Include="DirCh.fsi" />
     <Compile Include="DirCh.fs" />
     <Compile Include="Discrete.fsi" />
