@@ -25,8 +25,10 @@ namespace Hopac.Core {
             if (!warned && Worker.IsWorkerThread) {
               warned = true;
               StaticData.writeLine(
-                "WARNNG: You are making a blocking call from within a Hopac " +
+                "WARNING: You are making a blocking call from within a Hopac " +
                 "worker thread, which means that your program may deadlock.");
+              StaticData.writeLine("First occurrence (there may be others):");
+              StaticData.writeLine(System.Environment.StackTrace);
             }
             Monitor.Wait(o);
           }
