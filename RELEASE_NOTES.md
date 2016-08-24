@@ -1,3 +1,6 @@
+#### 0.3.13 - 2016-08-24
+* Added stack to deadlock warning (thanks to Michael Newton).
+
 #### 0.3.12 - 2016-08-21
 * Optimized `MVar.read`, `MVar.mutateFun`, `MVar.modifyFun`, `MVar.tryMutateFun`
   and `MVar.tryModifyFun`.
