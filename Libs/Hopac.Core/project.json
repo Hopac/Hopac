@@ -1,8 +1,10 @@
 {
-  "version": "0.3.13-alpha-*",
+  "version": "0.3.13",
   "buildOptions": {
     "debugType": "portable",
-    "emitEntryPoint": false
+    "emitEntryPoint": false,
+    "nowarn": [ "CS420" ],
+    "xmlDoc": true
   },
   "dependencies": {},
   "frameworks": {

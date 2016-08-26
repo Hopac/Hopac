@@ -1212,6 +1212,14 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XDocument.dll": {}
         }
+      },
+      "Hopac.Core/0.3.13": {
+        "type": "project",
+        "framework": ".NETStandard,Version=v1.6",
+        "dependencies": {
+          "FSharp.Core": "4.0.1.7-alpha",
+          "NETStandard.Library": "1.6.0"
+        }
       }
     }
   },
@@ -4529,15 +4537,57 @@
         "ref/xamarintvos10/_._",
         "ref/xamarinwatchos10/_._"
       ]
+    },
+    "Hopac.Core/0.3.13": {
+      "type": "project",
+      "path": "../Hopac.Core/project.json"
     }
   },
   "projectFileDependencyGroups": {
-    "": [],
-    ".NETStandard,Version=v1.6": [
+    "": [
       "FSharp.Core >= 4.0.1.7-alpha",
+      "Hopac.Core",
       "NETStandard.Library >= 1.6.0"
-    ]
+    ],
+    ".NETStandard,Version=v1.6": []
   },
-  "tools": {},
-  "projectFileToolGroups": {}
+  "tools": {
+    ".NETCoreApp,Version=v1.0": {
+      "dotnet-compile-fsc/1.0.0-preview2-020000": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.DotNet.Cli.Utils": "1.0.0-preview2-003121",
+          "Microsoft.DotNet.Compiler.Common": "1.0.0-preview2-003121",
+          "Microsoft.DotNet.ProjectModel": "1.0.0-rc3-003121",
+          "Microsoft.FSharp.Compiler.netcore": "1.0.0-alpha-160629",
+          "Microsoft.NETCore.App": "1.0.0"
+        },
+        "compile": {
+          "lib/netcoreapp1.0/dotnet-compile-fsc.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp1.0/dotnet-compile-fsc.dll": {}
+        }
+      },
+      "dotnet-mergenupkg/1.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.FSharp.Core.netcore": "1.0.0-alpha-160629",
+          "Microsoft.NETCore.App": "1.0.0"
+        },
+        "compile": {
+          "lib/netcoreapp1.0/dotnet-mergenupkg.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp1.0/dotnet-mergenupkg.dll": {}
+        }
+      }
+    }
+  },
+  "projectFileToolGroups": {
+    ".NETCoreApp,Version=v1.0": [
+      "dotnet-compile-fsc >= 1.0.0-preview2-*",
+      "dotnet-mergenupkg >= 1.0.*"
+    ]
+  }
 }
