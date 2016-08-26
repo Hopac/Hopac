@@ -1,0 +1,45 @@
+{
+  "version": "0.3.13",
+  "buildOptions": {
+    "debugType": "portable",
+    "compilerName": "fsc",
+    "define": [],
+    "xmlDoc": true,
+    "compile": {
+      "includeFiles": [
+        "AssemblyInfo.fs",
+        "Hopac.fsi",
+        "Hopac.fs",
+        "Stream.fsi",
+        "Stream.fs",
+        "TopLevel.fsi",
+        "TopLevel.fs"
+      ]
+    }
+  },
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "FSharp.Core": "4.0.1.7-alpha",
+    "Hopac.Core": "*"
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "buildOptions": {
+        "define": [
+          "NETSTANDARD1_5",
+          "CORE_CLR"
+        ]
+      }
+    }
+  },
+  "tools": {
+    "dotnet-compile-fsc": {
+      "version": "1.0.0-preview2-*",
+      "imports": "dnxcore50"
+    },
+    "dotnet-mergenupkg": {
+      "target": "package",
+      "version": "1.0.*"
+    }
+  }
+}

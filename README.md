@@ -26,3 +26,10 @@ run
 ```
 
 to restore dependencies.
+
+
+### .Net Core
+
+ - http://apisof.net/catalog
+ - https://docs.microsoft.com/en-us/dotnet/articles/core/index
+ - 
