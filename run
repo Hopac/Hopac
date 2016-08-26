@@ -176,10 +176,12 @@ AssemblyCopyrightAttribute(\"$COPYRIGHT\")
     if [ -n "$PUBLICKEY" ] ; then
       ATTRS="InternalsVisibleToAttribute(\"Hopac, PublicKey=$PUBLICKEY\")
 InternalsVisibleToAttribute(\"Hopac.Platform, PublicKey=$PUBLICKEY\")
+InternalsVisibleToAttribute(\"Hopac.Platform.Net, PublicKey=$PUBLICKEY\")
 $ATTRS"
     else
       ATTRS="InternalsVisibleToAttribute(\"Hopac\")
 InternalsVisibleToAttribute(\"Hopac.Platform\")
+InternalsVisibleToAttribute(\"Hopac.Platform.Net\")
 $ATTRS"
     fi
   fi
