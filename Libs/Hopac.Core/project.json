@@ -1,0 +1,23 @@
+{
+  "version": "0.3.13-alpha-*",
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": false
+  },
+  "dependencies": {},
+  "frameworks": {
+    "netstandard1.6": {
+      "buildOptions": {
+        "define": [
+          "NETSTANDARD",
+          "CORE_CLR"
+        ],
+        "allowUnsafe": true
+      },
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "FSharp.Core": "4.0.1.7-alpha"
+      }
+    }
+  }
+}
