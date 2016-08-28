@@ -1576,9 +1576,7 @@ module Proc =
        let proc = Proc ()
        pK.Value <- proc
        Worker.Push (&wr, pK)
-       let pf = ProcFinalizer<_> (wr.Scheduler, proc)
-       wr.Handler <- pf
-       Job.Do (xJ, &wr, pf)}
+       Job.Do (xJ, &wr, ProcFinalizer<_> (wr.Scheduler, proc))}
   let inline start (uJ: Job<unit>) =
     startIgnore uJ
 
