@@ -1,6 +1,27 @@
 Programming in Hopac
 ====================
+1. [Introduction](#introduction)
+2. [The Hopac Programming Model](#the-hopac-programming-model)
+  1. [Potential Applications for Hopac](#potential-applications-for-hopac) 
+3. [A Couple of Introductory Examples](#a-couple-of-introductory-examples)
+  1. [Example: Updatable Storage Cells](#example-updatable-storage-cells)
+  2. [Example: Storage Cells Using Alternatives](#example-storage-cells-using-alternatives)
+  3. [Example: Kismet](#example-kismet)
+4. [Starting and Waiting for Jobs](#starting-and-waiting-for-jobs)
+  1. [Fork-Join Parallelism](#fork-join-parallelism)  
+5. [Programming with Alternatives](#programming-with-alternatives)
+  1. [Just what is an alternative?](#just-what-is-an-alternative)
+  2. [Primitive Alternatives](#primitive-alternatives)
+  3. [Binding an Alternative](#binding-an-alternative)
+  4. [Choose and after](#choose-and-after)
+  5. [Prepare](#prepare)
+  6. [Negative Acknowledgments](#negative-acknowledgments)
+  7. [On the Semantics of Alternatives](#on-the-semantics-of-alternatives)
+6. [Channels, Mailboxes, IVars, MVars, ...](#channels-mailboxes-ivars-mvars-)
+7. [Going Further](#going-further)
 
+Introduction
+------------
 Hopac provides a programming model that is heavily inspired by
 [John Reppy](http://people.cs.uchicago.edu/~jhr/)'s **Concurrent ML** language.
 Other languages that provide similar or related models include
