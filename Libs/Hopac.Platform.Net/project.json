@@ -1,4 +1,5 @@
 {
+  "name": "Hopac.Platform",
   "version": "0.3.13",
   "buildOptions": {
     "debugType": "portable",
@@ -18,14 +19,7 @@
     "Hopac.Core": "*"
   },
   "frameworks": {
-    "netstandard1.6": {
-      "buildOptions": {
-        "define": [
-          "NETSTANDARD1_5",
-          "CORE_CLR"
-        ]
-      }
-    }
+    "netstandard1.6": {}
   },
   "tools": {
     "dotnet-compile-fsc": {

@@ -21,7 +21,6 @@
     }
   },
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
     "FSharp.Core": "4.0.1.7-alpha",
     "Hopac.Platform.Net": "*",
     "Hopac": "*",
@@ -42,21 +41,14 @@
       },
       "imports": [
         "dnxcore50",
-        "portable-net45+win8+wp8+wpa81"
+        "portable-net45+win8"
       ]
     }
   },
   "tools": {
     "dotnet-compile-fsc": {
       "version": "1.0.0-preview2-*",
-      "imports": [
-        "dnxcore50",
-        "portable-net45+win8+wp8+wpa81"
-      ]
+      "imports": "dnxcore50"
     }
-  },
-  "runtimes": {
-    "win10-x64": {},
-    "osx.10.11-x64": {}
   }
 }

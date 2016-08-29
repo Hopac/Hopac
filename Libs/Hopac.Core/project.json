@@ -4,22 +4,14 @@
     "debugType": "portable",
     "emitEntryPoint": false,
     "nowarn": [ "CS420" ],
-    "xmlDoc": true
+    "xmlDoc": true,
+    "allowUnsafe": true
   },
-  "dependencies": {},
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "FSharp.Core": "4.0.1.7-alpha"
+  },
   "frameworks": {
-    "netstandard1.6": {
-      "buildOptions": {
-        "define": [
-          "NETSTANDARD",
-          "CORE_CLR"
-        ],
-        "allowUnsafe": true
-      },
-      "dependencies": {
-        "NETStandard.Library": "1.6.0",
-        "FSharp.Core": "4.0.1.7-alpha"
-      }
-    }
+    "netstandard1.6": {}
   }
 }
