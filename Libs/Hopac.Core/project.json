@@ -5,7 +5,15 @@
     "emitEntryPoint": false,
     "nowarn": [ "CS420" ],
     "xmlDoc": true,
-    "allowUnsafe": true
+    "allowUnsafe": true,
+    "define": [ "TRACE", "TRAMPOLINE" ]
+  },
+  "configurations": {
+    "Release": {
+      "buildOptions": {
+        "define": [ "AGGRESSIVE_INLINING" ]
+      }
+    }
   },
   "dependencies": {
     "NETStandard.Library": "1.6.0",
