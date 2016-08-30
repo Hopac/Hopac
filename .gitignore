@@ -10,3 +10,4 @@ bin
 obj
 packages
 paket.exe
+project.lock.json

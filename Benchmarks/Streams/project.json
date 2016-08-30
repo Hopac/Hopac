@@ -1,5 +1,5 @@
 {
-  "version": "0.3.13",
+  "version": "1.0.0-*",
   "buildOptions": {
     "debugType": "portable",
     "emitEntryPoint": true,
@@ -8,15 +8,7 @@
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
-        "Util.fs",
-        "RunTask.fsi",
-        "RunTask.fs",
-        "JobTests.fs",
-        "MVarTests.fs",
-        "TaskTests.fs",
-        "BuilderTests.fs",
-        "StreamTests.fs",
-        "Main.fs"
+        "Streams.fs"
       ]
     },
     "additionalArguments": [
@@ -30,18 +22,16 @@
   },
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
+    "System.Reactive.Core": "3.0.0",
+    "System.Reactive.Interfaces": "3.0.0",
+    "System.Reactive.Linq": "3.0.0",
+    "System.Reactive.PlatformServices": "3.0.0",
     "Hopac.Core": "*",
     "Hopac": "*",
-    "Hopac.Platform.Net": "*",
-    "FsCheck": "*"
+    "Hopac.Platform.Net": "*"
   },
   "frameworks": {
     "netcoreapp1.0": {
-      "buildOptions": {
-        "define": [
-          "CORECLR"
-        ]
-      },
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",
