@@ -46,8 +46,8 @@ module Native =
                          counter := n - 1
                          nextEvent.Set () |> ignore
                          loop ()
-                    loop ()),
-                  512)
+                    loop ())
+                  ) //, 512)
         thread.Start ()
     printf "%5d b/c " (max 0L (GC.GetTotalMemory true - before) / int64 (p*n))
     for i=0 to p-1 do
