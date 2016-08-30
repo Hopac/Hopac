@@ -23,10 +23,16 @@
       "--warnon:1182"
     ]
   },
+  "runtimeOptions": {
+    "configProperties": {
+      "System.GC.Server": true
+    }
+  },
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
-    "Hopac.Platform.Net": "*",
+    "Hopac.Core": "*",
     "Hopac": "*",
+    "Hopac.Platform.Net": "*",
     "FsCheck": "*"
   },
   "frameworks": {
