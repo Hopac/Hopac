@@ -67,7 +67,10 @@ a {
   width: 40em;
   overflow: auto;
   transform: translate(-20%, 0);
-  font-size: 80%;
+  font-size: 90%;
+}
+.tooltip code {
+  font-size: 100%;
 }
 .anchor:hover .tooltip {
   display: inline;
