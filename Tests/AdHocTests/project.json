@@ -4,7 +4,7 @@
     "debugType": "portable",
     "emitEntryPoint": true,
     "compilerName": "fsc",
-    "define": [],
+    "define": [ "TRACE" ],
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
@@ -18,7 +18,10 @@
         "StreamTests.fs",
         "Main.fs"
       ]
-    }
+    },
+    "additionalArguments": [
+      "--warnon:1182"
+    ]
   },
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
