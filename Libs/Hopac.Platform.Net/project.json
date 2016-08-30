@@ -4,14 +4,17 @@
   "buildOptions": {
     "debugType": "portable",
     "compilerName": "fsc",
-    "define": [],
+    "define": [ "TRACE" ],
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
         "AssemblyInfo.fs",
         "Init.fs"
       ]
-    }
+    },
+    "additionalArguments": [
+      "--warnon:1182"
+    ]
   },
   "dependencies": {
     "NETStandard.Library": "1.6.0",
