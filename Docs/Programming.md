@@ -360,14 +360,14 @@ storage cells using those monadic combinators directly.
 let put (c: Cell<'a>) (x: 'a) : Job<unit> =
   Ch.give c.reqCh (Put x)
 
-let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>. Ch.take c.replyCh
+let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>-. Ch.take c.replyCh
 
 let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
   let c = {reqCh = Ch (); replyCh = Ch ()}
   let rec server x =
     Ch.take c.reqCh >>= function
      | Get ->
-       Ch.give c.replyCh x >>.
+       Ch.give c.replyCh x >>-.
        server x
      | Put x ->
        server x
@@ -773,9 +773,9 @@ for starting and waiting for a sequence of jobs.  In this case we don't care
 about the results of the jobs, so `Job.conIgnore` is what we use:
 
 ```fsharp
-> [timeOut (TimeSpan.FromSeconds 0.0) >>. hello "Hello, from first job!" ;
-   timeOut (TimeSpan.FromSeconds 0.3) >>. hello "Hello, from second job!" ;
-   timeOut (TimeSpan.FromSeconds 0.6) >>. hello "Hello, from third job"]
+> [timeOut (TimeSpan.FromSeconds 0.0) >>-. hello "Hello, from first job!" ;
+   timeOut (TimeSpan.FromSeconds 0.3) >>-. hello "Hello, from second job!" ;
+   timeOut (TimeSpan.FromSeconds 0.6) >>-. hello "Hello, from third job"]
 |> Job.conIgnore |> run ;;
 Hello, from first job!
 Hello, from second job!
