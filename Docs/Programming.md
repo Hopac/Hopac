@@ -1355,7 +1355,7 @@ let timeReqServer =
          let replyChs = ResizeArray<_>()
          requests.Add (atTime, replyChs)
          replyChs
-    replyIvs.Add replyCh
+    replyChs.Add replyCh
     Job.unit ()
 ```
 
