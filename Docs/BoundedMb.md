@@ -106,7 +106,7 @@ type BoundedMb<'x> = {putCh: Ch<'x>; takeCh: Ch<'x>}
 
 module BoundedMb =
   let create capacity = Job.delay <| fun () ->
-    let self = {putCh = ch (); takeCh = ch ()}
+    let self = {putCh = Ch (); takeCh = Ch ()}
     let queue = Queue<_>()
     let put () = self.putCh ^-> queue.Enqueue
     let take () = self.takeCh *<- queue.Peek () ^-> (queue.Dequeue >> ignore)
@@ -162,29 +162,29 @@ and reason about?
 ## A More Verbose Rendering of a BoundedMb
 
 As the symbolic operators might be difficult to read at first, here is a version
-that only uses the basic monadic bind operator (`>>=`).  All other operations
-are done using non-symbolic variations.
+that doesn't use the symbolic operators.
 
 ```fsharp
 type BoundedMb<'x> = {putCh: Ch<'x>; takeCh: Ch<'x>}
 
 module BoundedMb =
-  let create capacity = Job.delay <| fun () ->
-    let self = {putCh = ch (); takeCh = ch ()}
+  let create capacity = job {
+    let self = {putCh = Ch (); takeCh = Ch ()}
     let queue = Queue<_>()
     let put () =
       Ch.take self.putCh
-      |> Alt.map queue.Enqueue
+      |> Alt.afterFun queue.Enqueue
     let take () =
       Ch.give self.takeCh (queue.Peek ())
-      |> Alt.map (queue.Dequeue >> ignore)
+      |> Alt.afterFun (queue.Dequeue >> ignore)
     let proc = Job.delay <| fun () ->
       match queue.Count with
        | 0 -> put ()
        | n when n = capacity -> take ()
        | _ -> Alt.choose [take (); put ()] // <|> is a bit faster
-    Job.foreverServer proc >>= fun () ->
-    Job.result self
+    do! Job.foreverServer proc
+    return self
+  }
   let put xB x = Ch.give xB.putCh x
   let take xB = Ch.take xB.takeCh
 ```
