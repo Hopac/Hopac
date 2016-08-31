@@ -41,7 +41,7 @@ selective synchronous operations:
 open System.Threading
 
 let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNackJob <| fun nack ->
-  let rI = ivar ()
+  let rI = IVar ()
   let tokenSource = new CancellationTokenSource ()
   let dispose () =
     tokenSource.Dispose ()
@@ -64,6 +64,10 @@ let asyncAsAlt (xA: Async<'x>) : Alt<'x> = Alt.withNackJob <| fun nack ->
   |> Job.start >>-.
   Alt.tryFinallyFun rI dispose
 ```
+
+Note that Hopac nowadays provides
+[`Alt.fromAsync`](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.fromAsync)
+as a primitive.  The above is still useful as an example.
 
 Let's then use it to wrap `fetchAsync`:
 
