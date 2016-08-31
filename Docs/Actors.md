@@ -152,7 +152,7 @@ module ActorModel =
   let result (x: 'x) : ActorThread<'a, 'x> =
     AT (fun aCh -> Job.result x)
   let receive : ActorThread<'a, 'a> =
-    AT (fun aCh -> Ch.take aCh)
+    AT (fun aCh -> upcast Ch.take aCh)
   type Actor<'a> = A of Ch<'a>
   let unA (A aCh) = aCh
   let start (uA: ActorThread<'a, unit>) : Actor<'a> =
@@ -290,7 +290,7 @@ use the operations provided for mailboxes.  But let's make that a bit more
 concrete:
 
 ```fsharp
-let post (mA: Actor<'m>) (m: 'm) : Job<unit> = mA <<-+ m
+let post (mA: Actor<'m>) (m: 'm) : Job<unit> = mA *<<+ m
 ```
 
 To allow an actor to provide a reply to a message, we can, similar to
@@ -303,13 +303,13 @@ would be an
 ```fsharp
 let postAndReply (mA: Actor<'m>) (i2m: IVar<'r> -> 'm) : Job<'r> = Job.delay <| fun () ->
   let i = IVar ()
-  mA <<-+ i2m i >>. i
+  mA *<<+ i2m i >>-. i
 ```
 
 To reply to a message, the actor then needs to write to the given `IVar`:
 
 ```fsharp
-let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI <-= r
+let reply (rI: IVar<'r>) (r: 'r) : Job<unit> = rI *<= r
 ```
 
 Consider the following echo actor:
@@ -356,7 +356,7 @@ of the above echo example using operations directly available with Hopac:
 ```fsharp
 type Echo<'x> = Echo of 'x * IVar<'x>
 let echo () = actor <| fun mb ->
-  Job.forever (mb >>= fun (Echo (x, xI)) -> xI <-= x)
+  Job.forever (mb >>= fun (Echo (x, xI)) -> xI *<= x)
 ```
 
 Aside from being more concise, this version is also likely to be faster.
