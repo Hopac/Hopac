@@ -60,7 +60,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="CmlCH.fs" />
+    <Compile Include="CmlLCH.fs" />
     <None Include="README.md" />
     <Content Include="paket.references" />
   </ItemGroup>
