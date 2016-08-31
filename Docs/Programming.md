@@ -1326,7 +1326,7 @@ earlier Kismet example:
 ```fsharp
 let timeOut (afterTicks: Ticks) : Alt<unit> =
   assert (0L <= afterTicks)
-  Alt.delay <| fun () ->
+  Alt.prepareFun <| fun () ->
   atTime (currentTime + afterTicks)
 ```
 
@@ -1658,7 +1658,7 @@ get the same behavior in Hopac given a function `shuffle` that would reorder the
 elements of a sequence randomly:
 
 ```fsharp
-Alt.delay <| fun () ->
+Alt.prepareFun <| fun () ->
  Alt.choose
   (shuffle
     [Alt.always 1
@@ -1672,8 +1672,8 @@ to be performed.  Consider the following example:
 
 ```fsharp
 Alt.choose
- [Alt.delay <| fun () -> printfn "A" ; Alt.always 1
-  Alt.delay <| fun () -> printfn "B" ; Alt.always 2]
+ [Alt.prepareFun <| fun () -> printfn "A" ; Alt.always 1
+  Alt.prepareFun <| fun () -> printfn "B" ; Alt.always 2]
 ```
 
 In Hopac, binding the above alternative prints `A` and nothing else.  In CML,
