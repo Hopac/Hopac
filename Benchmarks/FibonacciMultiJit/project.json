@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "compilerName": "fsc",
+    "define": [ "TRACE" ],
+    "xmlDoc": true,
+    "compile": {
+      "includeFiles": [
+        "Fibonacci.fs"
+      ]
+    },
+    "additionalArguments": [
+      "--warnon:1182"
+    ]
+  },
+  "runtimeOptions": {
+    "configProperties": {
+      "System.GC.Server": true
+    }
+  },
+  "dependencies": {
+    "FSharp.Core": "4.0.1.7-alpha",
+    "BenchmarkDotNet": "0.9.9"
+  },
+  "frameworks": {
+    "net45": {
+      "dependencies": {
+        "Hopac": { "target": "package", "version": "0.3.12" }
+      }
+    },
+    "netcoreapp1.0": {
+      "dependencies": {
+        "FSharp.Core": "4.0.1.7-alpha",
+        "Hopac": { "target": "project" },
+        "Hopac.Platform": { "target": "project" },
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0"
+        }
+      },
+      "imports": [
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "tools": {
+    "dotnet-compile-fsc": {
+      "version": "1.0.0-preview2-*",
+      "imports": "dnxcore50"
+    }
+  }
+}
