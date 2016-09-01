@@ -227,11 +227,11 @@ type FibBench () =
     [<Benchmark>]
     member this.SerialFun () =
         SerialFun.run this.N
+*)
 
     [<Benchmark>]
     member this.ParallelOpt () =
         ParallelOpt.run this.N
-*)
 
 //ParallelJob
 //ParallelPro
@@ -272,6 +272,7 @@ open BenchmarkDotNet.Validators
 [<EntryPoint>]
 let main argv =
 
+#if BENCHMARKDOTNET
     let cfg = 
       ManualConfig
         .Create(DefaultConfig.Instance)
@@ -282,4 +283,20 @@ let main argv =
         //.With(ExecutionValidator.FailOnError)
 
     let summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<FibBench>(cfg)
+#else
+    let tryRun name f =
+      try
+        printfn "Running %s .." name
+        f ()
+        printfn " [OK]"
+      with ex ->
+        printfn " [Failed]: %s" (ex.Message)
+
+    let bench = FibBench()
+    bench.N <- 40L
+
+    tryRun "ParallelOpt" (fun () -> bench.ParallelOpt())
+    tryRun "SerialOpt" (fun () -> bench.SerialOpt())
+#endif
+
     0
