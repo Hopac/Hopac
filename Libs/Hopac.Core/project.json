@@ -11,7 +11,8 @@
   "configurations": {
     "Release": {
       "buildOptions": {
-        "define": [ "AGGRESSIVE_INLINING" ]
+        "define": [ "AGGRESSIVE_INLINING" ],
+        "optimize": true
       }
     }
   },
