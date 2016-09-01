@@ -1,5 +1,4 @@
 {
-  "name": "Hopac.Platform",
   "version": "0.3.13",
   "buildOptions": {
     "debugType": "portable",
@@ -8,8 +7,8 @@
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
-        "AssemblyInfo.fs",
-        "Init.fs"
+        "../Hopac.Platform.Net/AssemblyInfo.fs",
+        "../Hopac.Platform.Net/Init.fs"
       ]
     },
     "additionalArguments": [
@@ -19,7 +18,7 @@
   "dependencies": {
     "NETStandard.Library": "1.6.0",
     "FSharp.Core": "4.0.1.7-alpha",
-    "Hopac.Core": "*"
+    "Hopac.Core": { "target": "project" }
   },
   "frameworks": {
     "netstandard1.6": {}
