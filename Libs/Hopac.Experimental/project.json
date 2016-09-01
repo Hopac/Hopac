@@ -36,8 +36,8 @@
   "dependencies": {
     "NETStandard.Library": "1.6.0",
     "FSharp.Core": "4.0.1.7-alpha",
-    "Hopac": "*",
-    "Hopac.Core": "*"
+    "Hopac": { "target": "project" },
+    "Hopac.Core": { "target": "project" }
   },
   "frameworks": {
     "netstandard1.6": {}
