@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
+    "Hopac": { "target": "project" },
     "Hopac.Platform": { "target": "project" },
     "FsCheck": "*"
   },
