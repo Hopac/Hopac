@@ -4,7 +4,7 @@
     "debugType": "portable",
     "emitEntryPoint": true,
     "compilerName": "fsc",
-    "define": [ "TRACE" ],
+    "define": [ "TRACE", "NO_BENCHMARKDOTNET" ],
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
@@ -22,19 +22,14 @@
   },
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
+    "Hopac": { "target": "project" },
+    "Hopac.Platform": { "target": "project" },
     "BenchmarkDotNet": "0.9.9"
   },
   "frameworks": {
-    "net45": {
-      "dependencies": {
-        "Hopac": { "target": "package", "version": "0.3.12" }
-      }
-    },
+    "net46": { },
     "netcoreapp1.0": {
       "dependencies": {
-        "FSharp.Core": "4.0.1.7-alpha",
-        "Hopac": { "target": "project" },
-        "Hopac.Platform": { "target": "project" },
         "Microsoft.NETCore.App": {
           "type": "platform",
           "version": "1.0.0"
