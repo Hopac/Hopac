@@ -26,9 +26,8 @@
     "System.Reactive.Interfaces": "3.0.0",
     "System.Reactive.Linq": "3.0.0",
     "System.Reactive.PlatformServices": "3.0.0",
-    "Hopac.Core": "*",
-    "Hopac": "*",
-    "Hopac.Platform.Net": "*"
+    "Hopac": { "target": "project" },
+    "Hopac.Platform": { "target": "project" }
   },
   "frameworks": {
     "netcoreapp1.0": {
