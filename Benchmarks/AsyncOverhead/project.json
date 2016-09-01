@@ -22,9 +22,8 @@
   },
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
-    "Hopac.Core": "*",
     "Hopac": "*",
-    "Hopac.Platform.Net": "*"
+    "Hopac.Platform": { "target": "project" }
   },
   "frameworks": {
     "netcoreapp1.0": {
