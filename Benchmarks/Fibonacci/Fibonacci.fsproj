@@ -62,8 +62,8 @@
     <Content Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj">
-      <Name>Hopac.Platform.Net</Name>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj">
+      <Name>Hopac.Platform</Name>
       <Project>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">

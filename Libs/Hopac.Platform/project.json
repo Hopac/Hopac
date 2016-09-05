@@ -7,8 +7,8 @@
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
-        "../Hopac.Platform.Net/AssemblyInfo.fs",
-        "../Hopac.Platform.Net/Init.fs"
+        "AssemblyInfo.fs",
+        "Init.fs"
       ]
     },
     "additionalArguments": [

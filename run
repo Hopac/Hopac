@@ -244,7 +244,7 @@ $ATTRS"
 generate_infos() {
   if did generate_infos ; then return 0 ; fi
 
-  for LIB in Hopac Hopac.Platform.Net ; do
+  for LIB in Hopac Hopac.Platform ; do
     overwrite_changed Libs/$LIB/AssemblyInfo.fs <<EOF
 // NOTE: This is a generated file.
 
@@ -316,9 +316,9 @@ licenseUrl $LICENSE_URL
 releaseNotes
 $NOTES
 files
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.*             ==> lib/net45
-    ../Libs/Hopac/bin/Release/Hopac.*                       ==> lib/net45
-    ../Libs/Hopac.Platform.Net/bin/Release/Hopac.Platform.* ==> lib/net45
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.*         ==> lib/net45
+    ../Libs/Hopac/bin/Release/Hopac.*                   ==> lib/net45
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.* ==> lib/net45
 dependencies FSharp.Core >= 3.1.2.5
 EOF
 

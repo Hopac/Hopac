@@ -44,7 +44,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hopac.Core", "Libs\Hopac.Co
 EndProject
 Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac.Experimental", "Libs\Hopac.Experimental\Hopac.Experimental.fsproj", "{939C22FA-DFB0-491A-B080-F740F7FF2A8C}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac.Platform.Net", "Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac.Platform", "Libs\Hopac.Platform\Hopac.Platform.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{24B2ECA5-6A25-48E3-942E-D7559D4F8C3B}"
 EndProject

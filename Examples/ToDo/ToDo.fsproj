@@ -68,8 +68,8 @@
       <Project>{92ac6198-fa63-4458-afec-2bfbb2b0d914}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj">
-      <Name>Hopac.Platform.Net</Name>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj">
+      <Name>Hopac.Platform</Name>
       <Project>{b285aeb6-fc96-4212-b7a2-6b73597ce607}</Project>
       <Private>True</Private>
     </ProjectReference>

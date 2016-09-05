@@ -1,7 +1,7 @@
 #I "Libs/Hopac.Core/bin/Release"
 #I "Libs/Hopac/bin/Release"
 #I "Libs/Hopac.Experimental/bin/Release"
-#I "Libs/Hopac.Platform.Net/bin/Release"
+#I "Libs/Hopac.Platform/bin/Release"
 
 #r "Hopac.Core.dll"
 #r "Hopac.dll"
