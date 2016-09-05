@@ -20,7 +20,6 @@
     "FSharp.Core": "4.0.1.7-alpha"
   },
   "frameworks": {
-    "net46": {},
     "netstandard1.6": {
       "NETStandard.Library": "1.6.0"
     }
