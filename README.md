@@ -45,7 +45,7 @@ performs a clean build using the .NET Core stack.
 * `USE` specifies the stack, which is auto detected by default, to build and run
   with:
   * `USE=mono` to use Mono.
-  * `USE=net` to use .NET (only available on Windows).
+  * `USE=net` to use .NET Framework (only on Windows).
   * `USE=netcore` to use .NET Core.
 
 #### `run` commands
