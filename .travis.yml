@@ -5,8 +5,11 @@ sudo: false
 env:
  - CONFIGS=Release
 
-mono:
- - latest
+matrix:
+  include:
+    - mono: latest
+    - mono: none
+      dotnet: 1.0.0-preview2-003121
 
 script:
  - ./run -x tests
