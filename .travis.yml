@@ -1,13 +1,13 @@
 language: csharp
 
-sudo: false
-
 env:
  - CONFIGS=Release
 
 matrix:
   include:
-    - mono: latest
+    - os: linux
+      mono: latest
+      sudo: false
     - os: linux
       dist: trusty
       sudo: required
