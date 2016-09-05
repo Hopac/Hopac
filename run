@@ -147,8 +147,10 @@ fi
 clean() {
   if did clean ; then return 0 ; fi
 
-  find Libs -name bin -print0 | xargs -0 rm -rf
-  find Libs -name obj -print0 | xargs -0 rm -rf
+  for KIND in Libs Benchmarks Tests Examples ; do
+    find $KIND -name bin -print0 | xargs -0 rm -rf
+    find $KIND -name obj -print0 | xargs -0 rm -rf
+  done
 
   rm -rf .gh-pages
   rm -rf .nuget
