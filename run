@@ -191,7 +191,15 @@ restore() {
 
   if [ "$USE" = dotnet ] ; then
     local NEW_CHECKSUM
-    NEW_CHECKSUM="$(find . -name 'project.json' -print0 | xargs -0 cat | md5)"
+    if has md5 ; then
+      SUM=md5
+    elif has md5sum ; then
+      SUM=md5sum
+    else
+      echo "Couldn't find command to compute MD5."
+      exit 1
+    fi
+    NEW_CHECKSUM="$(find . -name 'project.json' -print0 | xargs -0 cat | $SUM)"
     local OLD_CHECKSUM=""
     if [ -f .dotnet ] ; then OLD_CHECKSUM="$(cat .dotnet)" ; fi
     if [ "$NEW_CHECKSUM" != "$OLD_CHECKSUM" ] ; then
