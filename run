@@ -27,7 +27,7 @@ use_mono() {
 }
 
 use_net() {
-  if ! has msbuild.exe || ! has fsianycpu.exe ; then return 1 ; fi
+  if ! has msbuild.exe ; then return 1 ; fi
 
   USE=net
 
