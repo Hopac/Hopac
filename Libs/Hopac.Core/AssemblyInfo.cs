@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleToAttribute("Hopac")]
 [assembly: InternalsVisibleToAttribute("Hopac.Platform")]
-[assembly: InternalsVisibleToAttribute("Hopac.Platform.Net")]
 [assembly: AssemblyTitleAttribute("Hopac.Core")]
 [assembly: AssemblyProductAttribute("Hopac.Core")]
 [assembly: AssemblyDescriptionAttribute("A library for Higher-Order, Parallel, Asynchronous and Concurrent programming in F#.")]

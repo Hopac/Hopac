@@ -174,16 +174,14 @@ AssemblyCopyrightAttribute(\"$COPYRIGHT\")
 
   if [ "$LIB" = "Hopac.Core" ] ; then
     if [ -n "$PUBLICKEY" ] ; then
-      ATTRS="InternalsVisibleToAttribute(\"Hopac, PublicKey=$PUBLICKEY\")
-InternalsVisibleToAttribute(\"Hopac.Platform, PublicKey=$PUBLICKEY\")
-InternalsVisibleToAttribute(\"Hopac.Platform.Net, PublicKey=$PUBLICKEY\")
-$ATTRS"
+      PUBLICKEY_OPT=", PublicKey=$PUBLICKEY"
     else
-      ATTRS="InternalsVisibleToAttribute(\"Hopac\")
-InternalsVisibleToAttribute(\"Hopac.Platform\")
-InternalsVisibleToAttribute(\"Hopac.Platform.Net\")
-$ATTRS"
+      PUBLICKEY_OPT=""
     fi
+
+    ATTRS="InternalsVisibleToAttribute(\"Hopac$PUBLICKEY_OPT\")
+InternalsVisibleToAttribute(\"Hopac.Platform$PUBLICKEY_OPT\")
+$ATTRS"
   fi
 
   if [ -n "$KEYFILE" ] ; then
