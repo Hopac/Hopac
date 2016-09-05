@@ -8,7 +8,7 @@
     "xmlDoc": true,
     "compile": {
       "includeFiles": [
-        "CmlCH.fs"
+        "CmlLCH.fs"
       ]
     },
     "additionalArguments": [
