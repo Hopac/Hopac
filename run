@@ -10,6 +10,11 @@ use_netcore() {
   if ! has dotnet ; then return 1 ; fi
 
   USE=netcore
+  if has mono ; then
+    RUN=mono
+  else
+    RUN=
+  fi
 }
 
 use_mono() {
