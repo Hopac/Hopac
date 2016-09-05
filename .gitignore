@@ -3,6 +3,7 @@
 *.userprefs
 *~
 .\#*
+.dotnet
 .gh-pages
 .nuget
 \#*\#

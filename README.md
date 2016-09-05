@@ -15,21 +15,50 @@ cd Hopac
 ./run tests
 ```
 
-See the `run` script for other commands.
+Note the use of `--recursive` option above.
 
-Note that auto-restore of dependencies has not been enabled due to it taking so
-long.  If you want to build from an IDE like Visual Studio or Xamarin, you can
-run
+### `run`
 
-```sh
-./run restore
+The Bash `run` script provides build automation.  You invoke `run` like any
+other Bash command:
+
+```bash
+[VARIABLE=value] ./run [COMMAND]
 ```
 
-to restore dependencies.
+Multiple commands can be specified.  For example,
 
+```bash
+USE=dotnet ./run clean build
+```
 
-### .Net Core
+performs a clean build using the .NET Core stack.
 
- - http://apisof.net/catalog
- - https://docs.microsoft.com/en-us/dotnet/articles/core/index
- - 
+#### `run` variables
+
+* `CONFIGS` specifies the configuration(s) to operate on:
+  * `CONFIGS=Release` to build and run only `Release` config.
+  * `CONFIGS=Debug` to build and run only `Debug` config.
+  * `CONFIGS='Debug Release'` is the default and builds both `Debug` and
+    `Release` configs.
+
+* `USE` specifies the stack, which is auto detected by default, to build and run
+  with:
+  * `USE=dotnet` to use .NET Core.
+  * `USE=mono` to use Mono.
+  * `USE=net` to use .NET (only available on Windows).
+
+#### `run` commands
+
+* `benchmarks` runs all benchmarks.  This may take a *very* long time!
+* `build` builds all the subprojects.
+* `clean` removes generated files.
+* `tests` runs tests.
+* `repl` starts the F# interactive with Hopac libs opened.  (Only works with
+  Mono and .NET at the moment.)
+* `restore` restores dependencies required to build the project.  To build from
+  an IDE like Visual Studio or Xamarin, you need to `./run restore` manually.
+* `generate_docs` generates the Reference manual under `.gh-pages`.
+
+You can run `source run.complete` to get auto completion of `run` commands in
+Bash.

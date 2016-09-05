@@ -4,22 +4,49 @@ set -o pipefail
 
 ################################################################################
 
-if hash xbuild &> /dev/null ; then
+has() { hash "$1" &> /dev/null ; }
+
+use_dotnet() {
+  if ! has dotnet ; then return 1 ; fi
+
+  USE=dotnet
+}
+
+use_mono() {
+  if ! has xbuild ; then return 1 ; fi
+
+  USE=mono
+
   BUILD=xbuild
   RUN=mono
-  if hash fsharpiAnyCpu &> /dev/null ; then
+  if has fsharpiAnyCpu ; then
     FSI=fsharpiAnyCpu
   else
     FSI=fsharpi
   fi
-elif hash msbuild.exe &> /dev/null ; then
+}
+
+use_net() {
+  if ! has msbuild.exe || ! has fsianycpu.exe ; then return 1 ; fi
+
+  USE=net
+
   BUILD="msbuild.exe /maxcpucount"
   RUN=
   FSI=fsianycpu.exe
-else
+}
+
+no_build_cmd() {
   echo "Couldn't find build command."
   exit 1
-fi
+}
+
+case "$USE" in
+  dotnet) use_dotnet ;;
+  mono)   use_mono ;;
+  net)    use_net ;;
+  *)      use_net || use_dotnet || use_mono ;;
+esac || no_build_cmd
 
 ################################################################################
 
@@ -131,7 +158,7 @@ NOTES="$(head -n $((N-1)) RELEASE_NOTES.md |
 ################################################################################
 
 if [ -z "$SOLUTIONS" ] ; then
-  if [ -z "$RUN" ] ; then
+  if [ "$USE" = net ] ; then
     SOLUTIONS="Hopac.sln Todo.sln"
   else
     SOLUTIONS="Hopac.sln"
@@ -152,6 +179,7 @@ clean() {
     find $KIND -name obj -print0 | xargs -0 rm -rf
   done
 
+  rm -rf .dotnet
   rm -rf .gh-pages
   rm -rf .nuget
   rm -rf .paket/paket.exe
@@ -161,7 +189,18 @@ clean() {
 restore() {
   if did restore ; then return 0 ; fi
 
-  paket --silent restore
+  if [ "$USE" = dotnet ] ; then
+    local NEW_CHECKSUM
+    NEW_CHECKSUM="$(find . -name 'project.json' -print0 | xargs -0 cat | md5)"
+    local OLD_CHECKSUM=""
+    if [ -f .dotnet ] ; then OLD_CHECKSUM="$(cat .dotnet)" ; fi
+    if [ "$NEW_CHECKSUM" != "$OLD_CHECKSUM" ] ; then
+      echo -n "$NEW_CHECKSUM" > .dotnet
+      dotnet restore --verbosity Warning
+    fi
+  else
+    paket --silent restore
+  fi
 }
 
 attrs() {
@@ -229,11 +268,21 @@ build() {
   restore
   generate_infos
 
-  for SOLUTION in $SOLUTIONS ; do
-    for CONFIG in $CONFIGS ; do
-      $BUILD /nologo /verbosity:quiet /p:Configuration="$CONFIG" "$SOLUTION"
+  if [ "$USE" = dotnet ] ; then
+    for PROJECT in $(find . -name "project.json") ; do
+      pushd "$(dirname "$PROJECT")" &> /dev/null
+      for CONFIG in $CONFIGS ; do
+        dotnet build -c "$CONFIG"
+      done
+      popd &> /dev/null
     done
-  done
+  else
+    for SOLUTION in $SOLUTIONS ; do
+      for CONFIG in $CONFIGS ; do
+        $BUILD /nologo /verbosity:quiet /p:Configuration="$CONFIG" "$SOLUTION"
+      done
+    done
+  fi
 }
 
 build_nupkg() {
@@ -287,6 +336,23 @@ generate_docs() {
       Libs/Hopac/TopLevel.fsi
 }
 
+run() {
+  local PROJECT="$1"
+  local CONFIG="$2"
+
+  if [ ! -d "$PROJECT" ] ; then return 0 ; fi
+
+  pushd "$PROJECT" &> /dev/null
+  echo "$PROJECT"
+  if [ "$USE" = dotnet ] ; then
+    dotnet run -c "$CONFIG"
+  else
+    $RUN "./bin/$CONFIG/$PROJECT.exe"
+  fi
+  echo
+  popd &> /dev/null
+}
+
 tests() {
   if did tests ; then return 0 ; fi
 
@@ -295,9 +361,7 @@ tests() {
   pushd Tests &> /dev/null
   for CONFIG in $CONFIGS ; do
     for TEST in * ; do
-      echo "$TEST ($CONFIG)"
-      $RUN "$TEST/bin/$CONFIG/$TEST.exe"
-      echo
+      run "$TEST" "$CONFIG"
     done
   done
   popd &> /dev/null
@@ -402,9 +466,7 @@ benchmarks() {
 
   pushd Benchmarks &> /dev/null
   for BENCHMARK in * ; do
-    echo "$BENCHMARK"
-    $RUN "$BENCHMARK/bin/Release/$BENCHMARK.exe"
-    echo
+    run "$BENCHMARK" Release
   done
   popd &> /dev/null
 }
