@@ -38,7 +38,7 @@ use_net() {
 
 no_build_cmd() {
   echo "Couldn't find build command."
-  exit 1
+  return 1
 }
 
 case "$USE" in
@@ -197,7 +197,7 @@ restore() {
       SUM=md5sum
     else
       echo "Couldn't find command to compute MD5."
-      exit 1
+      return 1
     fi
     NEW_CHECKSUM="$(find . -name 'project.json' -print0 | xargs -0 cat | $SUM)"
     local OLD_CHECKSUM=""
