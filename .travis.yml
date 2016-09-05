@@ -8,8 +8,11 @@ env:
 matrix:
   include:
     - mono: latest
-    - mono: none
+    - os: linux
+      dist: trusty
+      sudo: required
       dotnet: 1.0.0-preview2-003121
+      mono: none
 
 script:
  - ./run -x tests
