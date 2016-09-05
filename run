@@ -6,10 +6,10 @@ set -o pipefail
 
 has() { hash "$1" &> /dev/null ; }
 
-use_dotnet() {
+use_netcore() {
   if ! has dotnet ; then return 1 ; fi
 
-  USE=dotnet
+  USE=netcore
 }
 
 use_mono() {
@@ -42,10 +42,10 @@ no_build_cmd() {
 }
 
 case "$USE" in
-  dotnet) use_dotnet ;;
-  mono)   use_mono ;;
-  net)    use_net ;;
-  *)      use_net || use_dotnet || use_mono ;;
+  netcore) use_netcore ;;
+  mono)    use_mono ;;
+  net)     use_net ;;
+  *)       use_net || use_netcore || use_mono ;;
 esac || no_build_cmd
 
 ################################################################################
@@ -189,7 +189,7 @@ clean() {
 restore() {
   if did restore ; then return 0 ; fi
 
-  if [ "$USE" = dotnet ] ; then
+  if [ "$USE" = netcore ] ; then
     local NEW_CHECKSUM
     if has md5 ; then
       SUM=md5
@@ -276,7 +276,7 @@ build() {
   restore
   generate_infos
 
-  if [ "$USE" = dotnet ] ; then
+  if [ "$USE" = netcore ] ; then
     for PROJECT in $(find . -name "project.json") ; do
       pushd "$(dirname "$PROJECT")" &> /dev/null
       for CONFIG in $CONFIGS ; do
@@ -352,7 +352,7 @@ run() {
 
   pushd "$PROJECT" &> /dev/null
   echo "$PROJECT"
-  if [ "$USE" = dotnet ] ; then
+  if [ "$USE" = netcore ] ; then
     dotnet run -c "$CONFIG"
   else
     $RUN "./bin/$CONFIG/$PROJECT.exe"

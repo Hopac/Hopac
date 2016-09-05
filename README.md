@@ -29,7 +29,7 @@ other Bash command:
 Multiple commands can be specified.  For example,
 
 ```bash
-USE=dotnet ./run clean build
+USE=netcore ./run clean build
 ```
 
 performs a clean build using the .NET Core stack.
@@ -37,16 +37,16 @@ performs a clean build using the .NET Core stack.
 #### `run` variables
 
 * `CONFIGS` specifies the configuration(s) to operate on:
-  * `CONFIGS=Release` to build and run only `Release` config.
-  * `CONFIGS=Debug` to build and run only `Debug` config.
-  * `CONFIGS='Debug Release'` is the default and builds both `Debug` and
+  * `CONFIGS='Debug Release'` is the default to build and run both `Debug` and
     `Release` configs.
+  * `CONFIGS=Debug` to build and run only `Debug` config.
+  * `CONFIGS=Release` to build and run only `Release` config.
 
 * `USE` specifies the stack, which is auto detected by default, to build and run
   with:
-  * `USE=dotnet` to use .NET Core.
   * `USE=mono` to use Mono.
   * `USE=net` to use .NET (only available on Windows).
+  * `USE=netcore` to use .NET Core.
 
 #### `run` commands
 

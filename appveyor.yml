@@ -11,8 +11,7 @@ environment:
 
   matrix:
     - USE: net
-
-    - USE: dotnet
+    - USE: netcore
 
 install:
   - 'git submodule update --init --recursive'
