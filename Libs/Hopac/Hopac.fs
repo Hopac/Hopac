@@ -1052,6 +1052,22 @@ module Job =
     {new JobMap<'x, 'y> () with
       override yJ'.Do (x) = x2y x}.InternalInit(xJ)
 
+  let inline applyMap (wr: byref<_>) x2y (xJ: Job<_>) (yK: Cont<_>) =
+    xJ.DoJob (&wr, {new Cont<_> () with
+      override xK'.GetProc (wr) = yK.GetProc (&wr)
+      override xK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+      override xK'.DoWork (wr) = Cont.Do (yK, &wr, x2y xK'.Value)
+      override xK'.DoCont (wr, x) = Cont.Do (yK, &wr, x2y x)})
+
+  let apply (xJ: Job<'x>) (x2yJ: Job<'x -> 'y>) =
+    {new Job<_> () with
+      override yJ'.DoJob (wr, yK) =
+        x2yJ.DoJob (&wr, {new Cont<_> () with
+          override x2yK'.GetProc (wr) = yK.GetProc (&wr)
+          override x2yK'.DoHandle (wr, e) = yK.DoHandle (&wr, e)
+          override x2yK'.DoWork (wr) = applyMap &wr x2yK'.Value xJ yK
+          override x2yK'.DoCont (wr, x2y) = applyMap &wr x2y xJ yK})}
+
   let inline unit () = Alt.unit () :> Job<_>
 
   let abort () = Never<_>() :> Job<_>

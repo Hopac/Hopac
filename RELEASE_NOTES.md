@@ -1,3 +1,6 @@
+#### 0.3.14 - 2016-09-07
+* Added an optimized applicative combinator `Job.apply`.
+
 #### 0.3.13 - 2016-08-24
 * Added stack to deadlock warning (thanks to Michael Newton).
 

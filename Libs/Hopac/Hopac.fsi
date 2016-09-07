@@ -325,6 +325,9 @@ module Job =
   /// run.  This is the same as `>>=` with the arguments flipped.
   val inline bind:      ('x   -> #Job<'y>) -> Job<'x> -> Job<'y>
 
+  /// `x2yJ |> apply xJ` is equivalent to `x2yJ >>= fun x2y -> xJ >>- x2y`.
+  val apply: Job<'x> -> Job<'x -> 'y> -> Job<'y>
+
   /// Creates a job that calls the given function with the given value to build
   /// a job that will then be run.  `delayWith x2yJ x` is equivalent to `result
   /// x >>= x2yJ`.
