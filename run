@@ -492,6 +492,11 @@ EOF
 }
 
 repl() {
+  if [ "$USE" = netcore ] ; then
+    echo "Cannot start repl on netcore."
+    return 1
+  fi
+
   SOLUTIONS=Hopac.sln
   CONFIGS=Release
   build
