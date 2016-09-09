@@ -122,6 +122,18 @@ paket() {
   $RUN $PAKET "$@"
 }
 
+dotnet-quiet() {
+  sed -e '/^Project .* was previously compiled\. Skipping compilation\.$/d'      \
+      -e '/^Project .* will be compiled because expected outputs are missing$/d' \
+      -e '/^Project .* will be compiled because dependencies changed$/d'         \
+      -e '/^ *$/d'                                                               \
+      -e '/^Compiling .* for .*$/d'                                              \
+      -e '/^Compilation succeeded\.$/d'                                          \
+      -e '/^ *0 *Warning(s) *$/d'                                                \
+      -e '/^ *0 *Error(s) *$/d'                                                  \
+      -e '/^ *Time elapsed [0-9:.]*$/d'
+}
+
 ################################################################################
 
 PROJECT_URL="https://github.com/Hopac/Hopac"
@@ -193,6 +205,8 @@ clean() {
 
 restore() {
   if did restore ; then return 0 ; fi
+
+  echo "Restoring dependencies"
 
   if [ "$USE" = netcore ] ; then
     local NEW_CHECKSUM
@@ -285,13 +299,15 @@ build() {
     for PROJECT in $(find . -name "project.json") ; do
       pushd "$(dirname "$PROJECT")" &> /dev/null
       for CONFIG in $CONFIGS ; do
-        dotnet build -c "$CONFIG"
+        echo "Building $(basename "$(dirname "$PROJECT")") in $CONFIG"
+        dotnet build -c "$CONFIG" | dotnet-quiet
       done
       popd &> /dev/null
     done
   else
     for SOLUTION in $SOLUTIONS ; do
       for CONFIG in $CONFIGS ; do
+        echo "Building $SOLUTION in $CONFIG"
         $BUILD /nologo /verbosity:quiet /p:Configuration="$CONFIG" "$SOLUTION"
       done
     done
@@ -356,9 +372,9 @@ run() {
   if [ ! -d "$PROJECT" ] ; then return 0 ; fi
 
   pushd "$PROJECT" &> /dev/null
-  echo "$PROJECT"
+  echo "Running $PROJECT in $CONFIG"
   if [ "$USE" = netcore ] ; then
-    dotnet run -c "$CONFIG"
+    dotnet run -c "$CONFIG" | dotnet-quiet
   else
     $RUN "./bin/$CONFIG/$PROJECT.exe"
   fi
