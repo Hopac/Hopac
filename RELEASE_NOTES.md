@@ -1,5 +1,6 @@
 #### 0.3.15 - 2016-09-10
-* Added preliminary .NET Core support.
+* Added preliminary .NET Core support.  Big thanks to @haf, @ncave and
+  @enricosada!
 
 #### 0.3.14 - 2016-09-07
 * Added an optimized applicative combinator `Job.apply`.
