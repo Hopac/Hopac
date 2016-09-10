@@ -353,13 +353,60 @@ licenseUrl $LICENSE_URL
 releaseNotes
 $NOTES
 files
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.*         ==> lib/net45
-    ../Libs/Hopac/bin/Release/Hopac.*                   ==> lib/net45
-    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.* ==> lib/net45
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???             ==> lib/net45
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???.???         ==> lib/net45
+    ../Libs/Hopac/bin/Release/Hopac.???                       ==> lib/net45
+    ../Libs/Hopac/bin/Release/Hopac.???.???                   ==> lib/net45
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???     ==> lib/net45
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???.??? ==> lib/net45
 dependencies FSharp.Core >= 3.1.2.5
 EOF
 
   paket --silent pack output .nuget templatefile "$TEMPLATE"
+}
+
+fixup_nupkg() {
+  local NUPKG="Hopac.$VERSION.nupkg"
+
+  pushd .nuget &> /dev/null
+
+  unzip "$NUPKG" Hopac.nuspec
+  chmod +rw Hopac.nuspec
+
+  local NETCORE_DEPS
+  NETCORE_DEPS="$(sed -e '1,/<.group>/d' -e '/Hopac/d' Hopac.nuspec | grep dependency | sort | uniq)"
+
+  local NETCORE_GROUP
+  NETCORE_GROUP="$(grep -e '<group ' Hopac.nuspec | head -n 1)"
+
+  local NET_DEPS
+  NET_DEPS="$(sed -e '/<.group>/,$d' Hopac.nuspec | grep dependency)"
+
+  local PREFIX
+  PREFIX="$(sed -e '/<dependencies>/,$d' Hopac.nuspec)"
+  local SUFFIX
+  SUFFIX="$(sed -e '1,/<.dependencies>/d' Hopac.nuspec)"
+
+  echo "$PREFIX"        >  Hopac.nuspec
+  echo "      <group>"  >> Hopac.nuspec
+  echo "$NET_DEPS"      >> Hopac.nuspec
+  echo "      </group>" >> Hopac.nuspec
+  echo "$NETCORE_GROUP" >> Hopac.nuspec
+  echo "$NETCORE_DEPS"  >> Hopac.nuspec
+  echo "      </group>" >> Hopac.nuspec
+  echo "$SUFFIX"        >> Hopac.nuspec
+
+  zip -u "$NUPKG" Hopac.nuspec
+
+  rm -rf .tmp
+  unzip -d .tmp "$NUPKG"
+  rm "$NUPKG"
+  pushd .tmp &> /dev/null
+  find . -type f -print0 | xargs -0 chmod 0666
+  find . -type f -print0 | xargs -0 zip "../$NUPKG"
+  popd &> /dev/null
+
+  popd &> /dev/null
 }
 
 merge_netcore_nupkgs() {
@@ -386,10 +433,14 @@ merge_netcore_nupkgs() {
     dotnet mergenupkg --source "../../$NUPKG" --other "bin/Release/$LIB.$VERSION.nupkg" --framework netstandard1.6
     popd  &> /dev/null
   done
+
+  fixup_nupkg
 }
 
 build_nupkg() {
   if did build_nupkg ; then return 0 ; fi
+
+  rm -rf .nuget
 
   if has msbuild.exe ; then
     USE=net  ./run build_net_nupkg
