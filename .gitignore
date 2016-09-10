@@ -3,6 +3,7 @@
 *.userprefs
 *~
 .\#*
+.dotnet
 .gh-pages
 .nuget
 \#*\#
@@ -10,3 +11,4 @@ bin
 obj
 packages
 paket.exe
+project.lock.json

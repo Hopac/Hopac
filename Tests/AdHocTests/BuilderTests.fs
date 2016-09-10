@@ -22,8 +22,6 @@ let testSyntax (xT: Task<'disposable>)
   do! uJ
   if true then
     return ()
-  use xT' = xT
-  use! x = xT'
   for _ in xs do
     ()
   try return! uJ
@@ -34,5 +32,11 @@ let testSyntax (xT: Task<'disposable>)
   while !n > 0 do
     n := !n-1
     return! t
+#if !CORECLR
+  use xT' = xT
+  use! x = xT'
   return x
+#else
+  return ()
+#endif
 }

@@ -10,6 +10,7 @@
     <AssemblyName>Hopac.Experimental</AssemblyName>
     <Name>Hopac.Experimental</Name>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <ResolveNuGetPackages>false</ResolveNuGetPackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

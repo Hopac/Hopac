@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDo.UI", "Examples\ToDo.UI
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ToDo", "Examples\ToDo\ToDo.fsproj", "{4F8448C1-4B30-4708-B378-02696D6C1962}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Platform.Net", "Libs\Hopac.Platform.Net\Hopac.Platform.Net.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Platform", "Libs\Hopac.Platform\Hopac.Platform.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

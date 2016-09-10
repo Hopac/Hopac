@@ -4,22 +4,54 @@ set -o pipefail
 
 ################################################################################
 
-if hash xbuild &> /dev/null ; then
+has() { hash "$1" &> /dev/null ; }
+
+use_netcore() {
+  if ! has dotnet ; then return 1 ; fi
+
+  USE=netcore
+  if has mono ; then
+    RUN=mono
+  else
+    RUN=
+  fi
+}
+
+use_mono() {
+  if ! has xbuild ; then return 1 ; fi
+
+  USE=mono
+
   BUILD=xbuild
   RUN=mono
-  if hash fsharpiAnyCpu &> /dev/null ; then
+  if has fsharpiAnyCpu ; then
     FSI=fsharpiAnyCpu
   else
     FSI=fsharpi
   fi
-elif hash msbuild.exe &> /dev/null ; then
+}
+
+use_net() {
+  if ! has msbuild.exe ; then return 1 ; fi
+
+  USE=net
+
   BUILD="msbuild.exe /maxcpucount"
   RUN=
   FSI=fsianycpu.exe
-else
+}
+
+no_build_cmd() {
   echo "Couldn't find build command."
-  exit 1
-fi
+  return 1
+}
+
+case "$USE" in
+  netcore) use_netcore ;;
+  mono)    use_mono ;;
+  net)     use_net ;;
+  *)       use_net || use_netcore || use_mono ;;
+esac || no_build_cmd
 
 ################################################################################
 
@@ -90,6 +122,18 @@ paket() {
   $RUN $PAKET "$@"
 }
 
+dotnet-quiet() {
+  sed -e '/^Project .* was previously compiled\. Skipping compilation\.$/d'      \
+      -e '/^Project .* will be compiled because expected outputs are missing$/d' \
+      -e '/^Project .* will be compiled because dependencies changed$/d'         \
+      -e '/^ *$/d'                                                               \
+      -e '/^Compiling .* for .*$/d'                                              \
+      -e '/^Compilation succeeded\.$/d'                                          \
+      -e '/^ *0 *Warning(s) *$/d'                                                \
+      -e '/^ *0 *Error(s) *$/d'                                                  \
+      -e '/^ *Time elapsed [0-9:.]*$/d'
+}
+
 ################################################################################
 
 PROJECT_URL="https://github.com/Hopac/Hopac"
@@ -131,7 +175,7 @@ NOTES="$(head -n $((N-1)) RELEASE_NOTES.md |
 ################################################################################
 
 if [ -z "$SOLUTIONS" ] ; then
-  if [ -z "$RUN" ] ; then
+  if [ "$USE" = net ] ; then
     SOLUTIONS="Hopac.sln Todo.sln"
   else
     SOLUTIONS="Hopac.sln"
@@ -147,9 +191,12 @@ fi
 clean() {
   if did clean ; then return 0 ; fi
 
-  find Libs -name bin -print0 | xargs -0 rm -rf
-  find Libs -name obj -print0 | xargs -0 rm -rf
+  for KIND in Libs Benchmarks Tests Examples ; do
+    find $KIND -name bin -print0 | xargs -0 rm -rf
+    find $KIND -name obj -print0 | xargs -0 rm -rf
+  done
 
+  rm -rf .dotnet
   rm -rf .gh-pages
   rm -rf .nuget
   rm -rf .paket/paket.exe
@@ -159,7 +206,28 @@ clean() {
 restore() {
   if did restore ; then return 0 ; fi
 
-  paket --silent restore
+  echo "Restoring dependencies"
+
+  if [ "$USE" = netcore ] ; then
+    local NEW_CHECKSUM
+    if has md5 ; then
+      SUM=md5
+    elif has md5sum ; then
+      SUM=md5sum
+    else
+      echo "Couldn't find command to compute MD5."
+      return 1
+    fi
+    NEW_CHECKSUM="$(find . -name 'project.json' -print0 | xargs -0 cat | $SUM)"
+    local OLD_CHECKSUM=""
+    if [ -f .dotnet ] ; then OLD_CHECKSUM="$(cat .dotnet)" ; fi
+    if [ "$NEW_CHECKSUM" != "$OLD_CHECKSUM" ] ; then
+      echo -n "$NEW_CHECKSUM" > .dotnet
+      dotnet restore --verbosity Warning
+    fi
+  else
+    paket --silent restore
+  fi
 }
 
 attrs() {
@@ -174,14 +242,14 @@ AssemblyCopyrightAttribute(\"$COPYRIGHT\")
 
   if [ "$LIB" = "Hopac.Core" ] ; then
     if [ -n "$PUBLICKEY" ] ; then
-      ATTRS="InternalsVisibleToAttribute(\"Hopac, PublicKey=$PUBLICKEY\")
-InternalsVisibleToAttribute(\"Hopac.Platform, PublicKey=$PUBLICKEY\")
-$ATTRS"
+      PUBLICKEY_OPT=", PublicKey=$PUBLICKEY"
     else
-      ATTRS="InternalsVisibleToAttribute(\"Hopac\")
-InternalsVisibleToAttribute(\"Hopac.Platform\")
-$ATTRS"
+      PUBLICKEY_OPT=""
     fi
+
+    ATTRS="InternalsVisibleToAttribute(\"Hopac$PUBLICKEY_OPT\")
+InternalsVisibleToAttribute(\"Hopac.Platform$PUBLICKEY_OPT\")
+$ATTRS"
   fi
 
   if [ -n "$KEYFILE" ] ; then
@@ -195,7 +263,7 @@ $ATTRS"
 generate_infos() {
   if did generate_infos ; then return 0 ; fi
 
-  for LIB in Hopac Hopac.Platform.Net ; do
+  for LIB in Hopac Hopac.Platform ; do
     overwrite_changed Libs/$LIB/AssemblyInfo.fs <<EOF
 // NOTE: This is a generated file.
 
@@ -221,23 +289,51 @@ EOF
   done
 }
 
+update_versions() {
+  pushd Libs &> /dev/null
+  for LIB in Hopac Hopac.Core Hopac.Platform ; do
+    JSON="$LIB/project.json"
+    sed -e '1,/"version": *"[^"]*"/ s/"version": *"[^"]*"/"version": "'"$VERSION"'"/' "$JSON" | overwrite_changed "$JSON"
+  done
+  popd &> /dev/null
+}
+
 build() {
   if did build ; then return 0 ; fi
 
-  restore
   generate_infos
+  update_versions
 
-  for SOLUTION in $SOLUTIONS ; do
-    for CONFIG in $CONFIGS ; do
-      $BUILD /nologo /verbosity:quiet /p:Configuration="$CONFIG" "$SOLUTION"
+  restore
+
+  if [ "$USE" = netcore ] ; then
+    for PROJECT in $(find . -name "project.json") ; do
+      pushd "$(dirname "$PROJECT")" &> /dev/null
+      for CONFIG in $CONFIGS ; do
+        echo "Building $(basename "$(dirname "$PROJECT")") in $CONFIG"
+        dotnet build -c "$CONFIG" | dotnet-quiet
+      done
+      popd &> /dev/null
     done
-  done
+  else
+    for SOLUTION in $SOLUTIONS ; do
+      for CONFIG in $CONFIGS ; do
+        echo "Building $SOLUTION in $CONFIG"
+        $BUILD /nologo /verbosity:quiet /p:Configuration="$CONFIG" "$SOLUTION"
+      done
+    done
+  fi
 }
 
-build_nupkg() {
-  if did build_nupkg ; then return 0 ; fi
+build_net_nupkg() {
+  if did build_net_nupkg ; then return 0 ; fi
 
-  build
+  if [ "$USE" = netcore ] ; then
+    echo "This script cannot build .NET nupkg on .NET Core."
+    return 1
+  fi
+
+  CONFIGS=Release build
 
   mkdir -p .nuget
   local TEMPLATE=.nuget/Hopac.template
@@ -257,13 +353,109 @@ licenseUrl $LICENSE_URL
 releaseNotes
 $NOTES
 files
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.*             ==> lib/net45
-    ../Libs/Hopac/bin/Release/Hopac.*                       ==> lib/net45
-    ../Libs/Hopac.Platform.Net/bin/Release/Hopac.Platform.* ==> lib/net45
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???             ==> lib/net45
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???.???         ==> lib/net45
+    ../Libs/Hopac/bin/Release/Hopac.???                       ==> lib/net45
+    ../Libs/Hopac/bin/Release/Hopac.???.???                   ==> lib/net45
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???     ==> lib/net45
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???.??? ==> lib/net45
 dependencies FSharp.Core >= 3.1.2.5
 EOF
 
   paket --silent pack output .nuget templatefile "$TEMPLATE"
+}
+
+fixup_nupkg() {
+  local NUPKG="Hopac.$VERSION.nupkg"
+
+  pushd .nuget &> /dev/null
+
+  unzip "$NUPKG" Hopac.nuspec
+  chmod +rw Hopac.nuspec
+
+  local NETCORE_DEPS
+  NETCORE_DEPS="$(sed -e '1,/<.group>/d' -e '/Hopac/d' Hopac.nuspec | grep dependency | sort | uniq)"
+
+  local NETCORE_GROUP
+  NETCORE_GROUP="$(grep -e '<group ' Hopac.nuspec | head -n 1)"
+
+  local NET_DEPS
+  NET_DEPS="$(sed -e '/<.group>/,$d' Hopac.nuspec | grep dependency)"
+
+  local PREFIX
+  PREFIX="$(sed -e '/<dependencies>/,$d' Hopac.nuspec)"
+  local SUFFIX
+  SUFFIX="$(sed -e '1,/<.dependencies>/d' Hopac.nuspec)"
+
+  echo "$PREFIX"        >  Hopac.nuspec
+  echo "      <group>"  >> Hopac.nuspec
+  echo "$NET_DEPS"      >> Hopac.nuspec
+  echo "      </group>" >> Hopac.nuspec
+  echo "$NETCORE_GROUP" >> Hopac.nuspec
+  echo "$NETCORE_DEPS"  >> Hopac.nuspec
+  echo "      </group>" >> Hopac.nuspec
+  echo "$SUFFIX"        >> Hopac.nuspec
+
+  zip -u "$NUPKG" Hopac.nuspec
+
+  rm -rf .tmp
+  unzip -d .tmp "$NUPKG"
+  rm "$NUPKG"
+  pushd .tmp &> /dev/null
+  find . -type f -print0 | xargs -0 chmod 0666
+  find . -type f -print0 | xargs -0 zip "../$NUPKG"
+  popd &> /dev/null
+
+  popd &> /dev/null
+}
+
+merge_netcore_nupkgs() {
+  if did merge_netcore_nupkgs ; then return 0 ; fi
+
+  if [ "$USE" != netcore ] ; then
+    echo "This script can only build .NET Core nupkg when using .NET Core."
+    return 1
+  fi
+
+  local NUPKG=".nuget/Hopac.$VERSION.nupkg"
+
+  if [ ! -f "$NUPKG" ] ; then
+    echo "This script can only merge .NET Core nupkgs when .NET nupkg has already been built."
+    return 1
+  fi
+
+  CONFIGS=Release build
+
+  for LIB in Hopac Hopac.Core Hopac.Platform ; do
+    pushd Libs/$LIB &> /dev/null
+    dotnet pack --configuration Release --no-build
+
+    dotnet mergenupkg --source "../../$NUPKG" --other "bin/Release/$LIB.$VERSION.nupkg" --framework netstandard1.6
+    popd  &> /dev/null
+  done
+
+  fixup_nupkg
+}
+
+build_nupkg() {
+  if did build_nupkg ; then return 0 ; fi
+
+  rm -rf .nuget
+
+  if has msbuild.exe ; then
+    USE=net  ./run build_net_nupkg
+  elif has xbuild ; then
+    USE=mono ./run build_net_nupkg
+  else
+    echo "Mono or .NET required to build nupkg."
+  fi
+
+  if has dotnet ; then
+    USE=netcore ./run merge_netcore_nupkgs
+  else
+    echo ".NET Core required to build nupkg."
+    return 1
+  fi
 }
 
 generate_docs() {
@@ -285,6 +477,23 @@ generate_docs() {
       Libs/Hopac/TopLevel.fsi
 }
 
+run() {
+  local PROJECT="$1"
+  local CONFIG="$2"
+
+  if [ ! -d "$PROJECT" ] ; then return 0 ; fi
+
+  pushd "$PROJECT" &> /dev/null
+  echo "Running $PROJECT in $CONFIG"
+  if [ "$USE" = netcore ] ; then
+    dotnet run -c "$CONFIG" | dotnet-quiet
+  else
+    $RUN "./bin/$CONFIG/$PROJECT.exe"
+  fi
+  echo
+  popd &> /dev/null
+}
+
 tests() {
   if did tests ; then return 0 ; fi
 
@@ -293,9 +502,7 @@ tests() {
   pushd Tests &> /dev/null
   for CONFIG in $CONFIGS ; do
     for TEST in * ; do
-      echo "$TEST ($CONFIG)"
-      $RUN "$TEST/bin/$CONFIG/$TEST.exe"
-      echo
+      run "$TEST" "$CONFIG"
     done
   done
   popd &> /dev/null
@@ -351,7 +558,6 @@ publish() {
   check_git_clean
 
   clean
-  build
   generate_docs
   build_nupkg
   tests
@@ -386,6 +592,11 @@ EOF
 }
 
 repl() {
+  if [ "$USE" = netcore ] ; then
+    echo "Cannot start repl on netcore."
+    return 1
+  fi
+
   SOLUTIONS=Hopac.sln
   CONFIGS=Release
   build
@@ -400,9 +611,7 @@ benchmarks() {
 
   pushd Benchmarks &> /dev/null
   for BENCHMARK in * ; do
-    echo "$BENCHMARK"
-    $RUN "$BENCHMARK/bin/Release/$BENCHMARK.exe"
-    echo
+    run "$BENCHMARK" Release
   done
   popd &> /dev/null
 }
@@ -438,19 +647,21 @@ while [ $# != 0 ] ; do
   COMMAND="$1"
   shift
   case "$COMMAND" in
-    "-x")              set -x ;;
-    "benchmarks")      benchmarks ;;
-    "build")           build ;;
-    "build_nupkg")     build_nupkg ;;
-    "clean")           clean ;;
-    "generate_docs")   generate_docs ;;
-    "pull_submodules") pull_submodules ;;
-    "publish")         publish ;;
-    "publish_docs")    publish_docs ;;
-    "repl")            repl ;;
-    "restore")         restore ;;
-    "tests")           tests ;;
-    "watch")           watch "$@" ;;
+    -x)                   set -x ;;
+    benchmarks)           benchmarks ;;
+    build)                build ;;
+    build_net_nupkg)      build_net_nupkg ;;
+    build_nupkg)          build_nupkg ;;
+    clean)                clean ;;
+    generate_docs)        generate_docs ;;
+    merge_netcore_nupkgs) merge_netcore_nupkgs ;;
+    publish)              publish ;;
+    publish_docs)         publish_docs ;;
+    pull_submodules)      pull_submodules ;;
+    repl)                 repl ;;
+    restore)              restore ;;
+    tests)                tests ;;
+    watch)                watch "$@" ;;
     *)
       echo "Unknown command: '$COMMAND'
 

@@ -1,0 +1,62 @@
+{
+  "version": "0.3.13",
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "compilerName": "fsc",
+    "define": [ "TRACE" ],
+    "xmlDoc": true,
+    "compile": {
+      "includeFiles": [
+        "Util.fs",
+        "RunTask.fsi",
+        "RunTask.fs",
+        "JobTests.fs",
+        "MVarTests.fs",
+        "TaskTests.fs",
+        "BuilderTests.fs",
+        "StreamTests.fs",
+        "Main.fs"
+      ]
+    },
+    "additionalArguments": [
+      "--warnon:1182"
+    ]
+  },
+  "runtimeOptions": {
+    "configProperties": {
+      "System.GC.Server": true
+    }
+  },
+  "dependencies": {
+    "FSharp.Core": "4.0.1.7-alpha",
+    "Hopac": { "target": "project" },
+    "Hopac.Platform": { "target": "project" },
+    "FsCheck": "*"
+  },
+  "frameworks": {
+    "netcoreapp1.0": {
+      "buildOptions": {
+        "define": [
+          "CORECLR"
+        ]
+      },
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0"
+        }
+      },
+      "imports": [
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "tools": {
+    "dotnet-compile-fsc": {
+      "version": "1.0.0-preview2-*",
+      "imports": "dnxcore50"
+    }
+  }
+}

@@ -1,12 +1,19 @@
 language: csharp
 
-sudo: false
+env: CONFIGS=Release
 
-env:
- - CONFIGS=Release
+matrix:
+  include:
+    - os: linux
+      sudo: false
+      dist: trusty
+      mono: latest
+    - os: linux
+      sudo: required
+      dist: trusty
+      mono: none
+      dotnet: 1.0.0-preview2-003121
+  exclude:
+    - env: CONFIGS=Release
 
-mono:
- - latest
-
-script:
- - ./run -x tests
+script: ./run -x tests

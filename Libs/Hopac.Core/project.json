@@ -1,0 +1,33 @@
+{
+  "version": "0.3.15",
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": false,
+    "nowarn": [ "CS420" ],
+    "xmlDoc": true,
+    "allowUnsafe": true,
+    "define": [ "TRACE", "TRAMPOLINE" ]
+  },
+  "configurations": {
+    "Release": {
+      "buildOptions": {
+        "define": [ "AGGRESSIVE_INLINING" ],
+        "optimize": true
+      }
+    }
+  },
+  "dependencies": {
+    "FSharp.Core": "4.0.1.7-alpha"
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "NETStandard.Library": "1.6.0"
+    }
+  },
+  "tools": {
+    "dotnet-mergenupkg": {
+      "target": "package",
+      "version": "1.0.*"
+    }
+  }
+}

@@ -9,6 +9,10 @@ environment:
     CYG_MIRROR: http://mirrors.kernel.org/sourceware/cygwin/
     CYG_ARCH: x86
 
+  matrix:
+    - USE: net
+    - USE: netcore
+
 install:
   - 'git submodule update --init --recursive'
   - 'appveyor DownloadFile http://cygwin.com/setup-%CYG_ARCH%.exe -FileName setup.exe'
