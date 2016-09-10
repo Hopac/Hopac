@@ -16,4 +16,4 @@ matrix:
   exclude:
     - env: CONFIGS=Release
 
-script: ./run -x tests
+script: ./run tests
