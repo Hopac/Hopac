@@ -10,8 +10,8 @@ environment:
     CYG_ARCH: x86
 
   matrix:
-    - USE: net
     - USE: netcore
+    - USE: net
 
 install:
   - 'git submodule update --init --recursive'
