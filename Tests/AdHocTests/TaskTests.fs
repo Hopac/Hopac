@@ -20,11 +20,12 @@ let delayAndSet (ms: int) r = Alt.fromTask <| fun ct -> runTask {
   do! Task.Delay (ms, ct)
   return match Interlocked.CompareExchange (r, ms, 0) with
           | 0 -> ms
-          | ms ->
+          | ms' ->
             // This is an unavoidable race condition as cancellation is not
             // transactional.  Increase timeout if you get this.
-            printfn "Unexpected %d in delayAndSet" ms
+            printfn "Unexpected %d in delayAndSet" ms'
             exitCode <- 1
+            ms
 }
 
 let delayAndRaise (ms: int) ex = Alt.fromTask <| fun ct -> runTask {
