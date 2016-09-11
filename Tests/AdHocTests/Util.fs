@@ -13,7 +13,7 @@ let mutable exitCode = 0
 let testEq exp act =
   if exp <> act
   then printfn "Expected %A, but got %A" exp act ; exitCode <- 1
-  else printfn "OK"
+  else printfn "Ok"
 
 exception Expected of int
 
@@ -45,6 +45,6 @@ let testExpected expected = function
       if kv.Value <> 0 then
         printfn "Didn't expect, but got %A" kv.Key ; failures <- true
     if not failures then
-      printfn "OK"
+      printfn "Ok"
     else
       exitCode <- 1

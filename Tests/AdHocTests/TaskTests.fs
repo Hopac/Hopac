@@ -32,21 +32,21 @@ let delayAndRaise (ms: int) ex = Alt.fromTask <| fun ct -> runTask {
 
 let run () =
   do let r = ref 0
-     (delayAndSet 100 r <|> delayAndSet 50 r |> run = 50 && !r = 50)
-     |> verify "Delays"
+     (delayAndSet 100 r <|> delayAndSet 50 r |> run, !r)
+     |> testEq (50, 50)
 
   do let r = ref 0
-     (delayAndSet 50 r <|> delayAndSet 100 r |> run = 50 && !r = 50)
-     |> verify "Delays"
+     (delayAndSet 50 r <|> delayAndSet 100 r |> run, !r)
+     |> testEq (50, 50)
 
-  do Job.tryIn (delayAndSet 150 ^ ref 1
-            <|> Alt.fromTask ^ fun _ -> raise Ex ; Task.FromResult 1)
-         <| fun x -> printfn "Unexpected %A" x ; Job.unit ()
-         <| fun e -> printfn "OK %A" e ; Job.unit ()
+  do delayAndSet 150 ^ ref 1
+     <|> Alt.fromTask ^ fun _ -> raise Ex ; Task.FromResult 1
+     |> Job.catch
      |> run
+     |> testExpected [Ex]
 
-  do Job.tryIn (delayAndRaise 50 Ex
-            <|> delayAndSet 200 ^ ref 1)
-         <| fun x -> printfn "Unexpected %A" x ; Job.unit ()
-         <| fun e -> printfn "OK %A" <| e.GetBaseException () ; Job.unit ()
+  do delayAndRaise 50 Ex
+     <|> delayAndSet 200 ^ ref 1
+     |> Job.catch
      |> run
+     |> testExpected [Ex]
