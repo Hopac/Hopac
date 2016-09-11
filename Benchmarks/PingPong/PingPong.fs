@@ -6,6 +6,60 @@ open Hopac.Extensions
 open System
 open System.Diagnostics
 
+module CallGI =
+  let run numPairs numPingPongsPerPair =
+    printf "CallGI: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = Ch ()
+       Job.foreverServer
+        (chPing >>= fun rI ->
+         rI *<= ()) >>=.
+       Job.forN numPingPongsPerPair
+        (chPing *<-=>- id))
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numPingPongsPerPair * 2
+    printf "%10d - %9.0f msgs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module CallSI =
+  let run numPairs numPingPongsPerPair =
+    printf "CallSI: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = Ch ()
+       Job.foreverServer
+        (chPing >>= fun rI ->
+         rI *<= ()) >>=.
+       Job.forN numPingPongsPerPair
+        (chPing *<+=>- id))
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numPingPongsPerPair * 2
+    printf "%10d - %9.0f msgs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
+module CallCh =
+  let run numPairs numPingPongsPerPair =
+    printf "CallCh: "
+    let timer = Stopwatch.StartNew ()
+    seq {1 .. numPairs}
+    |> Seq.Con.iterJob (fun _ ->
+       let chPing = Ch ()
+       Job.foreverServer
+        (chPing >>= fun (chPong, nack) ->
+         nack <|> chPong *<- ()) >>=.
+       Job.forN numPingPongsPerPair
+        (chPing *<+->- fun chPong nack -> (chPong, nack)))
+    |> run
+    let d = timer.Elapsed
+    let total = numPairs * numPingPongsPerPair * 2
+    printf "%10d - %9.0f msgs/s - %fs\n"
+     total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
+
 module ChGive =
   type Msg = Msg of Ch<Msg>
 
@@ -179,7 +233,7 @@ let cleanup () =
     GC.Collect ()
     Threading.Thread.Sleep 50
 
-do for f in [ChGive.run; ChSend.run; ChGiSe.run; ChSeGi.run; MbSend.run; AsPost.run] do
+do for f in [CallGI.run; CallSI.run; CallCh.run; ChGive.run; ChSend.run; ChGiSe.run; ChSeGi.run; MbSend.run; AsPost.run] do
      printf "\n"
      for p in [1; Environment.ProcessorCount/2; Environment.ProcessorCount] do
        for n in [1000; 10000; 100000; 1000000; 10000000] do
