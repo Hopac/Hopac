@@ -23,7 +23,7 @@ let delayAndSet (ms: int) r = Alt.fromTask <| fun ct -> runTask {
           | ms' ->
             // This is an unavoidable race condition as cancellation is not
             // transactional.  Increase timeout if you get this.
-            printfn "Unexpected %d in delayAndSet" ms'
+            printfn "Unexpected %d (in delayAndSet %d)" ms' ms
             exitCode <- 1
             ms
 }
@@ -35,11 +35,11 @@ let delayAndRaise (ms: int) ex = Alt.fromTask <| fun ct -> runTask {
 
 let run () =
   do let r = ref 0
-     (delayAndSet 150 r <|> delayAndSet 50 r |> run, !r)
+     (delayAndSet 201 r <|> delayAndSet 50 r |> run, !r)
      |> testEq (50, 50)
 
   do let r = ref 0
-     (delayAndSet 50 r <|> delayAndSet 150 r |> run, !r)
+     (delayAndSet 50 r <|> delayAndSet 202 r |> run, !r)
      |> testEq (50, 50)
 
   do delayAndSet 150 ^ ref 1
@@ -49,7 +49,7 @@ let run () =
      |> testExpected [Ex]
 
   do delayAndRaise 50 Ex
-     <|> delayAndSet 200 ^ ref 1
+     <|> delayAndSet 203 ^ ref 1
      |> Job.catch
      |> run
      |> testExpected [Ex]
