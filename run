@@ -124,6 +124,7 @@ paket() {
 
 dotnet-quiet() {
   sed -e '/^Project .* was previously compiled\. Skipping compilation\.$/d'      \
+      -e '/^Project .* will be compiled because inputs were modified$/d'         \
       -e '/^Project .* will be compiled because expected outputs are missing$/d' \
       -e '/^Project .* will be compiled because dependencies changed$/d'         \
       -e '/^ *$/d'                                                               \
