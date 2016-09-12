@@ -1,4 +1,4 @@
-#### 0.3.17 - 2016-09-13
+#### 0.3.17 - 2016-09-12
 * Eliminated undefined behaviour from `MVar.fill`, `IVar.fill` and
   `IVar.fillFailure`.
 
