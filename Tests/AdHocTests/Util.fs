@@ -34,14 +34,25 @@ let rec getRootCauses (d: Dictionary<_, _>)  (e: exn) =
 let testExpected expected = function
   | Choice1Of2 _ -> printfn "Unexpected success" ; exitCode <- 1
   | Choice2Of2 e ->
-    let d = Dictionary ()
-    getRootCauses d e
+    let thrown = Dictionary ()
+    getRootCauses thrown e
     let mutable failures = false
-    for e in expected do
-      match d.TryGetValue e with
-       | true, n when n > 0 -> d.[e] <- n - 1
-       | _ -> printfn "Expected %A, but got none" e ; failures <- true
-    for kv in d do
+    expected
+    |> Seq.iter ^ fun e ->
+         if thrown.Keys
+            |> Seq.exists ^ fun t ->
+                 let n = thrown.[t]
+                 if n <= 0 then
+                   false
+                 elif e = t || e.Message = t.Message then
+                   thrown.[t] <- n-1
+                   true
+                 else
+                   false
+            |> not
+          then
+            printfn "Expected %A, but got none" e ; failures <- true
+    for kv in thrown do
       if kv.Value <> 0 then
         printfn "Didn't expect, but got %A" kv.Key ; failures <- true
     if not failures then
