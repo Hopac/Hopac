@@ -1867,9 +1867,7 @@ module MVar =
   //# Primitives
 
   /// Creates a job that writes the given value to the serialized variable.  It
-  /// is an error to write to a `MVar` that is full.  This assumption may be
-  /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.  See also: `*<<=`.
+  /// is an error to write to a `MVar` that is full.  See also: `*<<=`.
   val inline fill: MVar<'x> -> 'x -> Job<unit>
 
   /// Creates an alternative that becomes available when the variable contains a

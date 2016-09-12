@@ -137,6 +137,7 @@ namespace Hopac {
       return;
 
     MVarFull:
+      this.State = MVar.Full;
       throw new Exception("MVar full");
     }
   }
