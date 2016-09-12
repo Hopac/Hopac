@@ -8,6 +8,7 @@ open System
 let main _ =
   printfn "ProcessorCount = %d" Environment.ProcessorCount
   JobTests.run ()
+  IVarTests.run ()
   MVarTests.run ()
   TaskTests.run ()
   StreamTests.run ()

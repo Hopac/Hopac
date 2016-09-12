@@ -64,6 +64,7 @@
     <Compile Include="RunTask.fsi" />
     <Compile Include="RunTask.fs" />
     <Compile Include="JobTests.fs" />
+    <Compile Include="IVarTests.fs" />
     <Compile Include="MVarTests.fs" />
     <Compile Include="TaskTests.fs" />
     <Compile Include="BuilderTests.fs" />
