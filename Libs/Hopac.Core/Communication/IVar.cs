@@ -35,18 +35,23 @@ namespace Hopac {
 
       internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
         var tI = this.tI;
-        tI.Value = this.t; // This assumes correct usage of IVar.
       Spin:
         var state = tI.State;
         if (state < Delayed) goto Spin;
-        if (state != Interlocked.CompareExchange(ref tI.State, HasValue, state)) goto Spin;
+        if (state != Interlocked.CompareExchange(ref tI.State, ~state, state)) goto Spin;
 
-        if (state > Running) {
-          uK.DoHandle(ref wr, new Exception("IVar full"));
-        } else {
-          WaitQueue.PickReaders(ref tI.Readers, tI.Value, ref wr);
-          Work.Do(uK, ref wr);
-        }
+        if (state > Running) goto IVarFull;
+
+        tI.Value = this.t;
+        tI.State = HasValue;
+
+        WaitQueue.PickReaders(ref tI.Readers, tI.Value, ref wr);
+        Work.Do(uK, ref wr);
+        return;
+
+      IVarFull:
+        tI.State = state;
+        uK.DoHandle(ref wr, new Exception("IVar full"));
       }
     }
 
@@ -141,6 +146,7 @@ namespace Hopac {
         return;
 
       IVarFull:
+        tI.State = state;
         uK.DoHandle(ref wr, new Exception("IVar full"));
       }
     }

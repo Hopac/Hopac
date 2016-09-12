@@ -1631,8 +1631,7 @@ module IVar =
 
   /// Creates a job that writes the given value to the given write once
   /// variable.  It is an error to write to a single write once variable more
-  /// than once.  This assumption may be used to optimize the implementation of
-  /// `fill` and incorrect usage leads to undefined behavior.
+  /// than once.
 #if DOC
   ///
   /// In most use cases of write once variables the write once assumption
@@ -1659,9 +1658,8 @@ module IVar =
   val inline tryFill: IVar<'x> -> 'x -> Job<unit>
 
   /// Creates a job that writes the given exception to the given write once
-  /// variable.  It is an error to write to a single `IVar` more than once.
-  /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.  See also: `*<=!`, `fill`.
+  /// variable.  It is an error to write to a single `IVar` more than once.  See
+  /// also: `*<=!`, `fill`.
   val    inline fillFailure: IVar<'x> -> exn -> Job<unit>
 
   /// Creates a job that tries to write the given exception to the given write
@@ -2577,22 +2575,18 @@ module Infixes =
   val inline ( *<+  ):      Ch<'x> -> 'x  -> Job<unit>
 
   /// Creates a job that writes to the given write once variable.  It is an
-  /// error to write to a single `IVar` more than once.  This assumption may be
-  /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.  `xI *<= x` is equivalent to `IVar.fill xI x`.
+  /// error to write to a single `IVar` more than once.  `xI *<= x` is
+  /// equivalent to `IVar.fill xI x`.
   val inline ( *<=  ):    IVar<'x> -> 'x  -> Job<unit>
 
   /// Creates a job that writes the given exception to the given write once
-  /// variable.  It is an error to write to a single `IVar` more than once.
-  /// This assumption may be used to optimize the implementation and incorrect
-  /// usage leads to undefined behavior.  `xI *<=! e` is equivalent to
-  /// `IVar.fillFailure xI e`.
+  /// variable.  It is an error to write to a single `IVar` more than once.  `xI
+  /// *<=! e` is equivalent to `IVar.fillFailure xI e`.
   val inline ( *<=! ):    IVar<'x> -> exn -> Job<unit>
 
   /// Creates a job that writes the given value to the serialized variable.  It
-  /// is an error to write to a `MVar` that is full.  This assumption may be
-  /// used to optimize the implementation and incorrect usage leads to undefined
-  /// behavior.  `xM *<<= x` is equivalent to `MVar.fill xM x`.
+  /// is an error to write to a `MVar` that is full.  `xM *<<= x` is equivalent
+  /// to `MVar.fill xM x`.
   val inline ( *<<= ):    MVar<'x> -> 'x  -> Job<unit>
 
   /// Creates a job that sends the given value to the specified mailbox.  This

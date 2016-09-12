@@ -1,3 +1,7 @@
+#### 0.3.17 - 2016-09-13
+* Eliminated undefined behaviour from `MVar.fill`, `IVar.fill` and
+  `IVar.fillFailure`.
+
 #### 0.3.16 - 2016-09-12
 * Fixed dependencies in nupkg.
 
