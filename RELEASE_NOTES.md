@@ -1,3 +1,6 @@
+#### 0.3.16 - 2016-09-12
+* Fixed dependencies in nupkg.
+
 #### 0.3.15 - 2016-09-10
 * Added preliminary .NET Core support.  Big thanks to @haf, @ncave and
   @enricosada!
