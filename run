@@ -387,14 +387,16 @@ fixup_nupkg() {
   local SUFFIX
   SUFFIX="$(sed -e '1,/<.dependencies>/d' Hopac.nuspec)"
 
-  echo "$PREFIX"        >  Hopac.nuspec
-  echo "      <group>"  >> Hopac.nuspec
-  echo "$NET_DEPS"      >> Hopac.nuspec
-  echo "      </group>" >> Hopac.nuspec
-  echo "$NETCORE_GROUP" >> Hopac.nuspec
-  echo "$NETCORE_DEPS"  >> Hopac.nuspec
-  echo "      </group>" >> Hopac.nuspec
-  echo "$SUFFIX"        >> Hopac.nuspec
+  echo "$PREFIX"             >  Hopac.nuspec
+  echo "    <dependencies>"  >> Hopac.nuspec
+  echo "      <group>"       >> Hopac.nuspec
+  echo "$NET_DEPS"           >> Hopac.nuspec
+  echo "      </group>"      >> Hopac.nuspec
+  echo "$NETCORE_GROUP"      >> Hopac.nuspec
+  echo "$NETCORE_DEPS"       >> Hopac.nuspec
+  echo "      </group>"      >> Hopac.nuspec
+  echo "    </dependencies>" >> Hopac.nuspec
+  echo "$SUFFIX"             >> Hopac.nuspec
 
   zip -u "$NUPKG" Hopac.nuspec
 
