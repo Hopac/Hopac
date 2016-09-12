@@ -12,6 +12,7 @@
         "RunTask.fsi",
         "RunTask.fs",
         "JobTests.fs",
+        "IVarTests.fs",
         "MVarTests.fs",
         "TaskTests.fs",
         "BuilderTests.fs",
