@@ -1098,7 +1098,7 @@ module Alt =
   val inline withNackFun: (Promise<unit> ->      #Alt<'x>)  -> Alt<'x>
 
   /// Returns a new alternative that that makes it so that the given job will be
-  /// started as a separated concurrent job if the given alternative isn't the
+  /// started as a separate concurrent job if the given alternative isn't the
   /// one being committed to.  See also: `wrapAbortFun`, `withNackJob`.
 #if DOC
   ///
