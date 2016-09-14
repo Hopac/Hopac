@@ -8,18 +8,22 @@ namespace Hopac.Core {
 
   internal abstract class Pick : Else {
     internal Nack Nacks;
-    internal volatile int State;  // 0 = available, -1 = claimed, 1 = picked
+    internal volatile int State;
+
+    internal const int Claimed   = -1;
+    internal const int Available =  0;
+    internal const int Picked    =  1;
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static int TryClaim(Pick pk) {
-      return Interlocked.CompareExchange(ref pk.State, -1, 0);
+      return Interlocked.CompareExchange(ref pk.State, Claimed, Available);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static int Claim(Pick pk) {
     TryClaim:
       var st = TryClaim(pk);
-      if (st < 0) goto TryClaim;
+      if (st < Available) goto TryClaim;
       return st;
     }
 
@@ -27,8 +31,8 @@ namespace Hopac.Core {
     internal static void ClaimAndDoJob<T>(Pick pk, ref Worker wr, Job<T> tJ, Cont<T> tK) {
     TryClaim:
       var st = TryClaim(pk);
-      if (st < 0) goto TryClaim;
-      if (st == 0) {
+      if (st < Available) goto TryClaim;
+      if (st == Available) {
         wr.Handler = tK;
         tJ.DoJob(ref wr, tK);
       }
@@ -36,27 +40,27 @@ namespace Hopac.Core {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Unclaim(Pick pk) {
-      pk.State = 0;
+      pk.State = Available;
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void PickClaimedAndSetNacks(ref Worker wr, int i, Pick pk) {
-      pk.State = 1;
+      pk.State = Picked;
       SetNacks(ref wr, i, pk);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static int TryPick(Pick pk) {
-      return Interlocked.CompareExchange(ref pk.State, 1, 0);
+      return Interlocked.CompareExchange(ref pk.State, Picked, Available);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static int DoPickOpt(Pick pk) {
-      var st = 0;
+      var st = Available;
       if (null == pk) goto Done;
     Retry:
       st = TryPick(pk);
-      if (st < 0) goto Retry;
+      if (st < Available) goto Retry;
     Done:
       return st;
     }
@@ -65,8 +69,8 @@ namespace Hopac.Core {
     internal static Nack ClaimAndAddNack(Pick pk, int i0) {
     TryClaim:
       var state = pk.State;
-      if (state > 0) goto AlreadyPicked;
-      if (state < 0) goto TryClaim;
+      if (state > Available) goto AlreadyPicked;
+      if (state < Available) goto TryClaim;
       if (0 != Interlocked.CompareExchange(ref pk.State, ~state, state)) goto TryClaim;
 
       var nk = new Nack(pk.Nacks, i0);
@@ -98,8 +102,8 @@ namespace Hopac.Core {
     internal static int PickAndSetNacks(Pick pk, ref Worker wr, int i) {
     TryPick:
       var state = Pick.TryPick(pk);
-      if (state > 0) goto AlreadyPicked;
-      if (state < 0) goto TryPick;
+      if (state > Available) goto AlreadyPicked;
+      if (state < Available) goto TryPick;
 
       SetNacks(ref wr, i, pk);
 
