@@ -13,10 +13,10 @@ open System.Diagnostics
 
 let rec skynet parent num size div = Job.delay <| fun () ->
   if size <= 1L then
-    parent *<- num :> Job<_>
+    parent *<+ num
   else
     let newSize = size / div
-    let self = Ch<Int64> ()
+    let self = Ch ()
     Job.forUpTo 0 (int div - 1) (fun x ->
       Job.queue (skynet self (num + int64 x * newSize) newSize div)) >>=.
     let rec collect sum toWait =
@@ -26,11 +26,11 @@ let rec skynet parent num size div = Job.delay <| fun () ->
       if 0L < toWait then
         collect sum toWait
       else
-        parent *<- sum :> Job<_>
+        parent *<+ sum
     collect 0L div
 
 let start size div =
-  let result = Ch<Int64> ()
+  let result = Ch ()
   Job.queue (skynet result 0L size div) >>=.
   result
 
