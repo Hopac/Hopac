@@ -8,12 +8,55 @@ open Hopac.Extensions
 open System
 open System.Diagnostics
 
+let inline (^) x = x
 let time name skynet =
   GC.Collect ()
   Threading.Thread.Sleep 50
   let timer = Stopwatch.StartNew ()
   let sum = skynet ()
   printfn "%s %d %A" name sum timer.Elapsed
+
+module Sync =
+  // This is a simple synchronous version.  This obviously has nothing to do
+  // with what the benchmark is supposed to measure.
+
+  let children = 10L
+
+  let rec skynet lvl num =
+    if lvl = 0 then
+      num
+    else
+      let numFirst = num      * children
+      let numStop  = numFirst + children
+      let lvl1     = lvl - 1
+      let mutable sum = 0L
+      let mutable num = numFirst
+      while num < numStop do
+        sum <- sum + skynet lvl1 num
+        num <- num + 1L
+      sum
+
+  let run () =
+    skynet 6 0L
+
+module ParallelSync =
+  // This is a simple parallel version calling the synchronous version in
+  // parallel.  This also has nothing to do with what the benchmark is supposed
+  // to measure, but, hey, even if this does the wrong thing, it does it
+  // quickly.
+
+  let children = 10L
+
+  let rec skynet lvl num =
+    let numFirst = num      * children
+    let numLast  = numFirst + children - 1L
+    let lvl1     = lvl - 1
+    seq { numFirst .. numLast }
+    |> Seq.Con.mapJob ^ Job.lift ^ Sync.skynet lvl1
+    >>- Seq.sum
+
+  let run () =
+    skynet 6 0L |> run
 
 module Actorish =
   // This is a quick translation from the Erlang version:
@@ -138,14 +181,20 @@ module Promisish =
     |> run
 
 do for i=1 to 10 do
-     time "Parallelish: " Parallelish.run
+     time "Sync:         " Sync.run
 
    for i=1 to 10 do
-     time "Actorish:    " <| fun () ->
+     time "ParallelSync: " ParallelSync.run
+
+   for i=1 to 10 do
+     time "Parallelish:  " Parallelish.run
+
+   for i=1 to 10 do
+     time "Actorish:     " <| fun () ->
        Actorish.run 1000000L 10L
 
    for i=1 to 10 do
-     time "Variablish:  " Variablish.run
+     time "Variablish:   " Variablish.run
 
    for i=1 to 10 do
-     time "Promisish:   " Promisish.run
+     time "Promisish:    " Promisish.run
