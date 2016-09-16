@@ -10,8 +10,9 @@ open System.Diagnostics
 
 let inline (^) x = x
 let time name skynet =
-  GC.Collect ()
-  Threading.Thread.Sleep 50
+  for i=0 to 1 do
+    GC.Collect ()
+    GC.WaitForPendingFinalizers ()
   let timer = Stopwatch.StartNew ()
   let sum = skynet ()
   printfn "%s %d %A" name sum timer.Elapsed
