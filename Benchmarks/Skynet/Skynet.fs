@@ -53,7 +53,8 @@ module ParallelSync =
     let numLast  = numFirst + children - 1L
     let lvl1     = lvl - 1
     seq { numFirst .. numLast }
-    |> Seq.Con.mapJob ^ Job.lift ^ Sync.skynet lvl1
+    |> Seq.Con.mapJob ^ fun num ->
+         Job.Scheduler.isolate ^ fun () -> Sync.skynet lvl1 num
     >>- Seq.sum
 
   let run () =
