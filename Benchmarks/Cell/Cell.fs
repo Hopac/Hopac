@@ -231,10 +231,9 @@ module AsyncCell =
      d.TotalSeconds nCells nJobs nUpdates
 
 let tick () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
     GC.WaitForPendingFinalizers ()
-    Threading.Thread.Sleep 50
 
 let test doAs m n p =
   HopacMVar.run m n p ; tick ()

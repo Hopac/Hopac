@@ -95,7 +95,7 @@ module BufferedCh =
 let cleanup () =
   for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do let mutable n = 1
    for i=1 to 6 do

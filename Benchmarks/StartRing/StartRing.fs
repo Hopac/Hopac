@@ -218,9 +218,9 @@ module Async =
      (float n / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for f in [|JQueue.run; PQueue.run; JStart.run; PStart.run; HQueue.run; HStart.run|] do
      for n in [|10; 100; 1000; 10000; 100000; 1000000; 10000000|] do

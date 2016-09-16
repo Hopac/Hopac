@@ -229,9 +229,9 @@ module AsPost =
      total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for f in [CallGI.run; CallSI.run; CallCh.run; ChGive.run; ChSend.run; ChGiSe.run; ChSeGi.run; MbSend.run; AsPost.run] do
      printf "\n"

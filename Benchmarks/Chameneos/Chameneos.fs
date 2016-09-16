@@ -211,9 +211,9 @@ module HopacAlt =
 ////////////////////////////////////////////////////////////////////////////////
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for n in [600; 6000; 60000; 600000; 6000000] do
      HopacLock.run n ; cleanup ()

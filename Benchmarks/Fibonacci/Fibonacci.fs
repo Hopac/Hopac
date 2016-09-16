@@ -214,9 +214,9 @@ let inline isMono () =
    | _ -> true
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for n in [10L; 20L; 30L; 40L] do
      SerialFun.run n ; cleanup ()

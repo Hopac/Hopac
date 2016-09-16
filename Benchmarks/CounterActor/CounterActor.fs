@@ -99,9 +99,9 @@ module MbMsg =
      (float (Environment.ProcessorCount * numPerThread) / d.TotalSeconds)
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
  
 do for f in [ChMsg.run; MbMsg.run] do
      for n in [300; 3000; 30000; 300000; 3000000] do

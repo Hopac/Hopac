@@ -85,9 +85,9 @@ module AsyncPR =
     printf "%9.0f hops/s\n" (float n / d.TotalSeconds)
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for f in [Literal.run; Tweaked.run; AsyncPR.run] do
      for n in [2000; 20000; 200000; 2000000; 20000000] do

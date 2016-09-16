@@ -10,9 +10,11 @@ open System.Threading
 open Hopac
 open Hopac.Infixes
 
-[<AutoOpen>]
-module Util =
-  let inline (^) x = x
+let inline (^) x = x
+let cleanup () =
+  for i=1 to 2 do
+    GC.Collect ()
+    GC.WaitForPendingFinalizers ()
 
 module Stream =
   open Stream
@@ -41,11 +43,10 @@ module BasicBench =
       for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
         if n <= max then
           printf "%s: " name
-          GC.Collect () ; Thread.Sleep 100
+          cleanup ()
           let start = Stopwatch.StartNew ()
           f n
           let elapsed = start.Elapsed
-          GC.Collect () ; Thread.Sleep 100
           printfn "%8d in %As is %11.2f ops/s"
             n elapsed (float n / elapsed.TotalSeconds)
     with e ->
@@ -322,9 +323,8 @@ do for m in [0; 1; 4; 6] do
      for n in [10; 160000; 320000] do
        for f in [Streams.Pyramid.run; Rx.Pyramid.run;
                  Streams.Diamond.run; Rx.Diamond.run] do
+         cleanup ()
          f m n
-         GC.Collect () ; System.Threading.Thread.Sleep 100
-         GC.Collect () ; System.Threading.Thread.Sleep 100
        printfn ""
 
 //do for n in [10L; 100L; 1000L; 10000L; 100000L] do

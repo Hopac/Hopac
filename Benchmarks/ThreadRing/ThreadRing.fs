@@ -221,9 +221,9 @@ module MPPost =
      (float (p*m) / d.TotalSeconds) d.TotalSeconds
 
 let cleanup () =
-  for i=1 to 5 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for p in [1; Environment.ProcessorCount] do
      for l in [50003; 503; 53] do

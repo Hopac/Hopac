@@ -125,9 +125,9 @@ module ChSendNow =
       (float max / d1.TotalSeconds) (float max / d2.TotalSeconds)
     
 let cleanup () =
-  for i=1 to 10 do
+  for i=1 to 2 do
     GC.Collect ()
-    Threading.Thread.Sleep 50
+    GC.WaitForPendingFinalizers ()
 
 do for f in [ChGive.run; MbSend.run; MbSendNow.run; ChSend.run; ChSendNow.run; Async.run] do
      for n in [|2000; 20000; 200000; 2000000; 20000000|] do
