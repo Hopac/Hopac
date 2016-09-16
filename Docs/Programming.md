@@ -92,7 +92,7 @@ open it up a bit.
   more
   complex[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.withNackJob)
   alternatives that encapsulate concurrent client-server protocols.
-  * **Selective** means that a form of
+* **Selective** means that a form of
   choice[*](http://hopac.github.io/Hopac/Hopac.html#def:val%20Hopac.Alt.choose)
   or disjunction between alternatives is supported.  An alternative can be
   constructed that, for example, offers to
