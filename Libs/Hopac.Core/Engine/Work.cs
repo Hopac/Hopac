@@ -40,16 +40,14 @@ namespace Hopac.Core {
     internal Handler hr;
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal FailWork(Work next, Exception e, Handler hr) {
-      this.Next = next;
-      this.e = e;
-      this.hr = hr;
-    }
+    internal FailWork(Exception e) { this.e = e; }
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal FailWork(Exception e, Handler hr) {
-      this.e = e;
-      this.hr = hr;
+    internal FailWork(Exception e, Handler hr) : this(e) { this.hr = hr; }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal FailWork(Work next, Exception e, Handler hr) : this(e, hr) {
+      this.Next = next;
     }
 
     internal override Proc GetProc(ref Worker wr) {

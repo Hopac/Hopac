@@ -369,10 +369,8 @@ module Infixes =
         rCh2n2qJ rCh nack >>= fun q ->
         ChSend<_, _> (qCh, q, rCh)} :> Alt<_>
   let inline ( *<+->- ) qCh rCh2n2q =
-    {new AltWithNackJob<_, _> () with
-      override xA'.Do (nack) =
-        let rCh = Ch<_> ()
-        upcast ChSend<_, _> (qCh, rCh2n2q rCh nack, rCh)} :> Alt<_>
+    {new ChQueryNackCh<_, _> () with
+      override xA'.Query (rCh, nack) = rCh2n2q rCh nack}.InternalInit qCh
   let inline ( *<-=>= ) qCh rI2qJ =
     {new AltPrepareJob<_, _> () with
       override xA'.Do () =
@@ -392,10 +390,8 @@ module Infixes =
         let rI = IVar ()
         rI2qJ rI >>= fun q -> ChSend<_, IVar<_>> (qCh, q, rI)} :> Alt<_>
   let inline ( *<+=>- ) (qCh: Ch<'q>) (rI2q: IVar<'r> -> 'q) =
-    {new AltPrepareJob<_, _> () with
-      override xA'.Do () =
-        let rI = IVar ()
-        upcast ChSend<_, IVar<_>> (qCh, rI2q rI, rI)} :> Alt<_>
+    {new ChQuerySendIVar<_, _> () with
+      override xA'.Query (rI) = rI2q rI}.InternalInit qCh
   let inline ( *<= ) (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline ( *<=! ) (xI: IVar<'x>) (e: exn) =
     IVar<'x>.FillFailure (xI, e) :> Job<unit>

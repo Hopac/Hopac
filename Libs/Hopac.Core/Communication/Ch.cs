@@ -454,5 +454,90 @@ namespace Hopac {
         return;
       }
     }
+
+    ///
+    public abstract class ChQueryNackCh<Q, R> : Alt<R> {
+      private Ch<Q> qCh;
+      ///
+      public abstract Q Query(Ch<R> rCh, Promise<Unit> nack);
+      ///
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Alt<R> InternalInit(Ch<Q> qCh) { this.qCh = qCh; return this; }
+      internal override void DoJob(ref Worker wr, Cont<R> rK) {
+        var rCh = new Ch<R>();
+        Exception e;
+        Q q;
+        try {
+          q = Query(rCh, StaticData.zero);
+          e = null;
+        } catch (Exception x) {
+          q = default(Q);
+          e = x;
+        }
+        if (null != e) {
+          Handler.DoHandleNull(ref wr, e);
+        } else {
+          Ch<Q>.Send(qCh, ref wr, q);
+          rCh.DoJob(ref wr, rK);
+        }
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<R> rK, Else rE) {
+        var pk = rE.pk;
+        var nk = Pick.TryAddNack(pk, i, i + 1);
+        if (null == nk)
+          return;
+
+        var rCh = new Ch<R>();
+        Exception e;
+        Q q;
+        try {
+          q = Query(rCh, nk);
+          e = null;
+        } catch (Exception x) {
+          q = default(Q);
+          e = x;
+        }
+        if (null != e) {
+          Worker.Push(ref wr, new FailWork(e));
+          rE.TryElse(ref wr, i + 1);
+        } else {
+          if (pk.State <= 0)
+            Ch<Q>.Send(qCh, ref wr, q);
+          if (pk.State <= 0)
+            rCh.TryAlt(ref wr, i, rK, rE);
+        }
+      }
+    }
+
+    ///
+    public abstract class ChQuerySendIVar<Q, R> : Alt<R> {
+      private Ch<Q> qCh;
+      ///
+      public abstract Q Query(IVar<R> rCh);
+      ///
+      [MethodImpl(AggressiveInlining.Flag)]
+      public Alt<R> InternalInit(Ch<Q> qCh) { this.qCh = qCh; return this; }
+      internal override void DoJob(ref Worker wr, Cont<R> rK) {
+        var rI = new IVar<R>();
+        Exception e;
+        Q q;
+        try {
+          q = Query(rI);
+          e = null;
+        } catch (Exception x) {
+          q = default(Q);
+          e = x;
+        }
+        if (null != e) {
+          Handler.DoHandleNull(ref wr, e);
+        } else {
+          Ch<Q>.Send(qCh, ref wr, q);
+          rI.DoJob(ref wr, rK);
+        }
+      }
+      internal override void TryAlt(ref Worker wr, int i, Cont<R> rK, Else rE) {
+        throw new NotImplementedException();
+      }
+    }
   }
 }

@@ -3,12 +3,15 @@
 [<AutoOpen>]
 module Util
 
+open Hopac
 open System
 open System.Collections.Generic
 
 let inline (^) x = x
 
 let mutable exitCode = 0
+
+let topLevelExns = Ch<exn> ()
 
 let testEq exp act =
   if exp <> act

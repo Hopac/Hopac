@@ -83,6 +83,24 @@ namespace Hopac.Core {
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
+    internal static Nack TryAddNack(Pick pk, int i0, int i1) {
+    TryClaim:
+      var state = pk.State;
+      if (state > Available) goto AlreadyPicked;
+      if (state < Available) goto TryClaim;
+      if (0 != Interlocked.CompareExchange(ref pk.State, ~state, state)) goto TryClaim;
+
+      var nk = new Nack(pk.Nacks, i0, i1);
+      pk.Nacks = nk;
+      pk.State = Available;
+
+      return nk;
+
+    AlreadyPicked:
+      return null;
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
     internal static void SetNacks(ref Worker wr, int i, Pick pk) {
       Nack nk = pk.Nacks;
       if (null != nk) {
