@@ -23,4 +23,4 @@ let run () =
      <|> Alt.always 2
      |> run |> testEq 2
 
-     topLevelExns |> Ch.Try.take |> run |> testEq ^ Some TestExn
+     topLevelExns ^-> Some <|> timeOutMillis 200 ^->. None |> run |> testEq ^ Some TestExn
