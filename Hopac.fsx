@@ -9,6 +9,7 @@
 #r "Hopac.Platform.dll"
 
 open System
+open System.Threading
 open Hopac.Experimental
 open Hopac.Extensions
 open Hopac.Infixes
