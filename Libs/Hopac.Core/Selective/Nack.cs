@@ -13,12 +13,15 @@ namespace Hopac.Core {
     internal int I1;
 
     [MethodImpl(AggressiveInlining.Flag)]
-    internal Nack(Nack next, int i0) {
+    internal Nack(Nack next, int i0, int i1) {
       this.State = Running;
       this.Next = next;
       this.I0 = i0;
-      this.I1 = Int32.MaxValue;
+      this.I1 = i1;
     }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal Nack(Nack next, int i0) : this(next, i0, Int32.MaxValue) { }
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void Signal(ref Worker wr, Nack nk) {

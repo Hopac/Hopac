@@ -8,6 +8,8 @@ open System.Numerics
 open Hopac
 open Hopac.Infixes
 
+exception TestExn
+
 let run () =
   do let qCh = Ch ()
      qCh >>= fun (rCh, nack, x) ->
@@ -16,3 +18,9 @@ let run () =
 
      qCh *<+->- fun rCh nack -> (rCh, nack, 2)
      |> run |> testEq 3
+
+     qCh *<+->- fun _ _ -> raise TestExn
+     <|> Alt.always 2
+     |> run |> testEq 2
+
+     topLevelExns ^-> Some <|> timeOutMillis 200 ^->. None |> run |> testEq ^ Some TestExn

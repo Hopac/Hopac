@@ -1,3 +1,8 @@
+#### 0.3.18 - 2016-09-xx
+* Changed the specification of and optimized `*<+->-` and `*<+=>-` with respect
+  to exception handling.  This is technically a breaking change, but it is
+  unlikely and unadvised that one would be raising exception within them.
+
 #### 0.3.17 - 2016-09-12
 * Eliminated undefined behaviour from `MVar.fill`, `IVar.fill` and
   `IVar.fillFailure`.
