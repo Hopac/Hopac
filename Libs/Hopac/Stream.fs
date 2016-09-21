@@ -636,6 +636,14 @@ module Stream =
   let rec beforeEach yJ xs =
     yJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach yJ xs)
                            | Nil -> Nil
+  let rec duringEach' hold yJ xs =
+    hold >>=. Promise.start yJ <&> xs >>-* function
+     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yJ xs)
+     | (_, Nil) -> Nil
+  let duringEach yJ (xs: Stream<_>) =
+    Promise.start yJ <&> xs >>-* function
+     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yJ xs)
+     | (_, Nil) -> Nil
 
   let distinctByJob x2kJ xs = filterJob (x2kJ >-> HashSet<_>().Add) xs
   let distinctByFun x2k xs = filterFun (x2k >> HashSet<_>().Add) xs

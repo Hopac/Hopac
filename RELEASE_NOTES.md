@@ -1,3 +1,6 @@
+#### 0.3.18 - 2016-09-21
+* Added `Stream.duringEach`.
+
 #### 0.3.17 - 2016-09-12
 * Eliminated undefined behaviour from `MVar.fill`, `IVar.fill` and
   `IVar.fillFailure`.

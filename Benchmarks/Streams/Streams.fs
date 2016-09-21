@@ -53,6 +53,13 @@ module BasicBench =
       printfn "Failed with: %A" e
 
   do
+     bench "duringEach" 10000000 ^ fun n ->
+       Stream.ints n
+       |> Stream.duringEach ^ Job.unit ()
+       |> Stream.duringEach ^ Job.unit ()
+       |> Stream.duringEach ^ Job.unit ()
+       |> Stream.iter |> run
+
      bench "mapPipelinedJob" 1000000 ^ fun n ->
        Stream.ints n
        |> Stream.mapPipelinedJob (Environment.ProcessorCount * 2) ^ Job.lift ^ fun n -> n + 1

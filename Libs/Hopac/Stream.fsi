@@ -582,7 +582,7 @@ module Stream =
   /// Returns a stream that produces the same elements as the given stream, but
   /// after each element, the given job is used as a delay before a request is
   /// made to the given stream for the next element.  If the given job fails,
-  /// the returned stream also fails.
+  /// the returned stream also fails.  See also: `duringEach`.
 #if DOC
   ///
   /// Suppose that an application needs to poll for some information, e.g. by
@@ -592,8 +592,9 @@ module Stream =
   ///> indefinitely poll
   ///> |> afterEach (timeOutMillis 10000)
   ///
-  /// The above stream ensures that polls are at least 10 seconds apart.  Also
-  /// when polls are requested less frequently, there is no delay before a poll.
+  /// The above stream ensures that there is at least 10 seconds of idle time
+  /// after the previous poll has finished and before a new poll is started.
+  /// When polls are requested less frequently, there is no delay before a poll.
 #endif
   val  afterEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
@@ -619,6 +620,28 @@ module Stream =
   /// `shift`.
 #endif
   val  delayEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
+
+  /// Returns a stream that produces the same elements as the given stream, but
+  /// runs the given job, which is typically a timeout, in parallel each time a
+  /// value is requested from the stream and waits for the job to complete
+  /// before next request.  The elements from the underlying stream are not
+  /// otherwise delayed.  If the given job fails, the returned stream also fails
+  /// when the next element is requested.  This means that when the underlying
+  /// streams ends, failure from the last started job will be ignored.  See
+  /// also: `afterEach`.
+#if DOC
+  ///
+  /// Suppose that an application needs to poll for some information, e.g. by
+  /// making a http request, using a job named `poll`.  Using `indefinitely` and
+  /// `duringEach` we can specify a stream for polling:
+  ///
+  ///> indefinitely poll
+  ///> |> duringEach (timeOutMillis 10000)
+  ///
+  /// The above stream ensures that polls are started at least 10 seconds apart.
+  /// When polls are requested less frequently, there is no delay before a poll.
+#endif
+  val duringEach: timeout: Job<_> -> Stream<'x> -> Stream<'x>
 
   /// Given a stream of ticks and a lazy stream of elements returns a stream of
   /// elements pulled from the lazy stream based on the ticks.  See also:
