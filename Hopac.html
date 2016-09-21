@@ -2547,7 +2547,7 @@ button.Click.Add (ignore &gt;&gt; <a href="#def:module%20Hopac.Stream">Stream</a
   |&gt; <a href="#def:module%20Hopac.Stream">Stream</a>.<a href="#def:val%20Hopac.Stream.scanFromFun">scanFromFun</a> 0 (+)
 </code></pre>
 <p> Given two stream sources for buttons, the following program would then print "That was fast!" whenever both buttons are clicked within 500ms.</p>
-<pre><code class="fsharp hljs">let t500ms = timeOutMillis 500
+<pre><code class="fsharp hljs">let t500ms = <a href="#def:val%20Hopac.Hopac.timeOutMillis">timeOutMillis</a> 500
 let n1s = <a href="#def:module%20Hopac.Stream">Stream</a>.<a href="#def:module%20Hopac.Stream.Src">Src</a>.<a href="#def:val%20Hopac.Stream.Src.tap">tap</a> button1ClickSrc |&gt; eventsWithin t500ms
 let n2s = <a href="#def:module%20Hopac.Stream">Stream</a>.<a href="#def:module%20Hopac.Stream.Src">Src</a>.<a href="#def:val%20Hopac.Stream.Src.tap">tap</a> button2ClickSrc |&gt; eventsWithin t500ms
 <a href="#def:module%20Hopac.Stream">Stream</a>.<a href="#def:val%20Hopac.Stream.combineLatest">combineLatest</a> n1s n2s
@@ -2682,7 +2682,7 @@ let n2s = <a href="#def:module%20Hopac.Stream">Stream</a>.<a href="#def:module%2
 <p> The above <code class="fsharp hljs">fibs</code> streams produces results lazily, but can do so at a relatively fast rate when it is being pulled eagerly.  The following</p>
 <pre><code class="fsharp hljs">let slowFibs =
   fibs
-  |&gt; <a href="#def:val%20Hopac.Stream.afterEach">afterEach</a> (timeOutMillis 1000)
+  |&gt; <a href="#def:val%20Hopac.Stream.afterEach">afterEach</a> (<a href="#def:val%20Hopac.Hopac.timeOutMillis">timeOutMillis</a> 1000)
 </code></pre>
 <p> stream would produce the fibonacci sequence with at most one element per second.</p>
 </div>
@@ -2912,7 +2912,7 @@ type <a id="def:type Hopac.Stream.KeepPrecedingFuns" href="#dec:type%20Hopac.Str
 <p> Returns a stream that produces the same elements as the given stream, but after each element, the given job is used as a delay before a request is made to the given stream for the next element.  If the given job fails, the returned stream also fails.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.duringEach">duringEach</a></code>.</p>
 <p> Suppose that an application needs to poll for some information, e.g. by making a http request, using a job named <code class="fsharp hljs">poll</code>.  Using <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.indefinitely">indefinitely</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.afterEach">afterEach</a></code> we can specify a stream for polling:</p>
 <pre><code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.indefinitely">indefinitely</a> poll
-|&gt; <a href="#def:val%20Hopac.Stream.afterEach">afterEach</a> (timeOutMillis 10000)
+|&gt; <a href="#def:val%20Hopac.Stream.afterEach">afterEach</a> (<a href="#def:val%20Hopac.Hopac.timeOutMillis">timeOutMillis</a> 10000)
 </code></pre>
 <p> The above stream ensures that there is at least 10 seconds of idle time after the previous poll has finished and before a new poll is started. When polls are requested less frequently, there is no delay before a poll.</p>
 </div>
@@ -2934,7 +2934,7 @@ timeout: +---x    +---x---x---x  +---x
 <p> Returns a stream that produces the same elements as the given stream, but runs the given job, which is typically a timeout, in parallel each time a value is requested from the stream and waits for the job to complete before next request.  The elements from the underlying stream are not otherwise delayed.  If the given job fails, the returned stream also fails when the next element is requested.  This means that when the underlying streams ends, failure from the last started job will be ignored.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.afterEach">afterEach</a></code>.</p>
 <p> Suppose that an application needs to poll for some information, e.g. by making a http request, using a job named <code class="fsharp hljs">poll</code>.  Using <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.indefinitely">indefinitely</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.duringEach">duringEach</a></code> we can specify a stream for polling:</p>
 <pre><code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.indefinitely">indefinitely</a> poll
-|&gt; <a href="#def:val%20Hopac.Stream.duringEach">duringEach</a> (timeOutMillis 10000)
+|&gt; <a href="#def:val%20Hopac.Stream.duringEach">duringEach</a> (<a href="#def:val%20Hopac.Hopac.timeOutMillis">timeOutMillis</a> 10000)
 </code></pre>
 <p> The above stream ensures that polls are started at least 10 seconds apart. When polls are requested less frequently, there is no delay before a poll.</p>
 </div>
