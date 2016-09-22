@@ -624,25 +624,25 @@ module Stream =
        | Error e -> raise e
     ds ()
 
-  let rec delayEach yJ xs =
-    xs >>=* function Cons (x, xs) -> yJ >>-. Cons (x, delayEach yJ xs)
+  let rec delayEach tJ xs =
+    xs >>=* function Cons (x, xs) -> tJ >>-. Cons (x, delayEach tJ xs)
                    | Nil -> nilj
 
-  let rec afterEach' yPJ = function
-    | Cons (x, xs) -> yPJ >>- fun p -> Cons (x, p >>=. xs >>=* afterEach' yPJ)
+  let rec afterEach' tPJ = function
+    | Cons (x, xs) -> tPJ >>- fun tP -> Cons (x, tP >>=. xs >>=* afterEach' tPJ)
     | Nil -> nilj
-  and afterEach yJ (xs: Stream<_>) = xs >>=* afterEach' (Promise.start yJ)
-  let rec beforeEach yJ xs =
-    yJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach yJ xs)
+  and afterEach tJ (xs: Stream<_>) = xs >>=* afterEach' (Promise.start tJ)
+  let rec beforeEach tJ xs =
+    tJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach tJ xs)
                            | Nil -> Nil
-  let rec duringEach' hold yPJ xs =
-    hold >>=. yPJ <&> xs >>-* function
-     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yPJ xs)
+  let rec duringEach' tP tPJ xs =
+    tP >>=. tPJ <&> xs >>-* function
+     | (tP, Cons (x, xs)) -> Cons (x, duringEach' tP tPJ xs)
      | (_, Nil) -> Nil
   let duringEach yJ (xs: Stream<_>) =
-    let yPJ = Promise.start yJ
-    yPJ <&> xs >>-* function
-     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yPJ xs)
+    let tPJ = Promise.start yJ
+    tPJ <&> xs >>-* function
+     | (tP, Cons (x, xs)) -> Cons (x, duringEach' tP tPJ xs)
      | (_, Nil) -> Nil
 
   let distinctByJob x2kJ xs = filterJob (x2kJ >-> HashSet<_>().Add) xs
