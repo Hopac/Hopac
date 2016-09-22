@@ -1,3 +1,7 @@
+#### 0.3.19 - 2016-09-22
+* Minor optimizations to `Stream.afterEach`, `Stream.duringEach`,
+  `Stream.ignoreWhile` and `Stream.shift`.
+
 #### 0.3.18 - 2016-09-21
 * Added `Stream.duringEach`.
 

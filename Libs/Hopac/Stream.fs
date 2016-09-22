@@ -360,17 +360,16 @@ module Stream =
     | Nil -> nilj
   and ignoreUntil timeout xs = xs >>=* ignoreUntil0 timeout
 
-  let rec ignoreWhile1 timeout = function
-    | Cons (x, xs) ->
-      Promise.start timeout >>- fun timer ->
-      Cons (x, ignoreWhile0 timeout timer xs |> memo)
+  let rec ignoreWhile1 tPJ = function
+    | Cons (x, xs) -> tPJ >>- fun tP ->
+      Cons (x, ignoreWhile0 tPJ tP xs |> memo)
     | Nil -> nilj
-  and ignoreWhile0 timeout timer xs =
-        timer ^=> fun _ -> xs >>= ignoreWhile1 timeout
-    <|> xs ^=> function Cons (_, xs) -> ignoreWhile0 timeout timer xs
+  and ignoreWhile0 tPJ tP xs =
+        tP ^=> fun _ -> xs >>= ignoreWhile1 tPJ
+    <|> xs ^=> function Cons (_, xs) -> ignoreWhile0 tPJ tP xs
                       | Nil -> nilj
      :> Job<_>
-  let ignoreWhile timeout (xs: Stream<_>) = xs >>=* ignoreWhile1 timeout
+  let ignoreWhile tP (xs: Stream<_>) = xs >>=* ignoreWhile1 (Promise.start tP)
 
   type [<AbstractClass>] KeepPrecedingFuns<'x, 'y> () =
     abstract First: 'x -> 'y
@@ -610,16 +609,17 @@ module Stream =
     | Completed
     | Error of exn
 
-  let shift t (xs: Stream<'x>) : Stream<'x> =
+  let shift tJ (xs: Stream<'x>) : Stream<'x> =
+    let tPJ = Promise.start tJ
     let es = Ch<Shift<Promise<_>, 'x>> ()
     let (inc, dec) =
-      pull xs <| fun x -> Promise.start t >>= fun p -> es *<+ Value (p, x)
+      pull xs <| fun x -> tPJ >>= fun tP -> es *<+ Value (tP, x)
               <| fun () -> es *<+ Completed
               <| fun e -> es *<+ Error e
     let es = inc >>=. es
     let rec ds () =
       es >>=* function
-       | Value (yJ, x) -> Job.tryFinallyJob (yJ >>-. Cons (x, ds ())) dec
+       | Value (tP, x) -> Job.tryFinallyJob (tP >>-. Cons (x, ds ())) dec
        | Completed -> nilj
        | Error e -> raise e
     ds ()
@@ -628,21 +628,21 @@ module Stream =
     xs >>=* function Cons (x, xs) -> yJ >>-. Cons (x, delayEach yJ xs)
                    | Nil -> nilj
 
-  let rec afterEach' yJ = function
-    | Cons (x, xs) ->
-      Promise.start yJ >>- fun p -> Cons (x, p >>=. xs >>=* afterEach' yJ)
+  let rec afterEach' yPJ = function
+    | Cons (x, xs) -> yPJ >>- fun p -> Cons (x, p >>=. xs >>=* afterEach' yPJ)
     | Nil -> nilj
-  and afterEach yJ (xs: Stream<_>) = xs >>=* afterEach' yJ
+  and afterEach yJ (xs: Stream<_>) = xs >>=* afterEach' (Promise.start yJ)
   let rec beforeEach yJ xs =
     yJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach yJ xs)
                            | Nil -> Nil
-  let rec duringEach' hold yJ xs =
-    hold >>=. Promise.start yJ <&> xs >>-* function
-     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yJ xs)
+  let rec duringEach' hold yPJ xs =
+    hold >>=. yPJ <&> xs >>-* function
+     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yPJ xs)
      | (_, Nil) -> Nil
   let duringEach yJ (xs: Stream<_>) =
-    Promise.start yJ <&> xs >>-* function
-     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yJ xs)
+    let yPJ = Promise.start yJ
+    yPJ <&> xs >>-* function
+     | (hold, Cons (x, xs)) -> Cons (x, duringEach' hold yPJ xs)
      | (_, Nil) -> Nil
 
   let distinctByJob x2kJ xs = filterJob (x2kJ >-> HashSet<_>().Add) xs
