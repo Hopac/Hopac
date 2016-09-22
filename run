@@ -604,7 +604,11 @@ repl() {
   CONFIGS=Release
   build
 
-  rlwrap -t dumb "$FSI" --use:Hopac.fsx
+  rlwrap -t dumb "$FSI" \
+    --optimize+         \
+    --tailcalls+        \
+    --crossoptimize+    \
+    --use:Hopac.fsx
 }
 
 benchmarks() {
