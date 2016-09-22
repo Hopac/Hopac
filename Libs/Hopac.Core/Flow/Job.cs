@@ -26,6 +26,7 @@ namespace Hopac {
       private sealed class ContBind : Cont<X> {
         private JobBind<X, Y> yJ;
         private Cont<Y> yK;
+        [MethodImpl(AggressiveInlining.Flag)]
         internal ContBind(JobBind<X, Y> yJ, Cont<Y> yK) {
           this.yJ = yJ;
           this.yK = yK;
