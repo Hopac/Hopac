@@ -1,3 +1,8 @@
+#### 0.3.20 - 2016-09-23
+* Fixed a space leak that could be observed with programs running long periods
+  of time with full worker utilization.  Thanks to @vasily-kirichenko for
+  reporting the issue!
+
 #### 0.3.19 - 2016-09-22
 * Minor optimizations to `Stream.afterEach`, `Stream.duringEach`,
   `Stream.ignoreWhile` and `Stream.shift`.
