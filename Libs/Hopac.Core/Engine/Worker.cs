@@ -180,9 +180,12 @@ namespace Hopac.Core {
             }
             var next = last.Next;
             last.Next = null;
+            last = null;
             sr.WorkStack = next;
-            if (null != next)
+            if (null != next) {
+              next = null;
               Scheduler.UnsafeSignal(sr);
+            }
             Scheduler.Exit(sr);
             goto WorkerLoop;
           }
