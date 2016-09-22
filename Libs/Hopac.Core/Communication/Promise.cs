@@ -32,7 +32,7 @@ namespace Hopac {
     /// it.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     public Promise(Job<T> tJ) {
-      this.Readers = new Fulfill(this, tJ);
+      this.Readers = new Fulfill(tJ);
     }
 
     /// <summary>Creates a promise with the given value.</summary>
@@ -88,6 +88,7 @@ namespace Hopac {
       this.State = Running;
 
       var fulfill = readers as Fulfill;
+      fulfill.tP = this;
       fulfill.reader = aK;
       var tJ = fulfill.tJ;
       fulfill.tJ = null;
@@ -123,6 +124,7 @@ namespace Hopac {
       this.State = Running;
 
       var fulfill = readers as Fulfill;
+      fulfill.tP = this;
       fulfill.reader = aK;
       fulfill.me = i;
       fulfill.pk = aE.pk;
@@ -161,6 +163,11 @@ namespace Hopac {
       [MethodImpl(AggressiveInlining.Flag)]
       internal Fulfill(Promise<T> tP) {
         this.tP = tP;
+      }
+
+      [MethodImpl(AggressiveInlining.Flag)]
+      internal Fulfill(Job<T> tJ) {
+        this.tJ = tJ;
       }
 
       [MethodImpl(AggressiveInlining.Flag)]
