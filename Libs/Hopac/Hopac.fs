@@ -317,12 +317,16 @@ module Infixes =
        else eitherOr &wr i xK xE xA2 xA1}
 
   let inline (^->) (xA: Alt<'x>) (x2y: 'x -> 'y) =
-    {new AltAfterFun<'x, 'y> () with
-      override yA'.Do (x) = x2y x}.InternalInit(xA)
+    {new AltAfter<'x, 'y> () with
+      override yA'.Do () =
+        upcast {new ContMap<'x, 'y> () with
+          override xK'.Do (x) = x2y x}}.InternalInit(xA)
 
   let inline (^=>) (xA: Alt<'x>) (x2yJ: 'x -> #Job<'y>) =
-    {new AltAfterJob<'x, 'y> () with
-      override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
+    {new AltAfter<'x, 'y> () with
+      override yA'.Do () =
+        upcast {new ContBind<'x, 'y> () with
+          override xK'.Do (x) = upcast x2yJ x}}.InternalInit(xA)
 
   let (^->.) (xA: Alt<_>) (y: 'y) =
     {new Alt<'y> () with
@@ -659,13 +663,9 @@ module Alt =
           Pick.Unclaim pk
           xA.TryAlt (&wr, i, xK, WithNackElse (nk, xE))}
 
-  let inline afterFun (x2y: 'x -> 'y) (xA: Alt<'x>) =
-    {new AltAfterFun<'x, 'y> () with
-      override yA'.Do (x) = x2y x}.InternalInit(xA)
+  let inline afterFun (x2y: 'x -> 'y) (xA: Alt<'x>) = xA ^-> x2y
 
-  let inline afterJob (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) =
-    {new AltAfterJob<'x, 'y> () with
-      override yA'.Do (x) = upcast x2yJ x}.InternalInit(xA)
+  let inline afterJob (x2yJ: 'x -> #Job<'y>) (xA: Alt<'x>) = xA ^=> x2yJ
 
   let Ignore (xA: Alt<_>) =
     {new Alt<unit> () with

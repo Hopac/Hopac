@@ -13,74 +13,22 @@ namespace Hopac {
 
   namespace Core {
     ///
-    public abstract class AltAfterJob<X, Y> : Alt<Y> {
+    public abstract class AltAfter<X, Y> : Alt<Y> {
       internal Alt<X> xA;
       ///
       [MethodImpl(AggressiveInlining.Flag)]
       public Alt<Y> InternalInit(Alt<X> xA) { this.xA = xA; return this; }
       ///
-      public abstract Job<Y> Do(X x);
+      public abstract JobContCont<X, Y> Do();
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        xA.DoJob(ref wr, new ContAfterJob(this, yK));
-      }
-      internal sealed class ContAfterJob : Cont<X> {
-        internal AltAfterJob<X, Y> yA;
-        internal Cont<Y> yK;
-        internal ContAfterJob(AltAfterJob<X, Y> yA, Cont<Y> yK) {
-          this.yA = yA;
-          this.yK = yK;
-        }
-        internal override Proc GetProc(ref Worker wr) {
-          return Handler.GetProc(ref wr, ref yK);
-        }
-        internal override void DoHandle(ref Worker wr, Exception e) {
-          Handler.DoHandle(yK, ref wr, e);
-        }
-        internal override void DoWork(ref Worker wr) {
-          yA.Do(this.Value).DoJob(ref wr, yK);
-        }
-        internal override void DoCont(ref Worker wr, X x) {
-          yA.Do(x).DoJob(ref wr, yK);
-        }
+        var xK = Do();
+        xK.yK = yK;
+        xA.DoJob(ref wr, xK);
       }
       internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else yE) {
-        xA.TryAlt(ref wr, i, new ContAfterJob(this, yK), yE);
-      }
-    }
-
-    ///
-    public abstract class AltAfterFun<X, Y> : Alt<Y> {
-      internal Alt<X> xA;
-      ///
-      [MethodImpl(AggressiveInlining.Flag)]
-      public Alt<Y> InternalInit(Alt<X> xA) { this.xA = xA; return this; }
-      ///
-      public abstract Y Do(X x);
-      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        xA.DoJob(ref wr, new ContAfterFun(this, yK));
-      }
-      internal sealed class ContAfterFun : Cont<X> {
-        internal AltAfterFun<X, Y> yA;
-        internal Cont<Y> yK;
-        internal ContAfterFun(AltAfterFun<X, Y> yA, Cont<Y> yK) {
-          this.yA = yA;
-          this.yK = yK;
-        }
-        internal override Proc GetProc(ref Worker wr) {
-          return Handler.GetProc(ref wr, ref yK);
-        }
-        internal override void DoHandle(ref Worker wr, Exception e) {
-          Handler.DoHandle(yK, ref wr, e);
-        }
-        internal override void DoWork(ref Worker wr) {
-          yK.DoCont(ref wr, yA.Do(this.Value));
-        }
-        internal override void DoCont(ref Worker wr, X x) {
-          yK.DoCont(ref wr, yA.Do(x));
-        }
-      }
-      internal override void TryAlt(ref Worker wr, int i, Cont<Y> yK, Else yE) {
-        xA.TryAlt(ref wr, i, new ContAfterFun(this, yK), yE);
+        var xK = Do();
+        xK.yK = yK;
+        xA.TryAlt(ref wr, i, xK, yE);
       }
     }
 
