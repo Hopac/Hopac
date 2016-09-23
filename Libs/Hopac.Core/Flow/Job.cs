@@ -27,6 +27,7 @@ namespace Hopac {
       }
     }
 
+    ///
     public abstract class JobContCont<X, Y> : Cont<X> {
       internal Cont<Y> yK;
     }
