@@ -203,8 +203,11 @@ module IVar =
 
 module Infixes =
   let inline (>>=) (xJ: Job<'x>) (x2yJ: 'x -> #Job<'y>) =
-    {new JobBind<'x, 'y> () with
-      override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xJ)
+    {new JobCont<'x, 'y> () with
+      override yJ'.Do () =
+        upcast {new ContBind<'x, 'y> () with
+          override xK'.Do (x) =
+            upcast x2yJ x}}.InternalInit(xJ)
 
   let (>>=.) (xJ: Job<_>) (yJ: Job<'y>) =
     {new Job<'y> () with
@@ -212,8 +215,11 @@ module Infixes =
        xJ.DoJob (&wr, SeqCont (yJ, yK))}
 
   let inline (>>-) (xJ: Job<'x>) (x2y: 'x -> 'y) =
-    {new JobMap<'x, 'y> () with
-      override yJ'.Do (x) = x2y x}.InternalInit(xJ)
+    {new JobCont<'x, 'y> () with
+      override yJ'.Do () =
+        upcast {new ContMap<'x, 'y> () with
+          override xK'.Do (x) =
+            x2y x}}.InternalInit(xJ)
 
   let (>>-.) (xJ: Job<_>) (y: 'y) =
     {new Job<'y> () with
@@ -1042,15 +1048,11 @@ module Job =
         override self.DoJob (wr, xK) =
          xK.DoCont (&wr, x)}
 
-  let inline bind (x2yJ: 'x -> #Job<'y>) (xJ: Job<'x>) =
-    {new JobBind<'x, 'y> () with
-      override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xJ)
+  let inline bind (x2yJ: 'x -> #Job<'y>) (xJ: Job<'x>) = xJ >>= x2yJ
 
   let inline join (xJJ: Job<#Job<'x>>) = JobJoin<_, _>().InternalInit(xJJ)
 
-  let inline map (x2y: 'x -> 'y) (xJ: Job<'x>) =
-    {new JobMap<'x, 'y> () with
-      override yJ'.Do (x) = x2y x}.InternalInit(xJ)
+  let inline map (x2y: 'x -> 'y) (xJ: Job<'x>) = xJ >>- x2y
 
   let inline applyMap (wr: byref<_>) x2y (xJ: Job<_>) (yK: Cont<_>) =
     xJ.DoJob (&wr, {new Cont<_> () with

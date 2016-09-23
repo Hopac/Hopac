@@ -13,36 +13,57 @@ namespace Hopac {
 
   namespace Core {
     ///
-    public abstract class JobBind<X, Y> : Job<Y> {
+    public abstract class JobCont<X, Y> : Job<Y> {
       private Job<X> xJ;
       ///
       [MethodImpl(AggressiveInlining.Flag)]
       public Job<Y> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
       ///
-      public abstract Job<Y> Do(X x);
+      public abstract JobContCont<X, Y> Do();
       internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        xJ.DoJob(ref wr, new ContBind(this, yK));
+        var xK = Do();
+        xK.yK = yK;
+        xJ.DoJob(ref wr, xK);
       }
-      private sealed class ContBind : Cont<X> {
-        private JobBind<X, Y> yJ;
-        private Cont<Y> yK;
-        [MethodImpl(AggressiveInlining.Flag)]
-        internal ContBind(JobBind<X, Y> yJ, Cont<Y> yK) {
-          this.yJ = yJ;
-          this.yK = yK;
-        }
-        internal override Proc GetProc(ref Worker wr) {
-          return Handler.GetProc(ref wr, ref yK);
-        }
-        internal override void DoHandle(ref Worker wr, Exception e) {
-          Handler.DoHandle(yK, ref wr, e);
-        }
-        internal override void DoWork(ref Worker wr) {
-          yJ.Do(this.Value).DoJob(ref wr, yK);
-        }
-        internal override void DoCont(ref Worker wr, X x) {
-          yJ.Do(x).DoJob(ref wr, yK);
-        }
+    }
+
+    public abstract class JobContCont<X, Y> : Cont<X> {
+      internal Cont<Y> yK;
+    }
+
+    ///
+    public abstract class ContBind<X, Y> : JobContCont<X, Y> {
+      ///
+      public abstract Job<Y> Do(X x);
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref yK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        Handler.DoHandle(yK, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        Do(this.Value).DoJob(ref wr, yK);
+      }
+      internal override void DoCont(ref Worker wr, X x) {
+        Do(x).DoJob(ref wr, yK);
+      }
+    }
+
+    ///
+    public abstract class ContMap<X, Y> : JobContCont<X, Y> {
+      ///
+      public abstract Y Do(X x);
+      internal override Proc GetProc(ref Worker wr) {
+        return Handler.GetProc(ref wr, ref yK);
+      }
+      internal override void DoHandle(ref Worker wr, Exception e) {
+        Handler.DoHandle(yK, ref wr, e);
+      }
+      internal override void DoWork(ref Worker wr) {
+        yK.DoCont(ref wr, Do(this.Value));
+      }
+      internal override void DoCont(ref Worker wr, X x) {
+        yK.DoCont(ref wr, Do(x));
       }
     }
 
@@ -343,39 +364,6 @@ namespace Hopac {
         var xK = DoCont().Init(xK_);
         wr.Handler = xK;
         Do().DoJob(ref wr, xK);
-      }
-    }
-
-    ///
-    public abstract class JobMap<X, Y> : Job<Y> {
-      private Job<X> xJ;
-      ///
-      [MethodImpl(AggressiveInlining.Flag)]
-      public Job<Y> InternalInit(Job<X> xJ) { this.xJ = xJ; return this; }
-      ///
-      public abstract Y Do(X x);
-      internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-        xJ.DoJob(ref wr, new ContMap(this, yK));
-      }
-      internal sealed class ContMap : Cont<X> {
-        private JobMap<X, Y> yJ;
-        private Cont<Y> yK;
-        internal ContMap(JobMap<X, Y> yJ, Cont<Y> yK) {
-          this.yJ = yJ;
-          this.yK = yK;
-        }
-        internal override Proc GetProc(ref Worker wr) {
-          return Handler.GetProc(ref wr, ref yK);
-        }
-        internal override void DoHandle(ref Worker wr, Exception e) {
-          Handler.DoHandle(yK, ref wr, e);
-        }
-        internal override void DoWork(ref Worker wr) {
-          yK.DoCont(ref wr, yJ.Do(this.Value));
-        }
-        internal override void DoCont(ref Worker wr, X x) {
-          yK.DoCont(ref wr, yJ.Do(x));
-        }
       }
     }
 
