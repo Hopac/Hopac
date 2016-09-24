@@ -1,3 +1,6 @@
+#### 0.3.21 - 2016-09-xx
+* Added `Hopac.runDelay`.
+
 #### 0.3.20 - 2016-09-23
 * Fixed a space leak that could be observed with programs running long periods
   of time with full worker utilization.  Thanks to @vasily-kirichenko for

@@ -12,6 +12,7 @@ module Hopac =
   let onMain = Extensions.Async.Global.onMain ()
 
   let inline run x = Job.Global.run x
+  let inline runDelay u2xJ = run <| Job.delay u2xJ
   let inline startIgnore x = Job.Global.startIgnore x
   let inline startDelay x = Job.Global.startIgnore <| Job.delay x
   let inline start x = Job.Global.start x

@@ -97,7 +97,10 @@ module Hopac =
   /// needed, because within a workflow the result of a job can be obtained by
   /// binding.
 #endif
-  val inline run: Job<'x> -> 'x
+  val inline run:                Job<'x>  -> 'x
+
+  /// `runDelay u2xJ` is equivalent to `run <| Job.delay u2xJ`.
+  val inline runDelay: (unit -> #Job<'x>) -> 'x
 
   //# Interop
 
