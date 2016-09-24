@@ -780,9 +780,14 @@ module Stream =
        <| function Cons (h, t) -> consj x (lp h t |> memo) | Nil -> nilj
        <| fun _ -> nilj
     s >>= function Nil -> nilj | Cons (x, s) -> lp x s
-  let inits xs = scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> take n xs)
+  let inits xs =
+    xs
+    |> scanFromFun 0L ^ fun n _ -> n+1L
+    |> mapFun ^ fun n -> take n xs
   let initsMapFun xs2y xs =
-    scanFun (fun n _ -> n+1L) 0L xs |> mapFun (fun n -> xs2y (take n xs))
+    xs
+    |> scanFromFun 0L ^ fun n _ -> n+1L
+    |> mapFun ^ fun n -> xs2y ^ take n xs
 
   let rec unfoldJob f s =
     f s >>-* function None -> Nil | Some (x, s) -> Cons (x, unfoldJob f s)
@@ -816,12 +821,12 @@ module Stream =
 
   let afterDateTimeOffsets dtos =
     dtos
-    |> mapJob (fun dto ->
-       let ts = dto - DateTimeOffset.Now
-       if ts.Ticks <= 0L then Job.result dto else timeOut ts >>-. dto)
+    |> mapJob ^ fun dto ->
+         let ts = dto - DateTimeOffset.Now
+         if ts.Ticks <= 0L then Job.result dto else timeOut ts >>-. dto
   let afterDateTimeOffset dto = afterDateTimeOffsets (one dto)
 
-  let afterTimeSpan ts = once (timeOut ts)
+  let afterTimeSpan ts = once ^ timeOut ts
 
   let inline lastBuffer i b tail =
     if 0 < i then consj (Array.sub b 0 i) tail else upcast tail
