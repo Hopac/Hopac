@@ -10,19 +10,10 @@ open Hopac.Extensions
 open Hopac.Timer.Global
 
 module Stream =
-  let inline (^) x = x
-  let imp () = failwith "Impossible"
   let inline memo xJ = Promise<'x> (xJ :> Job<'x>)
   let inline queue x = Job.Global.queue x
   let inline start x = Job.Global.start x
   let inline server x = Job.Global.server x
-  let inline tryAp x2y x yK eK =
-    let mutable e = null
-    let y = try x2y x with e' -> e <- e' ; Unchecked.defaultof<_>
-    match e with
-     | null -> yK y
-     | e -> eK e
-  let inline tryIn u2v vK eK = tryAp u2v () vK eK
 
   type Cons<'x> =
     | Cons of Value: 'x * Next: Promise<Cons<'x>>

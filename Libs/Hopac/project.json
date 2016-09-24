@@ -8,6 +8,7 @@
     "compile": {
       "includeFiles": [
         "AssemblyInfo.fs",
+        "Util.fs",
         "Hopac.fsi",
         "Hopac.fs",
         "Stream.fsi",

@@ -22,22 +22,7 @@ type IAsyncDisposable =
 ////////////////////////////////////////////////////////////////////////////////
 
 [<AutoOpen>]
-module Util =
-  let inline inc (i: byref<int>) : int =
-    let j = i+1 in i <- j ; j
-  let inline dec (i: byref<int>) : int =
-    let j = i-1 in i <- j ; j
-
-  let inline tryIn u2x x2y e2y =
-    let mutable e : exn = null
-    let x = try u2x ()
-            with e' ->
-              e <- e'
-              Unchecked.defaultof<_>
-    match e with
-     | null -> x2y x
-     | e    -> e2y e
-
+module MoreUtil =
   let aggrExn (exns: ResizeArray<exn>) =
     if exns.Count = 1 then exns.[0] else upcast AggregateException exns
 
@@ -45,12 +30,6 @@ module Util =
     match context with
      | null -> f x
      | ctxt -> ctxt.Post ((fun _ -> f x), null)
-
-  module Option =
-    let orDefaultOf x =
-      match x with
-       | None -> Unchecked.defaultof<_>
-       | Some x -> x
 
   let inline ctor x2y x =
     {new Job<'y> () with
@@ -1340,7 +1319,7 @@ module Job =
         | null -> ysK.DoWork (&wr)
         | exns -> ysK.DoHandle (&wr, aggrExn exns)
     static member inline Done (cc': ConCollect<'x, 'y>, wr: byref<Worker>) =
-     if cc'.ysK.Value.Count < Util.inc &cc'.N then
+     if cc'.ysK.Value.Count < inc &cc'.N then
        ConCollect<'x, 'y>.Continue (cc', &wr)
     override cc'.GetProc (wr) = cc'.ysK.GetProc (&wr)
     override cc'.DoHandle (wr, e) =
@@ -1928,7 +1907,7 @@ module Extensions =
                 let x = xs.Current
                 cc'.Lock.ExitAndEnter (&wr, cc')
                 cc'.ysK.Value.Add Unchecked.defaultof<_>
-                let i = Util.dec &nth
+                let i = dec &nth
                 Worker.PushNew
                  (&wr, {new Cont_State<_, _, _, _ -> #Job<_>> () with
                   override yK'.GetProc (wr) = cc'.ysK.GetProc (&wr)
