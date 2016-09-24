@@ -1887,12 +1887,12 @@ module MVar =
   //# Mutate
 
   /// Creates an alternative that takes the value of the serialized variable and
-  /// then fills the variable with with the result of performing the given job.
+  /// then fills the variable with the result of performing the given job.
   val    inline mutateJob: ('x -> #Job<'x>) -> MVar<'x> -> Alt<unit>
 
   /// Creates an alternative that takes the value of the serialized variable and
-  /// then fills the variable with with the result of performing the given job.
-  /// If the job raises an exception, the serialized variable is filled with its
+  /// then fills the variable with the result of performing the given job.  If
+  /// the job raises an exception, the serialized variable is filled with its
   /// original value before propagating the exception.
   val inline tryMutateJob: ('x -> #Job<'x>) -> MVar<'x> -> Alt<unit>
 
