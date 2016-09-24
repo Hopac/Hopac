@@ -553,6 +553,12 @@ module Stream =
       delay <| fun () ->
       let inCh = Ch ()
       let resultMb = Mailbox ()
+      let rec loop () =
+        resultMb >>=* fun rCh ->
+          rCh >>- function
+           | Value y -> Cons (y, loop ())
+           | Exn e   -> raise e
+           | Done    -> Nil
       inCh >>= fun (s: Struct<_, _>) ->
           let x = s.Get1
           let rCh = s.Get2
@@ -568,14 +574,7 @@ module Stream =
                            resultMb *<<+ (rCh :> Job<_>))
              (fun () -> resultMb *<<+ Job.result Done)
              (Exn >> Job.result >> Mailbox.send resultMb)
-      |> start
-      let rec loop () =
-        resultMb >>=* fun rCh ->
-          rCh >>- function
-           | Value y -> Cons (y, loop ())
-           | Exn e   -> raise e
-           | Done    -> Nil
-      loop ()
+      |> Job.start >>= loop
 
   let mapPipelinedFun (slack: int) (x2y: 'x -> 'y) (xs: Stream<'x>) =
     mapPipelinedJob slack (Job.lift x2y) xs
