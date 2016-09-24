@@ -307,14 +307,9 @@ namespace Hopac {
 
     ///
     public abstract class ContTryWith<X> : Cont<X> {
-      private Cont<X> xK;
+      internal Cont<X> xK;
       ///
       public abstract Job<X> DoExn(Exception e);
-      [MethodImpl(AggressiveInlining.Flag)]
-      internal Cont<X> Init(Cont<X> xK) {
-        this.xK = xK;
-        return this;
-      }
       internal override Proc GetProc(ref Worker wr) {
         return Handler.GetProc(ref wr, ref xK);
       }
@@ -351,7 +346,8 @@ namespace Hopac {
         return this;
       }
       internal override void DoJob(ref Worker wr, Cont<X> xK_) {
-        var xK = DoCont().Init(xK_);
+        var xK = DoCont();
+        xK.xK = xK_;
         wr.Handler = xK;
         xJ.DoJob(ref wr, xK);
       }
@@ -362,7 +358,8 @@ namespace Hopac {
       ///
       public abstract Job<X> Do();
       internal override void DoJob(ref Worker wr, Cont<X> xK_) {
-        var xK = DoCont().Init(xK_);
+        var xK = DoCont();
+        xK.xK = xK_;
         wr.Handler = xK;
         Do().DoJob(ref wr, xK);
       }
