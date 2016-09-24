@@ -4,5 +4,5 @@ namespace Hopac.Experimental
 
 [<AutoOpen>]
 module Util =
-  let inline (^) x = x
+  let inline (^) f x = f x
 
