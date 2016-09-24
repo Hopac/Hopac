@@ -3,6 +3,7 @@
 module AsyncOverhead
 
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 open Hopac.Extensions
 open System
@@ -31,7 +32,7 @@ do let doAsyncJobBinds n =
 
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAsyncJobBinds n
-     clean ()
+     GC.clean ()
 
 do let doAsyncJobBinds n =
      printf "Job.bindAsync: "
@@ -48,7 +49,7 @@ do let doAsyncJobBinds n =
 
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAsyncJobBinds n
-     clean ()
+     GC.clean ()
 
 do let doAltAsyncBinds n =
      printf "Alt-in-Async binds: "
@@ -64,7 +65,7 @@ do let doAltAsyncBinds n =
 
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAltAsyncBinds n
-     clean ()
+     GC.clean ()
 
 do let doAsyncAltBinds n =
      printf "Async-as-Alt-in-Job binds: "
@@ -81,7 +82,7 @@ do let doAsyncAltBinds n =
 
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAsyncAltBinds n
-     clean ()
+     GC.clean ()
 
 do let doTaskAltBinds n =
      printf "Task-as-Alt-in-Job binds: "
@@ -98,7 +99,7 @@ do let doTaskAltBinds n =
 
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doTaskAltBinds n
-     clean ()
+     GC.clean ()
 
 do let doJobAsyncBinds n =
      printf "Job-in-Async binds: "
@@ -114,7 +115,7 @@ do let doJobAsyncBinds n =
 
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doJobAsyncBinds n
-     clean ()
+     GC.clean ()
 
 do let doAsTasks n =
      printf "Jobs-started-as-Tasks: "
@@ -128,7 +129,7 @@ do let doAsTasks n =
      printfn "%d hops in %A" n d
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAsTasks n
-     clean ()
+     GC.clean ()
 
 do let doAsTasks n =
      printf "Jobs-queued-as-Tasks:  "
@@ -142,7 +143,7 @@ do let doAsTasks n =
      printfn "%d hops in %A" n d
    for n in [100; 1000; 10000; 100000; 1000000; 10000000] do
      doAsTasks n
-     clean ()
+     GC.clean ()
 
 //
 
@@ -221,4 +222,4 @@ do let d = if isMono () then 10 else 1
                          (1500000, 4)
                          (1000000, 8)] do
       f (numOps / d) n
-      clean ()
+      GC.clean ()

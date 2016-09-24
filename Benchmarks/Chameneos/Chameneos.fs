@@ -3,6 +3,7 @@
 module Chameneos
 
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 open Hopac.Extensions
 open System
@@ -177,7 +178,7 @@ module HopacAlt =
           else
             outCh *<= None >>-. None
         csch.Ch *<-=>- fun inI -> (msgOut, inI)
-        csch.Done :> Alt<_> |]
+        upcast csch.Done |]
 
   module Creature =
     let run (swap: Color -> Alt<Option<Color>>) (myColor: Color) : Job<int> =
@@ -210,12 +211,7 @@ module HopacAlt =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-let cleanup () =
-  for i=1 to 2 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
-
 do for n in [600; 6000; 60000; 600000; 6000000] do
-     HopacLock.run n ; cleanup ()
-     HopacMV.run n ; cleanup ()
-     HopacAlt.run n ; cleanup ()
+     HopacLock.run n ; GC.clean ()
+     HopacMV.run n ; GC.clean ()
+     HopacAlt.run n ; GC.clean ()

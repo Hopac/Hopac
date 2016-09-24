@@ -2,9 +2,12 @@
 
 module PrimesStream
 
+#nowarn "40"
+
 open System
 open System.Diagnostics
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -224,36 +227,41 @@ module HopacCh =
 
 module AsyncMb =
   type Stream<'a> = MailboxProcessor<AsyncReplyChannel<'a>>
-  let inline take (s: Stream<'a>) = s.PostAndAsyncReply (fun x -> x)
+  let inline take (s: Stream<'a>) = s.PostAndAsyncReply id
+
+  let inline result x = async.Return x
+  let inline (>>=) x f = async.Bind (x, f)
 
   let iterate (init: 'a) (step: 'a -> 'a) : Stream<'a> =
-    MailboxProcessor.Start <| fun self -> async {
+    MailboxProcessor.Start <| fun self ->
       let state = ref init
-      while true do
-        let! out = self.Receive ()
-        do out.Reply (!state)
-        do state := step (!state)
-    }
+      let rec loop =
+        self.Receive () >>= fun out ->
+        out.Reply (!state)
+        state := step (!state)
+        loop
+      loop
 
   let filter (pred: 'a -> bool) (stream: Stream<'a>) : Stream<'a> =
-    MailboxProcessor.Start <| fun self -> async {
-      while true do
-        let! x = take stream
+    MailboxProcessor.Start <| fun self ->
+      let rec loop =
+        async.Delay (fun () -> take stream) >>= fun x ->
         if pred x then
-          let! out = self.Receive ()
-          do out.Reply x
-    }
+          self.Receive () >>= fun out ->
+          out.Reply x
+          loop
+        else
+          loop
+      loop
 
   let sieve () : Stream<int * Stream<int>> =
-    MailboxProcessor.Start <| fun self -> async {
-      let rec sieve natsIn = async {
-        let! prime = take natsIn
-        let! out = self.Receive ()
-        do out.Reply (prime, natsIn)
-        return! sieve (filter (fun n -> n % prime <> 0) natsIn)
-      }
-      return! sieve (iterate 2 (fun i -> i+1))
-    }
+    MailboxProcessor.Start <| fun self ->
+      let rec sieve natsIn =
+        take natsIn >>= fun prime ->
+        self.Receive () >>= fun out ->
+        out.Reply (prime, natsIn)
+        sieve (filter (fun n -> n % prime <> 0) natsIn)
+      sieve (iterate 2 (fun i -> i+1))
 
   let primes n = async {
     let before = GC.GetTotalMemory true
@@ -283,11 +291,9 @@ module AsyncMb =
 ////////////////////////////////////////////////////////////////////////////////
 
 module Async =
-  type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Async<Stream<'a>>}
+  open Async.Infixes
 
-  let inline result x = async.Return x
-  let inline (>>=) x f = async.Bind (x, f)
-  let inline (>>-) x f = async.Bind (x, f >> result)
+  type [<NoComparison>] Stream<'a> = {Value: 'a; Next: Async<Stream<'a>>}
 
   let rec iterate (step: 'a -> 'a) (init: 'a) : Async<Stream<_>> = async {
     return {Value = init;
@@ -297,7 +303,7 @@ module Async =
   let rec filter (pred: 'a -> bool) (xs: Stream<'a>) : Async<Stream<'a>> =
     let next = xs.Next >>= filter pred
     if pred xs.Value then
-      result {Value = xs.Value; Next = next}
+      Async.result {Value = xs.Value; Next = next}
     else
       next
 
@@ -317,7 +323,7 @@ module Async =
         primes.Next >>= loop (i+1)
       else
         printf "%5d b/p " (max 0L (GC.GetTotalMemory true - before) / int64 n)
-        result results
+        Async.result results
     return! sieve >>= loop 0
   }
 
@@ -334,8 +340,7 @@ module Async =
 let inline cleanup (d: TimeSpan) =
   let stop = DateTime.UtcNow + d + d + TimeSpan.FromSeconds 2.0
   while DateTime.UtcNow <= stop do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
+    GC.clean ()
     Threading.Thread.Sleep 250
 
 do let ns = [10; 100; 1000; 2500; 5000; 7500; 10000]

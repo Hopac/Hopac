@@ -3,16 +3,14 @@
 module Skynet
 
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 open Hopac.Extensions
 open System
 open System.Diagnostics
 
-let inline (^) x = x
 let time name skynet =
-  for i=0 to 1 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
+  GC.clean ()
   let timer = Stopwatch.StartNew ()
   let sum = skynet ()
   printfn "%s %d %A" name sum timer.Elapsed

@@ -3,6 +3,7 @@ module CmlLCH
 open System
 open System.Diagnostics
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 
 module EgPaper =
@@ -92,25 +93,20 @@ module BufferedCh =
     let d = timer.Elapsed
     printf "%fs\n" d.TotalSeconds
 
-let cleanup () =
-  for i=1 to 2 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
-
 do let mutable n = 1
    for i=1 to 6 do
      n <- n*10
-     cleanup ()
+     GC.clean ()
      EgPaper.run n
 
 do let mutable n = 1
    for i=1 to 6 do
      n <- n*10
-     cleanup ()
+     GC.clean ()
      SwapCh.run n
 
 do let mutable n = 1
    for i=1 to 6 do
      n <- n*10
-     cleanup ()
+     GC.clean ()
      BufferedCh.run n

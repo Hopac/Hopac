@@ -27,6 +27,7 @@
     "System.Reactive.Linq": "3.0.0",
     "System.Reactive.PlatformServices": "3.0.0",
     "Hopac": { "target": "project" },
+    "Hopac.Bench": { "target": "project" },
     "Hopac.Platform": { "target": "project" }
   },
   "frameworks": {

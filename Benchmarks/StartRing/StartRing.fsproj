@@ -81,6 +81,10 @@
       <Name>Hopac</Name>
       <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj">
+      <Name>Hopac.Bench</Name>
+      <Project>{839C22FA-DFB0-491A-B080-F740F7FF2A8C}</Project>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

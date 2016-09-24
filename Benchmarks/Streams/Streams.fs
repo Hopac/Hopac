@@ -8,13 +8,8 @@ open System
 open System.Diagnostics
 open System.Threading
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
-
-let inline (^) x = x
-let cleanup () =
-  for i=1 to 2 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
 
 module Stream =
   open Stream
@@ -43,7 +38,7 @@ module BasicBench =
       for n in [10; 100; 1000; 10000; 100000; 1000000; 10000000] do
         if n <= max then
           printf "%s: " name
-          cleanup ()
+          GC.clean ()
           let start = Stopwatch.StartNew ()
           f n
           let elapsed = start.Elapsed
@@ -330,7 +325,7 @@ do for m in [0; 1; 4; 6] do
      for n in [10; 160000; 320000] do
        for f in [Streams.Pyramid.run; Rx.Pyramid.run;
                  Streams.Diamond.run; Rx.Diamond.run] do
-         cleanup ()
+         GC.clean ()
          f m n
        printfn ""
 

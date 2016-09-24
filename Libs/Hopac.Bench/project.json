@@ -1,0 +1,37 @@
+{
+  "version": "0.1.0",
+  "buildOptions": {
+    "debugType": "portable",
+    "compilerName": "fsc",
+    "define": [ "TRACE" ],
+    "xmlDoc": true,
+    "compile": {
+      "includeFiles": [
+        "Util.fs",
+        "GC.fs",
+        "Async.fs"
+      ]
+    },
+    "additionalArguments": [
+      "--warnon:1182"
+    ]
+  },
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "FSharp.Core": "4.0.1.7-alpha",
+    "Hopac": { "target": "project" }
+  },
+  "frameworks": {
+    "netstandard1.6": {}
+  },
+  "tools": {
+    "dotnet-compile-fsc": {
+      "version": "1.0.0-preview2-*",
+      "imports": "dnxcore50"
+    },
+    "dotnet-mergenupkg": {
+      "target": "package",
+      "version": "1.0.*"
+    }
+  }
+}

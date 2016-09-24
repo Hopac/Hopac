@@ -1,6 +1,7 @@
 module PingPong
 
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 open Hopac.Extensions
 open System
@@ -228,13 +229,8 @@ module AsPost =
     printf "%10d - %9.0f msgs/s - %fs\n"
      total (float (total * 2) / d.TotalSeconds) d.TotalSeconds
 
-let cleanup () =
-  for i=1 to 2 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
-
 do for f in [CallGI.run; CallSI.run; CallCh.run; ChGive.run; ChSend.run; ChGiSe.run; ChSeGi.run; MbSend.run; AsPost.run] do
      printf "\n"
      for p in [1; Environment.ProcessorCount/2; Environment.ProcessorCount] do
        for n in [1000; 10000; 100000; 1000000; 10000000] do
-         f p n ; cleanup ()
+         f p n ; GC.clean ()

@@ -9,6 +9,7 @@ open System
 open System.Diagnostics
 open System.Threading.Tasks
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 open Hopac.Extensions
 
@@ -42,7 +43,7 @@ module ChMsg =
   let run numPerThread =
     printf "ChMsg: "
     let timer = Stopwatch.StartNew ()
-    let _ = run <| job {
+    ignore ^ run ^ job {
       let! actor = create
       do! seq {1 .. Environment.ProcessorCount}
           |> Seq.Con.iterJob
@@ -86,7 +87,7 @@ module MbMsg =
   let run numPerThread =
     printf "MbMsg: "
     let timer = Stopwatch.StartNew ()
-    let _ = run <| job {
+    ignore ^ run ^ job {
       let! actor = create
       do Parallel.For (0, Environment.ProcessorCount, fun _ ->
            for i=1 to numPerThread do
@@ -98,12 +99,7 @@ module MbMsg =
      Environment.ProcessorCount numPerThread
      (float (Environment.ProcessorCount * numPerThread) / d.TotalSeconds)
 
-let cleanup () =
-  for i=1 to 2 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
- 
 do for f in [ChMsg.run; MbMsg.run] do
      for n in [300; 3000; 30000; 300000; 3000000] do
        f n
-       cleanup ()
+       GC.clean ()

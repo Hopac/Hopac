@@ -23,6 +23,7 @@
   "dependencies": {
     "FSharp.Core": "4.0.1.7-alpha",
     "Hopac": { "target": "project" },
+    "Hopac.Bench": { "target": "project" },
     "Hopac.Platform": { "target": "project" }
   },
   "frameworks": {

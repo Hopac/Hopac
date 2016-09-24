@@ -3,6 +3,7 @@
 module StartRing
 
 open Hopac
+open Hopac.Bench
 open Hopac.Infixes
 open Hopac.Extensions
 open System
@@ -81,9 +82,9 @@ module HQueue =
   let run n =
     printf "HQueue: "
     let timer = Stopwatch.StartNew ()
-    run << Job.delay <| fun () ->
+    runDelay ^ fun () ->
       let selfCh = Ch ()
-      let rec proc n selfCh toCh = Job.delay <| fun () ->
+      let rec proc n selfCh toCh = Job.delay ^ fun () ->
         if n = 0 then
           toCh *<+ ()
         else
@@ -100,9 +101,9 @@ module HStart =
   let run n =
     printf "HStart: "
     let timer = Stopwatch.StartNew ()
-    run << Job.delay <| fun () ->
+    runDelay ^ fun () ->
       let selfCh = Ch ()
-      let rec proc n selfCh toCh = Job.delay <| fun () ->
+      let rec proc n selfCh toCh = Job.delay ^ fun () ->
         if n = 0 then
           toCh *<+ ()
         else
@@ -122,9 +123,9 @@ module JQueue =
   let run n =
     printf "JQueue: "
     let timer = Stopwatch.StartNew ()
-    run << Job.delay <| fun () ->
+    runDelay ^ fun () ->
       let selfCh = Ch ()
-      let rec proc n selfCh toCh = Job.delay <| fun () ->
+      let rec proc n selfCh toCh = Job.delay ^ fun () ->
         if n = 0 then
           toCh *<+ ()
         else
@@ -141,9 +142,9 @@ module JStart =
   let run n =
     printf "JStart: "
     let timer = Stopwatch.StartNew ()
-    run << Job.delay <| fun () ->
+    runDelay ^ fun () ->
       let selfCh = Ch ()
-      let rec proc n selfCh toCh = Job.delay <| fun () ->
+      let rec proc n selfCh toCh = Job.delay ^ fun () ->
         if n = 0 then
           toCh *<+ ()
         else
@@ -160,9 +161,9 @@ module PStart =
   let run n =
     printf "PStart: "
     let timer = Stopwatch.StartNew ()
-    run << Job.delay <| fun () ->
+    runDelay ^ fun () ->
       let selfCh = Ch ()
-      let rec proc n selfCh toCh = Job.delay <| fun () ->
+      let rec proc n selfCh toCh = Job.delay ^ fun () ->
         if n = 0 then
           toCh *<+ ()
         else
@@ -179,9 +180,9 @@ module PQueue =
   let run n =
     printf "PQueue: "
     let timer = Stopwatch.StartNew ()
-    run << Job.delay <| fun () ->
+    runDelay ^ fun () ->
       let selfCh = Ch ()
-      let rec proc n selfCh toCh = Job.delay <| fun () ->
+      let rec proc n selfCh toCh = Job.delay ^ fun () ->
         if n = 0 then
           toCh *<+ ()
         else
@@ -195,11 +196,13 @@ module PQueue =
      (float n / d.TotalSeconds) d.TotalSeconds
 
 module Async =
+  open Async.Infixes
+
   let run n =
     printf "Async:  "
     let timer = Stopwatch.StartNew ()
-    Async.RunSynchronously <| async {
-      let selfMb = new MailboxProcessor<unit>(fun _ -> async { () })
+    Async.RunSynchronously ^ async {
+      let selfMb = new MailboxProcessor<unit>(fun _ -> Async.unit)
       let rec proc n
                    (toMb: MailboxProcessor<_>)
                    (selfMb: MailboxProcessor<_>) = async {
@@ -217,21 +220,16 @@ module Async =
     printf "%9.0f ops/s - %fs\n"
      (float n / d.TotalSeconds) d.TotalSeconds
 
-let cleanup () =
-  for i=1 to 2 do
-    GC.Collect ()
-    GC.WaitForPendingFinalizers ()
-
 do for f in [|JQueue.run; PQueue.run; JStart.run; PStart.run; HQueue.run; HStart.run|] do
      for n in [|10; 100; 1000; 10000; 100000; 1000000; 10000000|] do
        f n
-       cleanup ()
+       GC.clean ()
 
 do for f in [|ThPool.run; Tasks.run; Async.run|] do
      for n in [|10; 100; 1000; 10000; 100000; 1000000|] do
        f n
-       cleanup ()
+       GC.clean ()
 
 do for n in [|10; 100; 1000; 10000|] do
      Native.run n
-     cleanup ()
+     GC.clean ()
