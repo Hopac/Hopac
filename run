@@ -123,15 +123,16 @@ paket() {
 }
 
 dotnet-quiet() {
-  sed -e '/^Project .* was previously compiled\. Skipping compilation\.$/d'      \
-      -e '/^Project .* will be compiled because inputs were modified$/d'         \
-      -e '/^Project .* will be compiled because expected outputs are missing$/d' \
-      -e '/^Project .* will be compiled because dependencies changed$/d'         \
-      -e '/^ *$/d'                                                               \
-      -e '/^Compiling .* for .*$/d'                                              \
-      -e '/^Compilation succeeded\.$/d'                                          \
-      -e '/^ *0 *Warning(s) *$/d'                                                \
-      -e '/^ *0 *Error(s) *$/d'                                                  \
+  sed -e '/^Project .* was previously compiled\. Skipping compilation\.$/d'           \
+      -e '/^Project .* will be compiled because Input items added from last build$/d' \
+      -e '/^Project .* will be compiled because dependencies changed$/d'              \
+      -e '/^Project .* will be compiled because expected outputs are missing$/d'      \
+      -e '/^Project .* will be compiled because inputs were modified$/d'              \
+      -e '/^ *$/d'                                                                    \
+      -e '/^Compiling .* for .*$/d'                                                   \
+      -e '/^Compilation succeeded\.$/d'                                               \
+      -e '/^ *0 *Warning(s) *$/d'                                                     \
+      -e '/^ *0 *Error(s) *$/d'                                                       \
       -e '/^ *Time elapsed [0-9:.]*$/d'
 }
 
