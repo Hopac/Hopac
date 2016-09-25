@@ -1193,11 +1193,14 @@ module Stream =
     new: unit -> Builder
 
     /// Called to combine two streams.
-    abstract Combine: Stream<'x> * Stream<'x> -> Stream<'x>
+    abstract Combine': Alt<Cons<'x>> * Alt<Cons<'x>> -> Alt<Cons<'x>>
     /// Called to obtain the zero or unit stream corresponding to the `Combine`
     /// method.
     abstract Zero: unit -> Stream<'x>
 
+    /// `this.Combine (xs, ys)` is equivalent to `this.Combine' (xs, ys) |>
+    /// memo`.
+    member inline Combine: Stream<'x> * Stream<'x> -> Stream<'x>
     /// `this.Bind (xs, x2ys)` is equivalent to `mapJoin (fun x y ->
     /// this.Combine (x, y)) x2ys xs`.
     member inline Bind: Stream<'x> * ('x -> Stream<'y>) -> Stream<'y>
@@ -1215,19 +1218,19 @@ module Stream =
     /// `this.YieldFrom xs` is equivalent to `xs`.
     member inline YieldFrom: Stream<'x> -> Stream<'x>
 
-  /// This builder joins substreams with `amb` to produce a stream with the
+  /// This builder joins substreams with `amb'` to produce a stream with the
   /// first results.
   val    ambed: Builder
 
-  /// This builder joins substreams with `append` to produce a stream with all
+  /// This builder joins substreams with `append'` to produce a stream with all
   /// results in sequential order.
   val appended: Builder
 
-  /// This builder joins substreams with `merge` to produce a stream with all
+  /// This builder joins substreams with `merge'` to produce a stream with all
   /// results in completion order.
   val   merged: Builder
 
-  /// This builder joins substreams with `switch` to produce a stream with the
+  /// This builder joins substreams with `switch'` to produce a stream with the
   /// latest results.
   val switched: Builder
 
@@ -1242,12 +1245,26 @@ module Stream =
   /// read.  See also: `indefinitely`.
   val values: Stream<'x> -> Alt<'x>
 
+  //# Primitive combinators
+
+  /// Primitive version of `amb`.
+  val   inline amb': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
+
+  /// Primitive version of `append`.
+  val append': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
+
+  /// Primitive version of `merge`.
+  val  merge': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
+
+  /// Primitive version of `switch`.
+  val switch': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
+
   /// Joins all the streams in the given stream of streams together with the
-  /// given binary join combinator.
-  val joinWith: ('y -> Stream<'z> -> #Job<Cons<'z>>)               -> Stream<'y> -> Stream<'z>
+  /// given binary join combinator primitive.
+  val joinWith: ('y -> Alt<Cons<'z>> -> #Job<Cons<'z>>)               -> Stream<'y> -> Stream<'z>
 
   /// `mapJoin j f xs` is equivalent to `joinWith j <| mapFun f xs`.
-  val  inline mapJoin: ('y -> Stream<'z> -> #Job<Cons<'z>>) -> ('x -> 'y) -> Stream<'x> -> Stream<'z>
+  val  inline mapJoin: ('y -> Alt<Cons<'z>> -> #Job<Cons<'z>>) -> ('x -> 'y) -> Stream<'x> -> Stream<'z>
 
   //# Testing
 

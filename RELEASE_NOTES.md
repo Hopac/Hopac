@@ -1,5 +1,11 @@
 #### 0.3.21 - 2016-09-xx
 * Added `Hopac.runDelay`.
+* Fixed a space leak in a specific usage scenario of `Stream.switchMap` (and
+  possibly `Stream.switchAll`).  The fix required a number of *breaking changes*
+  to the `Stream` module signature, namely `Stream.joinWith`, `Stream.mapJoin`
+  and `Stream.Builder` had to be changed, because it required eliminating some
+  intermediate promise constructions.  It is unlikely that these changes affect
+  any users.
 
 #### 0.3.20 - 2016-09-23
 * Fixed a space leak that could be observed with programs running long periods

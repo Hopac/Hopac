@@ -255,38 +255,39 @@ module Stream =
   let rec mapIgnore xs =
     xs >>-* function Cons (_, xs) -> Cons ((), mapIgnore xs) | Nil -> Nil
 
-  let amb' (ls: Stream<_>) (rs: Stream<_>) = ls <|> rs
-  let amb ls rs = amb' ls rs |> memo
+  let inline amb' (ls: Alt<Cons<_>>) (rs: Alt<Cons<_>>) = ls <|> rs
+  let amb (ls: Stream<_>) (rs: Stream<_>) = amb' ls rs |> memo
 
   let rec mergeSwap ls rs =
-    ls ^=> function Cons (l, ls) -> consj l (merge rs ls) | Nil -> upcast rs
-  and merge' ls rs = mergeSwap ls rs <|> mergeSwap rs ls
-  and merge ls rs = merge' ls rs |> memo
+    ls ^=> function Cons (l, ls) -> consj l (merge' rs ls |> memo) | Nil -> upcast rs
+  and merge' (ls: Alt<_>) (rs: Alt<_>) = mergeSwap ls rs <|> mergeSwap rs ls
+  let merge (ls: Stream<_>) (rs: Stream<_>) = merge' ls rs |> memo
 
-  let rec append' ls (rs: Stream<_>) =
-    ls >>= function Cons (l, ls) -> consj l (append ls rs) | Nil -> upcast rs
-  and append ls rs = append' ls rs |> memo
+  let rec append' (ls: Alt<_>) (rs: Alt<_>) =
+    ls ^=> function Cons (l, ls) -> consj l (append' ls rs |> memo) | Nil -> upcast rs
+  let append (ls: Stream<_>) (rs: Stream<_>) = append' ls rs |> memo
 
-  let rec switch' (ls: Stream<_>) (rs: Stream<_>) =
-    rs <|> ls ^=> function Cons (l, ls) -> consj l (switch ls rs)
+  let rec switch' (ls: Alt<_>) (rs: Alt<_>) =
+    rs <|> ls ^=> function Cons (l, ls) -> consj l (switch' ls rs |> memo)
                          | Nil -> upcast rs
-  and switch ls rs = switch' ls rs |> memo
+  let switch (ls: Stream<_>) (rs: Stream<_>) = switch' ls rs |> memo
 
-  let rec joinWith join xs =
-    xs >>=* function Cons (x, xs) -> join x (joinWith join xs) :> Job<_>
-                   | Nil -> nilj
+  let rec joinWith' join xs =
+    xs ^=> function Cons (x, xs) -> join x (joinWith' join xs) :> Job<_>
+                  | Nil -> nilj
+  let joinWith join xs = joinWith' join xs |> memo
 
-  let ambAll xxs = joinWith amb xxs
-  let mergeAll xxs = joinWith merge xxs
-  let appendAll xxs = joinWith append xxs
-  let switchAll xxs = joinWith switch xxs
+  let ambAll (xxs: Stream<#Stream<_>>) = joinWith amb' xxs
+  let mergeAll (xxs: Stream<#Stream<_>>) = joinWith merge' xxs
+  let appendAll (xxs: Stream<#Stream<_>>) = joinWith append' xxs
+  let switchAll (xxs: Stream<#Stream<_>>) = joinWith switch' xxs
 
-  let inline mapJoin join x2ys xs = xs |> joinWith (x2ys >> join)
+  let inline mapJoin join x2ys xs = joinWith (x2ys >> join) xs
 
-  let ambMap x2ys xs = mapJoin amb' x2ys xs
-  let mergeMap x2ys xs = mapJoin merge' x2ys xs
-  let appendMap x2ys xs = mapJoin append' x2ys xs
-  let switchMap x2ys xs = mapJoin switch' x2ys xs
+  let ambMap (x2ys: _ -> #Stream<_>) xs = mapJoin amb' x2ys xs
+  let mergeMap (x2ys: _ -> #Stream<_>) xs = mapJoin merge' x2ys xs
+  let appendMap (x2ys: _ -> #Stream<_>) xs = mapJoin append' x2ys xs
+  let switchMap (x2ys: _ -> #Stream<_>) xs = mapJoin switch' x2ys xs
 
   let rec taker evt skipper xs =
          evt ^=> fun _ -> Job.start (xs >>= fun t -> skipper *<= t) >>-. Nil
@@ -856,8 +857,10 @@ module Stream =
 
   type [<AbstractClass>] Builder () =
     member inline this.Bind (xs, x2ys: _ -> Stream<_>) =
-      mapJoin (fun x y -> this.Combine (x, y)) x2ys xs
-    abstract Combine: Stream<'x> * Stream<'x> -> Stream<'x>
+      mapJoin (fun x y -> this.Combine' (x, y)) x2ys xs
+    abstract Combine': Alt<Cons<'x>> * Alt<Cons<'x>> -> Alt<Cons<'x>>
+    member inline this.Combine (xs: Stream<_>, ys: Stream<_>) : Stream<_> =
+      this.Combine' (xs, ys) |> memo
     member inline this.Delay (u2xs: unit -> Stream<'x>) = delay u2xs
     member inline this.For (xs, x2ys: _ -> Stream<_>) =
       this.Bind (ofSeq xs, x2ys)
@@ -869,14 +872,14 @@ module Stream =
 
   let appended = {new Builder () with
     member this.Zero () = nil
-    member this.Combine (xs, ys) = append xs ys}
+    member this.Combine' (xs, ys) = append' xs ys}
   let merged = {new Builder () with
     member this.Zero () = nil
-    member this.Combine (xs, ys) = merge xs ys}
+    member this.Combine' (xs, ys) = merge' xs ys}
 
   let ambed = {new Builder () with
     member this.Zero () = never
-    member this.Combine (xs, ys) = amb xs ys}
+    member this.Combine' (xs, ys) = amb' xs ys}
   let switched = {new Builder () with
     member this.Zero () = never
-    member this.Combine (xs, ys) = switch xs ys}
+    member this.Combine' (xs, ys) = switch' xs ys}
