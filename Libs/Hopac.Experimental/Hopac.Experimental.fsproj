@@ -54,8 +54,6 @@
     <Compile Include="Multicast.fs" />
     <Compile Include="Pipe.fsi" />
     <Compile Include="Pipe.fs" />
-    <Compile Include="SafeStream.fsi" />
-    <Compile Include="SafeStream.fs" />
     <Compile Include="SelectableQueue.fsi" />
     <Compile Include="SelectableQueue.fs" />
     <Compile Include="SwapCh.fsi" />

@@ -21,8 +21,6 @@
         "Multicast.fs",
         "Pipe.fsi",
         "Pipe.fs",
-        "SafeStream.fsi",
-        "SafeStream.fs",
         "SelectableQueue.fsi",
         "SelectableQueue.fs",
         "SwapCh.fsi",
