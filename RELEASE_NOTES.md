@@ -1,4 +1,6 @@
 #### 0.3.21 - 2016-09-xx
+* Changed internal implementation of `Job.bind`, `Job.map`, `Alt.afterJob` and
+  `Alt.afterFun` to avoid potential space leaks.
 * Added `Hopac.runDelay`.
 * Fixed a space leak in a specific usage scenario of `Stream.switchMap` (and
   possibly `Stream.switchAll`).  The fix required a number of *breaking changes*
