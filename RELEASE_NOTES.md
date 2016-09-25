@@ -1,4 +1,4 @@
-#### 0.3.21 - 2016-09-xx
+#### 0.3.21 - 2016-09-25
 * Changed internal implementation of `Job.bind`, `Job.map`, `Alt.afterJob` and
   `Alt.afterFun` to avoid potential space leaks.
 * Added `Hopac.runDelay`.
