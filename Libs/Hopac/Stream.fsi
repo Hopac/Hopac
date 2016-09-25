@@ -1248,7 +1248,7 @@ module Stream =
   //# Primitive combinators
 
   /// Primitive version of `amb`.
-  val   inline amb': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
+  val    inline amb': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
 
   /// Primitive version of `append`.
   val append': Alt<Cons<'x>> -> Alt<Cons<'x>> -> Alt<Cons<'x>>
