@@ -494,7 +494,7 @@ module Scheduler =
     Condition.Wait (xK', &xK'.State2)
     match xK'.State1 with
      | null -> xK'.Value
-     | e -> raise <| Exception ("Exception raised by job", e)
+     | e -> raise ^ Exception ("Exception raised by job", e)
 
   let wait (sr: Scheduler) =
     if sr.NumActive > 0 then
@@ -802,7 +802,7 @@ module Alt =
   let toAsync (xA: Alt<'x>) =
     // XXX can be optimized
     async.Bind (Async.CancellationToken, fun token ->
-    Async.FromContinuations <| fun (x2u, e2u, c2u) ->
+    Async.FromContinuations ^ fun (x2u, e2u, c2u) ->
       let cancelled = IVar ()
       let registration = token.Register (fun () ->
         OperationCanceledException ()
@@ -1336,8 +1336,8 @@ module Job =
                                    wr: byref<Worker>,
                                    e) =
      cc'.Lock.Enter (&wr, {new Work () with
-      override wk.GetProc (_) = raise <| NotImplementedException ()
-      override wk.DoHandle (_, _) = raise <| NotImplementedException ()
+      override wk.GetProc (_) = raise ^ NotImplementedException ()
+      override wk.DoHandle (_, _) = raise ^ NotImplementedException ()
       override wk.DoWork (wr) = cc'.DoHandle (&wr, e)})
     member this.Init (xs, ysK) = this.xs <- xs; this.ysK <- ysK ; this
 
@@ -1481,7 +1481,7 @@ module Job =
         Async.StartWithContinuations (xA, xK.Success, xK.Failure, xK.Failure)} :> Job<_>
 
   let toAsync (xJ: Job<'x>) =
-    Async.FromContinuations <| fun (x2u, e2u, _) ->
+    Async.FromContinuations ^ fun (x2u, e2u, _) ->
       let ctx = SynchronizationContext.Current
       Worker.RunOnThisThread (initGlobalScheduler (), xJ, {new Cont_State<'x, Cont<unit>>() with
        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
@@ -2028,7 +2028,7 @@ module Extensions =
 
     [<Obsolete "`Async.toAltOn` will be removed as interop primitives are being revised. Use `Alt.fromAsync` and switch synchronization context explicitly if necessary.">]
     let toAltOn (context: SynchronizationContext) (xA: Async<'x>) =
-      Alt.withNackJob <| fun nack ->
+      Alt.withNackJob ^ fun nack ->
       {new Job<Alt<'x>> () with
         override xJ'.DoJob (wr, xAK) =
          let sr = wr.Scheduler
@@ -2054,7 +2054,7 @@ module Extensions =
     [<Obsolete "`Async.ofJobOn` will be removed as interop primitives and scheduling are being revised. Use `Job.toAsync`.">]
     let ofJobOn (sr: Scheduler) (xJ: Job<'x>) =
       assert (null <> sr)
-      Async.FromContinuations <| fun (x2u, e2u, _) ->
+      Async.FromContinuations ^ fun (x2u, e2u, _) ->
         let ctx = SynchronizationContext.Current
         Worker.RunOnThisThread (sr, xJ, {new Cont_State<'x, Cont<unit>>() with
          override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
@@ -2126,7 +2126,7 @@ module Extensions =
           failwith "Hopac: Main synchronization context set inconsistently."
       match StaticData.main with
        | null ->
-         lock typeof<StaticData> <| fun () ->
+         lock typeof<StaticData> ^ fun () ->
          match StaticData.main with
           | null -> StaticData.main <- context
           | ctxt -> check ctxt
@@ -2168,7 +2168,7 @@ module Extensions =
     static member inline Post (this: ObserveOnce<'x>,
                                observable: IObservable<'x>) =
       if 0 = this.State then
-        passOn this.context () <| fun () ->
+        passOn this.context () ^ fun () ->
         this.dispose <- observable.Subscribe this
         if 0 <> Interlocked.CompareExchange (&this.State, 1, 0) then
           ObserveOnce<'x>.DisposeHere this
@@ -2267,18 +2267,18 @@ module Latch =
     let inline increment (l: Latch) = l.Increment ()
   let inline decrement (l: Latch) = l.Decrement ()
   let inline await (l: Latch) = l :> Alt<_>
-  let within (l2xJ: Latch -> #Job<'x>) = Job.delay <| fun () ->
+  let within (l2xJ: Latch -> #Job<'x>) = Job.delay ^ fun () ->
     let l = Latch 1
     Job.tryFinallyJob
       (Job.delayWith l2xJ l)
       (decrement l >>=. l)
-  let holding (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+  let holding (l: Latch) (xJ: Job<'x>) = Job.delay ^ fun () ->
     Now.increment l
     Job.tryFinallyJob xJ (decrement l)
-  let queue (l: Latch) (xJ: Job<unit>) = Job.delay <| fun () ->
+  let queue (l: Latch) (xJ: Job<unit>) = Job.delay ^ fun () ->
     Now.increment l
     Job.queue (Job.tryFinallyJob xJ (decrement l))
-  let queueAsPromise (l: Latch) (xJ: Job<'x>) = Job.delay <| fun () ->
+  let queueAsPromise (l: Latch) (xJ: Job<'x>) = Job.delay ^ fun () ->
     Now.increment l
     Promise.queue (Job.tryFinallyJob xJ (decrement l))
 
@@ -2295,7 +2295,7 @@ type BoundedMb<'x> (capacity) =
       let queue = Queue<_>()
       let put = putCh ^-> queue.Enqueue
       let take () = takeCh *<- queue.Peek () ^-> (queue.Dequeue >> ignore)
-      Job.Global.server << Job.forever << Job.delay <| fun () ->
+      Job.Global.server ^ Job.forever ^ Job.delay ^ fun () ->
         match queue.Count with
          | 0 -> put
          | n when n = capacity -> take ()
@@ -2306,7 +2306,7 @@ type BoundedMb<'x> (capacity) =
 
 module BoundedMb =
   [<Obsolete "Just use the constructor.">]
-  let inline create capacity = Job.thunk <| fun () ->
+  let inline create capacity = Job.thunk ^ fun () ->
     BoundedMb<_> (capacity)
   let inline put (xB: BoundedMb<_>) x = xB.Put x
   let inline take (xB: BoundedMb<_>) = xB.Take
