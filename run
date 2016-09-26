@@ -597,19 +597,27 @@ EOF
 
 repl() {
   if [ "$USE" = netcore ] ; then
-    echo "Cannot start repl on netcore."
-    return 1
+    if has fsianycpu.exe ; then
+      echo "Running repl on net."
+      USE=net ./run repl
+    elif has mono ; then
+      echo "Running repl on mono."
+      USE=mono ./run repl
+    else
+      echo "Cannot start repl on netcore."
+      return 1
+    fi
+  else
+    SOLUTIONS=Hopac.sln
+    CONFIGS=Release
+    build
+
+    rlwrap -t dumb "$FSI" \
+      --optimize+         \
+      --tailcalls+        \
+      --crossoptimize+    \
+      --use:Hopac.fsx
   fi
-
-  SOLUTIONS=Hopac.sln
-  CONFIGS=Release
-  build
-
-  rlwrap -t dumb "$FSI" \
-    --optimize+         \
-    --tailcalls+        \
-    --crossoptimize+    \
-    --use:Hopac.fsx
 }
 
 benchmarks() {
