@@ -796,7 +796,7 @@ module Alt =
       override xJ'.DoCancel (iar) = doCancel iar} :> Alt<_>
 
   let inline fromAsync (xA: Async<'x>) =
-    let (doBegin, doEnd, doCancel) = Async.AsBeginEnd (fun () -> xA)
+    let (doBegin, doEnd, doCancel) = Async.AsBeginEnd ^ fun () -> xA
     fromBeginEnd (fun (acb, s) -> doBegin ((), acb, s)) doEnd doCancel
 
   let toAsync (xA: Alt<'x>) =
@@ -807,7 +807,7 @@ module Alt =
       let registration = token.Register (fun () ->
         OperationCanceledException ()
         |> IVar.fillFailure cancelled
-        |> Scheduler.startIgnore (initGlobalScheduler ()))
+        |> Scheduler.startIgnore ^ initGlobalScheduler ())
       let ctx = SynchronizationContext.Current
       Worker.RunOnThisThread (initGlobalScheduler (), cancelled <|> xA, {new Cont_State<'x, Cont<unit>>() with
        override xK'.GetProc (wr) = Handler.GetProc (&wr, &xK'.State)
@@ -1012,7 +1012,7 @@ module Job =
       override uJ'.Do () =
         if cond () then upcast u2xJ () else null} :> Job<_>
   let inline whileDoIgnore (cond: unit -> bool) (xJ: Job<_>) =
-    whileDoDelay cond (fun () -> xJ)
+    whileDoDelay cond ^ fun () -> xJ
   let inline whileDo cond (uJ: Job<unit>) =
     whileDoIgnore cond uJ
 
@@ -1496,11 +1496,11 @@ module Job =
     {new TaskToJob () with
       override xJ'.Start () = u2uT ()} :> Job<unit>
 
-  let inline liftTask x2yT x = fromTask (fun () -> x2yT x)
-  let inline liftUnitTask x2uT x = fromUnitTask (fun () -> x2uT x)
+  let inline liftTask x2yT x = fromTask ^ fun () -> x2yT x
+  let inline liftUnitTask x2uT x = fromUnitTask ^ fun () -> x2uT x
 
-  let inline awaitTask (xT: Task<'x>) = fromTask (fun () -> xT)
-  let inline awaitUnitTask (uT: Task) = fromUnitTask (fun () -> uT)
+  let inline awaitTask (xT: Task<'x>) = fromTask ^ fun () -> xT
+  let inline awaitUnitTask (uT: Task) = fromUnitTask ^ fun () -> uT
 
   let inline bindTask (x2yJ: 'x -> #Job<'y>) (xT: Task<'x>) =
     {new BindTask<'x, 'y> () with
