@@ -1522,7 +1522,7 @@ module Ch =
   [<Obsolete "Will be removed.">]
   module Global =
     /// Sends the given value to the specified channel.  `Ch.Global.send xCh x`
-    /// is equivalent to `Ch.send xCh x |> TopLevel.start`.
+    /// is equivalent to `Ch.send xCh x |> Hopac.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Ch.send` instead.
@@ -1589,7 +1589,7 @@ module Ch =
     val inline create: unit -> Ch<'x>
 
     /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
-    /// equivalent to `Ch.send xCh x |> TopLevel.start`.
+    /// equivalent to `Ch.send xCh x |> Hopac.start`.
     ///
     /// Note that using this function in a job workflow is not optimal and you
     /// should use `Ch.send` instead.
