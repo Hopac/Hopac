@@ -612,7 +612,7 @@ repl() {
     CONFIGS=Release
     build
 
-    rlwrap -t dumb "$FSI" \
+    $FSI                  \
       --optimize+         \
       --tailcalls+        \
       --crossoptimize+    \
