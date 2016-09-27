@@ -1,5 +1,12 @@
 ## Core (minimal subset) of Hopac
 
+For practical reasons (performance and convenience), Hopac has a relatively
+large [API](http://hopac.github.io/Hopac/Hopac.html).  This document tries to
+capture and describe a *minimal subset* of Hopac that could be used to implement
+*everything* else.  Note that for just understanding the main ideas, an even
+smaller subset should suffice, but then there would be some important semantics
+that could not be implemented precisely.
+
 ```fs
 type Job<'x> = class end
 val ( >>= ): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
