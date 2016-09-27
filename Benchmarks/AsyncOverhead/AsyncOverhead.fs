@@ -10,8 +10,6 @@ open System
 open System.Diagnostics
 open System.Threading.Tasks
 
-let inline (^) x = x
-
 let clean () =
   for i=1 to 2 do
     GC.Collect ()

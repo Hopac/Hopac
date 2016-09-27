@@ -10,7 +10,6 @@ type Stop () = class end
 let stop = Task.FromResult (Stop ()) :> Task
 let zero = Task.FromResult ()
 
-let inline (^) x = x
 let inline tryAp x2y x yK eK =
   let mutable e = null
   let y = try x2y x with e' -> e <- e' ; Unchecked.defaultof<_>

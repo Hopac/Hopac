@@ -12,8 +12,6 @@ open RunTask
 
 exception Ex
 
-let inline (^) x = x
-
 let verify n c = printfn "%s %s" (if c then "Ok" else "FAILURE") n
 
 let delayAndSet (ms: int) r = Alt.fromTask <| fun ct -> runTask {
