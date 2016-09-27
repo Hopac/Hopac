@@ -1527,7 +1527,7 @@ val it : int = 832040L
 <p> Immediate or non-workflow operations on synchronous channels.</p>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Ch.Now.send" href="#dec:val%20Hopac.Ch.Now.send">send</a>: <a href="#def:type%20Hopac.Ch">Ch</a>&lt;'x&gt; -&gt; 'x -&gt; unit
 </code></pre>
-<p> Sends the given value to the specified channel.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:module%20Hopac.Ch.Now">Now</a>.<a href="#def:val%20Hopac.Ch.Now.send">send</a>&nbsp;xCh&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a>&nbsp;xCh&nbsp;x&nbsp;|&gt;&nbsp;TopLevel.start</code>.</p>
+<p> Sends the given value to the specified channel.  <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:module%20Hopac.Ch.Now">Now</a>.<a href="#def:val%20Hopac.Ch.Now.send">send</a>&nbsp;xCh&nbsp;x</code> is equivalent to <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a>&nbsp;xCh&nbsp;x&nbsp;|&gt;&nbsp;<a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:val%20Hopac.Hopac.start">start</a></code>.</p>
 <p> Note that using this function in a job workflow is not optimal and you should use <code class="fsharp hljs"><a href="#def:module%20Hopac.Ch">Ch</a>.<a href="#def:val%20Hopac.Ch.send">send</a></code> instead.</p>
 </div>
 </div>
