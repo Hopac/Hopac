@@ -6,7 +6,7 @@ module Util
 open System
 open System.Collections.Generic
 
-let inline (^) x = x
+let inline (^) f x = f x
 
 let mutable exitCode = 0
 
