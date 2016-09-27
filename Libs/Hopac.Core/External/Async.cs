@@ -125,4 +125,35 @@ namespace Hopac.Core {
       Work.Do(fac.xK, ref wr);
     }
   }
+
+  ///
+  public abstract class OnThreadPool<X> : Job<X> {
+    ///
+    public abstract X Run();
+    ///
+    public abstract void Start(FromAsyncCont<X> xK);
+    internal override void DoJob(ref Worker wr, Cont<X> xK) {
+#if !NO_ISTHREADPOOLTHREAD
+      if (Thread.CurrentThread.IsThreadPoolThread)
+      {
+        var work = wr.WorkStack;
+        wr.WorkStack = null;
+        Scheduler.PushAll(wr.Scheduler, work);
+        Cont.Do(xK, ref wr, this.Run());
+      }
+      else
+#endif
+      {
+        var fac = new FromAsyncCont<X>(xK);
+        this.Start(fac);
+        if (0 != fac.state)
+          goto Continue;
+        fac.sr = wr.Scheduler;
+        if (0 == Interlocked.CompareExchange(ref fac.state, 1, 0))
+          return;
+      Continue:
+        Work.Do(fac.xK, ref wr);
+      }
+    }
+  }
 }

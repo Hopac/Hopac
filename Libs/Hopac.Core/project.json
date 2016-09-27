@@ -6,7 +6,7 @@
     "nowarn": [ "CS420" ],
     "xmlDoc": true,
     "allowUnsafe": true,
-    "define": [ "TRACE", "TRAMPOLINE" ]
+    "define": [ "TRACE", "TRAMPOLINE", "NO_ISTHREADPOOLTHREAD" ]
   },
   "configurations": {
     "Release": {

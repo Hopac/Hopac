@@ -27,11 +27,6 @@
   },
   "frameworks": {
     "netstandard1.6": {
-      "buildOptions": {
-        "define": [
-          "NO_ISTHREADPOOLTHREAD"
-        ]
-      },
       "dependencies": {
         "NETStandard.Library": "1.6.0"
       }

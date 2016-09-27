@@ -1470,13 +1470,12 @@ module Job =
         go xK.Success xK.Failure} :> Job<_>
 
   let inline onThreadPool (u2x: unit -> 'x) =
-    fromContinuations ^ fun x2u e2u ->
-#if !NO_ISTHREADPOOLTHREAD
-    if Thread.CurrentThread.IsThreadPoolThread then
-      Util.tryIn u2x x2u e2u
-    else
-#endif
-      ThreadPool.QueueUserWorkItem ((fun _ -> Util.tryIn u2x x2u e2u), null) |> ignore
+    {new OnThreadPool<_> () with
+      override xJ'.Run () = u2x ()
+      override xJ'.Start (xK) =
+        ThreadPool.QueueUserWorkItem (
+           fun _ -> Util.tryIn u2x xK.Success xK.Failure
+         , null) |> ignore} :> Job<_>
 
   let fromAsync xA =
     {new FromAsync<'x> () with
