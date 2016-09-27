@@ -18,7 +18,6 @@ module Job =
   val tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
 module Alt =
-  val never: unit -> Alt<'x>
   val withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
   val tryIn: Alt<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Alt<'y>
 
