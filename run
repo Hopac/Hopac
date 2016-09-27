@@ -309,24 +309,14 @@ build() {
   restore
 
   if [ "$USE" = netcore ] ; then
-    for PROJECT in $(find Libs -name "project.json") ; do
+    for PROJECT in $(find . -name "project.json") ; do
+      pushd "$(dirname "$PROJECT")" &> /dev/null
       for CONFIG in $CONFIGS ; do
-        pushd "$(dirname "$PROJECT")" &> /dev/null
         echo "Building $(basename "$(dirname "$PROJECT")") in $CONFIG"
         dotnet build -c "$CONFIG" | dotnet-quiet
-        popd &> /dev/null
       done
+      popd &> /dev/null
     done
-
-    for CONFIG in $CONFIGS ; do
-      for PROJECT in $(find . -name "project.json" -a -not -path './Libs/*') ; do
-        pushd "$(dirname "$PROJECT")" &> /dev/null
-        echo "Building $(basename "$(dirname "$PROJECT")") in $CONFIG"
-        dotnet build -c "$CONFIG" | dotnet-quiet
-        popd &> /dev/null
-      done &
-    done
-    wait
   else
     for SOLUTION in $SOLUTIONS ; do
       for CONFIG in $CONFIGS ; do
