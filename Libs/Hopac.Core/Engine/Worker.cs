@@ -30,7 +30,7 @@ namespace Hopac.Core {
     internal ulong RandomHi;
 
     [ThreadStatic]
-    internal static bool IsWorkerThread;
+    internal static int RunningWork;
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal void Init(Scheduler sr, int bytes) {
@@ -79,7 +79,7 @@ namespace Hopac.Core {
 
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void ContinueOnThisThread(Scheduler sr, Work work) {
-      if (IsWorkerThread) {
+      if (0 < RunningWork) {
         Scheduler.PushNew(sr, work);
       } else {
         RunOnThisThread(sr, work);
@@ -91,6 +91,8 @@ namespace Hopac.Core {
       var wr = new Worker();
       wr.Init(sr, 8000);
 
+      var d = RunningWork;
+      RunningWork = d + 1;
       Scheduler.Inc(sr);
 
       try {
@@ -101,6 +103,7 @@ namespace Hopac.Core {
       }
 
       Scheduler.PushAllAndDec(sr, wr.WorkStack);
+      RunningWork = d;
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
@@ -108,6 +111,8 @@ namespace Hopac.Core {
       var wr = new Worker();
       wr.Init(sr, 8000);
 
+      var d = RunningWork;
+      RunningWork = d + 1;
       Scheduler.Inc(sr);
 
       try {
@@ -118,10 +123,11 @@ namespace Hopac.Core {
       }
 
       Scheduler.PushAllAndDec(sr, wr.WorkStack);
+      RunningWork = d;
     }
 
     internal static void Run(Scheduler sr, int me) {
-      IsWorkerThread = true;
+      RunningWork = 1;
 
       var wr = new Worker();
       wr.Init(sr, 16000);

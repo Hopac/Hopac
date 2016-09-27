@@ -1,3 +1,7 @@
+#### 0.3.22 - 2016-09-27
+* More robust detection against deadlocks caused by `run*`.
+* Scheduler changed to avoid running work recursively on non-worker threads.
+
 #### 0.3.21 - 2016-09-25
 * Changed internal implementation of `Job.bind`, `Job.map`, `Alt.afterJob` and
   `Alt.afterFun` to avoid potential space leaks.

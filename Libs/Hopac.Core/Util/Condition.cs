@@ -22,11 +22,12 @@ namespace Hopac.Core {
         var w = v;
         if (0 <= w) {
           if (0 == Interlocked.Exchange(ref v, ~w)) {
-            if (!warned && Worker.IsWorkerThread) {
+            if (!warned && 0 < Worker.RunningWork) {
               warned = true;
               StaticData.writeLine(
-                "WARNING: You are making a blocking call from within a Hopac " +
-                "worker thread, which means that your program may deadlock.");
+                "WARNING: You are making a blocking call to run a Hopac job " +
+                "from within a Hopac job, which means that your program may " +
+                "deadlock.");
               StaticData.writeLine("First occurrence (there may be others):");
               StaticData.writeLine(System.Environment.StackTrace);
             }
