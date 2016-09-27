@@ -1476,9 +1476,12 @@ module Job =
 
   let inline bindAsync (x2yJ: 'x -> #Job<'y>) (xA: Async<'x>) =
     {new BindAsync<'x, 'y> () with
-      override yJ'.Do (x) = upcast x2yJ x
-      override yJ'.Start (xK) =
-        Async.StartWithContinuations (xA, xK.Success, xK.Failure, xK.Failure)} :> Job<_>
+      override yJ'.Start (yK) =
+        let xK = {new BindAsyncCont<_, _> () with
+          override xK'.Do (x) = upcast x2yJ x}
+        xK.InternalInit(yK)
+        Async.StartWithContinuations (xA, xK.Success, xK.Failure, xK.Failure)
+        xK} :> Job<_>
 
   let toAsync (xJ: Job<'x>) =
     Async.FromContinuations ^ fun (x2u, e2u, _) ->

@@ -8,24 +8,14 @@ namespace Hopac.Core {
   using System.Threading.Tasks;
 
   ///
-  public interface IBindAsyncCont<X> {
+  public abstract class BindAsyncCont<X, Y> : Work {
+    internal Cont<Y> yK;
+    internal Scheduler sr;
+    internal int state;
+    internal X x;
+    internal Exception e;
     ///
-    void Success(X x);
-    ///
-    void Failure(Exception e);
-  }
-
-  ///
-  internal sealed class BindAsyncCont<X, Y> : Work, IBindAsyncCont<X> {
-    private Scheduler sr;
-    private BindAsync<X, Y> ba;
-    private Cont<Y> yK;
-    private X x;
-    internal BindAsyncCont(Scheduler sr, BindAsync<X, Y> ba, Cont<Y> yK) {
-      this.sr = sr;
-      this.ba = ba;
-      this.yK = yK;
-    }
+    public void InternalInit(Cont<Y> yK) { this.yK = yK; }
     internal override Proc GetProc(ref Worker wr) {
       return Handler.GetProc(ref wr, ref yK);
     }
@@ -33,47 +23,89 @@ namespace Hopac.Core {
       Handler.DoHandle(yK, ref wr, e);
     }
     internal override void DoWork(ref Worker wr) {
-      ba.Do(this.x).DoJob(ref wr, yK);
+      var e = this.e;
+      if (null != e)
+        Handler.DoHandle(yK, ref wr, e);
+      else
+        Do(this.x).DoJob(ref wr, yK);
     }
+    ///
+    public abstract Job<Y> Do(X x);
     ///
     public void Success(X x) {
       this.x = x;
+      var sr = this.sr;
+      if (null != sr)
+        goto Continue;
+      if (0 == Interlocked.CompareExchange(ref this.state, 1, 0))
+        return;
+      sr = this.sr;
+    Continue:
       Worker.ContinueOnThisThread(sr, this);
     }
     ///
     public void Failure(Exception e) {
-      Worker.ContinueOnThisThread(sr, new FailWork(e, yK));
+      this.e = e;
+      var sr = this.sr;
+      if (null != sr)
+        goto Continue;
+      if (0 == Interlocked.CompareExchange(ref this.state, 1, 0))
+        return;
+      sr = this.sr;
+    Continue:
+      Worker.ContinueOnThisThread(sr, this);
     }
   }
 
   ///
   public abstract class BindAsync<X, Y> : Job<Y> {
     ///
-    public abstract Job<Y> Do(X x);
-    ///
-    public abstract void Start(IBindAsyncCont<X> xK);
+    public abstract BindAsyncCont<X, Y> Start(Cont<Y> yK);
     internal override void DoJob(ref Worker wr, Cont<Y> yK) {
-      this.Start(new BindAsyncCont<X, Y>(wr.Scheduler, this, yK));
+      var bac = this.Start(yK);
+      if (0 != bac.state)
+        goto Continue;
+      bac.sr = wr.Scheduler;
+      if (0 == Interlocked.CompareExchange(ref bac.state, 1, 0))
+        return;
+    Continue:
+      Work.Do(bac, ref wr);
     }
   }
 
   ///
   public sealed class FromAsyncCont<X> {
-    private Scheduler sr;
-    private Cont<X> xK;
-    internal FromAsyncCont(Scheduler sr, Cont<X> xK) {
-      this.sr = sr;
+    internal Cont<X> xK;
+    internal Scheduler sr;
+    internal int state;
+    internal FromAsyncCont(Cont<X> xK) {
       this.xK = xK;
     }
     ///
     public void Success(X x) {
       var xK = this.xK;
       xK.Value = x;
+      var sr = this.sr;
+      if (null != sr)
+        goto Continue;
+      if (0 == Interlocked.CompareExchange(ref this.state, 1, 0))
+        return;
+      sr = this.sr;
+    Continue:
       Worker.ContinueOnThisThread(sr, xK);
     }
     ///
     public void Failure(Exception e) {
-      Worker.ContinueOnThisThread(sr, new FailWork(e, xK));
+      var eK = new FailCont<X>(xK, e);
+      var sr = this.sr;
+      if (null != sr)
+        goto Continue;
+      this.xK = eK;
+      if (0 == Interlocked.CompareExchange(ref this.state, 1, 0))
+        return;
+      sr = this.sr;
+    Continue:
+      Worker.ContinueOnThisThread(sr, eK);
     }
   }
 
@@ -82,7 +114,15 @@ namespace Hopac.Core {
     ///
     public abstract void Start(FromAsyncCont<X> xK);
     internal override void DoJob(ref Worker wr, Cont<X> xK) {
-      this.Start(new FromAsyncCont<X>(wr.Scheduler, xK));
+      var fac = new FromAsyncCont<X>(xK);
+      this.Start(fac);
+      if (0 != fac.state)
+        goto Continue;
+      fac.sr = wr.Scheduler;
+      if (0 == Interlocked.CompareExchange(ref fac.state, 1, 0))
+        return;
+    Continue:
+      Work.Do(fac.xK, ref wr);
     }
   }
 }
