@@ -3,9 +3,9 @@
 For practical reasons (performance and convenience), Hopac has a relatively
 large [API](http://hopac.github.io/Hopac/Hopac.html).  This document tries to
 capture and describe a *minimal subset* of Hopac that could be used to implement
-*everything* else.  Note that for just understanding the main ideas, an even
-smaller subset should suffice, but then there would be some important semantics
-that could not be implemented precisely.
+*everything* else.  Note that, for just understanding the main ideas, an even
+smaller and slightly different subset should suffice, but then there would be
+some important semantics that could not be implemented precisely.
 
 ```fs
 type Job<'x> = class end
@@ -18,7 +18,6 @@ module Job =
   val tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>
 
 module Alt =
-  val always: 'x -> Alt<'x>
   val never: unit -> Alt<'x>
   val withNackJob: (Promise<unit> -> #Job<#Alt<'x>>) -> Alt<'x>
   val tryIn: Alt<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Alt<'y>
