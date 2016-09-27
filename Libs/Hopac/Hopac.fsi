@@ -740,6 +740,15 @@ module Job =
   /// be called once.
   val inline fromContinuations: (('x -> unit) -> (exn -> unit) -> unit) -> Job<'x>
 
+  /// Creates a job that queues the given thunk to execute on the system
+  /// `ThreadPool` and then waits for the result of the thunk.
+#if DOC
+  ///
+  /// One use case for this is to run legacy, non-cooperative, non-async
+  /// (blocking) IO bound operations.
+#endif
+  val inline onThreadPool: (unit -> 'x) -> Job<'x>
+
   /// Creates a job that starts the given async operation and waits for it to
   /// complete.  See also: `Alt.fromAsync`.
 #if DOC

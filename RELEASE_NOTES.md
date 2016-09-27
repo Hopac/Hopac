@@ -3,6 +3,7 @@
 * Scheduler changed to avoid running work recursively on non-worker threads.
 * Optimized `Job.fromAsync`, `Job.bindAsync` and `Job.fromContinuations` in the
   case that the result is produced synchronously.
+* Added `Job.onThreadPool` to run a thunk on `ThreadPool`.
 
 #### 0.3.21 - 2016-09-25
 * Changed internal implementation of `Job.bind`, `Job.map`, `Alt.afterJob` and
