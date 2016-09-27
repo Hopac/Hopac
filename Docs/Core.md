@@ -1,8 +1,8 @@
 ## Core (minimal subset) of Hopac
 
 ```fs
-val ( >>= ): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
 type Job<'x> = class end
+val ( >>= ): Job<'x> -> ('x -> #Job<'y>) -> Job<'y>
 
 type Alt<'x> = inherit Job<'x>
 val always: 'x -> Alt<'x>
