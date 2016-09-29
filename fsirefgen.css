@@ -35,6 +35,7 @@ code {
 }
 code.hljs {
   overflow: visible;
+  background: #f8f8f8;
 }
 code.hljs .h3 {
   display: inline-block;
@@ -45,12 +46,17 @@ code.hljs .spacing {
   display: inherit;
   margin: 0.5em 0em 0.5em 0em;
 }
+code.hljs *,
+code.hljs .hljs-title,
+code.hljs .hljs-keyword {
+  font-weight: normal;
+}
 div.description >*:not(:first-child) {
   padding-left: 1.5em;
 }
 a {
+  color: #795da3;
   text-decoration: none;
-  font-weight: normal;
 }
 .anchor {
   position: relative;

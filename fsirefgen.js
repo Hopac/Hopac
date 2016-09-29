@@ -125,8 +125,8 @@
     k()
   }
 
-  queue(seq(par(seq(loadScript("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"),
-                    loadScript("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js")),
-                loadScript("https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js")),
+  queue(seq(par(seq(loadScript("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/highlight.min.js"),
+                    loadScript("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/languages/fsharp.min.js")),
+                loadScript("https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js")),
             init))
 })()
