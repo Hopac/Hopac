@@ -30,6 +30,7 @@ module Hopac =
 
   let inline timeOut x = Timer.Global.timeOut x
   let inline timeOutMillis x = Timer.Global.timeOutMillis x
+  let idle = Timer.Global.idle
 
   let inline memo (xJ: Job<'x>) = Promise<'x> xJ
 

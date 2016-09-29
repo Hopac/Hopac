@@ -183,12 +183,31 @@ module Hopac =
   /// The idea is that the `gotTimeoutOrDoneOtherwise` is filled, using
   /// `IVar.tryFill` as soon as the timeout is no longer useful.  This allows
   /// the timer mechanism to release the memory held by the timeout.
+  ///
+  /// A timeout of zero is optimized to an alternative that is immediately
+  /// available, while a negative timeout results in an `Alt` that is never
+  /// available. See `idle` for an alternative that yields the thread of
+  /// execution to any ready work before becoming available.
 #endif
   val inline timeOut:       TimeSpan -> Alt<unit>
 
   /// `timeOutMillis n` is equivalent to `timeOut << TimeSpan.FromMilliseconds
   /// <| float n`.
   val inline timeOutMillis: int      -> Alt<unit>
+
+  /// Creates an alternative that yields the thread of execution to any ready
+  /// work and then becomes available.
+#if DOC
+  ///
+  /// This is similar to `timeOutMillis 0` except that it yields the current
+  /// thread of execution to any other ready work before attempting to
+  /// become available.
+  ///
+  /// When executing multiple concurrent jobs that do not have natural points
+  /// where they yield execution, `idle` allows progress to be made by other
+  /// ready work.
+#endif
+  val idle :                           Alt<unit>
 
   //# Promises
 

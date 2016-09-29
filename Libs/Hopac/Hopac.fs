@@ -1660,6 +1660,16 @@ module Timer =
     let timeOut (span: System.TimeSpan) = timeOutTicks span.Ticks
     [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
     let timeOutMillis (ms: int) = timeOutTicks (int64 ms * 10000L)
+    [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
+    let idle =
+      {new Alt<unit> () with
+        override uA'.DoJob (wr, uK) =
+          (initGlobalTimer ()).SynchronizedPushTimed
+            (WorkTimedUnitCont (Environment.TickCount, uK))
+        override uA'.TryAlt (wr, i, uK, uE) =
+          (initGlobalTimer ()).SynchronizedPushTimed
+            (WorkTimedUnitCont (Environment.TickCount, i, uE.pk, uK))
+          uE.TryElse (&wr, i+1)}
 
 ////////////////////////////////////////////////////////////////////////////////
 
