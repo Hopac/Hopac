@@ -1,3 +1,7 @@
+#### 0.3.23 - 2016-09-30
+* Added `idle` to yield the thread of execution.  Thanks to @neoeinstein for the
+  pull request!
+
 #### 0.3.22 - 2016-09-27
 * More robust detection against deadlocks caused by `run*`.
 * Scheduler changed to avoid running work recursively on non-worker threads.
