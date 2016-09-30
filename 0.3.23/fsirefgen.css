@@ -1,0 +1,87 @@
+nav {
+  height: 1em;
+}
+.navbar {
+  position: fixed;
+  background: oldlace;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px;
+  width: 100%;
+  margin: 0;
+  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.10);
+  z-index: 1;
+}
+.navbar > * {
+  margin-left: 2em;
+  margin-right: 2em;
+}
+.navbar > * > * {
+  margin-right: 0.5em;
+}
+p {
+  hyphens: auto;
+}
+p > code.hljs {
+  display: inline;
+  padding: 1px;
+}
+code {
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 80%;
+  border-radius: 3px;
+  hyphens: none;
+}
+code.hljs {
+  overflow: visible;
+  background: #f8f8f8;
+}
+code.hljs .h3 {
+  display: inline-block;
+  font-style: italic;
+  margin: 0.75em 0em 0.5em 0em;
+}
+code.hljs .spacing {
+  display: inherit;
+  margin: 0.5em 0em 0.5em 0em;
+}
+code.hljs *,
+code.hljs .hljs-title,
+code.hljs .hljs-keyword {
+  font-weight: normal;
+}
+div.description >*:not(:first-child) {
+  padding-left: 1.5em;
+}
+a {
+  color: #795da3;
+  text-decoration: none;
+}
+.anchor {
+  position: relative;
+}
+.tooltip {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  padding: 1em 1em 0 1em;
+  bottom: 140%;
+  left: 50%;
+  width: 40em;
+  overflow: auto;
+  transform: translate(-20%, 0);
+  font-size: 90%;
+}
+.tooltip code {
+  font-size: 100%;
+}
+.anchor:hover .tooltip {
+  display: inline;
+}
+.tooltip * {
+  word-break: normal;
+  white-space: normal;
+}
