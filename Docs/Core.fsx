@@ -56,17 +56,13 @@ module Hopac =
 open Infixes
 
 [<AutoOpen>]
-module ``always and result via channels and memo`` =
+module ``always via channels and memo`` =
   module Alt =
     let always: 'x -> Alt<'x> =
       fun x ->
         let xCh = Ch ()
         xCh *<- x |> start
         memo xCh :> Alt<_>
-
-  module Job =
-    let result: 'x -> Job<'x> =
-      fun x -> Alt.always x :> Job<_>
 
 [<AutoOpen>]
 module ``run via start and blocking`` =
@@ -91,15 +87,72 @@ module ``run via start and blocking`` =
         lock state wait
 
 [<AutoOpen>]
-module ``never and abort via nack`` =
+module ``never via nack`` =
+  open Alt
   module Alt =
-    let never: unit -> Alt<'x> =
-      fun () ->
-        run << Alt.withNackJob <| fun nack ->
-        nack ^=> fun () -> failwith "never"
-        |> Alt.always
-        |> Job.result
+    let never: unit -> Alt<'x>                                              = fun () -> run << Alt.withNackJob <| fun n -> Alt.always << Alt.always <| n ^=> fun () -> failwith "never"
 
+[<AutoOpen>]
+module ``basic job combinators`` =
   module Job =
-    let abort: unit -> Job<'x> =
-      fun () -> Alt.never () :> Job<_>
+
+    let result: 'x   -> Job<'x>                                             = fun x -> Alt.always x :> Job<_>
+    let   unit: unit -> Job<unit>                                           = result
+
+    let      bind: ('x   -> #Job<'y>) -> Job<'x> -> Job<'y>                 = fun x2yJ xJ -> xJ >>= x2yJ
+    let delayWith: ('x   -> #Job<'y>) ->     'x  -> Job<'y>                 = fun x2yJ x -> result x >>= x2yJ
+    let       map: ('x   ->      'y)  -> Job<'x> -> Job<'y>                 = fun x2y xJ -> xJ >>= (x2y >> result)
+    let      lift: ('x   ->      'y)  ->     'x  -> Job<'y>                 = fun x2y x -> result x |> map x2y
+    let     delay: (unit -> #Job<'y>) ->            Job<'y>                 = fun u2yJ -> unit () >>= u2yJ
+    let     thunk: (unit ->      'y)  ->            Job<'y>                 = fun u2y -> delay (u2y >> result)
+
+    let apply: Job<'x> -> Job<'x -> 'y> -> Job<'y>                          = fun xJ x2yJ -> x2yJ >>= fun x2y -> map x2y xJ
+
+    let join: Job<#Job<'x>> -> Job<'x>                                      = fun xJJ -> xJJ >>= id
+
+    let abort: unit -> Job<'x>                                              = fun () -> Alt.never () :> Job<_>
+
+    let Ignore: Job<_> -> Job<unit>                                         = fun _J -> map ignore _J
+
+    let start: Job<unit> -> Job<unit>                                       = fun uJ -> thunk <| fun () -> start uJ
+    let queue: Job<unit> -> Job<unit>                                       = fun uJ -> thunk <| fun () -> queue uJ
+
+[<AutoOpen>]
+module ``infixes for jobs`` =
+  [<AutoOpen>]
+  module Infixes =
+    let ( >>=. ): Job<_>  ->    Job<'y> -> Job<'y>                          = fun _J yJ -> _J >>= fun _ -> yJ
+    let ( >>-  ): Job<'x> -> ('x -> 'y) -> Job<'y>                          = fun xJ x2y -> Job.map x2y xJ
+    let ( >>-. ): Job<_>  ->        'y  -> Job<'y>                          = fun _J y -> _J >>- fun _ -> y
+    let ( >>-! ): Job<_>  ->       exn  -> Job<_>                           = fun _J e -> _J >>= fun _ -> raise e
+
+[<AutoOpen>]
+module ``basic alt combinators`` =
+  module Alt =
+    let unit: unit -> Alt<unit>                                             = Alt.always
+
+    let once: 'x -> Alt<'x>                                                 = fun x -> let xCh = Ch () in xCh *<- x |> start ; xCh :> Alt<_>
+
+    let zero: unit -> Alt<unit>                                             = Alt.never
+
+    let prepareJob: (unit -> #Job<#Alt<'x>>) -> Alt<'x>                     = fun u2xAJ -> Alt.withNackJob <| fun _ -> u2xAJ ()
+    let prepare:              Job<#Alt<'x>>  -> Alt<'x>                     = fun xAJ -> prepareJob <| fun () -> xAJ
+    let prepareFun: (unit ->      #Alt<'x>)  -> Alt<'x>                     = fun u2xA -> prepareJob <| Job.lift u2xA
+
+    let withNackFun: (Promise<unit> -> #Alt<'x>) -> Alt<'x>                 = fun n2xA -> Alt.withNackJob <| Job.lift n2xA
+
+    let wrapAbortJob:      Job<unit> -> Alt<'x> -> Alt<'x>                  = fun uJ xA -> Alt.withNackJob <| fun n -> n >>=. uJ |> Job.start >>-. xA
+    let wrapAbortFun: (unit -> unit) -> Alt<'x> -> Alt<'x>                  = fun u2u xA -> wrapAbortJob <| Job.thunk u2u <| xA
+
+    let choose:   seq<#Alt<'x>> -> Alt<'x>                                  = fun xAs -> prepareFun <| fun () -> Seq.foldBack (<|>) xAs <| Alt.never ()
+    let choosy: array<#Alt<'x>> -> Alt<'x>                                  = fun xAs -> choose xAs
+
+    let afterJob: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>                    = fun x2yJ xA -> xA ^=> x2yJ
+    let afterFun: ('x ->      'y)  -> Alt<'x> -> Alt<'y>                    = fun x2y xA -> xA ^=> Job.lift x2y
+
+    let Ignore: Alt<_> -> Alt<unit>                                         = fun _A -> afterFun ignore _A
+
+    let raises: exn -> Alt<_>                                               = fun e -> prepareJob <| fun () -> raise e
+
+    let tryFinallyJob: Alt<'x> ->      Job<unit> -> Alt<'x>                 = fun xA uJ -> Alt.tryIn xA (fun x -> uJ >>-. x) (fun e -> uJ >>-! e)
+    let tryFinallyFun: Alt<'x> -> (unit -> unit) -> Alt<'x>                 = fun xA u2u -> tryFinallyJob xA <| Job.thunk u2u
