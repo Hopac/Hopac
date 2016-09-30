@@ -186,7 +186,7 @@ module Hopac =
   ///
   /// A timeout of zero is optimized to an alternative that is immediately
   /// available, while a negative timeout results in an `Alt` that is never
-  /// available. See `idle` for an alternative that yields the thread of
+  /// available.  See `idle` for an alternative that yields the thread of
   /// execution to any ready work before becoming available.
 #endif
   val inline timeOut:       TimeSpan -> Alt<unit>
@@ -207,7 +207,7 @@ module Hopac =
   /// where they yield execution, `idle` allows progress to be made by other
   /// ready work.
 #endif
-  val idle :                           Alt<unit>
+  val idle:                      Alt<unit>
 
   //# Promises
 

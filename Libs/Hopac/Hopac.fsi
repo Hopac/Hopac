@@ -1397,7 +1397,7 @@ module Timer =
     ///
     /// A timeout of zero is optimized to an alternative that is immediately
     /// available, while a negative timeout results in an `Alt` that is never
-    /// available. See `idle` for an alternative that yields the thread of
+    /// available.  See `idle` for an alternative that yields the thread of
     /// execution to any ready work before becoming available.
 #endif
     [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
@@ -1421,7 +1421,7 @@ module Timer =
     /// ready work.
 #endif
     [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
-    val idle :                     Alt<unit>
+    val idle:                      Alt<unit>
 
 #if DOC
 /// Represents a promise to produce a result at some point in the future.
