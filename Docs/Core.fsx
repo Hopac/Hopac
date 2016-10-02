@@ -55,6 +55,7 @@ module Hopac =
 // ### Derived definitions
 
 open Infixes
+type IDisposable = System.IDisposable
 
 [<AutoOpen>]
 module ``always via channels and memo`` =
@@ -146,6 +147,36 @@ module ``basic job combinators`` =
     let tryFinallyFunDelay: (unit -> #Job<'x>) -> (unit -> unit) -> Job<'x> = fun u2xJ -> tryFinallyFun <| delay u2xJ
     let catch: Job<'x> -> Job<Choice<'x, exn>>                              = fun xJ -> Job.tryIn xJ <| lift Choice1Of2 <| lift Choice2Of2
 
+    // Finalization
+    let useIn: ('x -> #Job<'y>) -> 'x -> Job<'y> when 'x :> IDisposable     = fun x2yJ x -> tryFinallyFunDelay (fun () -> x2yJ x) x.Dispose
+    let using: 'x -> ('x -> #Job<'y>) -> Job<'y> when 'x :> IDisposable     = fun x x2yJ -> useIn x2yJ x
+
+    // Repeating an operation
+    let forN:       int -> Job<unit> -> Job<unit>                           = fun n uJ -> let rec lp n = if n <= 0 then unit () else uJ >>= fun () -> lp (n-1) in lp n
+    let forNIgnore: int -> Job<_>    -> Job<unit>                           = fun n _J -> forN n <| Ignore _J
+
+    // Iterating over a range
+    let forUpTo:         int -> int -> (int -> #Job<unit>) -> Job<unit>     = fun lo hi i2uJ -> let rec lp i = if i <= hi then i2uJ i >>= fun () -> lp (i+1) else unit () in lp lo
+    let forUpToIgnore:   int -> int -> (int -> #Job<_>)    -> Job<unit>     = fun lo hi i2_J -> forUpTo lo hi (i2_J >> Ignore)
+    let forDownTo:       int -> int -> (int -> #Job<unit>) -> Job<unit>     = fun hi lo i2uJ -> let rec lp i = if lo <= i then i2uJ i >>= fun () -> lp (i-1) else unit () in lp hi
+    let forDownToIgnore: int -> int -> (int -> #Job<_>)    -> Job<unit>     = fun hi lo i2_J -> forDownTo hi lo (i2_J >> Ignore)
+
+    // Iterating conditionally
+    let whileDo:       (unit -> bool) ->           Job<unit> -> Job<unit>   = fun u2b uJ -> let rec lp () = if u2b () then uJ >>= lp else unit () in lp ()
+    let whileDoDelay:  (unit -> bool) -> (unit -> #Job<_>)   -> Job<unit>   = fun u2b u2uJ -> whileDo u2b <| delay u2uJ
+    let whileDoIgnore: (unit -> bool) ->           Job<_>    -> Job<unit>   = fun u2b _J -> whileDo u2b <| Ignore _J
+
+    // Conditional
+    let whenDo: bool -> Job<unit> -> Job<unit>                              = fun b uJ -> if b then uJ else unit ()
+
+    // Server loops
+    let forever:       Job<unit> -> Job<_>                                  = fun uJ -> let rec lp () = uJ >>= lp in lp ()
+    let foreverIgnore: Job<_>    -> Job<_>                                  = fun _J -> forever <| Ignore _J
+    let iterate: 'x -> ('x -> #Job<'x>) -> Job<_>                           = fun x x2xJ -> let rec lp x = x2xJ x >>= lp in lp x
+
+    // Spawning server loops
+    let foreverServer: Job<unit> -> Job<unit>                               = forever >> server
+    let iterateServer: 'x -> ('x -> #Job<'x>) -> Job<unit>                  = fun x -> iterate x >> server
 [<AutoOpen>]
 module ``basic alt combinators`` =
   module Alt =
