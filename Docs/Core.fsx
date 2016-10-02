@@ -26,6 +26,7 @@ type Alt<'x>                                                                = Ho
 type Ch<'x>                                                                 = Hopac.Ch<'x>
 type Promise<'x>                                                            = Hopac.Promise<'x>
 type Proc                                                                   = Hopac.Proc
+type Void                                                                   = Hopac.Void
 
 module Job =
   let tryIn: Job<'x> -> ('x -> #Job<'y>) -> (exn -> #Job<'y>) -> Job<'y>    = Hopac.Job.tryIn
@@ -93,20 +94,30 @@ module ``never via nack`` =
     let never: unit -> Alt<'x>                                              = fun () -> run << Alt.withNackJob <| fun n -> Alt.always << Alt.always <| n ^=> fun () -> failwith "never"
 
 [<AutoOpen>]
+module ``infixes for jobs`` =
+  [<AutoOpen>]
+  module Infixes =
+    let ( >>=. ): Job<_>  ->    Job<'y> -> Job<'y>                          = fun _J yJ -> _J >>= fun _ -> yJ
+    let ( >>-  ): Job<'x> -> ('x -> 'y) -> Job<'y>                          = fun xJ x2y -> xJ >>= (x2y >> Alt.always)
+    let ( >>-. ): Job<_>  ->        'y  -> Job<'y>                          = fun _J y -> _J >>- fun _ -> y
+    let ( >>-! ): Job<_>  ->       exn  -> Job<_>                           = fun _J e -> _J >>= fun _ -> raise e
+
+[<AutoOpen>]
 module ``basic job combinators`` =
   module Job =
 
+    // Basic combinators
     let result: 'x   -> Job<'x>                                             = fun x -> Alt.always x :> Job<_>
     let   unit: unit -> Job<unit>                                           = result
 
     let      bind: ('x   -> #Job<'y>) -> Job<'x> -> Job<'y>                 = fun x2yJ xJ -> xJ >>= x2yJ
     let delayWith: ('x   -> #Job<'y>) ->     'x  -> Job<'y>                 = fun x2yJ x -> result x >>= x2yJ
-    let       map: ('x   ->      'y)  -> Job<'x> -> Job<'y>                 = fun x2y xJ -> xJ >>= (x2y >> result)
-    let      lift: ('x   ->      'y)  ->     'x  -> Job<'y>                 = fun x2y x -> result x |> map x2y
+    let       map: ('x   ->      'y)  -> Job<'x> -> Job<'y>                 = fun x2y xJ -> xJ >>- x2y
+    let      lift: ('x   ->      'y)  ->     'x  -> Job<'y>                 = fun x2y x -> result x >>- x2y
     let     delay: (unit -> #Job<'y>) ->            Job<'y>                 = fun u2yJ -> unit () >>= u2yJ
     let     thunk: (unit ->      'y)  ->            Job<'y>                 = fun u2y -> delay (u2y >> result)
 
-    let apply: Job<'x> -> Job<'x -> 'y> -> Job<'y>                          = fun xJ x2yJ -> x2yJ >>= fun x2y -> map x2y xJ
+    let apply: Job<'x> -> Job<'x -> 'y> -> Job<'y>                          = fun xJ x2yJ -> x2yJ >>= (>>-) xJ
 
     let join: Job<#Job<'x>> -> Job<'x>                                      = fun xJJ -> xJJ >>= id
 
@@ -114,17 +125,26 @@ module ``basic job combinators`` =
 
     let Ignore: Job<_> -> Job<unit>                                         = fun _J -> map ignore _J
 
-    let start: Job<unit> -> Job<unit>                                       = fun uJ -> thunk <| fun () -> start uJ
-    let queue: Job<unit> -> Job<unit>                                       = fun uJ -> thunk <| fun () -> queue uJ
+    // Spawning jobs
+    let queue:       Job<unit> -> Job<unit>                                 = fun uJ -> thunk <| fun () -> queue uJ
+    let queueIgnore: Job<_>    -> Job<unit>                                 = fun _J -> queue <| Ignore _J
+    let start:       Job<unit> -> Job<unit>                                 = fun uJ -> thunk <| fun () -> start uJ
+    let startIgnore: Job<_>    -> Job<unit>                                 = fun _J -> start <| Ignore _J
+    let server:      Job<Void> -> Job<unit>                                 = startIgnore
 
-[<AutoOpen>]
-module ``infixes for jobs`` =
-  [<AutoOpen>]
-  module Infixes =
-    let ( >>=. ): Job<_>  ->    Job<'y> -> Job<'y>                          = fun _J yJ -> _J >>= fun _ -> yJ
-    let ( >>-  ): Job<'x> -> ('x -> 'y) -> Job<'y>                          = fun xJ x2y -> Job.map x2y xJ
-    let ( >>-. ): Job<_>  ->        'y  -> Job<'y>                          = fun _J y -> _J >>- fun _ -> y
-    let ( >>-! ): Job<_>  ->       exn  -> Job<_>                           = fun _J e -> _J >>= fun _ -> raise e
+    // Exception handling
+    let raises: exn -> Job<_>                                               = fun e -> thunk <| fun () -> raise e
+    let tryInDelay: (unit -> #Job<'x>)
+                 -> ('x -> #Job<'y>)
+                 -> (exn -> #Job<'y>)
+                 -> Job<'y>                                                 = fun u2xJ -> Job.tryIn <| delay u2xJ
+    let tryWith:                Job<'x>  -> (exn -> #Job<'x>) -> Job<'x>    = fun xJ -> Job.tryIn xJ result
+    let tryWithDelay: (unit -> #Job<'x>) -> (exn -> #Job<'x>) -> Job<'x>    = fun u2xJ -> tryWith <| delay u2xJ
+    let tryFinallyJob:                Job<'x>  ->      Job<unit> -> Job<'x> = fun xJ uJ -> Job.tryIn xJ (fun x -> uJ >>-. x) (fun e -> uJ >>-! e)
+    let tryFinallyJobDelay: (unit -> #Job<'x>) ->      Job<unit> -> Job<'x> = fun u2xJ -> tryFinallyJob <| delay u2xJ
+    let tryFinallyFun:                Job<'x>  -> (unit -> unit) -> Job<'x> = fun xJ u2u -> tryFinallyJob xJ <| thunk u2u
+    let tryFinallyFunDelay: (unit -> #Job<'x>) -> (unit -> unit) -> Job<'x> = fun u2xJ -> tryFinallyFun <| delay u2xJ
+    let catch: Job<'x> -> Job<Choice<'x, exn>>                              = fun xJ -> Job.tryIn xJ <| lift Choice1Of2 <| lift Choice2Of2
 
 [<AutoOpen>]
 module ``basic alt combinators`` =
