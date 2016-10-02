@@ -19,6 +19,8 @@
 #r "Hopac.Bench.dll"
 #r "Hopac.Experimental.dll"
 
+open System
+
 // ### Core of Hopac
 
 type Job<'x>                                                                = Hopac.Job<'x>
@@ -55,7 +57,6 @@ module Hopac =
 // ### Derived definitions
 
 open Infixes
-type IDisposable = System.IDisposable
 
 [<AutoOpen>]
 module ``always via channels and memo`` =
@@ -177,6 +178,10 @@ module ``basic job combinators`` =
     // Spawning server loops
     let foreverServer: Job<unit> -> Job<unit>                               = forever >> server
     let iterateServer: 'x -> ('x -> #Job<'x>) -> Job<unit>                  = fun x -> iterate x >> server
+
+    // Sequences of jobs
+    let seqCollect: seq<#Job<'x>> -> Job<ResizeArray<'x>>                   = fun xJs -> let xs = ResizeArray () in let xJe = xJs.GetEnumerator () in let rec lp () = if xJe.MoveNext () then xJe.Current >>= (xs.Add >> lp) else xJe.Dispose () ; result xs in lp ()
+    let seqIgnore: seq<#Job<_>> -> Job<unit>                                = fun xJs -> let xJe = xJs.GetEnumerator () in let rec lp () = if xJe.MoveNext () then xJe.Current >>= fun _ -> lp () else xJe.Dispose () ; unit () in lp ()
 [<AutoOpen>]
 module ``basic alt combinators`` =
   module Alt =
