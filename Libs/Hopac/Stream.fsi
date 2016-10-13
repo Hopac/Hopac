@@ -817,6 +817,20 @@ module Stream =
   /// at most given number of elements.
   val buffer: int -> Stream<'x> -> Stream<array<'x>>
 
+  /// Converts a stream of elements into a stream of non-overlapping buffers of
+  /// at most given number of elements obtained within the given time limit.  To
+  /// avoid busy-wait polling, the time limit is started when the first element
+  /// for a new buffer is obtained.
+#if DOC
+  ///
+  /// Here is an example diagram with `bufferTime 3`:
+  ///
+  ///>   input: 1        234 56
+  ///> timeout: +-----x  +-! +-----x
+  ///>  output:      [1] [234]   [56]
+#endif
+  val bufferTime: int -> timeout: Job<_> -> Stream<'x> -> Stream<ResizeArray<'x>>
+
   //# Accumulating state
 
   /// Returns a stream whose elements are computed using the given job and
