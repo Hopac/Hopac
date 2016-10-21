@@ -1,3 +1,6 @@
+#### 0.3.24 - 2016-xx-xx
+* Optimized `Stream.keepPreceding*` and `Stream.keepFollowing1`.
+
 #### 0.3.23 - 2016-09-30
 * Added `idle` to yield the thread of execution.  Thanks to @neoeinstein for the
   pull request!

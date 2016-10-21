@@ -140,12 +140,13 @@ module Stream =
     |> memo
   let onCloseFun u2u xs = onCloseJob (Job.thunk u2u) xs
 
-  type FinalizeJob (uJ: Job<unit>) =
-    override this.Finalize () = start uJ
+  type GcSignal (finalize: Job<unit>) =
+    member gcs.Suppress () = GC.SuppressFinalize gcs
+    override gcs.Finalize () = start finalize
+
   let doFinalizeJob (uJ: Job<unit>) xs =
-    let finalize = FinalizeJob (uJ)
-    onCloseJob
-     (Job.delay <| fun () -> GC.SuppressFinalize finalize ; Job.start uJ) xs
+    let gcs = GcSignal uJ
+    xs |> onCloseJob ^ Job.delay ^ fun () -> gcs.Suppress () ; Job.start uJ
   let doFinalizeFun u2u xs = doFinalizeJob (Job.thunk u2u) xs
 
   let inline post (ctxt: SynchronizationContext) op =
@@ -367,21 +368,24 @@ module Stream =
     abstract First: 'x -> 'y
     abstract Next: 'y * 'x -> 'y
 
-  type GcSignal (v: IVar<_>) =
-    member gcs.Suppress () = GC.SuppressFinalize gcs
-    override gcs.Finalize () = v *<= () |> start
+  let pullWithGc gc req =
+    let gcs = GcSignal gc
+    let rec recur xs =
+      req >>=. xs >>-* function Cons (x, xs) -> Cons (x, recur xs)
+                              | Nil -> gcs.Suppress () ; Nil
+    recur
 
   let keepPrecedingFuns (fns: KeepPrecedingFuns<_, _>) xs =
     let gc = IVar ()
     let req = Ch ()
     let tail = ref (IVar ())
     let rec gotSome y xs =
-          gc
-      <|> req ^=> fun _ ->
-            let newTail = IVar ()
-            let oldTail = !tail
-            tail := newTail
-            oldTail *<= Cons (y, newTail) >>=. gotNone xs
+          req ^=> function true -> Job.unit ()
+                         | false ->
+                           let newTail = IVar ()
+                           let oldTail = !tail
+                           tail := newTail
+                           oldTail *<= Cons (y, newTail) >>=. gotNone xs
       <|> xs ^=> function Cons (x, xs) -> gotSome (fns.Next (y, x)) xs
                         | Nil -> !tail *<= Nil
        :> Job<_>
@@ -389,12 +393,7 @@ module Stream =
                  <|> xs ^=> function Cons (x, xs) -> gotSome (fns.First x) xs
                                    | Nil -> !tail *<= Nil
     Job.tryWith (gotNone xs) (fun e -> !tail *<=! e) |> start
-    let gcs = GcSignal (gc)
-    let req = req *<+ 0
-    let rec recur xs =
-      req >>=. xs >>-* function Cons (x, xs) -> Cons (x, recur xs)
-                              | Nil -> gcs.Suppress () ; Nil
-    !tail |> recur
+    !tail |> pullWithGc (gc *<= () >>=. req *<+ true) (req *<+ false)
 
   let keepPreceding maxCount xs =
     xs |> keepPrecedingFuns {new KeepPrecedingFuns<_, _> () with
@@ -421,18 +420,13 @@ module Stream =
                                   tail := newTail
                                   oldTail *<= Cons (x, newTail) >>=. noReq xs
                                 | Nil -> !tail *<= Nil
-    and noReq xs = gc
-               <|> req ^=> fun _ -> gotReq xs
+    and noReq xs = req ^=> function true  -> Alt.unit ()
+                                  | false -> gotReq xs
                <|> xs ^=> function Cons (_, xs) -> noReq xs
                                  | Nil -> !tail *<= Nil
                 :> Job<_>
     Job.tryWith (noReq xs) (fun e -> !tail *<=! e) |> start
-    let gcs = GcSignal (gc)
-    let req = req *<+ 0
-    let rec recur xs =
-      req >>=. xs >>-* function Cons (x, xs) -> Cons (x, recur xs)
-                              | Nil -> gcs.Suppress () ; Nil
-    !tail |> recur
+    !tail |> pullWithGc (gc *<= () >>=. req *<+ true) (req *<+ false)
 
   let rec skipWhileJob' x2bJ = function
     | Cons (x, xs) ->
