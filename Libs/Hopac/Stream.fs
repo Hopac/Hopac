@@ -14,6 +14,7 @@ module Stream =
   let inline queue x = Job.Global.queue x
   let inline start x = Job.Global.start x
   let inline server x = Job.Global.server x
+  let inline memos xJ = let xP = memo xJ in Job.Global.startIgnore xP ; xP
 
   type Cons<'x> =
     | Cons of Value: 'x * Next: Promise<Cons<'x>>
@@ -104,8 +105,7 @@ module Stream =
        | Cons (x, i) as c ->
          Job.tryInDelay (fun () -> x2xJ x) (push xM i) (fail xM c)
        | Nil -> imp ()
-    let tap xM =
-      let xs = memo (MVar.read xM.mvar) in Job.Global.startIgnore xs ; xs
+    let tap xM = memos ^ MVar.read xM.mvar
 
   let nilj<'x> = Job.result Nil :> Job<Cons<'x>>
   let nila<'x> = Alt.always Nil :> Alt<Cons<'x>>
