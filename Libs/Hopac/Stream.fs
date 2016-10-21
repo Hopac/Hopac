@@ -112,6 +112,7 @@ module Stream =
   let inline nil<'x> = Promise Nil :> Stream<'x>
   let inline consj x xs = Job.result (Cons (x, xs))
   let inline consa x xs = Alt.always (Cons (x, xs))
+  let inline conss x xs = Promise.start ^ xs >>- fun xs -> Cons (x, xs)
   let inline cons x xs = Promise (Cons (x, xs))
   let inline error (e: exn) = Promise<Cons<_>> e :> Stream<_>
   let onej x = Job.result (Cons (x, nil))
@@ -378,22 +379,17 @@ module Stream =
   let keepPrecedingFuns (fns: KeepPrecedingFuns<_, _>) xs =
     let gc = IVar ()
     let req = Ch ()
-    let tail = ref (IVar ())
     let rec gotSome y xs =
-          req ^=> function true -> Job.unit ()
-                         | false ->
-                           let newTail = IVar ()
-                           let oldTail = !tail
-                           tail := newTail
-                           oldTail *<= Cons (y, newTail) >>=. gotNone xs
-      <|> xs ^=> function Cons (x, xs) -> gotSome (fns.Next (y, x)) xs
-                        | Nil -> !tail *<= Nil
-       :> Job<_>
-    and gotNone xs = gc
-                 <|> xs ^=> function Cons (x, xs) -> gotSome (fns.First x) xs
-                                   | Nil -> !tail *<= Nil
-    Job.tryWith (gotNone xs) (fun e -> !tail *<=! e) |> start
-    !tail |> pullWithGc (gc *<= () >>=. req *<+ true) (req *<+ false)
+          req ^=> function false -> conss y ^ gotNone xs
+                         | true  -> nilj
+      <|> xs  ^=> function Cons (x, xs) -> xs |> gotSome ^ fns.Next (y, x)
+                         | Nil          -> nila
+    and gotNone xs =
+          gc
+      <|> xs ^=> function Nil          -> nila
+                        | Cons (x, xs) -> xs |> gotSome ^ fns.First x
+    xs |> gotNone |> memos
+    |> pullWithGc (gc *<= Nil >>=. req *<+ true) (req *<+ false)
 
   let keepPreceding maxCount xs =
     xs |> keepPrecedingFuns {new KeepPrecedingFuns<_, _> () with
@@ -411,22 +407,17 @@ module Stream =
   let keepFollowing1 xs =
     let gc = IVar ()
     let req = Ch ()
-    let tail = ref (IVar ())
-    let rec gotReq xs = gc
-                    <|> xs ^=> function
-                                | Cons (x, xs) ->
-                                  let newTail = IVar ()
-                                  let oldTail = !tail
-                                  tail := newTail
-                                  oldTail *<= Cons (x, newTail) >>=. noReq xs
-                                | Nil -> !tail *<= Nil
-    and noReq xs = req ^=> function true  -> Alt.unit ()
-                                  | false -> gotReq xs
-               <|> xs ^=> function Cons (_, xs) -> noReq xs
-                                 | Nil -> !tail *<= Nil
-                :> Job<_>
-    Job.tryWith (noReq xs) (fun e -> !tail *<=! e) |> start
-    !tail |> pullWithGc (gc *<= () >>=. req *<+ true) (req *<+ false)
+    let rec gotReq xs =
+          gc
+      <|> xs ^=> function Cons (x, xs) -> conss x ^ noReq xs
+                        | Nil          -> nilj
+    and noReq xs =
+          req ^=> function false -> gotReq xs
+                         | true  -> nila
+      <|> xs  ^=> function Cons (_, xs) -> noReq xs
+                         | Nil          -> nila
+    xs |> noReq |> memos
+    |> pullWithGc (gc *<= Nil >>=. req *<+ true) (req *<+ false)
 
   let rec skipWhileJob' x2bJ = function
     | Cons (x, xs) ->
