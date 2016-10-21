@@ -639,19 +639,22 @@ pull_submodules() {
 watch() {
   echo "watch: $*"
 
-  fswatch --latency 2              \
-          -0                       \
-          --exclude '\.gh-pages.*' \
-          --exclude '\.nuget.*'    \
-          --exclude '\.paket.*'    \
-          --exclude '\.tmp.*'      \
-          --exclude '\.git.*'      \
-          --exclude 'packages.*'   \
-          --exclude '.*#.*'        \
-          --exclude '.*/bin.*'     \
-          --exclude '.*/obj.*'     \
-          --exclude '.*\.proj'     \
-          .                        \
+  fswatch --latency 2                \
+          -0                         \
+          --exclude '.*#.*'          \
+          --exclude '.*/bin.*'       \
+          --exclude '.*/obj.*'       \
+          --exclude '.*\.lock\.json' \
+          --exclude '.*\.proj'       \
+          --exclude '\.dotnet'       \
+          --exclude '\.gh-pages.*'   \
+          --exclude '\.git.*'        \
+          --exclude '\.nuget.*'      \
+          --exclude '\.paket.*'      \
+          --exclude '\.tmp.*'        \
+          --exclude 'packages.*'     \
+          --exclude 'run'            \
+          .                          \
   | nice xargs -0 -t -n 1 -I {} ./run $*
 
   exit
