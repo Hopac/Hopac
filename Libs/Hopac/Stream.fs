@@ -372,7 +372,7 @@ module Stream =
     let gcs = GcSignal gc
     let rec recur xs =
       req >>=. xs >>-* function Cons (x, xs) -> Cons (x, recur xs)
-                              | Nil -> gcs.Suppress () ; Nil
+                              | Nil          -> gcs.Suppress () ; Nil
     recur
 
   let keepPrecedingFuns (fns: KeepPrecedingFuns<_, _>) xs =
