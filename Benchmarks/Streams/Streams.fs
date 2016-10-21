@@ -48,6 +48,17 @@ module BasicBench =
       printfn "Failed with: %A" e
 
   do
+     bench "keepFollowing1" 10000000 ^ fun n ->
+       Stream.ints n
+       |> Stream.keepFollowing1
+       |> Stream.iter |> run
+
+     bench "keepPreceding1" 10000000 ^ fun n ->
+       Stream.append (Stream.ints n) (Stream.cons -1 Stream.never)
+       |> Stream.keepPreceding1
+       |> Stream.takeWhileFun ^ fun i -> 0 <= i
+       |> Stream.iter |> run
+
      bench "duringEach" 10000000 ^ fun n ->
        Stream.ints n
        |> Stream.duringEach ^ Job.unit ()
@@ -58,12 +69,6 @@ module BasicBench =
      bench "mapPipelinedJob" 1000000 ^ fun n ->
        Stream.ints n
        |> Stream.mapPipelinedJob (Environment.ProcessorCount * 2) ^ Job.lift ^ fun n -> n + 1
-       |> Stream.iter |> run
-
-     bench "keepPreceding1" 10000000 ^ fun n ->
-       Stream.append (Stream.ints n) (Stream.cons -1 Stream.never)
-       |> Stream.keepPreceding1
-       |> Stream.takeWhileFun ^ fun i -> 0 <= i
        |> Stream.iter |> run
 
      bench "ignoreWhile" 1000000 ^ fun n ->
