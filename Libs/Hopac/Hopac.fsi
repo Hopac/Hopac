@@ -1476,19 +1476,15 @@ module Promise =
     /// immediately, the effect is that the delayed job will be run as a
     /// separate job, which means it is possible to communicate with it as long
     /// the delayed job is started before trying to communicate with it.
-    [<Obsolete "Just use the constructor.">]
     val inline delay: Job<'x> -> Promise<'x>
 
     /// Creates a promise with the given value.
-    [<Obsolete "Just use the constructor.">]
     val inline withValue:   'x  -> Promise<'x>
 
     /// Creates a promise with the given failure exception.
-    [<Obsolete "Just use the constructor.">]
     val inline withFailure: exn -> Promise<'x>
 
     /// Creates a promise that will never be fulfilled.
-    [<Obsolete "Just use the constructor.">]
     val never: unit -> Promise<'x>
 
     /// Returns true iff the given promise has already been fulfilled (either
