@@ -1161,7 +1161,7 @@ module Stream =
   val    ambAll: Stream<#Stream<'x>> -> Stream<'x>
 
   /// Joins all the streams together with `merge`.
-  val  mergeAll: Stream<#Stream<'x>> -> Stream<'x>
+  val  mergeAll: Stream<Stream<'x>> -> Stream<'x>
 
   /// Joins all the streams together with `switch`.
   val switchAll: Stream<#Stream<'x>> -> Stream<'x>

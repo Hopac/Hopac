@@ -282,7 +282,22 @@ module Stream =
   let joinWith join xs = joinWith' join xs |> memo
 
   let ambAll (xxs: Stream<#Stream<_>>) = joinWith amb' xxs
-  let mergeAll (xxs: Stream<#Stream<_>>) = joinWith merge' xxs
+
+  let rec mergeAll' combined producer =
+    combined ^=> function
+      | Nil -> producer >>= function
+        | Nil -> nilj
+        | Cons (x, xs) -> mergeAll' x xs :> _
+      | Cons (v, vs) -> consj v (mergeAll' vs producer)
+    <|> producer ^=> function
+      | Nil -> combined >>= function
+        | Nil -> nilj
+        | Cons (v, vs) -> consj v (mergeAll' vs nil)
+      | Cons (x, xs) -> mergeAll' (merge combined x) xs :> _
+    |> memo
+
+  let mergeAll producer = mergeAll' nil producer
+    
   let appendAll (xxs: Stream<#Stream<_>>) = joinWith append' xxs
   let switchAll (xxs: Stream<#Stream<_>>) = joinWith switch' xxs
 

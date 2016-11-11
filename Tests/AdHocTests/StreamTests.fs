@@ -160,3 +160,30 @@ let run () =
   quick <| fun xs -> xs |> Stream.onList (Stream.delayEach (timeOutMillis 1)) = xs
   quick <| fun xs -> xs |> Stream.onList (Stream.afterEach (timeOutMillis 1)) = xs
   quick <| fun xs -> xs |> Stream.onList (Stream.beforeEach (timeOutMillis 1)) = xs
+  quick <| fun xs ->
+    let values =
+        [ Stream.ofList xs; Stream.never ]
+        |> Stream.ofSeq
+        |> Stream.mergeAll
+        |> Stream.take (int64 xs.Length)
+        |> Stream.toList
+        |> memo
+        :> Alt<_>
+    
+    values ^-> Choice1Of2
+    <|> timeOutMillis 100 ^-> Choice2Of2
+    |> run = Choice1Of2 xs
+
+  quick <| fun xs ->
+    let values =
+        [ Stream.ofList xs; Stream.once (timeOutMillis 50) ]
+        |> Stream.ofSeq
+        |> Stream.mergeAll
+        |> Stream.toList
+        |> memo
+        :> Alt<_>
+    
+    values ^-> Choice1Of2
+    <|> timeOutMillis 100 ^-> Choice2Of2
+    |> run = Choice1Of2 (xs @ [ () ])
+
