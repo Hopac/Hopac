@@ -261,12 +261,14 @@ module Stream =
   let amb (ls: Stream<_>) (rs: Stream<_>) = amb' ls rs |> memo
 
   let rec mergeSwap ls rs =
-    ls ^=> function Cons (l, ls) -> consj l (merge' rs ls |> memo) | Nil -> upcast rs
+    ls ^=> function Cons (l, ls) -> consj l (merge' rs ls |> memo)
+                  | Nil -> upcast rs
   and merge' (ls: Alt<_>) (rs: Alt<_>) = mergeSwap ls rs <|> mergeSwap rs ls
   let merge (ls: Stream<_>) (rs: Stream<_>) = merge' ls rs |> memo
 
   let rec append' (ls: Alt<_>) (rs: Alt<_>) =
-    ls ^=> function Cons (l, ls) -> consj l (append' ls rs |> memo) | Nil -> upcast rs
+    ls ^=> function Cons (l, ls) -> consj l (append' ls rs |> memo)
+                  | Nil -> upcast rs
   let append (ls: Stream<_>) (rs: Stream<_>) = append' ls rs |> memo
 
   let rec switch' (ls: Alt<_>) (rs: Alt<_>) =
