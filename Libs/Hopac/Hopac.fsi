@@ -2695,6 +2695,17 @@ module Infixes =
 
   /// Creates a job that runs the given two jobs and returns the result of the
   /// second job.  `xJ >>=. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
+#if DOC
+  ///
+  /// Note that `yJ` is evaluated eagerly. Any side effects from the
+  /// evaluation of `yJ` to a value are not delayed.
+  ///
+  /// For example:
+  /// `Job.thunk (fun () -> printf "hello") >>=. Job.result (printf "world")`
+  ///  will print "worldhello".
+  ///
+  /// To delay evaluation of `yJ`, use the full form `xJ >>= fun _ -> yJ`.
+#endif
   val ( >>=.  ): Job<_>  ->         Job<'y>  ->     Job<'y>
 
   /// A memoizing version of `>>=.`.
@@ -2702,6 +2713,17 @@ module Infixes =
 
   /// Creates a job that runs the given job and then returns the given value.
   /// `xJ >>-. y` is an optimized version of `xJ >>= fun _ -> result y`.
+#if DOC
+  ///
+  /// Note that `y` is evaluated eagerly. Any side effects from the
+  /// evaluation of `y` to a value are not delayed.
+  ///
+  /// For example:
+  /// `Job.thunk (fun () -> printf "hello") >>-. printf "world"`
+  /// will print "worldhello".
+  ///
+  /// To delay evaluation of `y`, use the full form `xJ >>- fun _ -> y`.
+#endif
   val ( >>-.  ): Job<_>  ->             'y   ->     Job<'y>
 
   /// A memoizing version of `>>-.`.
