@@ -39,6 +39,11 @@
 ///>      Ch<_>  Latch   Mailbox<_>  MVar<_>  Proc   Promise<_>
 ///>                                                     |
 ///>                                                   IVar<_>
+///
+/// Parts of the documentation will refer to certain functions that are not
+/// provided as part of the library, but are defined as follows:
+///
+///> let always x _ = x
 namespace Hopac
 
 open System.Threading
@@ -996,7 +1001,7 @@ module Alt =
   /// version of `never ()`.
   val  inline zero: unit -> Alt<unit>
 
-  /// `Ignore xA` is equivalent to `xA ^-> fun _ -> ()`.
+  /// `Ignore xA` is equivalent to `xA ^-> always ()`.
   val Ignore: Alt<_> -> Alt<unit>
 
   //# Before actions
@@ -1212,6 +1217,10 @@ module Alt =
 #endif
   val inline afterJob: ('x -> #Job<'y>) -> Alt<'x> -> Alt<'y>
 
+  /// Creates an alternative which is committed to when the given alternative
+  /// is committed to. Once committed, the given alternative's result is mapped
+  /// using the given function, providing the final result.
+  ///
   /// `xA |> afterFun x2y` is equivalent to `xA |> afterJob (x2y >> result)`.
   /// This is the same as `^->` with the arguments flipped.
   val inline afterFun: ('x ->      'y)  -> Alt<'x> -> Alt<'y>
@@ -2626,16 +2635,30 @@ module Infixes =
   /// committed to.  This is the same as `afterJob` with the arguments flipped.
   val inline ( ^=>  ): Alt<'x> -> ('x -> #Job<'y>) -> Alt<'y>
 
+  /// Creates an alternative which is committed to when the given alternative
+  /// is committed to. Once committed, the given alternative's result is mapped
+  /// using the given function, providing the final result.
+  ///
   /// `xA ^-> x2y` is equivalent to `xA ^=> (x2y >> result)`.  This is the same
   /// as `afterFun` with the arguments flipped.
   val inline ( ^->  ): Alt<'x> -> ('x ->      'y)  -> Alt<'y>
 
-  /// `xA ^=>. yJ` is equivalent to `xA ^=> fun _ -> yJ`.
+  /// Creates an alternative which is committed to when the given alternative
+  /// is committed to. Once committed, the job argument is executed and
+  /// generates the result.
+  ///
+  /// `xA ^=>. yJ` is equivalent to `xA ^=> always yJ`.
   val ( ^=>. ): Alt<_>  ->         Job<'y>  -> Alt<'y>
 
-  /// `xA ^->. y` is equivalent to `xA ^-> fun _ -> y`.
+  /// Creates an alternative which is committed to when the given alternative
+  /// is committed to. Once committed, the given value is used as the result.
+  ///
+  /// `xA ^->. y` is equivalent to `xA ^-> always y`.
   val ( ^->. ): Alt<_>  ->             'y   -> Alt<'y>
 
+  /// Creates an alternative which is committed to when the alternative
+  /// argument is committed to. Once committed, the given exception is raised.
+  ///
   /// `xA ^->! e` is equivalent to `xA ^-> fun _ -> raise e`.
   val ( ^->! ): Alt<_>  ->             exn  -> Alt<_>
 
@@ -2694,14 +2717,14 @@ module Infixes =
   val inline ( >>-*  ): Job<'x> -> ('x ->      'y)  -> Promise<'y>
 
   /// Creates a job that runs the given two jobs and returns the result of the
-  /// second job.  `xJ >>=. yJ` is equivalent to `xJ >>= fun _ -> yJ`.
+  /// second job.  `xJ >>=. yJ` is equivalent to `xJ >>= always yJ`.
   val ( >>=.  ): Job<_>  ->         Job<'y>  ->     Job<'y>
 
   /// A memoizing version of `>>=.`.
   val inline ( >>=*. ): Job<_>  ->         Job<'y>  -> Promise<'y>
 
   /// Creates a job that runs the given job and then returns the given value.
-  /// `xJ >>-. y` is an optimized version of `xJ >>= fun _ -> result y`.
+  /// `xJ >>-. y` is an optimized version of `xJ >>= always (result y)`.
   val ( >>-.  ): Job<_>  ->             'y   ->     Job<'y>
 
   /// A memoizing version of `>>-.`.
