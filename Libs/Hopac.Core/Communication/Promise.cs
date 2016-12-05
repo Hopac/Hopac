@@ -125,10 +125,9 @@ namespace Hopac {
       this.Readers = taker;
       taker.Next = taker;
       taker.Pick = aE.pk;
-      this.State = Running;
-
       taker.Me = i;
       taker.Cont = aK;
+      this.State = Running;
 
       var fulfill = readers as Fulfill;
       fulfill.tP = this;
