@@ -120,14 +120,18 @@ namespace Hopac {
 
     Delayed:
       var readers = this.Readers;
-      this.Readers = null;
+
+      var taker = new Taker<T>();
+      this.Readers = taker;
+      taker.Next = taker;
+      taker.Pick = aE.pk;
       this.State = Running;
+
+      taker.Me = i;
+      taker.Cont = aK;
 
       var fulfill = readers as Fulfill;
       fulfill.tP = this;
-      fulfill.reader = aK;
-      fulfill.me = i;
-      fulfill.pk = aE.pk;
 
       Worker.PushNew(ref wr, fulfill);
       aE.TryElse(ref wr, i + i);
