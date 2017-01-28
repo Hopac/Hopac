@@ -94,6 +94,11 @@ module Stream =
   /// with push based models.  For example, `groupByFun` and `shift`, which
   /// corresponds to `Delay` in Rx, are non-trivial, although both
   /// implementations are actually much shorter than their .Net Rx counterparts.
+  ///
+  /// Note: holding a reference to the head of a stream will prevent the elements
+  /// of that stream from being garbage collected when no longer useful,
+  /// resulting in a memory leak. Avoid keeping a reference to the head of a
+  /// stream in a static context, as such streams will never be garbage collected.
 #endif
   type Stream<'x> = Promise<Cons<'x>>
 
