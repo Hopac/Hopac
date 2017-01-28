@@ -789,8 +789,25 @@ module Job =
 
   /// Creates a job that waits for the given task to finish and then returns the
   /// result of the task.  Note that this does not start the task.  Make sure
-  /// that the task is started correctly.  See also: `fromTask`.
+  /// that the task is started correctly.  Exceptions thrown during task
+  /// initialization may not be caught. Prefer `fromTask` or `liftTask`.
 #if DOC
+  ///
+  /// Functions that return a task run synchronously until they block.  If an
+  /// exception is raised during this synchronous phase, the exception cannot
+  /// be caught by a later `Job.catch`.
+  ///
+  /// This form will not catch the expected value:
+  ///
+  ///> readFromBufferTask buffer |> Job.awaitTask |> Job.catch
+  ///
+  /// Use `fromTask` or `liftTask` instead:
+  ///
+  ///> Job.fromTask (fun () -> readFromBufferTask buffer) |> Job.catch
+  ///> Job.liftTask readFromBufferTask buffer |> Job.catch
+  ///
+  /// This will catch an exception thrown by the wrapped task for handling in
+  /// the `Job` context.
   ///
   /// Reference implementation:
   ///
@@ -806,13 +823,38 @@ module Job =
 
   /// Creates a job that waits until the given task finishes.  Note that this
   /// does not start the task.  Make sure that the task is started correctly.
-  /// See also: `fromUnitTask`.
+  /// Exceptions thrown during task initialization may not be caught. Prefer
+  /// `fromUnitTask` or `liftUnitTask`.
+#if DOC
+  ///
+  /// Functions that return a task run synchronously until they block.  If an
+  /// exception is raised during this synchronous phase, the exception cannot
+  /// be caught by a later `Job.catch`.
+  ///
+  /// This form will not catch the expected value:
+  ///
+  ///> writeToBufferTask buffer value |> Job.awaitUnitTask |> Job.catch
+  ///
+  /// Use `fromUnitTask` or `liftUnitTask` instead:
+  ///
+  ///> Job.fromUnitTask (fun () -> writeToBufferTask buffer value) |> Job.catch
+  ///> Job.liftUnitTask (writeToBufferTask buffer) value |> Job.catch
+  ///
+  /// This will catch an exception thrown by the wrapped task for handling in
+  /// the `Job` context.
+#endif
   val inline awaitUnitTask: Task     -> Job<unit>
 
   /// `bindTask x2yJ xT` is equivalent to `awaitTask xT >>= x2yJ`.
+  /// Exceptions thrown during task initialization may not be caught. Prefer
+  /// `fromTask` or `liftTask` to convert the task to a `Job` and use
+  /// `Job.bind`.
   val inline bindTask:     ('x   -> #Job<'y>) -> Task<'x> -> Job<'y>
 
   /// `bindUnitTask u2xJ uT` is equivalent to `awaitUnitTask uT >>= u2xJ`.
+  /// Exceptions thrown during task initialization may not be caught. Prefer
+  /// `fromUnitTask` or `liftUnitTask` to convert the task to a `Job` and
+  /// use `Job.bind`.
   val inline bindUnitTask: (unit -> #Job<'y>) -> Task     -> Job<'y>
 
   //# Debugging
