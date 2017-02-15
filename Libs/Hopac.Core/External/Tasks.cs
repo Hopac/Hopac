@@ -108,7 +108,11 @@ namespace Hopac.Core {
       xK.DoHandle(ref wr, e);
     }
     internal override void DoWork(ref Worker wr) {
-      xK.DoCont(ref wr, xT.Result);
+      var xT = this.xT;
+      if (TaskStatus.RanToCompletion == xT.Status)
+        xK.DoCont(ref wr, xT.Result);
+      else
+        xK.DoHandle(ref wr, xT.Exception);
     }
     public void Ready() {
       Worker.ContinueOnThisThread(this.sr, this);
