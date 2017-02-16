@@ -46,6 +46,32 @@ let run () =
      |> run
      |> testExpected [Ex]
 
+  let cancelled = TaskCanceledException()
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromTask ^ fun () -> tcs.SetCanceled() ; tcs.Task
+     |> Job.catch
+     |> run
+     |> testExpected [cancelled]
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromUnitTask ^ fun () -> tcs.SetCanceled() ; tcs.Task :> Task
+     |> Job.catch
+     |> run
+     |> testExpected [cancelled]
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromTask ^ fun () -> tcs.SetException(Ex) ; tcs.Task
+     |> Job.catch
+     |> run
+     |> testExpected [Ex]
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromUnitTask ^ fun () -> tcs.SetException(Ex) ; tcs.Task :> Task
+     |> Job.catch
+     |> run
+     |> testExpected [Ex]
+
   do delayAndRaise 50 Ex
      <|> delayAndSet 203 ^ ref 1
      |> Job.catch

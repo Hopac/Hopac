@@ -32,7 +32,11 @@ namespace Hopac.Core {
       }
       internal override void DoWork(ref Worker wr) {
         var yJ = this.yJ;
-        yJ.Do(yJ.xT.Result).DoJob(ref wr, yK);
+        var xT = yJ.xT;
+        if (TaskStatus.Faulted == xT.Status)
+          Handler.DoHandle(yK, ref wr, xT.Exception);
+        else
+          yJ.Do(yJ.xT.Result).DoJob(ref wr, yK);
       }
       internal void Ready() {
         Worker.ContinueOnThisThread(sr, this);
@@ -73,10 +77,10 @@ namespace Hopac.Core {
       internal override void DoWork(ref Worker wr) {
         var yJ = this.yJ;
         var uT = yJ.uT;
-        if (TaskStatus.RanToCompletion == uT.Status)
-          yJ.Do().DoJob(ref wr, yK);
-        else
+        if (TaskStatus.Faulted == uT.Status)
           Handler.DoHandle(yK, ref wr, uT.Exception);
+        else
+          yJ.Do().DoJob(ref wr, yK);
       }
       internal void Ready() {
         Worker.ContinueOnThisThread(sr, this);
@@ -109,10 +113,10 @@ namespace Hopac.Core {
     }
     internal override void DoWork(ref Worker wr) {
       var xT = this.xT;
-      if (TaskStatus.RanToCompletion == xT.Status)
-        xK.DoCont(ref wr, xT.Result);
-      else
+      if (TaskStatus.Faulted == xT.Status)
         xK.DoHandle(ref wr, xT.Exception);
+      else
+        xK.DoCont(ref wr, xT.Result);
     }
     public void Ready() {
       Worker.ContinueOnThisThread(this.sr, this);
@@ -150,10 +154,12 @@ namespace Hopac.Core {
     }
     internal override void DoWork(ref Worker wr) {
       var uT = this.uT;
-      if (TaskStatus.RanToCompletion == uT.Status)
-        uK.DoWork(ref wr);
-      else
+      if (TaskStatus.Faulted == uT.Status)
         uK.DoHandle(ref wr, uT.Exception);
+      else {
+        uT.Wait();
+        uK.DoWork(ref wr);
+      }
     }
     internal void Ready() {
       Worker.ContinueOnThisThread(this.sr, this);
@@ -207,7 +213,11 @@ namespace Hopac.Core {
       cts.Dispose();
       if (0 != picked)
         goto Done;
-      xK.DoCont(ref wr, xT.Result);
+      var xT = this.xT;
+      if (TaskStatus.Faulted == xT.Status)
+        xK.DoHandle(ref wr, xT.Exception);
+      else
+        xK.DoCont(ref wr, xT.Result);
     Done:
       return;
     }
@@ -295,10 +305,13 @@ namespace Hopac.Core {
       cts.Dispose();
       if (0 != picked)
         goto Done;
-      if (TaskStatus.RanToCompletion == uT.Status)
-        uK.DoWork(ref wr);
-      else
+      var uT = this.uT;
+      if (TaskStatus.Faulted == uT.Status)
         uK.DoHandle(ref wr, uT.Exception);
+      else {
+        uT.Wait();
+        uK.DoWork(ref wr);
+      }
     Done:
       return;
     }
