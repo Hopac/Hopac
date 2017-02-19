@@ -11,6 +11,7 @@ open System.Threading.Tasks
 open RunTask
 
 exception Ex
+exception Ex2
 
 let verify n c = printfn "%s %s" (if c then "Ok" else "FAILURE") n
 
@@ -45,6 +46,58 @@ let run () =
      |> Job.catch
      |> run
      |> testExpected [Ex]
+
+  let cancelled = TaskCanceledException()
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromTask ^ fun () -> tcs.SetCanceled() ; tcs.Task
+     |> Job.catch
+     |> run
+     |> testExpected [cancelled]
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromUnitTask ^ fun () -> tcs.SetCanceled() ; tcs.Task :> Task
+     |> Job.catch
+     |> run
+     |> testExpected [cancelled]
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromTask ^ fun () -> tcs.SetException(Ex) ; tcs.Task
+     |> Job.catch
+     |> run
+     |> testExpected [Ex]
+
+  let tcs1 = TaskCompletionSource<int>()
+  let tcs2 = TaskCompletionSource<int>()
+  do Job.fromTask ^ fun () -> tcs1.SetException(Ex) ; tcs1.Task
+     |> Job.bind ^ Job.liftTask ^ fun _ -> tcs2.SetException(Ex2) ; tcs2.Task
+     |> Job.catch
+     |> run
+     |> testExpected [Ex]
+
+  let tcs = TaskCompletionSource<int>()
+  do Job.fromUnitTask ^ fun () -> tcs.SetException(Ex) ; tcs.Task :> Task
+     |> Job.catch
+     |> run
+     |> testExpected [Ex]
+
+  let tcs1 = TaskCompletionSource<int>()
+  let tcs2 = TaskCompletionSource<int>()
+  do 23
+     |> Job.liftTask ^ fun _ -> tcs1.SetException(Ex) ; tcs1.Task
+     |> Job.bind ^ Job.liftTask ^ fun _ -> tcs2.SetCanceled() ; tcs2.Task
+     |> Job.catch
+     |> run
+     |> testExpected [Ex]
+
+  let tcs1 = TaskCompletionSource<int>()
+  let tcs2 = TaskCompletionSource<int>()
+  do 23
+     |> Job.liftTask ^ fun _ -> tcs1.SetCanceled() ; tcs1.Task
+     |> Job.bind ^ Job.liftTask ^ fun _ -> tcs2.SetException(Ex) ; tcs2.Task
+     |> Job.catch
+     |> run
+     |> testExpected [cancelled]
 
   do delayAndRaise 50 Ex
      <|> delayAndSet 203 ^ ref 1
