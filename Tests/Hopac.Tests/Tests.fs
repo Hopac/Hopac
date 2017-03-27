@@ -20,20 +20,37 @@ type Behaviour =
 
 type Nesting =
   | Leaf of target:Monad * behave:Behaviour
-  | Node of outer:Monad * inner:Nesting
+  | Node of outer:Monad * inner:Nesting * reraise:bool
 
 let e = InvalidOperationException "bad bad"
 
 let rec buildJob = function
-  | Node (Monad.Async, inner) ->
+  | Node (Monad.Async, inner, false) ->
     async {
       return! buildJob inner |> Job.toAsync
     }
     |> Job.fromAsync
 
-  | Node (Monad.Job, inner) ->
+  | Node (Monad.Async, inner, true) ->
+    async {
+      try
+        return! buildJob inner |> Job.toAsync
+      with e ->
+        raise e
+    }
+    |> Job.fromAsync
+
+  | Node (Monad.Job, inner, false) ->
     job {
       return! buildJob inner
+    }
+
+  | Node (Monad.Job, inner, true) ->
+    job {
+      try
+        return! buildJob inner
+      with e ->
+        raise e
     }
 
   | Leaf (Monad.Job, RetUnit) ->
@@ -59,16 +76,34 @@ let rec buildJob = function
     |> Job.fromAsync
 
 let rec buildAsync = function
-  | Node (Monad.Async, inner) ->
+  | Node (Monad.Async, inner, false) ->
     async {
       return! buildAsync inner
     }
 
-  | Node (Monad.Job, inner) ->
+  | Node (Monad.Async, inner, true) ->
+    async {
+      try
+        return! buildAsync inner
+      with e ->
+        raise e
+    }
+
+  | Node (Monad.Job, inner, false) ->
     job {
       return! buildAsync inner
     }
     |> Job.toAsync
+
+  | Node (Monad.Job, inner, true) ->
+    job {
+      try
+        return! buildAsync inner
+      with e ->
+        raise e
+    }
+    |> Job.toAsync
+
 
   | Leaf (Monad.Job, RetUnit) ->
     job {
@@ -93,7 +128,7 @@ let rec buildAsync = function
     }
 
 let rec getBehaviour = function
-  | Node (_, i) -> getBehaviour i
+  | Node (_, i, _) -> getBehaviour i
   | Leaf (_, b) -> b
 
 [<Tests>]
@@ -179,7 +214,7 @@ let tests =
 
         let cfg =
           { FsCheckConfig.defaultConfig with
-              maxTest = 100
+              maxTest = 1000
               startSize = 10
               receivedArgs = printArgs }
 
