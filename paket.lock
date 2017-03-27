@@ -1,7 +1,19 @@
 FRAMEWORK: NET45
 NUGET
   remote: https://www.nuget.org/api/v2
+    Argu (3.7)
+    Expecto (4.1)
+      Argu (>= 3.2)
+      FSharp.Core (>= 3.1.2.5)
+      Mono.Cecil (>= 0.9.6.4)
+    Expecto.FsCheck (4.1)
+      Expecto (>= 4.1)
+      FsCheck (>= 2.7.1)
+      FSharp.Core (>= 3.1.2.5)
+    FsCheck (2.8)
+      FSharp.Core (>= 3.1.2.5)
     FSharp.Core (3.1.2.5)
+    Mono.Cecil (0.9.6.4)
 
 GROUP Benchmarks
 FRAMEWORK: NET45

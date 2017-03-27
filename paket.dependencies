@@ -1,6 +1,7 @@
 source https://www.nuget.org/api/v2
 framework: NET45
 
+nuget Expecto.FsCheck
 nuget FSharp.Core ~> 3
 
 group Tests
