@@ -1198,6 +1198,7 @@ module Job =
       | null -> ()
       | _ -> Worker.RunOnThisThread (sr, xK')
      Scheduler.start sr uJ
+     base.Finalize()
     override xK'.GetProc (wr) =
      match xK'.Proc with
       | null ->
