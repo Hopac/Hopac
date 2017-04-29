@@ -183,7 +183,6 @@ namespace Hopac {
     }
   }
 
-  [Serializable]
   internal class KillException : Exception { }
 
   internal class AbortWork : Work {
