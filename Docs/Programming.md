@@ -360,17 +360,15 @@ storage cells using those monadic combinators directly.
 let put (c: Cell<'a>) (x: 'a) : Job<unit> =
   Ch.give c.reqCh (Put x)
 
-let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>-. Ch.take c.replyCh
+let get (c: Cell<'a>) : Job<'a> = Ch.give c.reqCh Get >>=. Ch.take c.replyCh
 
 let create (x: 'a) : Job<Cell<'a>> = Job.delay <| fun () ->
   let c = {reqCh = Ch (); replyCh = Ch ()}
   let rec server x =
     Ch.take c.reqCh >>= function
      | Get ->
-       Ch.give c.replyCh x >>-.
-       server x
-     | Put x ->
-       server x
+       Ch.give c.replyCh x >>=. server x
+     | Put x -> server x       
   Job.start (server x) >>-. c
 ```
 
