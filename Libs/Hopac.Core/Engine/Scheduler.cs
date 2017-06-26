@@ -183,7 +183,9 @@ namespace Hopac {
     }
   }
 
+#if !NETSTANDARD1_6
   [Serializable]
+#endif
   internal class KillException : Exception { }
 
   internal class AbortWork : Work {
