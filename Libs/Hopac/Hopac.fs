@@ -1194,11 +1194,13 @@ module Job =
     inherit Cont<'x> ()
     [<DefaultValue>] val mutable Proc: Proc
     override xK'.Finalize () =
-     match xK'.Proc with
-      | null -> ()
-      | _ -> Worker.RunOnThisThread (sr, xK')
-     Scheduler.start sr uJ
-     base.Finalize()
+     try
+      match xK'.Proc with
+       | null -> ()
+       | _ -> Worker.RunOnThisThread (sr, xK')
+      Scheduler.start sr uJ
+     finally
+      base.Finalize()
     override xK'.GetProc (wr) =
      match xK'.Proc with
       | null ->
