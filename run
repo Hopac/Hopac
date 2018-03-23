@@ -188,6 +188,10 @@ if [ -z "$CONFIGS" ] ; then
   CONFIGS="Debug Release"
 fi
 
+if [ -z "$FRAMEWORKS" ] ; then
+  FRAMEWORKS="net45 netcoreapp2.0"
+fi
+
 ################################################################################
 
 clean() {
@@ -294,13 +298,11 @@ build() {
   restore
 
   if [ "$USE" = netcore ] ; then
-    for PROJECT in $(find . -name "project.json") ; do
-      pushd "$(dirname "$PROJECT")" &> /dev/null
+    for SOLUTION in $SOLUTIONS ; do
       for CONFIG in $CONFIGS ; do
-        echo "Building $(basename "$(dirname "$PROJECT")") in $CONFIG"
-        dotnet build -c "$CONFIG" | dotnet-quiet
+        echo "Building $SOLUTION in $CONFIG"
+        dotnet build -c "$CONFIG" "$SOLUTION" | dotnet-quiet
       done
-      popd &> /dev/null
     done
   else
     for SOLUTION in $SOLUTIONS ; do
@@ -475,7 +477,7 @@ run() {
   pushd "$PROJECT" &> /dev/null
   echo "Running $PROJECT in $CONFIG"
   if [ "$USE" = netcore ] ; then
-    dotnet run -c "$CONFIG" | dotnet-quiet
+    dotnet run -c "$CONFIG" --framework "netcoreapp2.0" | dotnet-quiet
   else
     $RUN "./bin/$CONFIG/$PROJECT.exe"
   fi
@@ -491,7 +493,7 @@ tests() {
   pushd Tests &> /dev/null
   for CONFIG in $CONFIGS ; do
     for TEST in * ; do
-      run "$TEST" "$CONFIG"
+      run "$TEST" "$CONFIG" 
     done
   done
   popd &> /dev/null
