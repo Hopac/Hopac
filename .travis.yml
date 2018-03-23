@@ -1,14 +1,17 @@
 language: csharp
+sudo: required
+addons:
+  apt:
+    packages:
+    - dotnet-sharedframework-microsoft.netcore.app-1.1.2
 
 env: CONFIGS=Release
+os: linux
+dotnet: 2.1.4
 
 matrix:
   include:
-    - os: linux
-      sudo: false
-      dist: trusty
-      mono: latest
-      dotnet: 2.1.4
+    - mono: latest
   exclude:
     - env: CONFIGS=Release
 
