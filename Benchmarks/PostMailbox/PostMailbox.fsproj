@@ -49,4 +49,5 @@
       <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
