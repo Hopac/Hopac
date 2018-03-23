@@ -28,6 +28,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Targetframework)' == 'Netstandard1.6' ">
+    <DefineConstants>CORECLR</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Init.fs" />

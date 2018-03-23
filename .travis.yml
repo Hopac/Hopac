@@ -12,7 +12,7 @@ matrix:
       sudo: required
       dist: trusty
       mono: none
-      dotnet: 1.0.0-preview2-003121
+      dotnet: 2.1.4
   exclude:
     - env: CONFIGS=Release
 
