@@ -218,6 +218,7 @@ restore() {
     dotnet restore Hopac.sln
   else
     paket --silent restore
+    msbuild /t:restore Hopac.sln
   fi
 }
 
