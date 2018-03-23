@@ -480,7 +480,7 @@ run() {
   if [ "$USE" = netcore ] ; then
     dotnet run -c "$CONFIG" --framework "netcoreapp2.0" | dotnet-quiet
   else
-    $RUN "./bin/$CONFIG/$PROJECT.exe"
+    $RUN "./bin/$CONFIG/net45/$PROJECT.exe"
   fi
   echo
   popd &> /dev/null
