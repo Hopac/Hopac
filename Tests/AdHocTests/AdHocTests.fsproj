@@ -31,6 +31,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Targetframework)' == 'Netcoreapp1.1' ">
+    <DefineConstants>CORECLR</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Util.fs" />
