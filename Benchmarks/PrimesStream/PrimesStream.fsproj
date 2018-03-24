@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>PrimesStream</RootNamespace>
     <AssemblyName>PrimesStream</AssemblyName>
-    <TargetFramework>net45;netcoreapp2.0</TargetFramework>
+    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>PrimesStream</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>

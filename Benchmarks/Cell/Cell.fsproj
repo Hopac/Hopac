@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Cell</RootNamespace>
     <AssemblyName>Cell</AssemblyName>
-    <TargetFramework>net45;netcoreapp2.0</TargetFramework>
+    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Cell</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>

@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>ThreadRing</RootNamespace>
     <AssemblyName>ThreadRing</AssemblyName>
-    <TargetFramework>net45;netcoreapp2.0</TargetFramework>
+    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
     <WarningLevel>4</WarningLevel>

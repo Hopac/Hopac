@@ -294,7 +294,7 @@ build() {
   if did build ; then return 0 ; fi
 
   generate_infos
-  update_versions
+  #update_versions
 
   restore
 
