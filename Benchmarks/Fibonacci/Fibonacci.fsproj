@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Fibonacci</RootNamespace>
     <AssemblyName>Fibonacci</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net45;netcoreapp2.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Fibonacci</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>

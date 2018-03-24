@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>StartRing</RootNamespace>
     <AssemblyName>StartRing</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net45;netcoreapp2.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>StartRing</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
