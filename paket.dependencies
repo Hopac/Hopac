@@ -1,18 +1,18 @@
 source https://www.nuget.org/api/v2
-framework: NET45
+# framework: NET45
 
-nuget FSharp.Core ~> 3
+nuget FSharp.Core ~> 4
 
 group Tests
   source https://nuget.org/api/v2
-  framework: NET45
+  #framework: NET45
 
   nuget FSharp.Core ~> 4
   nuget FsCheck
 
 group Benchmarks
   source https://nuget.org/api/v2
-  framework: NET45
+  #framework: NET45
 
   nuget FSharp.Core ~> 4
   nuget System.Reactive.Core

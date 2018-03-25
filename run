@@ -188,6 +188,10 @@ if [ -z "$CONFIGS" ] ; then
   CONFIGS="Debug Release"
 fi
 
+if [ -z "$FRAMEWORKS" ] ; then
+  FRAMEWORKS="net45 netcoreapp2.0"
+fi
+
 ################################################################################
 
 clean() {
@@ -211,24 +215,10 @@ restore() {
   echo "Restoring dependencies"
 
   if [ "$USE" = netcore ] ; then
-    local NEW_CHECKSUM
-    if has md5 ; then
-      SUM=md5
-    elif has md5sum ; then
-      SUM=md5sum
-    else
-      echo "Couldn't find command to compute MD5."
-      return 1
-    fi
-    NEW_CHECKSUM="$(find . -name 'project.json' -print0 | xargs -0 cat | $SUM)"
-    local OLD_CHECKSUM=""
-    if [ -f .dotnet ] ; then OLD_CHECKSUM="$(cat .dotnet)" ; fi
-    if [ "$NEW_CHECKSUM" != "$OLD_CHECKSUM" ] ; then
-      echo -n "$NEW_CHECKSUM" > .dotnet
-      dotnet restore --verbosity Warning
-    fi
+    dotnet restore Hopac.sln
   else
     paket --silent restore
+    $BUILD /t:restore Hopac.sln
   fi
 }
 
@@ -304,18 +294,16 @@ build() {
   if did build ; then return 0 ; fi
 
   generate_infos
-  update_versions
+  #update_versions
 
   restore
 
   if [ "$USE" = netcore ] ; then
-    for PROJECT in $(find . -name "project.json") ; do
-      pushd "$(dirname "$PROJECT")" &> /dev/null
+    for SOLUTION in $SOLUTIONS ; do
       for CONFIG in $CONFIGS ; do
-        echo "Building $(basename "$(dirname "$PROJECT")") in $CONFIG"
-        dotnet build -c "$CONFIG" | dotnet-quiet
+        echo "Building $SOLUTION in $CONFIG"
+        dotnet build -c "$CONFIG" "$SOLUTION" | dotnet-quiet
       done
-      popd &> /dev/null
     done
   else
     for SOLUTION in $SOLUTIONS ; do
@@ -490,9 +478,9 @@ run() {
   pushd "$PROJECT" &> /dev/null
   echo "Running $PROJECT in $CONFIG"
   if [ "$USE" = netcore ] ; then
-    dotnet run -c "$CONFIG" | dotnet-quiet
+    dotnet run -c "$CONFIG" --framework "netcoreapp2.0" | dotnet-quiet
   else
-    $RUN "./bin/$CONFIG/$PROJECT.exe"
+    $RUN "./bin/$CONFIG/net45/$PROJECT.exe"
   fi
   echo
   popd &> /dev/null
@@ -506,7 +494,7 @@ tests() {
   pushd Tests &> /dev/null
   for CONFIG in $CONFIGS ; do
     for TEST in * ; do
-      run "$TEST" "$CONFIG"
+      run "$TEST" "$CONFIG" 
     done
   done
   popd &> /dev/null

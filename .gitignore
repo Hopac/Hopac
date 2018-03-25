@@ -12,3 +12,5 @@ obj
 packages
 paket.exe
 project.lock.json
+.vs/
+paket-files/
