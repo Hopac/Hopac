@@ -2256,8 +2256,6 @@ type EmbeddedJobBuilder () =
 
 module Latch =
   module Now =
-    [<MethodImpl(MethodImplOptions.NoInlining); Obsolete "Just use the constructor.">]
-    let create initial = Latch initial
     let inline increment (l: Latch) = l.Increment ()
   let inline decrement (l: Latch) = l.Decrement ()
   let inline await (l: Latch) = l :> Alt<_>

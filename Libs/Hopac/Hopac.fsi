@@ -1782,10 +1782,6 @@ module Latch =
 
   /// Immediate operations on latches.
   module Now =
-    /// Creates a new latch with the specified initial count.
-    [<Obsolete "Just use the constructor.">]
-    val create: initial: int -> Latch
-
     /// Increments the counter of the latch.
     val inline increment: Latch -> unit
 
