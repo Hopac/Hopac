@@ -157,18 +157,10 @@ module MoreUtil =
 
 module IVar =
   module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = IVar<'x> ()
-    [<Obsolete "Just use the constructor.">]
-    let inline createFull (x: 'x) = IVar<'x> (x)
-    [<Obsolete "Just use the constructor.">]
-    let inline createFailure (e: exn) = IVar<'x> (e)
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let isFull (xI: IVar<'x>) = xI.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xI: IVar<'x>) : 'x = xI.Get ()
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline tryFill (xI: IVar<'x>) (x: 'x) =
     IVar<'x>.TryFill (xI, x) :> Job<unit>
@@ -832,17 +824,8 @@ module Alt =
 
 module Ch =
   module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = Ch<'x> ()
     let send (xCh: Ch<'x>) (x: 'x) =
       Ch<'x>.Send (initGlobalScheduler (), xCh, x)
-  [<Obsolete "Will be removed.">]
-  module Global =
-    [<Obsolete "Renamed to `Ch.Now.send`.">]
-    let inline send (xCh: Ch<'x>) (x: 'x) =
-      Now.send xCh x
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Ch<'x> ()
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   module Try =
     let inline give (xCh: Ch<'x>) (x: 'x) = ChTryGive<'x> (xCh, x) :> Job<bool>
@@ -1215,16 +1198,6 @@ module Job =
      Handler.DoHandleNull (&wr, e)
     override xK'.DoWork (wr) = xK'.Term (&wr)
     override xK'.DoCont (wr, _) = xK'.Term (&wr)
-
-  [<Obsolete "Use the `Proc` abstraction.">]
-  let startWithFinalizerIgnore (fJ: Job<unit>) (xJ: Job<_>) =
-    {new Job<unit> () with
-      override uJ'.DoJob (wr, uK) =
-       Worker.Push (&wr, uK)
-       Job.Do (xJ, &wr, Finalizer<_> (wr.Scheduler, fJ))}
-  [<Obsolete "Use the `Proc` abstraction.">]
-  let inline startWithFinalizer fJ (uJ: Job<unit>) =
-    startWithFinalizerIgnore fJ uJ
 
   //////////////////////////////////////////////////////////////////////////////
 

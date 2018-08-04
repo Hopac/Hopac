@@ -289,33 +289,6 @@ module Job =
   /// start`.
   val startIgnore: Job<_>    -> Job<unit>
 
-  /// Creates a job that immediately starts running the given job as a separate
-  /// concurrent job like `start`, but also attaches a finalizer to the started
-  /// job.  The finalizer job is started as a separate job in case the started
-  /// job does not return succesfully or raise an exception and is garbage
-  /// collected.  If the job either returns normally or raises an exception, the
-  /// finalizer job is not started.  See also: `Proc`.
-#if DOC
-  ///
-  /// When a job in Hopac is aborted (see `abort`) or is, for example, blocked
-  /// waiting for communication on a channel that is no longer reachable, the
-  /// job can be garbage collected.  Most concurrent jobs should not need a
-  /// finalizer and can be garbage collected safely in case they are blocked
-  /// indefinitely or aborted.  However, in some cases it may be useful to be
-  /// able to detect, for debugging reasons, or handle, for fault tolerance, a
-  /// case where a job is garbage collected.  For fault tolerance the `Proc`
-  /// abstraction may be preferable.
-#endif
-  [<Obsolete "Use the `Proc` abstraction.">]
-  val inline startWithFinalizer:       finalizer: Job<unit> -> Job<unit> -> Job<unit>
-
-  /// Creates a job that immediately starts running the given job as a separate
-  /// concurrent job like `start`, but also attaches a finalizer to the started
-  /// job.  `startWithFinalizerIgnore finalizerJ xJ` is equivalent to
-  /// `Job.Ignore xJ |> startWithFinalizer finalizerJ`.
-  [<Obsolete "Use the `Proc` abstraction.">]
-  val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_>    -> Job<unit>
-
   //# Basic combinators
 
   /// Creates a job with the given result.  See also: `lift`, `thunk`, `unit`.
@@ -1585,21 +1558,6 @@ type Ch<'x> =
 
 /// Operations on synchronous channels.
 module Ch =
-  /// Operations bound to the global scheduler.
-  [<Obsolete "Will be removed.">]
-  module Global =
-    /// Sends the given value to the specified channel.  `Ch.Global.send xCh x`
-    /// is equivalent to `Ch.send xCh x |> Hopac.start`.
-    ///
-    /// Note that using this function in a job workflow is not optimal and you
-    /// should use `Ch.send` instead.
-    [<Obsolete "Renamed to `Ch.Now.send`.">]
-    val inline send: Ch<'x> -> 'x -> unit
-
-  /// Creates a job that creates a new channel.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<Ch<'x>>
-
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
   /// offers to take the value.  See also: `*<-`.
@@ -1651,10 +1609,6 @@ module Ch =
 
   /// Immediate or non-workflow operations on synchronous channels.
   module Now =
-    /// Creates a new channel.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Ch<'x>
-
     /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
     /// equivalent to `Ch.send xCh x |> Hopac.start`.
     ///
@@ -1701,10 +1655,6 @@ type IVar<'x> =
 
 /// Operations on write once variables.
 module IVar =
-  /// Creates a job that creates a new write once variable.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<IVar<'x>>
-
   /// Creates a job that writes the given value to the given write once
   /// variable.  It is an error to write to a single write once variable more
   /// than once.
@@ -1749,18 +1699,6 @@ module IVar =
 
   /// Immediate or non-workflow operations on write once variables.
   module Now =
-    /// Creates a new write once variable.
-    [<Obsolete "Just use the constructor.">]
-    val inline create:        unit -> IVar<'x>
-
-    /// Creates a new write once variable with the given value.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFull:    'x   -> IVar<'x>
-
-    /// Creates a new write once variable with the given failure exception.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFailure: exn  -> IVar<'x>
-
     /// Returns true iff the given write once variable has already been filled
     /// (either with a value or with a failure).
     ///
