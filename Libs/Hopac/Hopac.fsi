@@ -170,7 +170,7 @@ module Job =
   /// just one) where jobs are started or run outside of job workflows.
 #endif
   [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
-  module Global =
+  module internal Global =
     /// Queues the job for execution on the global scheduler.  See also:
     /// `start`, `server`.
 #if DOC

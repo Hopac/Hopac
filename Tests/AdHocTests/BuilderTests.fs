@@ -18,7 +18,7 @@ let testSyntax (xT: Task<'disposable>)
   let! _ = xO
   let! _ = xT
   let! _ = xA
-  do! t
+  do! Job.awaitUnitTask t
   do! uJ
   if true then
     return ()
@@ -26,12 +26,12 @@ let testSyntax (xT: Task<'disposable>)
     ()
   try return! uJ
   with _ -> ()
-  try return! t
+  try return! Job.awaitUnitTask t
   finally ()
   let n = ref 1
   while !n > 0 do
     n := !n-1
-    return! t
+    return! Job.awaitUnitTask t
 #if !CORECLR
   use xT' = xT
   use! x = xT'

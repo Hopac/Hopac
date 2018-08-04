@@ -38,15 +38,15 @@ module Hopac =
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.queue` instead.
 #endif
-  val inline queue:                Job<unit> -> unit
+  val queue:                Job<unit> -> unit
 
   /// Queues the given job for execution.  `queueIgnore xJ` is equivalent to
   /// `Job.Ignore xJ |> queue`.
-  val inline queueIgnore:          Job<_>    -> unit
+  val queueIgnore:          Job<_>    -> unit
 
   /// Queues the given delayed job for execution.  `queueDelay u2xJ` is
   /// equivalent to `queueIgnore <| Job.delay u2xJ`.
-  val inline queueDelay: (unit -> #Job<_>)   -> unit
+  val queueDelay: (unit -> #Job<_>)   -> unit
 
   /// Starts running the given job like `start`, but the given job is known
   /// never to return normally, so the job can be spawned in an even more
@@ -56,7 +56,7 @@ module Hopac =
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.server` instead.
 #endif
-  val inline server:               Job<Void> -> unit
+  val server:               Job<Void> -> unit
 
   /// Starts running the given job, but does not wait for the job to finish.
   /// See also: `queue`, `server`.
@@ -65,16 +65,16 @@ module Hopac =
   /// Note that using this function in a job workflow is not optimal and you
   /// should use `Job.start` instead.
 #endif
-  val inline start:                Job<unit> -> unit
+  val start:                Job<unit> -> unit
 
   /// Starts running the given job, but does not wait for the job to finish.
   /// `startIgnore xJ` is equivalent to `Job.Ignore xJ |> start`.
-  val inline startIgnore:          Job<_>    -> unit
+  val startIgnore:          Job<_>    -> unit
 
   /// Starts running the given delayed job, but does not wait for the job to
   /// finish.  `startDelay u2xJ` is equivalent to `startIgnore <| Job.delay
   /// u2xJ`.
-  val inline startDelay: (unit -> #Job<_>)   -> unit
+  val startDelay: (unit -> #Job<_>)   -> unit
 
   /// Starts running the given job and then blocks the current thread waiting
   /// for the job to either return successfully or fail.  See also: `start`.
@@ -97,7 +97,7 @@ module Hopac =
   /// needed, because within a workflow the result of a job can be obtained by
   /// binding.
 #endif
-  val inline run:                Job<'x>  -> 'x
+  val run:                Job<'x>  -> 'x
 
   /// `runDelay u2xJ` is equivalent to `run <| Job.delay u2xJ`.
   val inline runDelay: (unit -> #Job<'x>) -> 'x
@@ -106,11 +106,11 @@ module Hopac =
 
   /// Queues the given job for execution.  The result can be obtained from the
   /// returned task.
-  val inline queueAsTask: Job<'x> -> Task<'x>
+  val queueAsTask: Job<'x> -> Task<'x>
 
   /// Starts running the given job.  The result can be obtained from the
   /// returned task.
-  val inline startAsTask: Job<'x> -> Task<'x>
+  val startAsTask: Job<'x> -> Task<'x>
 
   /// Starts running the given job, but does not wait for the job to finish.
   /// Upon the failure or success of the job, one of the given actions is called
@@ -121,7 +121,7 @@ module Hopac =
   /// should instead use `Job.start` with the desired exception handling
   /// construct (e.g. `Job.tryIn` or `Job.catch`).
 #endif
-  val inline startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
+  val startWithActions: (exn -> unit) -> ('x -> unit) -> Job<'x> -> unit
 
   //# Timeouts
 
@@ -189,11 +189,11 @@ module Hopac =
   /// available.  See `idle` for an alternative that yields the thread of
   /// execution to any ready work before becoming available.
 #endif
-  val inline timeOut:       TimeSpan -> Alt<unit>
+  val timeOut:       TimeSpan -> Alt<unit>
 
   /// `timeOutMillis n` is equivalent to `timeOut << TimeSpan.FromMilliseconds
   /// <| float n`.
-  val inline timeOutMillis: int      -> Alt<unit>
+  val timeOutMillis: int      -> Alt<unit>
 
   /// Creates an alternative that yields the thread of execution to any ready
   /// work and then becomes available.
@@ -223,39 +223,4 @@ module Hopac =
 
   /// Use object as job.  This function is a NOP and is provided as a kind of
   /// syntactic alternative to using a type ascription or an `upcast`.
-  val inline asJob: Job<'x> -> Job<'x>
-
-[<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-module TopLevel =
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  type Stream<'x> = Stream.Stream<'x>
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val job: JobBuilder
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val onMain: Extensions.Async.OnWithSchedulerBuilder
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline queue:                Job<unit> -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline queueIgnore:          Job<_>    -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline queueDelay: (unit -> #Job<_>)   -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline server:               Job<Void> -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline start:                Job<unit> -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline startIgnore:          Job<_>    -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline startDelay: (unit -> #Job<_>)   -> unit
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline run: Job<'x> -> 'x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline timeOut:       TimeSpan -> Alt<unit>
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline timeOutMillis: int      -> Alt<unit>
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline memo: Job<'x> -> Promise<'x>
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  val inline asAlt: Alt<'x> -> Alt<'x>
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
   val inline asJob: Job<'x> -> Job<'x>

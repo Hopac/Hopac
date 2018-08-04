@@ -873,7 +873,7 @@ module Mailbox =
 
 module Job =
   [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
-  module Global =
+  module internal Global =
     [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let startWithActions eF xF xJ =
       Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ

@@ -11,60 +11,25 @@ module Hopac =
   let job = JobBuilder ()
   let onMain = Extensions.Async.Global.onMain ()
 
-  let inline run x = Job.Global.run x
+  let run x = Job.Global.run x
   let inline runDelay u2xJ = run <| Job.delay u2xJ
-  let inline startIgnore x = Job.Global.startIgnore x
-  let inline startDelay x = Job.Global.startIgnore <| Job.delay x
-  let inline start x = Job.Global.start x
-  let inline queueIgnore x = Job.Global.queueIgnore x
-  let inline queueDelay x = Job.Global.queueIgnore <| Job.delay x
-  let inline queue x = Job.Global.queue x
-  let inline server x = Job.Global.server x
+  let startIgnore x = Job.Global.startIgnore x
+  let startDelay x = Job.Global.startIgnore <| Job.delay x
+  let start x = Job.Global.start x
+  let queueIgnore x = Job.Global.queueIgnore x
+  let queueDelay x = Job.Global.queueIgnore <| Job.delay x
+  let queue x = Job.Global.queue x
+  let server x = Job.Global.server x
 
-  let inline queueAsTask x = Job.Global.queueAsTask x
-  let inline startAsTask x = Job.Global.startAsTask x
-  let inline startWithActions e2u x2u xJ = Job.Global.startWithActions e2u x2u xJ
+  let queueAsTask x = Job.Global.queueAsTask x
+  let startAsTask x = Job.Global.startAsTask x
+  let startWithActions e2u x2u xJ = Job.Global.startWithActions e2u x2u xJ
 
   let inline asAlt (xA: Alt<'x>) = xA
   let inline asJob (xJ: Job<'x>) = xJ
 
-  let inline timeOut x = Timer.Global.timeOut x
-  let inline timeOutMillis x = Timer.Global.timeOutMillis x
+  let timeOut x = Timer.Global.timeOut x
+  let timeOutMillis x = Timer.Global.timeOutMillis x
   let idle = Timer.Global.idle
 
   let inline memo (xJ: Job<'x>) = Promise<'x> xJ
-
-[<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-module TopLevel =
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  type Stream<'x> = Stream.Stream<'x>
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let job = Hopac.job
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let onMain = Hopac.onMain
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline run x = Hopac.run x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline startIgnore x = Hopac.startIgnore x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline startDelay x = Hopac.startDelay x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline start x = Hopac.start x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline queueIgnore x = Hopac.queueIgnore x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline queueDelay x = Hopac.queueDelay x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline queue x = Hopac.queue x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline server x = Hopac.server x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline asAlt (xA: Alt<'x>) = xA
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline asJob (xJ: Job<'x>) = xJ
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline timeOut x = Hopac.timeOut x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline timeOutMillis x = Hopac.timeOutMillis x
-  [<Obsolete "`TopLevel` has been renamed as `Hopac`.">]
-  let inline memo x = Hopac.memo x
