@@ -2202,12 +2202,6 @@ type JobBuilder () =
     Job.whileDoDelay u2b u2uJ
   member inline __.Zero () = Job.unit ()
 
-  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline __.Bind (uT: Task, u2xJ: unit -> Job<'x>) =
-    Job.bindUnitTask u2xJ uT
-  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline __.ReturnFrom (uT: Task) = Job.awaitUnitTask uT
-
 ////////////////////////////////////////////////////////////////////////////////
 
 type EmbeddedJob<'x> = struct

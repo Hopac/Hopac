@@ -2856,10 +2856,6 @@ type JobBuilder =
   member inline While: (unit -> bool) * (unit -> Job<unit>) -> Job<unit>
   ///
   member inline Zero: unit -> Job<unit>
-  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
-  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline ReturnFrom:        Task     -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
