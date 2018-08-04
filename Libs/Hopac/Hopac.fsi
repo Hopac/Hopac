@@ -1862,16 +1862,6 @@ type MVar<'x> =
 
 /// Operations on serialized variables.
 module MVar =
-  /// Creates a job that creates a new serialized variable that is initially
-  /// empty.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<MVar<'x>>
-
-  /// Creates a job that creates a new serialized variable that initially
-  /// contains the given value.
-  [<Obsolete "Just use the constructor.">]
-  val createFull: 'x -> Job<MVar<'x>>
-
   //# Primitives
 
   /// Creates a job that writes the given value to the serialized variable.  It
@@ -1952,18 +1942,6 @@ module MVar =
   /// with its original value before propagating the exception.
   val inline tryModifyFun: ('x ->      'x * 'y)  -> MVar<'x> -> Alt<'y>
 
-  /// Immediate or non-workflow operations on serialized variables.
-  [<Obsolete "Will be removed.">]
-  module Now =
-    /// Creates a new serialized variable that is initially empty.
-    [<Obsolete "Just use the constructor.">]
-    val inline create:     unit -> MVar<'x>
-
-    /// Creates a new serialized variable that initially contains the given
-    /// value.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFull: 'x   -> MVar<'x>
-
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Represents a bounded synchronous mailbox for many to many communication.
@@ -1995,12 +1973,6 @@ type BoundedMb<'x> =
 
 /// Operations on bounded synchronous mailboxes.
 module BoundedMb =
-  /// Returns a job that creates a new bounded mailbox with a buffer of the
-  /// specified maximum capacity.  Note that a bounded mailbox with a capacity
-  /// of `0` behaves exactly the same as a channel, `Ch<_>`.
-  [<Obsolete "Just use the constructor.">]
-  val inline create: capacity: int -> Job<BoundedMb<'x>>
-
   /// Selective synchronous operation to put a message to a bounded mailbox.
   /// `put` operations are processed in FIFO order and become enabled as soon as
   /// there is room in the bounded buffer.  If the buffer capacity is `0`, `put`

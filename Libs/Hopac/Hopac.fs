@@ -1670,15 +1670,6 @@ module Cond =
 ////////////////////////////////////////////////////////////////////////////////
 
 module MVar =
-  module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = MVar<'x> ()
-    [<Obsolete "Just use the constructor.">]
-    let inline createFull (x: 'x) = MVar<'x> (x)
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Now.create ()
-  [<Obsolete "Just use the constructor.">]
-  let createFull x = ctor MVar<'x> x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
   let inline read xM = MVarRead xM :> Alt<_>
@@ -2297,8 +2288,5 @@ type BoundedMb<'x> (capacity) =
   member t.Take = takeCh :> Alt<_>
 
 module BoundedMb =
-  [<Obsolete "Just use the constructor.">]
-  let inline create capacity = Job.thunk ^ fun () ->
-    BoundedMb<_> (capacity)
   let inline put (xB: BoundedMb<_>) x = xB.Put x
   let inline take (xB: BoundedMb<_>) = xB.Take
