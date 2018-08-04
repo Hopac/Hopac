@@ -2045,10 +2045,6 @@ type Lock =
 
 /// Operations on mutual exclusion locks.
 module Lock =
-  /// Creates a job that creates a new mutual exclusion lock.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<Lock>
-
   /// Creates a job that runs the given job so that the lock is held during the
   /// execution of the given job.
   val inline duringJob: Lock ->      Job<'x> -> Job<'x>
@@ -2056,13 +2052,6 @@ module Lock =
   /// Creates a job that calls the given function so that the lock is held
   /// during the execution of the function.
   val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
-
-  /// Immediate or non-workflow operations on locks.
-  [<Obsolete "Will be removed.">]
-  module Now =
-    /// Creates a new lock.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Lock
 
 ////////////////////////////////////////////////////////////////////////////////
 

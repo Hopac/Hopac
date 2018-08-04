@@ -1638,11 +1638,6 @@ module internal Timer =
 ////////////////////////////////////////////////////////////////////////////////
 
 module Lock =
-  module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = Lock ()
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Lock ()
   let inline duringFun (l: Lock) (xF: unit -> 'x) =
     LockDuringFun<'x> (l, xF) :> Job<'x>
   let inline duringJob (l: Lock) (xJ: Job<'x>) =
