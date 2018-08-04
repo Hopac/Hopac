@@ -1592,7 +1592,7 @@ module Proc =
 ////////////////////////////////////////////////////////////////////////////////
 
 [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
-module Timer =
+module internal Timer =
   [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
   module Global =
     type [<AllowNullLiteral>] WorkTimedUnitCont =

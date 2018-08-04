@@ -1354,7 +1354,7 @@ module Alt =
 
 /// Operations on a wall-clock timer.
 [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
-module Timer =
+module internal Timer =
 
   /// Operations on the global wall-clock timer.  The global timer is implicitly
   /// associated with the global scheduler.
