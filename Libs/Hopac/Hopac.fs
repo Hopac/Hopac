@@ -157,18 +157,10 @@ module MoreUtil =
 
 module IVar =
   module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = IVar<'x> ()
-    [<Obsolete "Just use the constructor.">]
-    let inline createFull (x: 'x) = IVar<'x> (x)
-    [<Obsolete "Just use the constructor.">]
-    let inline createFailure (e: exn) = IVar<'x> (e)
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let isFull (xI: IVar<'x>) = xI.Full
     [<MethodImpl(MethodImplOptions.NoInlining)>]
     let get (xI: IVar<'x>) : 'x = xI.Get ()
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Now.create ()
   let inline fill (xI: IVar<'x>) (x: 'x) = IVar<'x>.Fill (xI, x) :> Job<unit>
   let inline tryFill (xI: IVar<'x>) (x: 'x) =
     IVar<'x>.TryFill (xI, x) :> Job<unit>
@@ -832,17 +824,8 @@ module Alt =
 
 module Ch =
   module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = Ch<'x> ()
     let send (xCh: Ch<'x>) (x: 'x) =
       Ch<'x>.Send (initGlobalScheduler (), xCh, x)
-  [<Obsolete "Will be removed.">]
-  module Global =
-    [<Obsolete "Renamed to `Ch.Now.send`.">]
-    let inline send (xCh: Ch<'x>) (x: 'x) =
-      Now.send xCh x
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Ch<'x> ()
   let inline send (xCh: Ch<'x>) (x: 'x) = ChSend<'x> (xCh, x) :> Job<unit>
   module Try =
     let inline give (xCh: Ch<'x>) (x: 'x) = ChTryGive<'x> (xCh, x) :> Job<bool>
@@ -854,17 +837,8 @@ module Ch =
 
 module Mailbox =
   module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = Mailbox<'x> ()
     let send (xMb: Mailbox<'x>) (x: 'x) =
       Mailbox<'x>.Send (initGlobalScheduler (), xMb, x)
-  [<Obsolete "Will be removed.">]
-  module Global =
-    [<Obsolete "Renamed to `Mailbox.Now.send`.">]
-    let inline send (xMb: Mailbox<'x>) (x: 'x) =
-      Now.send xMb x
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Mailbox ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
   let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>
@@ -873,7 +847,7 @@ module Mailbox =
 
 module Job =
   [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
-  module Global =
+  module internal Global =
     [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
     let startWithActions eF xF xJ =
       Scheduler.startWithActions (initGlobalScheduler ()) eF xF xJ
@@ -1215,16 +1189,6 @@ module Job =
      Handler.DoHandleNull (&wr, e)
     override xK'.DoWork (wr) = xK'.Term (&wr)
     override xK'.DoCont (wr, _) = xK'.Term (&wr)
-
-  [<Obsolete "Use the `Proc` abstraction.">]
-  let startWithFinalizerIgnore (fJ: Job<unit>) (xJ: Job<_>) =
-    {new Job<unit> () with
-      override uJ'.DoJob (wr, uK) =
-       Worker.Push (&wr, uK)
-       Job.Do (xJ, &wr, Finalizer<_> (wr.Scheduler, fJ))}
-  [<Obsolete "Use the `Proc` abstraction.">]
-  let inline startWithFinalizer fJ (uJ: Job<unit>) =
-    startWithFinalizerIgnore fJ uJ
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -1619,7 +1583,7 @@ module Proc =
 ////////////////////////////////////////////////////////////////////////////////
 
 [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
-module Timer =
+module internal Timer =
   [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
   module Global =
     type [<AllowNullLiteral>] WorkTimedUnitCont =
@@ -1674,11 +1638,6 @@ module Timer =
 ////////////////////////////////////////////////////////////////////////////////
 
 module Lock =
-  module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = Lock ()
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Lock ()
   let inline duringFun (l: Lock) (xF: unit -> 'x) =
     LockDuringFun<'x> (l, xF) :> Job<'x>
   let inline duringJob (l: Lock) (xJ: Job<'x>) =
@@ -1697,15 +1656,6 @@ module Cond =
 ////////////////////////////////////////////////////////////////////////////////
 
 module MVar =
-  module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = MVar<'x> ()
-    [<Obsolete "Just use the constructor.">]
-    let inline createFull (x: 'x) = MVar<'x> (x)
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Now.create ()
-  [<Obsolete "Just use the constructor.">]
-  let createFull x = ctor MVar<'x> x
   let inline fill (xM: MVar<'x>) (x: 'x) = MVarFill<'x> (xM, x) :> Job<unit>
   let inline take (xM: MVar<'x>) = xM :> Alt<'x>
   let inline read xM = MVarRead xM :> Alt<_>
@@ -1963,15 +1913,6 @@ module Extensions =
   //////////////////////////////////////////////////////////////////////////////
 
   type Task with
-    [<Obsolete "Use `Job.awaitTask`">]
-    static member inline awaitJob (xT: Task<'x>) = Job.awaitTask xT
-    [<Obsolete "Use `Job.awaitUnitTask`">]
-    static member inline awaitJob (uT: Task) = Job.awaitUnitTask uT
-    [<Obsolete "Use `Job.bindTask`">]
-    static member inline bindJob (xT: Task<'x>, x2yJ: 'x -> #Job<'y>) = Job.bindTask x2yJ xT
-    [<Obsolete "Use `Job.bindUnitTask`">]
-    static member inline bindJob (uT: Task, u2xJ: unit -> #Job<'x>) = Job.bindUnitTask u2xJ uT
-
     static member startJob (xJ: Job<'x>) =
       {new Job<Task<'x>> () with
         override xTJ'.DoJob (wr, xTK) =
@@ -2261,12 +2202,6 @@ type JobBuilder () =
     Job.whileDoDelay u2b u2uJ
   member inline __.Zero () = Job.unit ()
 
-  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline __.Bind (uT: Task, u2xJ: unit -> Job<'x>) =
-    Job.bindUnitTask u2xJ uT
-  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline __.ReturnFrom (uT: Task) = Job.awaitUnitTask uT
-
 ////////////////////////////////////////////////////////////////////////////////
 
 type EmbeddedJob<'x> = struct
@@ -2283,8 +2218,6 @@ type EmbeddedJobBuilder () =
 
 module Latch =
   module Now =
-    [<MethodImpl(MethodImplOptions.NoInlining); Obsolete "Just use the constructor.">]
-    let create initial = Latch initial
     let inline increment (l: Latch) = l.Increment ()
   let inline decrement (l: Latch) = l.Decrement ()
   let inline await (l: Latch) = l :> Alt<_>
@@ -2326,8 +2259,5 @@ type BoundedMb<'x> (capacity) =
   member t.Take = takeCh :> Alt<_>
 
 module BoundedMb =
-  [<Obsolete "Just use the constructor.">]
-  let inline create capacity = Job.thunk ^ fun () ->
-    BoundedMb<_> (capacity)
   let inline put (xB: BoundedMb<_>) x = xB.Put x
   let inline take (xB: BoundedMb<_>) = xB.Take

@@ -170,7 +170,7 @@ module Job =
   /// just one) where jobs are started or run outside of job workflows.
 #endif
   [<Obsolete "`Job.Global` module will be removed. Use the `Hopac` module.">]
-  module Global =
+  module internal Global =
     /// Queues the job for execution on the global scheduler.  See also:
     /// `start`, `server`.
 #if DOC
@@ -288,33 +288,6 @@ module Job =
   /// concurrent job.  `startIgnore xJ` is equivalent to `Job.Ignore xJ |>
   /// start`.
   val startIgnore: Job<_>    -> Job<unit>
-
-  /// Creates a job that immediately starts running the given job as a separate
-  /// concurrent job like `start`, but also attaches a finalizer to the started
-  /// job.  The finalizer job is started as a separate job in case the started
-  /// job does not return succesfully or raise an exception and is garbage
-  /// collected.  If the job either returns normally or raises an exception, the
-  /// finalizer job is not started.  See also: `Proc`.
-#if DOC
-  ///
-  /// When a job in Hopac is aborted (see `abort`) or is, for example, blocked
-  /// waiting for communication on a channel that is no longer reachable, the
-  /// job can be garbage collected.  Most concurrent jobs should not need a
-  /// finalizer and can be garbage collected safely in case they are blocked
-  /// indefinitely or aborted.  However, in some cases it may be useful to be
-  /// able to detect, for debugging reasons, or handle, for fault tolerance, a
-  /// case where a job is garbage collected.  For fault tolerance the `Proc`
-  /// abstraction may be preferable.
-#endif
-  [<Obsolete "Use the `Proc` abstraction.">]
-  val inline startWithFinalizer:       finalizer: Job<unit> -> Job<unit> -> Job<unit>
-
-  /// Creates a job that immediately starts running the given job as a separate
-  /// concurrent job like `start`, but also attaches a finalizer to the started
-  /// job.  `startWithFinalizerIgnore finalizerJ xJ` is equivalent to
-  /// `Job.Ignore xJ |> startWithFinalizer finalizerJ`.
-  [<Obsolete "Use the `Proc` abstraction.">]
-  val startWithFinalizerIgnore: finalizer: Job<unit> -> Job<_>    -> Job<unit>
 
   //# Basic combinators
 
@@ -1381,7 +1354,7 @@ module Alt =
 
 /// Operations on a wall-clock timer.
 [<Obsolete "The `Timer` module will be removed.  Use the `Hopac` module.">]
-module Timer =
+module internal Timer =
 
   /// Operations on the global wall-clock timer.  The global timer is implicitly
   /// associated with the global scheduler.
@@ -1585,21 +1558,6 @@ type Ch<'x> =
 
 /// Operations on synchronous channels.
 module Ch =
-  /// Operations bound to the global scheduler.
-  [<Obsolete "Will be removed.">]
-  module Global =
-    /// Sends the given value to the specified channel.  `Ch.Global.send xCh x`
-    /// is equivalent to `Ch.send xCh x |> Hopac.start`.
-    ///
-    /// Note that using this function in a job workflow is not optimal and you
-    /// should use `Ch.send` instead.
-    [<Obsolete "Renamed to `Ch.Now.send`.">]
-    val inline send: Ch<'x> -> 'x -> unit
-
-  /// Creates a job that creates a new channel.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<Ch<'x>>
-
   /// Creates an alternative that, at instantiation time, offers to give the
   /// given value on the given channel, and becomes available when another job
   /// offers to take the value.  See also: `*<-`.
@@ -1651,10 +1609,6 @@ module Ch =
 
   /// Immediate or non-workflow operations on synchronous channels.
   module Now =
-    /// Creates a new channel.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Ch<'x>
-
     /// Sends the given value to the specified channel.  `Ch.Now.send xCh x` is
     /// equivalent to `Ch.send xCh x |> Hopac.start`.
     ///
@@ -1701,10 +1655,6 @@ type IVar<'x> =
 
 /// Operations on write once variables.
 module IVar =
-  /// Creates a job that creates a new write once variable.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<IVar<'x>>
-
   /// Creates a job that writes the given value to the given write once
   /// variable.  It is an error to write to a single write once variable more
   /// than once.
@@ -1749,18 +1699,6 @@ module IVar =
 
   /// Immediate or non-workflow operations on write once variables.
   module Now =
-    /// Creates a new write once variable.
-    [<Obsolete "Just use the constructor.">]
-    val inline create:        unit -> IVar<'x>
-
-    /// Creates a new write once variable with the given value.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFull:    'x   -> IVar<'x>
-
-    /// Creates a new write once variable with the given failure exception.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFailure: exn  -> IVar<'x>
-
     /// Returns true iff the given write once variable has already been filled
     /// (either with a value or with a failure).
     ///
@@ -1844,10 +1782,6 @@ module Latch =
 
   /// Immediate operations on latches.
   module Now =
-    /// Creates a new latch with the specified initial count.
-    [<Obsolete "Just use the constructor.">]
-    val create: initial: int -> Latch
-
     /// Increments the counter of the latch.
     val inline increment: Latch -> unit
 
@@ -1928,16 +1862,6 @@ type MVar<'x> =
 
 /// Operations on serialized variables.
 module MVar =
-  /// Creates a job that creates a new serialized variable that is initially
-  /// empty.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<MVar<'x>>
-
-  /// Creates a job that creates a new serialized variable that initially
-  /// contains the given value.
-  [<Obsolete "Just use the constructor.">]
-  val createFull: 'x -> Job<MVar<'x>>
-
   //# Primitives
 
   /// Creates a job that writes the given value to the serialized variable.  It
@@ -2018,18 +1942,6 @@ module MVar =
   /// with its original value before propagating the exception.
   val inline tryModifyFun: ('x ->      'x * 'y)  -> MVar<'x> -> Alt<'y>
 
-  /// Immediate or non-workflow operations on serialized variables.
-  [<Obsolete "Will be removed.">]
-  module Now =
-    /// Creates a new serialized variable that is initially empty.
-    [<Obsolete "Just use the constructor.">]
-    val inline create:     unit -> MVar<'x>
-
-    /// Creates a new serialized variable that initially contains the given
-    /// value.
-    [<Obsolete "Just use the constructor.">]
-    val inline createFull: 'x   -> MVar<'x>
-
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Represents a bounded synchronous mailbox for many to many communication.
@@ -2061,12 +1973,6 @@ type BoundedMb<'x> =
 
 /// Operations on bounded synchronous mailboxes.
 module BoundedMb =
-  /// Returns a job that creates a new bounded mailbox with a buffer of the
-  /// specified maximum capacity.  Note that a bounded mailbox with a capacity
-  /// of `0` behaves exactly the same as a channel, `Ch<_>`.
-  [<Obsolete "Just use the constructor.">]
-  val inline create: capacity: int -> Job<BoundedMb<'x>>
-
   /// Selective synchronous operation to put a message to a bounded mailbox.
   /// `put` operations are processed in FIFO order and become enabled as soon as
   /// there is room in the bounded buffer.  If the buffer capacity is `0`, `put`
@@ -2100,21 +2006,6 @@ type Mailbox<'x> =
 
 /// Operations on buffered mailboxes.
 module Mailbox =
-  /// Operations bound to the global scheduler.
-  [<Obsolete "Will be removed.">]
-  module Global =
-    /// Sends the given value to the specified mailbox.  `Mailbox.Global.send
-    /// xMb x` is equivalent to `Mailbox.send xMb x |> Hopac.start`.
-    ///
-    /// Note that using this function in a job workflow is not optimal and you
-    /// should use `Mailbox.send` instead.
-    [<Obsolete "Renamed to `Mailbox.Now.send`.">]
-    val inline send: Mailbox<'x> -> 'x -> unit
-
-  /// Creates a job that creates a new mailbox.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<Mailbox<'x>>
-
   /// Creates a job that sends the given value to the specified mailbox.  This
   /// operation never blocks.  See also: `*<<+`.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
@@ -2125,10 +2016,6 @@ module Mailbox =
 
   /// Immediate or non-workflow operations on buffered mailboxes.
   module Now =
-    /// Creates a new mailbox.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Mailbox<'x>
-
     /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
     /// x` is equivalent to `Mailbox.send xMb x |> Hopac.start`.
     ///
@@ -2158,10 +2045,6 @@ type Lock =
 
 /// Operations on mutual exclusion locks.
 module Lock =
-  /// Creates a job that creates a new mutual exclusion lock.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<Lock>
-
   /// Creates a job that runs the given job so that the lock is held during the
   /// execution of the given job.
   val inline duringJob: Lock ->      Job<'x> -> Job<'x>
@@ -2169,13 +2052,6 @@ module Lock =
   /// Creates a job that calls the given function so that the lock is held
   /// during the execution of the function.
   val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
-
-  /// Immediate or non-workflow operations on locks.
-  [<Obsolete "Will be removed.">]
-  module Now =
-    /// Creates a new lock.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Lock
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2432,15 +2308,6 @@ module Extensions =
   /// comonadic while jobs are monadic.
 #endif
   type Task with
-    [<Obsolete "Use `Job.awaitTask`">]
-    static member inline awaitJob: Task<'x> -> Job<'x>
-    [<Obsolete "Use `Job.awaitUnitTask`">]
-    static member inline awaitJob: Task -> Job<unit>
-    [<Obsolete "Use `Job.bindTask`">]
-    static member inline bindJob: Task<'x> * ('x   -> #Job<'y>) -> Job<'y>
-    [<Obsolete "Use `Job.bindUnitTask`">]
-    static member inline bindJob: Task     * (unit -> #Job<'x>) -> Job<'x>
-
     /// Creates a job that starts the given job as a separate concurrent job,
     /// whose result can be obtained from the returned task.
     static member startJob: Job<'x> -> Job<Task<'x>>
@@ -2989,10 +2856,6 @@ type JobBuilder =
   member inline While: (unit -> bool) * (unit -> Job<unit>) -> Job<unit>
   ///
   member inline Zero: unit -> Job<unit>
-  [<Obsolete "`JobBuilder.Bind: Task * ... -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline Bind:        Task     * (unit -> Job<'y>) -> Job<'y>
-  [<Obsolete "`JobBuilder.ReturnFrom: Task -> ...` will be removed, because it causes type inference issues.  Use e.g. `Job.awaitUnitTask`.">]
-  member inline ReturnFrom:        Task     -> Job<unit>
 
 ////////////////////////////////////////////////////////////////////////////////
 
