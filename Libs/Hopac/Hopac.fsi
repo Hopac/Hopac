@@ -2308,15 +2308,6 @@ module Extensions =
   /// comonadic while jobs are monadic.
 #endif
   type Task with
-    [<Obsolete "Use `Job.awaitTask`">]
-    static member inline awaitJob: Task<'x> -> Job<'x>
-    [<Obsolete "Use `Job.awaitUnitTask`">]
-    static member inline awaitJob: Task -> Job<unit>
-    [<Obsolete "Use `Job.bindTask`">]
-    static member inline bindJob: Task<'x> * ('x   -> #Job<'y>) -> Job<'y>
-    [<Obsolete "Use `Job.bindUnitTask`">]
-    static member inline bindJob: Task     * (unit -> #Job<'x>) -> Job<'x>
-
     /// Creates a job that starts the given job as a separate concurrent job,
     /// whose result can be obtained from the returned task.
     static member startJob: Job<'x> -> Job<Task<'x>>

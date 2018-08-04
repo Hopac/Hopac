@@ -1913,15 +1913,6 @@ module Extensions =
   //////////////////////////////////////////////////////////////////////////////
 
   type Task with
-    [<Obsolete "Use `Job.awaitTask`">]
-    static member inline awaitJob (xT: Task<'x>) = Job.awaitTask xT
-    [<Obsolete "Use `Job.awaitUnitTask`">]
-    static member inline awaitJob (uT: Task) = Job.awaitUnitTask uT
-    [<Obsolete "Use `Job.bindTask`">]
-    static member inline bindJob (xT: Task<'x>, x2yJ: 'x -> #Job<'y>) = Job.bindTask x2yJ xT
-    [<Obsolete "Use `Job.bindUnitTask`">]
-    static member inline bindJob (uT: Task, u2xJ: unit -> #Job<'x>) = Job.bindUnitTask u2xJ uT
-
     static member startJob (xJ: Job<'x>) =
       {new Job<Task<'x>> () with
         override xTJ'.DoJob (wr, xTK) =
