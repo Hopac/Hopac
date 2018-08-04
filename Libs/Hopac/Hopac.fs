@@ -837,17 +837,8 @@ module Ch =
 
 module Mailbox =
   module Now =
-    [<Obsolete "Just use the constructor.">]
-    let inline create () = Mailbox<'x> ()
     let send (xMb: Mailbox<'x>) (x: 'x) =
       Mailbox<'x>.Send (initGlobalScheduler (), xMb, x)
-  [<Obsolete "Will be removed.">]
-  module Global =
-    [<Obsolete "Renamed to `Mailbox.Now.send`.">]
-    let inline send (xMb: Mailbox<'x>) (x: 'x) =
-      Now.send xMb x
-  [<Obsolete "Just use the constructor.">]
-  let create () = ctor Mailbox ()
   let inline send (xMb: Mailbox<'x>) (x: 'x) =
     MailboxSend<'x> (xMb, x) :> Job<unit>
   let inline take (xMb: Mailbox<'x>) = xMb :> Alt<'x>

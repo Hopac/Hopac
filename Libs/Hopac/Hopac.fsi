@@ -2006,21 +2006,6 @@ type Mailbox<'x> =
 
 /// Operations on buffered mailboxes.
 module Mailbox =
-  /// Operations bound to the global scheduler.
-  [<Obsolete "Will be removed.">]
-  module Global =
-    /// Sends the given value to the specified mailbox.  `Mailbox.Global.send
-    /// xMb x` is equivalent to `Mailbox.send xMb x |> Hopac.start`.
-    ///
-    /// Note that using this function in a job workflow is not optimal and you
-    /// should use `Mailbox.send` instead.
-    [<Obsolete "Renamed to `Mailbox.Now.send`.">]
-    val inline send: Mailbox<'x> -> 'x -> unit
-
-  /// Creates a job that creates a new mailbox.
-  [<Obsolete "Just use the constructor.">]
-  val create: unit -> Job<Mailbox<'x>>
-
   /// Creates a job that sends the given value to the specified mailbox.  This
   /// operation never blocks.  See also: `*<<+`.
   val inline send: Mailbox<'x> -> 'x -> Job<unit>
@@ -2031,10 +2016,6 @@ module Mailbox =
 
   /// Immediate or non-workflow operations on buffered mailboxes.
   module Now =
-    /// Creates a new mailbox.
-    [<Obsolete "Just use the constructor.">]
-    val inline create: unit -> Mailbox<'x>
-
     /// Sends the given value to the specified mailbox.  `Mailbox.Now.send xMb
     /// x` is equivalent to `Mailbox.send xMb x |> Hopac.start`.
     ///
