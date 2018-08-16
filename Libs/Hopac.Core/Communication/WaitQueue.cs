@@ -146,6 +146,44 @@ namespace Hopac.Core {
       }
     }
 
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void CleanGivers<T>(Send<T> last) {
+      var prev = last;
+      var work = last.Next;
+      while (work != last) {
+        var giver = work as Giver<T>;
+        if (null != giver) {
+          var pk = giver.Pick;
+          if (null != pk && pk.State > 0) {
+            work = work.Next;
+            prev.Next = work;
+            continue;
+          }
+        }
+        prev = work;
+        work = work.Next;
+      }
+    }
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    internal static void CleanTakers<T>(Cont<T> last) {
+      Work prev = last;
+      var work = last.Next;
+      while (work != last) {
+        var taker = work as Taker<T>;
+        if (null != taker) {
+          var pk = taker.Pick;
+          if (/*null != pk &&*/ pk.State > 0) {
+            work = work.Next;
+            prev.Next = work;
+            continue;
+          }
+        }
+        prev = work;
+        work = work.Next;
+      }
+    }
+
     /// <summary>Note that this specifically tries to reuse a giver from the
     /// queue.  This reduces the chance of space leaks.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
@@ -157,7 +195,11 @@ namespace Hopac.Core {
       elem = new Giver<T>();
       queue = elem;
       elem.Next = elem;
-      goto Init;
+      elem.Value = x;
+      elem.Me = me;
+      elem.Pick = pk;
+      elem.Cont = uK;
+      return;
 
     MaybeReuse:
       elem = last as Giver<T>;
@@ -177,10 +219,10 @@ namespace Hopac.Core {
       elem.Me = me;
       elem.Pick = pk;
       elem.Cont = uK;
+
+      CleanGivers(elem);
     }
 
-    /// <summary>Note that this specifically tries to reuse a giver from the
-    /// queue.  This reduces the chance of space leaks.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void AddGiver<T>(ref Send<T> queue, T x, Cont<Unit> uK) {
       var last = queue;
@@ -230,8 +272,6 @@ namespace Hopac.Core {
       }
     }
 
-    /// <summary>Note that this specifically tries to reuse a taker from the
-    /// queue.  This reduces the chance of space leaks.</summary>
     [MethodImpl(AggressiveInlining.Flag)]
     internal static void AddTaker<T>(ref Cont<T> queue, int me, Pick pk, Cont<T> xK) {
       var last = queue;
@@ -241,7 +281,10 @@ namespace Hopac.Core {
       elem = new Taker<T>();
       queue = elem;
       elem.Next = elem;
-      goto Init;
+      elem.Me = me;
+      elem.Pick = pk;
+      elem.Cont = xK;
+      return;
 
     MaybeReuse:
       elem = last as Taker<T>;
@@ -260,6 +303,8 @@ namespace Hopac.Core {
       elem.Me = me;
       elem.Pick = pk;
       elem.Cont = xK;
+
+      CleanTakers(elem);
     }
 
     [MethodImpl(AggressiveInlining.Flag)]
