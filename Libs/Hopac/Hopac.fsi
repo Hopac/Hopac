@@ -2047,11 +2047,11 @@ type Lock =
 module Lock =
   /// Creates a job that runs the given job so that the lock is held during the
   /// execution of the given job.
-  val inline duringJob: Lock ->      Job<'x> -> Job<'x>
+  val inline duringJob: Hopac.Lock ->      Job<'x> -> Job<'x>
 
   /// Creates a job that calls the given function so that the lock is held
   /// during the execution of the function.
-  val inline duringFun: Lock -> (unit -> 'x) -> Job<'x>
+  val inline duringFun: Hopac.Lock -> (unit -> 'x) -> Job<'x>
 
 ////////////////////////////////////////////////////////////////////////////////
 

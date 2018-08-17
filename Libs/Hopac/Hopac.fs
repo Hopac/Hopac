@@ -1637,10 +1637,10 @@ module internal Timer =
 
 ////////////////////////////////////////////////////////////////////////////////
 
-module Lock =
-  let inline duringFun (l: Lock) (xF: unit -> 'x) =
+module Lock = 
+  let inline duringFun (l: Hopac.Lock) (xF: unit -> 'x) =
     LockDuringFun<'x> (l, xF) :> Job<'x>
-  let inline duringJob (l: Lock) (xJ: Job<'x>) =
+  let inline duringJob (l: Hopac.Lock) (xJ: Job<'x>) =
     LockDuringJob<'x> (l, xJ) :> Job<'x>
 
 #if NOT_YET_IMPLEMENTED
