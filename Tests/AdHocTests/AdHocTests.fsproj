@@ -1,13 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{4E4BE430-1137-43D1-97EF-206BD6ACB2C1}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>AdHocTests</RootNamespace>
-    <AssemblyName>AdHocTests</AssemblyName>
     <TargetFrameworks>netcoreapp2.0;net471</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>AdHocTests</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <Tailcalls>true</Tailcalls>
     <GenerateTailCalls>true</GenerateTailCalls>
@@ -22,7 +18,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>false</Optimize>
-    <GenerateTailCalls>true</GenerateTailCalls>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
@@ -31,11 +26,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Targetframework)' == 'Netcoreapp1.1' ">
+  <PropertyGroup Condition=" '$(Targetframework)' == 'netcoreapp2.0' ">
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="paket.references" />
     <Compile Include="Util.fs" />
     <Compile Include="RunTask.fsi" />
     <Compile Include="RunTask.fs" />
@@ -47,21 +43,11 @@
     <Compile Include="BuilderTests.fs" />
     <Compile Include="StreamTests.fs" />
     <Compile Include="Main.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj">
-      <Name>Hopac.Platform</Name>
-      <Project>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
-      <Name>Hopac</Name>
-      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj">
-      <Name>Hopac.Core</Name>
-      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

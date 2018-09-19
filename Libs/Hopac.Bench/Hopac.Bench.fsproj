@@ -1,17 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{839c22fa-dfb0-491a-b080-f740f7ff2a8c}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Hopac.Bench</RootNamespace>
-    <AssemblyName>Hopac.Bench</AssemblyName>
     <Name>Hopac.Bench</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <DebugSymbols>true</DebugSymbols>
     <GenerateTailCalls>true</GenerateTailCalls>
-    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
@@ -36,14 +31,8 @@
     <Content Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj">
-      <Name>Hopac.Core</Name>
-      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Hopac\Hopac.fsproj">
-      <Name>Hopac</Name>
-      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
-    </ProjectReference>
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj"/>
+    <ProjectReference Include="..\Hopac\Hopac.fsproj"/>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

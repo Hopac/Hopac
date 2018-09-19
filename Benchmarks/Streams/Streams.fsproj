@@ -1,17 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{83F3235E-2033-4752-90E9-1048781FA817}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Streams</RootNamespace>
-    <AssemblyName>Streams</AssemblyName>
     <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <DebugSymbols>true</DebugSymbols>
     <Tailcalls>true</Tailcalls>
     <GenerateTailCalls>true</GenerateTailCalls>
-    <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>false</Optimize>
@@ -25,25 +20,13 @@
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="Streams.fs" />
-    <Content Include="paket.references" />
+    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj">
-      <Name>Hopac.Core</Name>
-      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj">
-      <Name>Hopac.Platform</Name>
-      <Project>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
-      <Name>Hopac</Name>
-      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj">
-      <Name>Hopac.Bench</Name>
-      <Project>{839C22FA-DFB0-491A-B080-F740F7FF2A8C}</Project>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj"/>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

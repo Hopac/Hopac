@@ -1,13 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{7A2F0650-E5F6-4DFB-975D-C9F8B10FF314}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Examples</RootNamespace>
     <AssemblyName>Examples</AssemblyName>
-    <TargetFramework>net471</TargetFramework>
+    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
     <Name>Misc</Name>
-    <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugSymbols>true</DebugSymbols>
     <Tailcalls>true</Tailcalls>
@@ -35,21 +32,11 @@
     <Compile Include="LockServer.fs" />
     <Compile Include="Kismet.fs" />
     <Compile Include="Main.fs" />
-    <Content Include="paket.references" />
+    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj">
-      <Name>Hopac</Name>
-      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
-    </ProjectReference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj">
-      <Name>Hopac.Core</Name>
-      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

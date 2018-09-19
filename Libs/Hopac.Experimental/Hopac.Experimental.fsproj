@@ -1,15 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{939C22FA-DFB0-491A-B080-F740F7FF2A8C}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Hopac.Experimental</RootNamespace>
-    <AssemblyName>Hopac.Experimental</AssemblyName>
-    <Name>Hopac.Experimental</Name>
-    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <OtherFlags Condition=" '$(TargetFramework)' == 'netstandard2.0'">--warnon:1182</OtherFlags>
-    <OtherFlags Condition=" '$(TargetFramework)' == 'net45'">--warnon:1182</OtherFlags>
+    <OtherFlags Condition=" '$(TargetFramework)' == 'net471'">--warnon:1182</OtherFlags>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <GenerateTailCalls>true</GenerateTailCalls>
@@ -47,17 +41,11 @@
     <Compile Include="SelectableQueue.fs" />
     <Compile Include="SwapCh.fsi" />
     <Compile Include="SwapCh.fs" />
-    <Content Include="paket.references" />
+    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj">
-      <Name>Hopac.Core</Name>
-      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Hopac\Hopac.fsproj">
-      <Name>Hopac</Name>
-      <Project>{898D8FE3-C9BE-4115-9A13-7615AF27C048}</Project>
-    </ProjectReference>
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj"/>
+    <ProjectReference Include="..\Hopac\Hopac.fsproj"/>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

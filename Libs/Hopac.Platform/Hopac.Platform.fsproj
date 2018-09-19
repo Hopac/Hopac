@@ -1,12 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{B285AEB6-FC96-4212-B7A2-6B73597CE607}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Hopac.Platform</RootNamespace>
-    <AssemblyName>Hopac.Platform</AssemblyName>
-    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
-    <Name>Hopac.Platform</Name>
+    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
@@ -28,19 +22,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Targetframework)' == 'Netstandard1.6' ">
+  <PropertyGroup Condition=" '$(Targetframework)' == 'netstandard2.0' ">
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Init.fs" />
-    <Content Include="paket.references" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj">
-      <Name>Hopac.Core</Name>
-      <Project>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</Project>
-    </ProjectReference>
+    <None Include="paket.references" />
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj"/>
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

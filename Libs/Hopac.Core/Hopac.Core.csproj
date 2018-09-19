@@ -1,13 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProjectGuid>{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hopac</RootNamespace>
     <AssemblyName>Hopac.Core</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
     <SignAssembly Condition="'$(StrongNameAssembly)' == 'true'">true</SignAssembly>
     <AssemblyOriginatorKeyFile Condition="'$(StrongNameAssembly)' == 'true'">../../Hopac.snk</AssemblyOriginatorKeyFile>
     <NoWarn>420</NoWarn>
@@ -22,7 +19,6 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>DEBUG;TRACE;TRAMPOLINE</DefineConstants>
@@ -30,7 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>TRACE;AGGRESSIVE_INLINING;TRAMPOLINE</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'Netstandard1.6' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>NO_ISTHREADPOOLTHREAD</DefineConstants>
   </PropertyGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
