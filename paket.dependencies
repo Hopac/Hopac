@@ -1,6 +1,6 @@
 source https://api.nuget.org/v3/index.json
 
-nuget FSharp.Core ~> 4
+nuget FSharp.Core ~> 4.5.2
 
 group Tests
   source https://nuget.org/api/v2
@@ -10,5 +10,5 @@ group Tests
 group Benchmarks
   source https://nuget.org/api/v2
 
-  nuget FSharp.Core ~> 4
+  nuget FSharp.Core ~> 4.5.2
   nuget System.Reactive

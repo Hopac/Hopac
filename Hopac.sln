@@ -75,11 +75,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-F
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C2B858D2-C161-446F-930F-87AECA04EF36}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\Hopac.nuspec = .nuget\Hopac.nuspec
+		run = run
+		appveyor.yml = appveyor.yml
+		.travis.yml = .travis.yml
 	EndProjectSection
 EndProject
 Global
