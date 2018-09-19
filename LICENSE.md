@@ -1,4 +1,5 @@
-Copyright � 2013-2014 Housemarque Inc.
+Copyright ©2013-2016 Housemarque Inc.
+Copyright ©2016-2018 Open Source Contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

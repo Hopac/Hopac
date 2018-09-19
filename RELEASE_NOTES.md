@@ -6,6 +6,7 @@
 * Fix memory leak in Alt.choice/alt/takers, thanks @TheAngryByrd for testing/verifying
 * Reviews/PR discussions/releasing new version, thanks @haf
 * Upgrade from .Net 4.5 -> .Net 4.7.1, thanks @haf
+* Update date ranges to 2018 in license and add "Open Source Contributors.", thanks @haf. (No other changes! ;))
 
 #### 0.3.23 - 2016-09-30
 * Added `idle` to yield the thread of execution.  Thanks to @neoeinstein for the
