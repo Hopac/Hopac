@@ -10,6 +10,7 @@
     <Tailcalls>true</Tailcalls>
     <GenerateTailCalls>true</GenerateTailCalls>
     <WarningLevel>4</WarningLevel>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>false</Optimize>
