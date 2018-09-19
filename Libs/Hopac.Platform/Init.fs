@@ -13,11 +13,7 @@ open Hopac.Core
 module Scheduler =
   let create foreground
              idleHandler
-#if !CORECLR
              maxStackSize
-#else
-             _
-#endif
              numWorkers
 //             priority
              topLevelHandler =
@@ -31,11 +27,7 @@ module Scheduler =
     let threads = Array.zeroCreate numWorkers
     for i = 0 to numWorkers - 1 do
       s.Events.[i] <- new WorkerEvent (i)
-      let thread = new Thread ((fun () -> Worker.Run (s, i))
-#if !CORECLR
-                             , maxStackSize
-#endif
-                               )
+      let thread = new Thread((fun () -> Worker.Run (s, i)), maxStackSize)
       thread.Name <- sprintf "Hopac.Worker.%d/%d" i numWorkers
       threads.[i] <- thread
 //      thread.Priority <- priority;
