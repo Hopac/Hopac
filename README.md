@@ -1,6 +1,6 @@
 [Reference](http://hopac.github.io/Hopac/Hopac.html) —
-[Guide](Docs/Programming.md) —
-[Docs](Docs/)
+[Guide](./Docs/Programming.md) —
+[Docs](./Docs/)
 
 Hopac is a [Concurrent ML](http://cml.cs.uchicago.edu/) style concurrent
 programming library for F#.
@@ -18,8 +18,6 @@ Here is a Bash script to get started:
 
 Note the use of `--recursive` option above.
 
-You can use `fsharpi` together with `Hopac.fsx` after building.
-
 ### `run`
 
 The Bash `run` script provides build automation.  You invoke `run` like any
@@ -35,11 +33,11 @@ performs a clean build using the .NET Core stack.
 
 #### `run` variables
 
-* `CONFIGS` specifies the configuration(s) to operate on:
-  * `CONFIGS='Debug Release'` is the default to build and run both `Debug` and
-    `Release` configs.
-  * `CONFIGS=Debug` to build and run only `Debug` config.
-  * `CONFIGS=Release` to build and run only `Release` config.
+ * `CONFIGS` specifies the configuration(s) to operate on:
+   * `CONFIGS='Debug Release'` is the default to build and run both `Debug` and
+     `Release` configs.
+   * `CONFIGS=Debug` to build and run only `Debug` config.
+   * `CONFIGS=Release` to build and run only `Release` config.
 
  * `USE` specifies the stack, which is auto detected by default, to build and run
   with:
@@ -61,3 +59,10 @@ performs a clean build using the .NET Core stack.
 
 You can run `source run.complete` to get auto completion of `run` commands in
 Bash.
+
+## Usage
+
+When you've followed the links at the top of this README, and you've read the programming guide,
+you can use `./run repl` as well as the file `Hopac.fsx` to play around with.
+
+Furthermore, you'll find a large number of examples in (./Examples)[./Examples].
