@@ -66,3 +66,7 @@ When you've followed the links at the top of this README, and you've read the pr
 you can use `./run repl` as well as the file `Hopac.fsx` to play around with.
 
 Furthermore, you'll find a large number of examples in (./Examples)[./Examples].
+
+## Release / publish
+
+    USE=netcore ./run publish

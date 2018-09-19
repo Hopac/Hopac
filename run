@@ -19,11 +19,9 @@ use_netcore() {
 }
 
 use_mono() {
-  if ! has xbuild ; then return 1 ; fi
-
   USE=mono
 
-  BUILD=xbuild
+  BUILD=msbuild
   RUN=mono
   if has fsharpiAnyCpu ; then
     FSI=fsharpiAnyCpu
