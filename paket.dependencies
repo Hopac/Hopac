@@ -1,4 +1,5 @@
 source https://api.nuget.org/v3/index.json
+storage: none
 
 clitool dotnet-mergenupkg
 nuget FSharp.Core ~> 4.5.2

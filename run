@@ -282,9 +282,13 @@ EOF
 
 update_versions() {
   pushd Libs &> /dev/null
-  for LIB in Hopac Hopac.Core Hopac.Platform ; do
-    JSON="$LIB/project.json"
-    sed -e '1,/"version": *"[^"]*"/ s/"version": *"[^"]*"/"version": "'"$VERSION"'"/' "$JSON" | overwrite_changed "$JSON"
+  for LIB in Hopac Hopac.Platform ; do
+    PROJ="$LIB/$LIB.fsproj"
+    sed -e '1,/"version": *"[^"]*"/ s/"version": *"[^"]*"/"version": "'"$VERSION"'"/' "$PROJ" | overwrite_changed "$PROJ"
+  done
+  for LIB in Hopac.Core ; do
+    PROJ="$LIB/$LIB.csproj"
+    sed -e '1,/"version": *"[^"]*"/ s/"version": *"[^"]*"/"version": "'"$VERSION"'"/' "$PROJ" | overwrite_changed "$PROJ"
   done
   popd &> /dev/null
 }
@@ -342,12 +346,12 @@ licenseUrl $LICENSE_URL
 releaseNotes
 $NOTES
 files
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???             ==> lib/net471
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???.???         ==> lib/net471
-    ../Libs/Hopac/bin/Release/Hopac.???                       ==> lib/net471
-    ../Libs/Hopac/bin/Release/Hopac.???.???                   ==> lib/net471
-    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???     ==> lib/net471
-    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???.??? ==> lib/net471
+    ../Libs/Hopac.Core/bin/Release/net471/Hopac.Core.???             ==> lib/net471
+    ../Libs/Hopac.Core/bin/Release/net471/Hopac.Core.???.???         ==> lib/net471
+    ../Libs/Hopac/bin/Release/net471/Hopac.???                       ==> lib/net471
+    ../Libs/Hopac/bin/Release/net471/Hopac.???.???                   ==> lib/net471
+    ../Libs/Hopac.Platform/bin/Release/net471/Hopac.Platform.???     ==> lib/net471
+    ../Libs/Hopac.Platform/bin/Release/net471/Hopac.Platform.???.??? ==> lib/net471
 dependencies FSharp.Core >= 4.5.2
 EOF
 

@@ -1,3 +1,4 @@
+STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
     dotnet-mergenupkg (2.3.1) - clitool: true
