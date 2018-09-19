@@ -1,7 +1,3 @@
 group Benchmarks
 FSharp.Core
-System.Reactive.Core
-System.Reactive.Interfaces
-System.Reactive.Linq
 System.Reactive
-System.Reactive.PlatformServices

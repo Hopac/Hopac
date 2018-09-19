@@ -1,22 +1,14 @@
-source https://www.nuget.org/api/v2
-# framework: NET45
+source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core ~> 4
 
 group Tests
   source https://nuget.org/api/v2
-  #framework: NET45
 
-  nuget FSharp.Core ~> 4
   nuget FsCheck
 
 group Benchmarks
   source https://nuget.org/api/v2
-  #framework: NET45
 
   nuget FSharp.Core ~> 4
-  nuget System.Reactive.Core
-  nuget System.Reactive.Interfaces
-  nuget System.Reactive.Linq
   nuget System.Reactive
-  nuget System.Reactive.PlatformServices
