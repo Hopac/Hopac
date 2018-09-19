@@ -190,7 +190,7 @@ if [ -z "$CONFIGS" ] ; then
 fi
 
 if [ -z "$FRAMEWORKS" ] ; then
-  FRAMEWORKS="net45 netcoreapp2.0"
+  FRAMEWORKS="net471 netcoreapp2.0"
 fi
 
 ################################################################################
@@ -344,13 +344,13 @@ licenseUrl $LICENSE_URL
 releaseNotes
 $NOTES
 files
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???             ==> lib/net45
-    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???.???         ==> lib/net45
-    ../Libs/Hopac/bin/Release/Hopac.???                       ==> lib/net45
-    ../Libs/Hopac/bin/Release/Hopac.???.???                   ==> lib/net45
-    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???     ==> lib/net45
-    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???.??? ==> lib/net45
-dependencies FSharp.Core >= 3.1.2.5
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???             ==> lib/net471
+    ../Libs/Hopac.Core/bin/Release/Hopac.Core.???.???         ==> lib/net471
+    ../Libs/Hopac/bin/Release/Hopac.???                       ==> lib/net471
+    ../Libs/Hopac/bin/Release/Hopac.???.???                   ==> lib/net471
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???     ==> lib/net471
+    ../Libs/Hopac.Platform/bin/Release/Hopac.Platform.???.??? ==> lib/net471
+dependencies FSharp.Core >= 4.5.2
 EOF
 
   paket --silent pack output .nuget templatefile "$TEMPLATE"
@@ -477,11 +477,11 @@ run() {
   if [ ! -d "$PROJECT" ] ; then return 0 ; fi
 
   pushd "$PROJECT" &> /dev/null
-  echo "Running $PROJECT in $CONFIG"
+  echo "Running $PROJECT in $CONFIG with ${USE:-'.Net Framework'}"
   if [ "$USE" = netcore ] ; then
     dotnet run -c "$CONFIG" --framework "netcoreapp2.0" | dotnet-quiet
   else
-    $RUN "./bin/$CONFIG/net45/$PROJECT.exe"
+    $RUN "./bin/$CONFIG/net471/$PROJECT.exe"
   fi
   echo
   popd &> /dev/null
@@ -495,7 +495,7 @@ tests() {
   pushd Tests &> /dev/null
   for CONFIG in $CONFIGS ; do
     for TEST in * ; do
-      run "$TEST" "$CONFIG" 
+      run "$TEST" "$CONFIG"
     done
   done
   popd &> /dev/null
