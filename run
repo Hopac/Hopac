@@ -435,7 +435,7 @@ build_nupkg() {
 
   if has msbuild.exe ; then
     USE=net  ./run build_net_nupkg
-  elif has xbuild ; then
+  elif has mono ; then
     USE=mono ./run build_net_nupkg
   else
     echo "Mono or .NET required to build nupkg."
