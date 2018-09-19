@@ -5,6 +5,7 @@
 * Remove obsolete APIs, thanks @wallymathieu
 * Fix memory leak in Alt.choice/alt/takers, thanks @TheAngryByrd for testing/verifying
 * Reviews/PR discussions/releasing new version, thanks @haf
+* Upgrade from .Net 4.5 -> .Net 4.7.1, thanks @haf
 
 #### 0.3.23 - 2016-09-30
 * Added `idle` to yield the thread of execution.  Thanks to @neoeinstein for the
