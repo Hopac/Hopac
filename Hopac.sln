@@ -10,53 +10,53 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{BBB71A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{0F31BE63-CB73-4207-94E8-158D3077F24A}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "ThreadRing", "Benchmarks\ThreadRing\ThreadRing.fsproj", "{36759B0E-103D-4985-815C-2ACFE9568334}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ThreadRing", "Benchmarks\ThreadRing\ThreadRing.fsproj", "{36759B0E-103D-4985-815C-2ACFE9568334}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Fibonacci", "Benchmarks\Fibonacci\Fibonacci.fsproj", "{64E64C4F-5FE9-4E5E-97AC-A4F10CE7B30E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fibonacci", "Benchmarks\Fibonacci\Fibonacci.fsproj", "{64E64C4F-5FE9-4E5E-97AC-A4F10CE7B30E}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Chameneos", "Benchmarks\Chameneos\Chameneos.fsproj", "{CBE8EB36-3F88-42D3-AB00-931C70EEF81F}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Chameneos", "Benchmarks\Chameneos\Chameneos.fsproj", "{CBE8EB36-3F88-42D3-AB00-931C70EEF81F}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "PrimesStream", "Benchmarks\PrimesStream\PrimesStream.fsproj", "{C8993386-1AAD-4E21-B301-3003686B5BCC}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PrimesStream", "Benchmarks\PrimesStream\PrimesStream.fsproj", "{C8993386-1AAD-4E21-B301-3003686B5BCC}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "AsyncOverhead", "Benchmarks\AsyncOverhead\AsyncOverhead.fsproj", "{53173B8B-A6B2-49DA-95F6-BF2BD3889143}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AsyncOverhead", "Benchmarks\AsyncOverhead\AsyncOverhead.fsproj", "{53173B8B-A6B2-49DA-95F6-BF2BD3889143}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "PingPong", "Benchmarks\PingPong\PingPong.fsproj", "{EFFC7C11-2D7F-4F8C-A20A-1085F8F4184E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PingPong", "Benchmarks\PingPong\PingPong.fsproj", "{EFFC7C11-2D7F-4F8C-A20A-1085F8F4184E}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "ReaderWriter", "Benchmarks\ReaderWriter\ReaderWriter.fsproj", "{8FA0660F-2971-4E63-A3B4-45530F8B1F02}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ReaderWriter", "Benchmarks\ReaderWriter\ReaderWriter.fsproj", "{8FA0660F-2971-4E63-A3B4-45530F8B1F02}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "CounterActor", "Benchmarks\CounterActor\CounterActor.fsproj", "{0E841EC9-AE81-45CF-A404-E719BD2FBFFC}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CounterActor", "Benchmarks\CounterActor\CounterActor.fsproj", "{0E841EC9-AE81-45CF-A404-E719BD2FBFFC}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "PostMailbox", "Benchmarks\PostMailbox\PostMailbox.fsproj", "{3824013A-7063-470D-BE07-E64F1FE88A04}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PostMailbox", "Benchmarks\PostMailbox\PostMailbox.fsproj", "{3824013A-7063-470D-BE07-E64F1FE88A04}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "CmlLCH", "Benchmarks\CmlLCH\CmlLCH.fsproj", "{AD67E0DD-7FFC-4630-9FA4-8C6E1CB000CA}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CmlLCH", "Benchmarks\CmlLCH\CmlLCH.fsproj", "{AD67E0DD-7FFC-4630-9FA4-8C6E1CB000CA}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Cell", "Benchmarks\Cell\Cell.fsproj", "{68C52C21-42A4-445B-812D-1392515E2C6E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cell", "Benchmarks\Cell\Cell.fsproj", "{68C52C21-42A4-445B-812D-1392515E2C6E}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Skynet", "Benchmarks\Skynet\Skynet.fsproj", "{875A9D84-8D11-437C-B247-48AD3DD3B129}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Skynet", "Benchmarks\Skynet\Skynet.fsproj", "{875A9D84-8D11-437C-B247-48AD3DD3B129}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "StartRing", "Benchmarks\StartRing\StartRing.fsproj", "{975A9D84-8D11-437C-B247-48AD3DD3B129}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StartRing", "Benchmarks\StartRing\StartRing.fsproj", "{975A9D84-8D11-437C-B247-48AD3DD3B129}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Streams", "Benchmarks\Streams\Streams.fsproj", "{83F3235E-2033-4752-90E9-1048781FA817}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Streams", "Benchmarks\Streams\Streams.fsproj", "{83F3235E-2033-4752-90E9-1048781FA817}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{43B5134E-89E6-411E-A492-6FDA8BD441FB}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac", "Libs\Hopac\Hopac.fsproj", "{898D8FE3-C9BE-4115-9A13-7615AF27C048}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac", "Libs\Hopac\Hopac.fsproj", "{898D8FE3-C9BE-4115-9A13-7615AF27C048}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac.Bench", "Libs\Hopac.Bench\Hopac.Bench.fsproj", "{839C22FA-DFB0-491A-B080-F740F7FF2A8C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Bench", "Libs\Hopac.Bench\Hopac.Bench.fsproj", "{839C22FA-DFB0-491A-B080-F740F7FF2A8C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hopac.Core", "Libs\Hopac.Core\Hopac.Core.csproj", "{92AC6198-FA63-4458-AFEC-2BFBB2B0D914}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac.Experimental", "Libs\Hopac.Experimental\Hopac.Experimental.fsproj", "{939C22FA-DFB0-491A-B080-F740F7FF2A8C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Experimental", "Libs\Hopac.Experimental\Hopac.Experimental.fsproj", "{939C22FA-DFB0-491A-B080-F740F7FF2A8C}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Hopac.Platform", "Libs\Hopac.Platform\Hopac.Platform.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hopac.Platform", "Libs\Hopac.Platform\Hopac.Platform.fsproj", "{B285AEB6-FC96-4212-B7A2-6B73597CE607}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{24B2ECA5-6A25-48E3-942E-D7559D4F8C3B}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Misc", "Examples\Misc\Misc.fsproj", "{7A2F0650-E5F6-4DFB-975D-C9F8B10FF314}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Misc", "Examples\Misc\Misc.fsproj", "{7A2F0650-E5F6-4DFB-975D-C9F8B10FF314}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{43B5134E-89E6-411E-A492-6FDA8BD441F9}"
 EndProject
-Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "AdHocTests", "Tests\AdHocTests\AdHocTests.fsproj", "{4E4BE430-1137-43D1-97EF-206BD6ACB2C1}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AdHocTests", "Tests\AdHocTests\AdHocTests.fsproj", "{4E4BE430-1137-43D1-97EF-206BD6ACB2C1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6B539F10-FF76-4EA2-9A2F-594F377CEEC2}"
 	ProjectSection(SolutionItems) = preProject
@@ -75,7 +75,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-F
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
-		build.fsx = build.fsx
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C2B858D2-C161-446F-930F-87AECA04EF36}"
