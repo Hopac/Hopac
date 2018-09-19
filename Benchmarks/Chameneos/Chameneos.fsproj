@@ -7,7 +7,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Chameneos</RootNamespace>
     <AssemblyName>Chameneos</AssemblyName>
-    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Chameneos</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>

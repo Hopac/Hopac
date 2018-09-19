@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Examples</RootNamespace>
     <AssemblyName>Examples</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net471</TargetFramework>
     <Name>Misc</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

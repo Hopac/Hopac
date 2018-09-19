@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>AsyncOverhead</RootNamespace>
     <AssemblyName>AsyncOverhead</AssemblyName>
-    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>AsyncOverhead</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>

@@ -7,7 +7,7 @@
     <RootNamespace>Hopac</RootNamespace>
     <AssemblyName>Hopac.Core</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>netstandard1.6;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
     <SignAssembly Condition="'$(StrongNameAssembly)' == 'true'">true</SignAssembly>
     <AssemblyOriginatorKeyFile Condition="'$(StrongNameAssembly)' == 'true'">../../Hopac.snk</AssemblyOriginatorKeyFile>
     <NoWarn>420</NoWarn>

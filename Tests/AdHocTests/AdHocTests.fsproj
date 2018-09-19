@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>AdHocTests</RootNamespace>
     <AssemblyName>AdHocTests</AssemblyName>
-    <TargetFrameworks>netcoreapp2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0;net471</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>AdHocTests</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>

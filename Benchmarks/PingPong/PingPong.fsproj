@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>PingPong</RootNamespace>
     <AssemblyName>PingPong</AssemblyName>
-    <TargetFrameworks>net45;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>PingPong</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>

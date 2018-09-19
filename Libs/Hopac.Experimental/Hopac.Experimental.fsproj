@@ -6,7 +6,7 @@
     <RootNamespace>Hopac.Experimental</RootNamespace>
     <AssemblyName>Hopac.Experimental</AssemblyName>
     <Name>Hopac.Experimental</Name>
-    <TargetFrameworks>netstandard1.6;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <OtherFlags Condition=" '$(TargetFramework)' == 'netstandard2.0'">--warnon:1182</OtherFlags>
     <OtherFlags Condition=" '$(TargetFramework)' == 'net45'">--warnon:1182</OtherFlags>

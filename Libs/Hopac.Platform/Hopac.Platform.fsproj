@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Hopac.Platform</RootNamespace>
     <AssemblyName>Hopac.Platform</AssemblyName>
-    <TargetFrameworks>netstandard1.6;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
     <Name>Hopac.Platform</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <DebugSymbols>true</DebugSymbols>

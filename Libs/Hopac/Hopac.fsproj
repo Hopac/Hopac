@@ -6,7 +6,7 @@
     <RootNamespace>Hopac</RootNamespace>
     <AssemblyName>Hopac</AssemblyName>
     <Name>Hopac</Name>
-    <TargetFrameworks>netstandard1.6;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;net471</TargetFrameworks>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <OtherFlags Condition=" '$(TargetFramework)' == 'netstandard2.0'">--warnon:1182</OtherFlags>
