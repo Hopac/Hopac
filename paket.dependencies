@@ -1,5 +1,6 @@
 source https://api.nuget.org/v3/index.json
 
+clitool dotnet-mergenupkg
 nuget FSharp.Core ~> 4.5.2
 
 group Tests
