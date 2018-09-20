@@ -16,7 +16,11 @@ Here is a Bash script to get started:
     cd Hopac
     ./run tests
 
-Note the use of `--recursive` option above.
+Note the use of `--recursive` option above. Or if you didn't, you can later do
+
+    git submodule update --init
+
+This project is *only* used to build our docs. You can skip it if you're just testing Hopac.
 
 ### `run`
 
