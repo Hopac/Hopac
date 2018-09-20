@@ -425,7 +425,7 @@ merge_netcore_nupkgs() {
     pushd Libs/$LIB &> /dev/null
     dotnet pack --configuration Release --no-build
 
-    dotnet mergenupkg --source "../../$NUPKG" --other "bin/Release/$LIB.$VERSION.nupkg" --framework netstandard1.6
+    dotnet mergenupkg --source "../../$NUPKG" --other "bin/Release/$LIB.$VERSION.nupkg" --framework netstandard2.0
     popd  &> /dev/null
   done
 
