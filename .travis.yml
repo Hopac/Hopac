@@ -4,7 +4,7 @@ install:
   - export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.7.1/
 env: CONFIGS=Release
 os: linux
-dotnet: 2.1.4
+dotnet: 2.1.402
 
 matrix:
   include:
