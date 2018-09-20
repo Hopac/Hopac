@@ -6,9 +6,13 @@ env: CONFIGS=Release
 os: linux
 dotnet: 2.1.402
 
+mono:
+- 5.12.0
+- 5.10.0
+- 5.8.1
+- latest
+
 matrix:
-  include:
-    - mono: latest
   exclude:
     - env: CONFIGS=Release
 
