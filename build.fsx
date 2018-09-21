@@ -139,7 +139,7 @@ Target.create "Release" (fun _ ->
 )
 
 Target.create "Docs" (fun _ ->
-  exec "git" "clone -b gh-pages https://github.com/Hopac/Hopac .gh-pages"
+  exec "git" "clone -b gh-pages git@github.com:Hopac/Hopac.git .gh-pages"
 
   let args =
    "--out .gh-pages --name Hopac --icon https://avatars2.githubusercontent.com/u/10173903 "
