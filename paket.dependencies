@@ -1,17 +1,22 @@
 source https://api.nuget.org/v3/index.json
 storage: none
-version 5.180.0
 
 clitool dotnet-mergenupkg
 nuget FSharp.Core ~> 4.5.2
 
 group Tests
-  source https://nuget.org/api/v2
-
+  source https://api.nuget.org/v3/index.json
+  source https://www.nuget.org/api/v2
   nuget FsCheck
 
 group Benchmarks
-  source https://nuget.org/api/v2
-
+  source https://api.nuget.org/v3/index.json
   nuget FSharp.Core ~> 4.5.2
   nuget System.Reactive
+
+group Build
+    storage none
+    source https://api.nuget.org/v3/index.json
+    nuget Fake.DotNet.Cli
+    nuget Fake.IO.FileSystem
+    nuget Fake.Core.Target

@@ -2,14 +2,14 @@
 namespace Hopac.AssemblyInfo
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("Hopac.fsproj")>]
-[<assembly: AssemblyProductAttribute("Hopac.fsproj")>]
+[<assembly: AssemblyTitleAttribute("Hopac.Bench.fsproj")>]
+[<assembly: AssemblyProductAttribute("Hopac.Bench.fsproj")>]
 [<assembly: AssemblyVersionAttribute("0.4.1")>]
 [<assembly: AssemblyFileVersionAttribute("0.4.1")>]
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] AssemblyTitle = "Hopac.fsproj"
-    let [<Literal>] AssemblyProduct = "Hopac.fsproj"
+    let [<Literal>] AssemblyTitle = "Hopac.Bench.fsproj"
+    let [<Literal>] AssemblyProduct = "Hopac.Bench.fsproj"
     let [<Literal>] AssemblyVersion = "0.4.1"
     let [<Literal>] AssemblyFileVersion = "0.4.1"

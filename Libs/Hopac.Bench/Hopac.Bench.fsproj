@@ -7,14 +7,8 @@
     <DebugSymbols>true</DebugSymbols>
     <GenerateTailCalls>true</GenerateTailCalls>
     <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <WarningLevel>4</WarningLevel>
+    <Version>0.4.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -31,8 +25,8 @@
     <Content Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj"/>
-    <ProjectReference Include="..\Hopac\Hopac.fsproj"/>
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj" />
+    <ProjectReference Include="..\Hopac\Hopac.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

@@ -1,0 +1,40 @@
+type
+    file
+id
+    Hopac
+summary
+    Hopac is a library for higher-Order, parallel, asynchronous and concurrent programming in F#.
+description
+    Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous, concurrent and reactive programs. Hopac is licensed under a MIT-style license. See project website for further information.
+authors
+    Vesa Karvonen
+owners
+    Vesa Karvonen
+licenseUrl
+    https://github.com/Hopac/Hopac/blob/master/LICENSE.md
+projectUrl
+    https://github.com/Hopac/Hopac
+requireLicenseAcceptance
+    false
+copyright
+    © 2016 Vesa Karvonen, 2018 Open Source Contributors
+tags
+    F# documentation fsi html
+iconUrl
+    https://avatars2.githubusercontent.com/u/10173903
+include-pdbs
+    true
+include-referenced-projects
+    false
+files
+    ../Hopac.Core/bin/Release/net471/Hopac.Core.* ==> lib/net471
+    bin/Release/net471/Hopac.* ==> lib/net471
+    ../Hopac.Platform/bin/Release/net471/Hopac.Platform.* ==> lib/net471
+    ../Hopac.Core/bin/Release/netstandard2.0/Hopac.Core.* ==> lib/netstandard2.0
+    bin/Release/netstandard2.0/Hopac.* ==> lib/netstandard2.0
+    ../Hopac.Platform/bin/Release/netstandard2.0/Hopac.Platform.* ==> lib/netstandard2.0
+dependencies
+    framework: net471    
+        FSharp.Core ~> LOCKED:Minor 
+    framework: netstandard2.0
+        FSharp.Core ~> LOCKED:Minor 

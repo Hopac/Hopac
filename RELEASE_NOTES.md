@@ -1,4 +1,4 @@
-#### 0.4.0 - 2018-09-19
+#### 0.4.1 - 2018-09-21
 * Optimized `Stream.keepPreceding*` and `Stream.keepFollowing1`.
 * Fix handling of `Task<T>` thrown Exceptions, thanks @hyprhare, @neoeinstein
 * Improve build process, thanks @wallymathieu

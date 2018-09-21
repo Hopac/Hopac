@@ -13,7 +13,7 @@ programming library for F#.
 Here is a Bash script to get started:
 
     git clone --recursive https://github.com/Hopac/Hopac.git
-    cd Hopac
+    cd Hopac && source .env
     ./run tests
 
 Note the use of `--recursive` option above. Or if you didn't, you can later do
