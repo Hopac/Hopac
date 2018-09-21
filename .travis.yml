@@ -1,19 +1,27 @@
 language: csharp
+
 sudo: false  # use the new container-based Travis infrastructure
+
 install:
-  - export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.7.1/
-env: CONFIGS=Release
+- export FrameworkPathOverride=$(dirname $(which mono))/../lib/mono/4.7.1/
+
+env:
+  global:
+  - CONFIGS=Release
+
 os: linux
+
 dotnet: 2.1.402
 
-matrix:
-  include:
-    mono:
-    - 5.12.0
-    - 5.10.0
-    - 5.8.1
-    - latest
-  exclude:
-    - env: CONFIGS=Release
+mono:
+- 5.12.0
+- 5.10.0
+- 5.8.1
+- latest
 
-script: ./run tests
+matrix:
+  allow_failures:
+  - mono: latest
+
+script:
+- ./run tests
