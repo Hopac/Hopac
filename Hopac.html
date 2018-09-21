@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/github-gist.min.css">
 <script src="fsirefgen.js" async></script>
 <title>Hopac Library Reference</title>
-<nav><div class="navbar"><span><img src="https://avatars2.githubusercontent.com/u/10173903" width="16" height="16"><a href="https://github.com/Hopac/Hopac">Hopac</a>0.3.23</span><a href="#">Top</a></div></nav>
+<nav><div class="navbar"><span><img src="https://avatars2.githubusercontent.com/u/10173903" width="16" height="16"><a href="https://github.com/Hopac/Hopac">Hopac</a>0.4.1</span><a href="#">Top</a></div></nav>
 </head>
 <body><table width="80%" align="center"><tr><td>
 <h1>Hopac Library Reference</h1>
@@ -169,6 +169,10 @@
   val <a id="dec:val Hopac.Promise.start" href="#def:val%20Hopac.Promise.start">start</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;<a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;&gt;
   val <a id="dec:val Hopac.Promise.read" href="#def:val%20Hopac.Promise.read">read</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
 <span class="spacing">  module <a id="dec:module Hopac.Promise.Now" href="#def:module%20Hopac.Promise.Now">Now</a> =
+    val <a id="dec:val Hopac.Promise.Now.delay" href="#def:val%20Hopac.Promise.Now.delay">delay</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+    val <a id="dec:val Hopac.Promise.Now.withValue" href="#def:val%20Hopac.Promise.Now.withValue">withValue</a>:   'x  -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+    val <a id="dec:val Hopac.Promise.Now.withFailure" href="#def:val%20Hopac.Promise.Now.withFailure">withFailure</a>: exn -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+    val <a id="dec:val Hopac.Promise.Now.never" href="#def:val%20Hopac.Promise.Now.never">never</a>: unit -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
     val <a id="dec:val Hopac.Promise.Now.isFulfilled" href="#def:val%20Hopac.Promise.Now.isFulfilled">isFulfilled</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; bool
     val <a id="dec:val Hopac.Promise.Now.get" href="#def:val%20Hopac.Promise.Now.get">get</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; 'x
 </span></span></code></pre>
@@ -255,8 +259,8 @@
 <pre><code class="fsharp hljs"><span class="spacing">type <a id="dec:type Hopac.Lock" href="#def:type%20Hopac.Lock">Lock</a> =
   <a id="dec:new Hopac.Lock.new" href="#def:new%20Hopac.Lock.new">new</a>: unit -&gt; <a href="#def:type%20Hopac.Lock">Lock</a>
 </span><span class="spacing">module <a id="dec:module Hopac.Lock" href="#def:module%20Hopac.Lock">Lock</a> =
-  val <a id="dec:val Hopac.Lock.duringJob" href="#def:val%20Hopac.Lock.duringJob">duringJob</a>: <a href="#def:type%20Hopac.Lock">Lock</a> -&gt;      <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
-  val <a id="dec:val Hopac.Lock.duringFun" href="#def:val%20Hopac.Lock.duringFun">duringFun</a>: <a href="#def:type%20Hopac.Lock">Lock</a> -&gt; (unit -&gt; 'x) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
+  val <a id="dec:val Hopac.Lock.duringJob" href="#def:val%20Hopac.Lock.duringJob">duringJob</a>: <a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:type%20Hopac.Lock">Lock</a> -&gt;      <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
+  val <a id="dec:val Hopac.Lock.duringFun" href="#def:val%20Hopac.Lock.duringFun">duringFun</a>: <a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:type%20Hopac.Lock">Lock</a> -&gt; (unit -&gt; 'x) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </span></code></pre>
 <pre><code class="fsharp hljs"><span class="spacing">module <a id="dec:module Hopac.Extensions" href="#def:module%20Hopac.Extensions">Extensions</a> =
 <span class="spacing">  module <a id="dec:module Hopac.Extensions.Array" href="#def:module%20Hopac.Extensions.Array">Array</a> =
@@ -693,6 +697,9 @@ module <a id="dec:module Hopac.Hopac" href="#def:module%20Hopac.Hopac">Hopac</a>
                                                     |
                                                   <a href="#def:type%20Hopac.IVar">IVar</a>&lt;_&gt;
 </code></pre>
+<p> Parts of the documentation will refer to certain functions that are not provided as part of the library, but are defined as follows:</p>
+<pre><code class="fsharp hljs">let <a href="#def:val%20Hopac.Alt.always">always</a> x _ = x
+</code></pre>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Void" href="#dec:type%20Hopac.Void">Void</a>
 </code></pre>
 <p> A type that has no public constructors to indicate that a job or function does not return normally.</p>
@@ -1117,7 +1124,16 @@ val it : int = 832040L
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.awaitTask" href="#dec:val%20Hopac.Job.awaitTask">awaitTask</a>: <a href="#def:type%20Hopac.Extensions.Task">Task</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
-<p> Creates a job that waits for the given task to finish and then returns the result of the task.  Note that this does not start the task.  Make sure that the task is started correctly.  See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromTask">fromTask</a></code>.</p>
+<p> Creates a job that waits for the given task to finish and then returns the result of the task.  Note that this does not start the task.  Make sure that the task is started correctly.  Exceptions thrown during task initialization may not be caught. Prefer <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromTask">fromTask</a></code> or <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.liftTask">liftTask</a></code>.</p>
+<p> Functions that return a task run synchronously until they block.  If an exception is raised during this synchronous phase, the exception cannot be caught by a later <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a></code>.</p>
+<p> This form will not catch the expected value:</p>
+<pre><code class="fsharp hljs">readFromBufferTask <a href="#def:val%20Hopac.Stream.buffer">buffer</a> |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.awaitTask">awaitTask</a> |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a>
+</code></pre>
+<p> Use <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromTask">fromTask</a></code> or <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.liftTask">liftTask</a></code> instead:</p>
+<pre><code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.fromTask">fromTask</a> (fun () -&gt; readFromBufferTask <a href="#def:val%20Hopac.Stream.buffer">buffer</a>) |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a>
+<a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.liftTask">liftTask</a> readFromBufferTask <a href="#def:val%20Hopac.Stream.buffer">buffer</a> |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a>
+</code></pre>
+<p> This will catch an exception thrown by the wrapped task for handling in the <code class="fsharp hljs"><a href="#def:type%20Hopac.Job">Job</a></code> context.</p>
 <p> Reference implementation:</p>
 <pre><code class="fsharp hljs">let <a href="#def:val%20Hopac.Job.awaitTask">awaitTask</a> (xT: <a href="#def:type%20Hopac.Extensions.Task">Task</a>&lt;'x&gt;) =
   <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:module%20Hopac.Job.Scheduler">Scheduler</a>.<a href="#def:val%20Hopac.Job.Scheduler.bind">bind</a> &lt;| fun sr -&gt;
@@ -1130,15 +1146,24 @@ val it : int = 832040L
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.awaitUnitTask" href="#dec:val%20Hopac.Job.awaitUnitTask">awaitUnitTask</a>: <a href="#def:type%20Hopac.Extensions.Task">Task</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;unit&gt;
 </code></pre>
-<p> Creates a job that waits until the given task finishes.  Note that this does not start the task.  Make sure that the task is started correctly. See also: <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromUnitTask">fromUnitTask</a></code>.</p>
+<p> Creates a job that waits until the given task finishes.  Note that this does not start the task.  Make sure that the task is started correctly. Exceptions thrown during task initialization may not be caught. Prefer <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromUnitTask">fromUnitTask</a></code> or <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.liftUnitTask">liftUnitTask</a></code>.</p>
+<p> Functions that return a task run synchronously until they block.  If an exception is raised during this synchronous phase, the exception cannot be caught by a later <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a></code>.</p>
+<p> This form will not catch the expected value:</p>
+<pre><code class="fsharp hljs">writeToBufferTask <a href="#def:val%20Hopac.Stream.buffer">buffer</a> <a href="#def:val%20Hopac.Stream.Src.value">value</a> |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.awaitUnitTask">awaitUnitTask</a> |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a>
+</code></pre>
+<p> Use <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromUnitTask">fromUnitTask</a></code> or <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.liftUnitTask">liftUnitTask</a></code> instead:</p>
+<pre><code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.fromUnitTask">fromUnitTask</a> (fun () -&gt; writeToBufferTask <a href="#def:val%20Hopac.Stream.buffer">buffer</a> <a href="#def:val%20Hopac.Stream.Src.value">value</a>) |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a>
+<a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.liftUnitTask">liftUnitTask</a> (writeToBufferTask <a href="#def:val%20Hopac.Stream.buffer">buffer</a>) <a href="#def:val%20Hopac.Stream.Src.value">value</a> |&gt; <a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.catch">catch</a>
+</code></pre>
+<p> This will catch an exception thrown by the wrapped task for handling in the <code class="fsharp hljs"><a href="#def:type%20Hopac.Job">Job</a></code> context.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.bindTask" href="#dec:val%20Hopac.Job.bindTask">bindTask</a>: ('x -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Extensions.Task">Task</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;
 </code></pre>
-<p> <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.bindTask">bindTask</a>&nbsp;x2yJ&nbsp;xT</code> is equivalent to <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.awaitTask">awaitTask</a>&nbsp;xT&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;x2yJ</code>.</p>
+<p> <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.bindTask">bindTask</a>&nbsp;x2yJ&nbsp;xT</code> is equivalent to <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.awaitTask">awaitTask</a>&nbsp;xT&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;x2yJ</code>. Exceptions thrown during task initialization may not be caught. Prefer <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromTask">fromTask</a></code> or <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.liftTask">liftTask</a></code> to convert the task to a <code class="fsharp hljs"><a href="#def:type%20Hopac.Job">Job</a></code> and use <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.bind">bind</a></code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.bindUnitTask" href="#dec:val%20Hopac.Job.bindUnitTask">bindUnitTask</a>: (unit -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;) -&gt; <a href="#def:type%20Hopac.Extensions.Task">Task</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;
 </code></pre>
-<p> <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.bindUnitTask">bindUnitTask</a>&nbsp;u2xJ&nbsp;uT</code> is equivalent to <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.awaitUnitTask">awaitUnitTask</a>&nbsp;uT&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;u2xJ</code>.</p>
+<p> <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.bindUnitTask">bindUnitTask</a>&nbsp;u2xJ&nbsp;uT</code> is equivalent to <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.awaitUnitTask">awaitUnitTask</a>&nbsp;uT&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;u2xJ</code>. Exceptions thrown during task initialization may not be caught. Prefer <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.fromUnitTask">fromUnitTask</a></code> or <code class="fsharp hljs"><a href="#def:val%20Hopac.Job.liftUnitTask">liftUnitTask</a></code> to convert the task to a <code class="fsharp hljs"><a href="#def:type%20Hopac.Job">Job</a></code> and use <code class="fsharp hljs"><a href="#def:module%20Hopac.Job">Job</a>.<a href="#def:val%20Hopac.Job.bind">bind</a></code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Job.paranoid" href="#dec:val%20Hopac.Job.paranoid">paranoid</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
@@ -1253,7 +1278,7 @@ val it : int = 832040L
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Alt.Ignore" href="#dec:val%20Hopac.Alt.Ignore">Ignore</a>: <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;unit&gt;
 </code></pre>
-<p> <code class="fsharp hljs"><a href="#def:val%20Hopac.Alt.Ignore">Ignore</a>&nbsp;xA</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a>&nbsp;fun&nbsp;_&nbsp;-&gt;&nbsp;()</code>.</p>
+<p> <code class="fsharp hljs"><a href="#def:val%20Hopac.Alt.Ignore">Ignore</a>&nbsp;xA</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a>&nbsp;<a href="#def:val%20Hopac.Alt.always">always</a>&nbsp;()</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Alt.prepareJob" href="#dec:val%20Hopac.Alt.prepareJob">prepareJob</a>: (unit -&gt; #<a href="#def:type%20Hopac.Job">Job</a>&lt;#<a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;&gt;) -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
 </code></pre>
@@ -1363,6 +1388,7 @@ val it : int = 832040L
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Alt.afterFun" href="#dec:val%20Hopac.Alt.afterFun">afterFun</a>: ('x -&gt; 'y) -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'y&gt;
 </code></pre>
+<p> Creates an alternative which is committed to when the given alternative is committed to. Once committed, the given alternative's result is mapped using the given function, providing the final result.</p>
 <p> <code class="fsharp hljs">xA&nbsp;|&gt;&nbsp;<a href="#def:val%20Hopac.Alt.afterFun">afterFun</a>&nbsp;x2y</code> is equivalent to <code class="fsharp hljs">xA&nbsp;|&gt;&nbsp;<a href="#def:val%20Hopac.Alt.afterJob">afterJob</a>&nbsp;(x2y&nbsp;&gt;&gt;&nbsp;<a href="#def:val%20Hopac.Job.result">result</a>)</code>. This is the same as <code class="fsharp hljs"><a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a></code> with the arguments flipped.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Alt.raises" href="#dec:val%20Hopac.Alt.raises">raises</a>: exn -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt;
@@ -1466,6 +1492,22 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Promise.Now" href="#dec:module%20Hopac.Promise.Now">Now</a> =
 </code></pre>
 <p> Immediate or non-workflow operations on promises.</p>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.Now.delay" href="#dec:val%20Hopac.Promise.Now.delay">delay</a>: <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+</code></pre>
+<p> Creates a promise whose value is computed lazily with the given job when an attempt is made to read the promise.  Although the job is not started immediately, the effect is that the delayed job will be run as a separate job, which means it is possible to communicate with it as long the delayed job is started before trying to communicate with it.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.Now.withValue" href="#dec:val%20Hopac.Promise.Now.withValue">withValue</a>: 'x -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+</code></pre>
+<p> Creates a promise with the given value.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.Now.withFailure" href="#dec:val%20Hopac.Promise.Now.withFailure">withFailure</a>: exn -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+</code></pre>
+<p> Creates a promise with the given failure exception.</p>
+</div>
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.Now.never" href="#dec:val%20Hopac.Promise.Now.never">never</a>: unit -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt;
+</code></pre>
+<p> Creates a promise that will never be fulfilled.</p>
+</div>
 <div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Promise.Now.isFulfilled" href="#dec:val%20Hopac.Promise.Now.isFulfilled">isFulfilled</a>: <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'x&gt; -&gt; bool
 </code></pre>
 <p> Returns true iff the given promise has already been fulfilled (either with a value or with a failure).</p>
@@ -1811,11 +1853,11 @@ val it : int = 832040L
 <div class="description"><pre><code class="fsharp hljs">module <a id="def:module Hopac.Lock" href="#dec:module%20Hopac.Lock">Lock</a> =
 </code></pre>
 <p> Operations on mutual exclusion locks.</p>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Lock.duringJob" href="#dec:val%20Hopac.Lock.duringJob">duringJob</a>: <a href="#def:type%20Hopac.Lock">Lock</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Lock.duringJob" href="#dec:val%20Hopac.Lock.duringJob">duringJob</a>: <a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:type%20Hopac.Lock">Lock</a> -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
 <p> Creates a job that runs the given job so that the lock is held during the execution of the given job.</p>
 </div>
-<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Lock.duringFun" href="#dec:val%20Hopac.Lock.duringFun">duringFun</a>: <a href="#def:type%20Hopac.Lock">Lock</a> -&gt; (unit -&gt; 'x) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
+<div class="description"><pre><code class="fsharp hljs">val <a id="def:val Hopac.Lock.duringFun" href="#dec:val%20Hopac.Lock.duringFun">duringFun</a>: <a href="#def:module%20Hopac.Hopac">Hopac</a>.<a href="#def:type%20Hopac.Lock">Lock</a> -&gt; (unit -&gt; 'x) -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'x&gt;
 </code></pre>
 <p> Creates a job that calls the given function so that the lock is held during the execution of the function.</p>
 </div>
@@ -2135,18 +2177,22 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.^-&gt;" href="#dec:val%20Hopac.Infixes.^-&gt;">^-&gt;</a> ): <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt; -&gt; ('x -&gt; 'y) -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'y&gt;
 </code></pre>
+<p> Creates an alternative which is committed to when the given alternative is committed to. Once committed, the given alternative's result is mapped using the given function, providing the final result.</p>
 <p> <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a>&nbsp;x2y</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^=&gt;">^=&gt;</a>&nbsp;(x2y&nbsp;&gt;&gt;&nbsp;<a href="#def:val%20Hopac.Job.result">result</a>)</code>.  This is the same as <code class="fsharp hljs"><a href="#def:val%20Hopac.Alt.afterFun">afterFun</a></code> with the arguments flipped.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.^=&gt;." href="#dec:val%20Hopac.Infixes.^=&gt;.">^=&gt;.</a> ): <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'y&gt;
 </code></pre>
-<p> <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^=&gt;.">^=&gt;.</a>&nbsp;yJ</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^=&gt;">^=&gt;</a>&nbsp;fun&nbsp;_&nbsp;-&gt;&nbsp;yJ</code>.</p>
+<p> Creates an alternative which is committed to when the given alternative is committed to. Once committed, the job argument is executed and generates the result.</p>
+<p> <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^=&gt;.">^=&gt;.</a>&nbsp;yJ</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^=&gt;">^=&gt;</a>&nbsp;<a href="#def:val%20Hopac.Alt.always">always</a>&nbsp;yJ</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.^-&gt;." href="#dec:val%20Hopac.Infixes.^-&gt;.">^-&gt;.</a> ): <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt; -&gt; 'y -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'y&gt;
 </code></pre>
-<p> <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;.">^-&gt;.</a>&nbsp;y</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a>&nbsp;fun&nbsp;_&nbsp;-&gt;&nbsp;y</code>.</p>
+<p> Creates an alternative which is committed to when the given alternative is committed to. Once committed, the given value is used as the result.</p>
+<p> <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;.">^-&gt;.</a>&nbsp;y</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a>&nbsp;<a href="#def:val%20Hopac.Alt.always">always</a>&nbsp;y</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.^-&gt;!" href="#dec:val%20Hopac.Infixes.^-&gt;!">^-&gt;!</a> ): <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt; -&gt; exn -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;_&gt;
 </code></pre>
+<p> Creates an alternative which is committed to when the alternative argument is committed to. Once committed, the given exception is raised.</p>
 <p> <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;!">^-&gt;!</a>&nbsp;e</code> is equivalent to <code class="fsharp hljs">xA&nbsp;<a href="#def:val%20Hopac.Infixes.^-&gt;">^-&gt;</a>&nbsp;fun&nbsp;_&nbsp;-&gt;&nbsp;raise&nbsp;e</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.&lt;|&gt;" href="#dec:val%20Hopac.Infixes.&lt;|&gt;">&lt;|&gt;</a> ): <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt; -&gt; <a href="#def:type%20Hopac.Alt">Alt</a>&lt;'x&gt;
@@ -2186,7 +2232,7 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.&gt;&gt;=." href="#dec:val%20Hopac.Infixes.&gt;&gt;=.">&gt;&gt;=.</a> ): <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;
 </code></pre>
-<p> Creates a job that runs the given two jobs and returns the result of the second job.  <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=.">&gt;&gt;=.</a>&nbsp;yJ</code> is equivalent to <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;fun&nbsp;_&nbsp;-&gt;&nbsp;yJ</code>.</p>
+<p> Creates a job that runs the given two jobs and returns the result of the second job.  <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=.">&gt;&gt;=.</a>&nbsp;yJ</code> is equivalent to <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;<a href="#def:val%20Hopac.Alt.always">always</a>&nbsp;yJ</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.&gt;&gt;=*." href="#dec:val%20Hopac.Infixes.&gt;&gt;=*.">&gt;&gt;=*.</a> ): <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt; -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt; -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'y&gt;
 </code></pre>
@@ -2194,7 +2240,7 @@ type <a id="def:type Hopac.Extensions.Async.OnWithSchedulerBuilder" href="#dec:t
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.&gt;&gt;-." href="#dec:val%20Hopac.Infixes.&gt;&gt;-.">&gt;&gt;-.</a> ): <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt; -&gt; 'y -&gt; <a href="#def:type%20Hopac.Job">Job</a>&lt;'y&gt;
 </code></pre>
-<p> Creates a job that runs the given job and then returns the given value. <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;-.">&gt;&gt;-.</a>&nbsp;y</code> is an optimized version of <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;fun&nbsp;_&nbsp;-&gt;&nbsp;<a href="#def:val%20Hopac.Job.result">result</a>&nbsp;y</code>.</p>
+<p> Creates a job that runs the given job and then returns the given value. <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;-.">&gt;&gt;-.</a>&nbsp;y</code> is an optimized version of <code class="fsharp hljs">xJ&nbsp;<a href="#def:val%20Hopac.Infixes.&gt;&gt;=">&gt;&gt;=</a>&nbsp;<a href="#def:val%20Hopac.Alt.always">always</a>&nbsp;(<a href="#def:val%20Hopac.Job.result">result</a>&nbsp;y)</code>.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">val ( <a id="def:val Hopac.Infixes.&gt;&gt;-*." href="#dec:val%20Hopac.Infixes.&gt;&gt;-*.">&gt;&gt;-*.</a> ): <a href="#def:type%20Hopac.Job">Job</a>&lt;_&gt; -&gt; 'y -&gt; <a href="#def:type%20Hopac.Promise">Promise</a>&lt;'y&gt;
 </code></pre>
@@ -2544,6 +2590,7 @@ while ... do ...
 <p> - The asynchronous one element at a time model of choice streams allows for a basic form of backpressure or the flow of synchronization from consumers to producers.  This allows for many new operations to be expressed.  For example, <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.keepPreceding1">keepPreceding1</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.keepFollowing1">keepFollowing1</a></code> cannot be implemented for observable sequences.  Operations such as <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.afterEach">afterEach</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.beforeEach">beforeEach</a></code> have semantics that are pull based and lazy and cannot be implemented for observable sequences.  Operations such as <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.pullOn">pullOn</a></code>, or <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.zip">zip</a></code> in disguise, have new uses.</p>
 <p> All of the above advantages are strongly related and result from the pull based nature of choice streams.  Pull semantics puts the consumer in control.</p>
 <p> While the most common operations are very easy to implement on choice streams, some operations perhaps require more intricate programming than with push based models.  For example, <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.groupByFun">groupByFun</a></code> and <code class="fsharp hljs"><a href="#def:val%20Hopac.Stream.shift">shift</a></code>, which corresponds to <code class="fsharp hljs">Delay</code> in Rx, are non-trivial, although both implementations are actually much shorter than their .Net Rx counterparts.</p>
+<p> Note: holding a reference to the head of a stream will prevent the elements of that stream from being garbage collected when no longer useful, resulting in a memory leak. Avoid keeping a reference to the head of a stream in a static context, as such streams will never be garbage collected.</p>
 </div>
 <div class="description"><pre><code class="fsharp hljs">type <a id="def:type Hopac.Stream.Src" href="#dec:type%20Hopac.Stream.Src">Src</a>&lt;'x&gt;
 </code></pre>
