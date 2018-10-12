@@ -40,7 +40,7 @@ Target.create "Clean" (fun _ ->
   !!"./**/bin/"
   ++ "./**/obj/"
   |> Shell.cleanDirs
-  exec "rm" "-rf .gh-pages"
+  Directory.delete ".gh-pages"
 )
 
 let normaliseFileToLFEnding filename =
