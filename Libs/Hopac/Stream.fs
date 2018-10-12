@@ -526,42 +526,43 @@ module Stream =
   type Pipelined<'x> =
     | Value of 'x
     | Exn of exn
-    | Done
-
-  type [<Struct>] Struct<'x1, 'x2> (x1: 'x1, x2: 'x2) =
-    member t.Get1 = x1
-    member t.Get2 = x2
 
   let mapPipelinedJob (degree: int) (x2yJ: 'x -> #Job<'y>) (xs: Stream<'x>) =
     if degree < 1 then
-      failwithf "degree must be 1 or greater, given %d" degree
-    elif degree = 1 then
-      mapJob x2yJ xs
+          failwithf "degree must be 1 or greater, given %d" degree
+        elif degree = 1 then
+          mapJob x2yJ xs
     else
-      delay <| fun () ->
-      let inCh = Ch ()
-      let resultMb = Mailbox ()
-      let rec loop () =
-        resultMb >>=* fun rCh ->
-          rCh >>- function
-           | Value y -> Cons (y, loop ())
-           | Exn e   -> raise e
-           | Done    -> Nil
-      inCh >>= fun (s: Struct<_, _>) ->
-          let x = s.Get1
-          let rCh = s.Get2
-          Job.tryInDelay (fun () -> x2yJ x)
-            (Value >> Ch.give rCh)
-            (Exn >> Ch.give rCh)
-      |> Job.foreverServer
-      |> Job.forN degree
-      >>=. Job.tryIn (xs
-                      |> iterJob ^ fun x ->
-                           let rCh = Ch ()
-                           inCh *<- Struct (x, rCh) >>=.
-                           resultMb *<<+ (rCh :> Job<_>))
-             (fun () -> resultMb *<<+ Job.result Done)
-             (Exn >> Job.result >> Mailbox.send resultMb)
+    delay <| fun () ->
+      let iCh, oCh = Ch(), Ch()
+      let mutable usage = 0
+      let mutable closing = false
+
+      let rec loop() =
+        Alt.choose [
+          oCh ^-> function
+            | Value y -> usage <- usage - 1
+                         Cons (y, loop ())
+            | Exn e   -> raise e
+          (if usage < degree then
+            iCh ^=> fun x ->
+              usage <- usage + 1
+              Job.tryInDelay 
+                (fun () -> x2yJ x)
+                (Value >> Ch.give oCh)
+                (Exn   >> Ch.give oCh)
+              |> Job.queue
+              >>= loop
+           else Alt.never())
+          (if closing && usage = 0
+           then Alt.always Nil
+           else Alt.never())
+        ] |> memo
+
+      Job.tryIn 
+        (xs |> iterJob (Ch.give iCh))
+        (fun () -> closing <- true; Job.unit() )
+        (fun e  -> oCh *<- Exn e)
       |> Job.start >>= loop
 
   let mapPipelinedFun (slack: int) (x2y: 'x -> 'y) (xs: Stream<'x>) =
