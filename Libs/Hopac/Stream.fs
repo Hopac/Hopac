@@ -523,34 +523,30 @@ module Stream =
   let consumeFun f xs = iterFun f xs |> queue
   let consume xs = iter xs |> queue
 
-  type Pipelined<'x> =
-    | Value of 'x
-    | Exn of exn
-
   let mapPipelinedJob (degree: int) (x2yJ: 'x -> #Job<'y>) (xs: Stream<'x>) =
     if degree < 1 then
-          failwithf "degree must be 1 or greater, given %d" degree
-        elif degree = 1 then
-          mapJob x2yJ xs
+      failwithf "degree must be 1 or greater, given %d" degree
+    elif degree = 1 then
+      mapJob x2yJ xs
     else
-    delay <| fun () ->
-      let iCh, oCh = Ch(), Ch()
+      delay <| fun () ->
+      let inCh, outCh = Ch(), Ch()
       let mutable usage = 0
       let mutable closing = false
 
       let rec loop() =
         Alt.choose [
-          oCh ^-> function
-            | Value y -> usage <- usage - 1
-                         Cons (y, loop ())
-            | Exn e   -> raise e
+          outCh ^-> function
+            | Choice1Of2 y -> usage <- usage - 1
+                              Cons (y, loop ())
+            | Choice2Of2 e -> raise e
           (if usage < degree then
-            iCh ^=> fun x ->
+            inCh ^=> fun x ->
               usage <- usage + 1
               Job.tryInDelay 
                 (fun () -> x2yJ x)
-                (Value >> Ch.give oCh)
-                (Exn   >> Ch.give oCh)
+                (Choice1Of2 >> Ch.give outCh)
+                (Choice2Of2 >> Ch.give outCh)
               |> Job.queue
               >>= loop
            else Alt.never())
@@ -560,9 +556,9 @@ module Stream =
         ] |> memo
 
       Job.tryIn 
-        (xs |> iterJob (Ch.give iCh))
+        (xs |> iterJob (Ch.give inCh))
         (fun () -> closing <- true; Job.unit() )
-        (fun e  -> oCh *<- Exn e)
+        (fun e  -> outCh *<- Choice2Of2 e)
       |> Job.start >>= loop
 
   let mapPipelinedFun (slack: int) (x2y: 'x -> 'y) (xs: Stream<'x>) =
