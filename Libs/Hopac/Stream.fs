@@ -540,7 +540,7 @@ module Stream =
             | Choice1Of2 y -> usage <- usage - 1
                               Cons (y, loop ())
             | Choice2Of2 e -> raise e
-          (if usage < degree then
+          (if not closing && usage < degree then
             inCh ^=> fun x ->
               usage <- usage + 1
               Job.tryInDelay 
