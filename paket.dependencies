@@ -2,7 +2,7 @@ source https://api.nuget.org/v3/index.json
 clitool paket
 clitool dotnet-mergenupkg
 storage: none
-version 5.196.2
+version 5.198.0
 
 nuget FSharp.Core ~> 4.5.2
 
