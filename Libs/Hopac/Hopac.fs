@@ -1467,15 +1467,23 @@ module Job =
   let inline fromTask (u2xT: unit -> Task<'x>) =
     {new TaskToJob<_> () with
       override xJ'.Start () = u2xT ()} :> Job<'x>
+  let inline fromValueTask (u2xVT: unit -> ValueTask<'x>) =
+    {new ValueTaskToJob<_>() with
+      override xVT'.Start () = u2xVT ()} :> Job<'x>
   let inline fromUnitTask (u2uT: unit -> Task) =
     {new TaskToJob () with
       override xJ'.Start () = u2uT ()} :> Job<unit>
+  let inline fromUnitValueTask (u2uVT: unit -> ValueTask) =
+    {new ValueTaskToJob () with
+      override xVT'.Start () = u2uVT ()} :> Job<unit>
 
   let inline liftTask x2yT x = fromTask ^ fun () -> x2yT x
   let inline liftUnitTask x2uT x = fromUnitTask ^ fun () -> x2uT x
 
   let inline awaitTask (xT: Task<'x>) = fromTask ^ fun () -> xT
+  let inline awaitValueTask (xVT: ValueTask<'x>) = fromValueTask ^ fun () -> xVT
   let inline awaitUnitTask (uT: Task) = fromUnitTask ^ fun () -> uT
+  let inline awaitUnitValueTask (xVT: ValueTask) = fromUnitValueTask ^ fun () -> xVT
 
   let inline bindTask (x2yJ: 'x -> #Job<'y>) (xT: Task<'x>) =
     {new BindTask<'x, 'y> () with
@@ -2189,6 +2197,7 @@ type JobBuilder () =
   member inline __.ReturnFrom (xO: IObservable<'x>) = xO.onceAlt :> Job<_>
   member inline __.ReturnFrom (xA: Async<'x>) = Job.fromAsync xA
   member inline __.ReturnFrom (xT: Task<'x>) = Job.awaitTask xT
+  member inline __.ReturnFrom (xVT: ValueTask<'x>) = Job.awaitValueTask xVT
   member inline __.ReturnFrom (xJ: Job<'x>) = xJ
   member inline __.Run (u2xJ: unit -> Job<'x>) = Job.delay u2xJ
   member inline __.TryFinally (u2xJ: unit -> Job<'x>, u2u: unit -> unit) =

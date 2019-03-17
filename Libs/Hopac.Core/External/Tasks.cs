@@ -136,6 +136,20 @@ namespace Hopac.Core {
     }
   }
 
+  public abstract class ValueTaskToJob<X> : Job<X>
+  {
+    public abstract ValueTask<X> Start();
+
+    internal override void DoJob(ref Worker wr, Cont<X> xK) {
+      var xVT = this.Start();
+      if (xVT.IsCompletedSuccessfully)
+        Cont.Do(xK, ref wr, xVT.Result);
+      else
+        xVT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new TaskToJobAwaiter<X>(xVT.AsTask(), xK, wr.Scheduler).Ready);
+        // TO CONSIDER: a separate awaiter for ValueTask
+    }
+  }
+
   internal sealed class TaskToJobAwaiter : Work {
     private Task uT;
     private Cont<Unit> uK;
@@ -176,6 +190,19 @@ namespace Hopac.Core {
         Work.Do(uK, ref wr);
       else
         uT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new TaskToJobAwaiter(uT, uK, wr.Scheduler).Ready);
+    }
+  }
+  
+  public abstract class ValueTaskToJob : Job<Unit> {
+    ///
+    public abstract ValueTask Start();
+    internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+      var uVT = Start();
+      if (uVT.IsCompletedSuccessfully)
+        Work.Do(uK, ref wr);
+      else
+        uVT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new TaskToJobAwaiter(uVT.AsTask(), uK, wr.Scheduler).Ready);
+        // TO CONSIDER: a separate awaiter for ValueTask
     }
   }
 

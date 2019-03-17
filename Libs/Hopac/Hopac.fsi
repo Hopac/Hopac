@@ -743,22 +743,34 @@ module Job =
   val   toAsync: Job<'x> -> Async<'x>
 
   /// `bindAsync x2yJ xA` is equivalent to `fromAsync xA >>= x2yJ`.
-  val inline bindAsync: ('x -> #Job<'y>) -> Async<'x> -> Job<'y>
+  val inline bindAsync:     ('x -> #Job<'y>) -> Async<'x> -> Job<'y>
 
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromTask`.
-  val inline fromTask:     (unit -> Task<'x>) -> Job<'x>
+  val inline fromTask:      (unit -> Task<'x>) -> Job<'x>
+  
+  /// Creates a job that calls the given function to start a value task and waits for
+  /// it to complete.  See also: `Alt.fromValueTask`.
+  val inline fromValueTask: (unit -> ValueTask<'x>) -> Job<'x>
 
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromUnitTask`.
-  val inline fromUnitTask: (unit -> Task)     -> Job<unit>
+  val inline fromUnitTask:  (unit -> Task)     -> Job<unit>
+  
+  /// Creates a job that calls the given function to start a value task and waits for
+  /// it to complete. TODO: Alt.fromUnitValueTask
+  val inline fromUnitValueTask: (unit -> ValueTask)     -> Job<unit>
 
   /// `liftTask x2yT` is equivalent to `fun x -> fromTask <| fun () -> x2yT x`.
-  val inline liftTask:     ('x -> Task<'y>) -> 'x -> Job<'y>
+  val inline liftTask:      ('x -> Task<'y>) -> 'x -> Job<'y>
+  
+  // TODO: liftValueTask
 
   /// `liftUnitTask x2uT` is equivalent to `fun x -> fromUnitTask <| fun () ->
   /// x2uT x`.
   val inline liftUnitTask: ('x -> Task)     -> 'x -> Job<unit>
+  
+  // TODO: liftUnitValueTask
 
   /// Creates a job that waits for the given task to finish and then returns the
   /// result of the task.  Note that this does not start the task.  Make sure
@@ -793,6 +805,40 @@ module Job =
   ///>   xI
 #endif
   val inline awaitTask:     Task<'x> -> Job<'x>
+  
+  /// Creates a job that waits for the given task to finish and then returns the
+  /// result of the task.  Note that this does not start the task.  Make sure
+  /// that the task is started correctly.  Exceptions thrown during task
+  /// initialization may not be caught. Prefer `fromTask` or `liftTask`.
+#if DOC
+  ///
+  /// Functions that return a task run synchronously until they block.  If an
+  /// exception is raised during this synchronous phase, the exception cannot
+  /// be caught by a later `Job.catch`.
+  ///
+  /// This form will not catch the expected value:
+  ///
+  ///> readFromBufferTask buffer |> Job.awaitValueTask |> Job.catch
+  ///
+  /// Use `fromTask` or `liftTask` instead:
+  ///
+  ///> Job.fromTask (fun () -> readFromBufferTask buffer) |> Job.catch
+  ///> Job.liftTask readFromBufferTask buffer |> Job.catch
+  ///
+  /// This will catch an exception thrown by the wrapped task for handling in
+  /// the `Job` context.
+  ///
+  /// Reference implementation:
+  ///
+  ///> let awaitTask (xT: Task<'x>) =
+  ///>   Job.Scheduler.bind <| fun sr ->
+  ///>   let xI = IVar ()
+  ///>   xT.ContinueWith (Action<Threading.Tasks.Task>(fun _ ->
+  ///>     Scheduler.start sr (try xI *<= xT.Result with e -> xI *<=! e)))
+  ///>   |> ignore
+  ///>   xI
+#endif
+  val inline awaitValueTask: ValueTask<'x> -> Job<'x>
 
   /// Creates a job that waits until the given task finishes.  Note that this
   /// does not start the task.  Make sure that the task is started correctly.
