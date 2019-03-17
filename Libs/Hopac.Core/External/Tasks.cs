@@ -9,7 +9,7 @@ namespace Hopac.Core {
 
   ///
   public abstract class BindTask<X, Y> : Job<Y> {
-    private Task<X> xT;
+    Task<X> xT;
     ///
     [MethodImpl(AggressiveInlining.Flag)]
     public Job<Y> InternalInit(Task<X> xT) { this.xT = xT; return this; }

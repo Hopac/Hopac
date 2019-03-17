@@ -868,13 +868,26 @@ module Job =
   /// Exceptions thrown during task initialization may not be caught. Prefer
   /// `fromTask` or `liftTask` to convert the task to a `Job` and use
   /// `Job.bind`.
-  val inline bindTask:     ('x   -> #Job<'y>) -> Task<'x> -> Job<'y>
+  val inline bindTask:          ('x   -> #Job<'y>) -> Task<'x>       -> Job<'y>
+
+  /// `bindValueTask x2yJ xVT` is equivalent to `awaitValueTask xVT >>= x2yJ`.
+  /// Exceptions thrown during task initialization may not be caught. Prefer
+  /// `fromValueTask` or `liftValueTask` to convert the task to a `Job` and use
+  /// `Job.bind`.
+  val inline bindValueTask:     ('x   -> #Job<'y>) -> ValueTask<'x>  -> Job<'y>
 
   /// `bindUnitTask u2xJ uT` is equivalent to `awaitUnitTask uT >>= u2xJ`.
   /// Exceptions thrown during task initialization may not be caught. Prefer
   /// `fromUnitTask` or `liftUnitTask` to convert the task to a `Job` and
   /// use `Job.bind`.
-  val inline bindUnitTask: (unit -> #Job<'y>) -> Task     -> Job<'y>
+  val inline bindUnitTask:      (unit -> #Job<'y>) -> Task           -> Job<'y>
+  
+  /// `bindUnitValueTask u2xJ uVT` is equivalent to
+  /// `awaitUnitValueeTask uVT >>= u2xJ`.
+  /// Exceptions thrown during task initialization may not be caught. Prefer
+  /// `fromUnitTask` or `liftUnitTask` to convert the task to a `Job` and
+  /// use `Job.bind`.
+  val inline bindUnitValueTask: (unit -> #Job<'y>) -> ValueTask      -> Job<'y>
 
   //# Debugging
 
