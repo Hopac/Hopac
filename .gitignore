@@ -1,4 +1,3 @@
-paket-files/
 .gh-pages/
 .vs/
 .fake/
@@ -9,4 +8,8 @@ pkg/
 bin
 obj
 packages
-paket.exe
+paket-files/
+.paket/*
+!.paket/*.proj
+!.paket/*.props
+!.paket/*.targets

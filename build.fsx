@@ -1,52 +1,43 @@
-#r "paket:
-nuget Fake.Core.Xml
-nuget Fake.DotNet.Cli
-nuget Fake.DotNet.Paket
-nuget Fake.Tools.Git
-nuget Fake.Api.GitHub
-nuget Fake.Core.Target
-nuget Fake.Core.Environment
-nuget Fake.Core.UserInput
-nuget Fake.DotNet.AssemblyInfoFile
-nuget Fake.Core.ReleaseNotes //"
+#r "paket: groupref Build //"
+
+#nowarn "52"
 #load "./.fake/build.fsx/intellisense.fsx"
+#load "paket-files/build/eiriktsarpalis/snippets/SlnTools/SlnTools.fs"
+ 
 #if !FAKE
-#r "netstandard"
+  #r "Facades/netstandard"
 #endif
 
 open System
+open System.IO
 open Fake.Core
 open Fake.DotNet
-open Fake.Tools
-open Fake.Api
 open Fake.IO
-open Fake.Core.TargetOperators
+open Fake.Tools
 open Fake.IO.Globbing.Operators
+open Fake.Core.TargetOperators
+open Fake.Api
+open Fake.BuildServer
+open Fake.SystemHelper
 
 Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let configuration = Environment.environVarOrDefault "Configuration" "Release"
+
+let configuration =
+  Environment.environVarOrDefault "CONFIGURATION" "Release"
+  |> DotNet.BuildConfiguration.fromString
+
 let release = ReleaseNotes.load "RELEASE_NOTES.md"
-let mutable dotnetExePath = "dotnet"
 
-let exec program args =
-  let result = Process.execWithResult (fun info -> { info with FileName = program; Arguments = args }) (TimeSpan.FromMinutes 1.)
-  if result.ExitCode <> 0 then
-    for error in result.Errors do
-      eprintfn "%s" error
-    failwith "Failed to execute."
+let libProjects =
+  !! "src/targets/**/*.fsproj"
+  ++ "src/adapters/**/*.fsproj"
 
+let testProjects = !! "Tests/AdHocTests/AdHocTests.fsproj"
 
-Target.create "Clean" (fun _ ->
-  !!"./**/bin/"
-  ++ "./**/obj/"
-  |> Shell.cleanDirs
-  Directory.delete ".gh-pages"
-)
-
-let normaliseFileToLFEnding filename =
-  let s = File.readAsString filename
-  s.Replace(String.WindowsLineBreaks,String.LinuxLineBreaks)
-  |> File.writeString false filename
+Target.create "Clean" <| fun _ ->
+  // This line actually ensures we get the correct version checked in
+  // instead of the one previously bundled with 'fake`
+  Git.CommandHelper.gitCommand "" "checkout .paket/Paket.Restore.targets"
 
 Target.create "AssemblyInfo" (fun _ ->
   !! "Libs/*/*.*proj" |> Seq.iter (fun projectPath ->
@@ -76,27 +67,31 @@ Target.create "ProjectVersion" (fun _ ->
     normaliseFileToLFEnding projectPath
   )
 )
-let build project fws =
-  for fw in fws do
-    DotNet.build (fun p ->
-      { p with
-          Configuration = DotNet.BuildConfiguration.Custom configuration
-          Common = DotNet.Options.withDotNetCliPath dotnetExePath p.Common
-                   |> DotNet.Options.withCustomParams (Some "--no-dependencies")
-          Framework = Some fw
-      })
-      project
 
-Target.create "BuildLibs" (fun _ ->
-  let fws = [ "net471"; "netstandard2.0" ]
-  build "Libs/Hopac.Core/Hopac.Core.csproj" fws
-  build "Libs/Hopac.Platform/Hopac.Platform.fsproj" fws
-  build "Libs/Hopac/Hopac.fsproj" fws
-)
+/// This also restores.
+Target.create "Build" <| fun _ ->
+  let msbuildParams =
+    { MSBuild.CliArguments.Create() with
+        Verbosity = Some Quiet
+        NoLogo = true
+        Properties = [ "Optimize", "true"; "DebugSymbols", "true" ] }
+  let setParams (o: DotNet.BuildOptions) =
+    { o with
+        Configuration = configuration
+        MSBuildParams = msbuildParams }
+  DotNet.build setParams "src/Hopac.sln"
+
+Target.create "Tests" (fun _ ->
+  let commandLine (file: string) =
+    let projectName = file.Substring(0, file.Length - ".fsproj".Length) |> Path.GetFileName
+    let path = Path.GetDirectoryName file
+    sprintf "%s/bin/%O/netcoreapp2.2/%s.dll --summary" path configuration projectName
+  testProjects
+  |> Seq.iter (commandLine >> DotNet.exec id "" >> ignore))
 
 Target.create "BuildTests" (fun _ ->
   let fws = [ "net471"; "netcoreapp2.0" ]
-  build "Tests/AdHocTests/AdHocTests.fsproj" fws
+  build "" fws
 )
 
 Target.create "Build" ignore

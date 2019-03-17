@@ -1,7 +1,9 @@
 source https://api.nuget.org/v3/index.json
-storage: none
-
+clitool paket
 clitool dotnet-mergenupkg
+storage: none
+version 5.196.2
+
 nuget FSharp.Core ~> 4.5.2
 
 group Tests
@@ -15,8 +17,10 @@ group Benchmarks
   nuget System.Reactive
 
 group Build
-    storage none
-    source https://api.nuget.org/v3/index.json
-    nuget Fake.DotNet.Cli
-    nuget Fake.IO.FileSystem
-    nuget Fake.Core.Target
+  source https://api.nuget.org/v3/index.json
+  storage none
+  framework auto-detect
+  nuget Fake.DotNet.Cli
+  nuget Fake.IO.FileSystem
+  nuget Fake.Core.Target
+  github eiriktsarpalis/snippets SlnTools/SlnTools.fs
