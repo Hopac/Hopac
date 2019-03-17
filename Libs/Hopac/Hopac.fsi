@@ -748,7 +748,7 @@ module Job =
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromTask`.
   val inline fromTask:      (unit -> Task<'x>) -> Job<'x>
-  
+
   /// Creates a job that calls the given function to start a value task and waits for
   /// it to complete.  See also: `Alt.fromValueTask`.
   val inline fromValueTask: (unit -> ValueTask<'x>) -> Job<'x>
@@ -756,20 +756,20 @@ module Job =
   /// Creates a job that calls the given function to start a task and waits for
   /// it to complete.  See also: `Alt.fromUnitTask`.
   val inline fromUnitTask:  (unit -> Task)     -> Job<unit>
-  
+
   /// Creates a job that calls the given function to start a value task and waits for
   /// it to complete. TODO: Alt.fromUnitValueTask
   val inline fromUnitValueTask: (unit -> ValueTask)     -> Job<unit>
 
   /// `liftTask x2yT` is equivalent to `fun x -> fromTask <| fun () -> x2yT x`.
   val inline liftTask:      ('x -> Task<'y>) -> 'x -> Job<'y>
-  
+
   // TODO: liftValueTask
 
   /// `liftUnitTask x2uT` is equivalent to `fun x -> fromUnitTask <| fun () ->
   /// x2uT x`.
   val inline liftUnitTask: ('x -> Task)     -> 'x -> Job<unit>
-  
+
   // TODO: liftUnitValueTask
 
   /// Creates a job that waits for the given task to finish and then returns the
@@ -805,7 +805,7 @@ module Job =
   ///>   xI
 #endif
   val inline awaitTask:     Task<'x> -> Job<'x>
-  
+
   /// Creates a job that waits for the given task to finish and then returns the
   /// result of the task.  Note that this does not start the task.  Make sure
   /// that the task is started correctly.  Exceptions thrown during task

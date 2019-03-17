@@ -15,10 +15,11 @@ namespace Hopac.Core {
     public Job<Y> InternalInit(Task<X> xT) { this.xT = xT; return this; }
     ///
     public abstract Job<Y> Do(X x);
-    private sealed class State : Work {
-      private Scheduler sr;
-      private BindTask<X, Y> yJ;
-      private Cont<Y> yK;
+    sealed class State : Work {
+      readonly Scheduler sr;
+      readonly BindTask<X, Y> yJ;
+      Cont<Y> yK;
+
       internal State(Scheduler sr, BindTask<X, Y> yJ, Cont<Y> yK) {
         this.sr = sr;
         this.yJ = yJ;
@@ -117,8 +118,10 @@ namespace Hopac.Core {
       var xT = this.xT;
       if (xT.IsCompletedSuccessfully)
         xK.DoCont(ref wr, xT.Result);
-      else
+      else {
+        xT.Wait();
         xK.DoHandle(ref wr, xT.Exception);
+      }
     }
     public void Ready() {
       Worker.ContinueOnThisThread(this.sr, this);
@@ -208,8 +211,10 @@ namespace Hopac.Core {
       if (uT.IsCompletedSuccessfully) {
         uK.DoWork(ref wr);
       }
-      else
+      else {
+        uT.Wait();
         uK.DoHandle(ref wr, uT.Exception);
+      }
     }
     internal void Ready() {
       Worker.ContinueOnThisThread(sr, this);
