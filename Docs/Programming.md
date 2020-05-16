@@ -771,9 +771,9 @@ for starting and waiting for a sequence of jobs.  In this case we don't care
 about the results of the jobs, so `Job.conIgnore` is what we use:
 
 ```fsharp
-> [timeOut (TimeSpan.FromSeconds 0.0) >>-. hello "Hello, from first job!" ;
-   timeOut (TimeSpan.FromSeconds 0.3) >>-. hello "Hello, from second job!" ;
-   timeOut (TimeSpan.FromSeconds 0.6) >>-. hello "Hello, from third job"]
+> [timeOut (TimeSpan.FromSeconds 0.0) >>=. hello "Hello, from first job!" ;
+   timeOut (TimeSpan.FromSeconds 0.3) >>=. hello "Hello, from second job!" ;
+   timeOut (TimeSpan.FromSeconds 0.6) >>=. hello "Hello, from third job"]
 |> Job.conIgnore |> run ;;
 Hello, from first job!
 Hello, from second job!
