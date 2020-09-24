@@ -9,16 +9,17 @@ namespace Hopac.Core {
 
   ///
   public abstract class BindTask<X, Y> : Job<Y> {
-    private Task<X> xT;
+    Task<X> xT;
     ///
     [MethodImpl(AggressiveInlining.Flag)]
     public Job<Y> InternalInit(Task<X> xT) { this.xT = xT; return this; }
     ///
     public abstract Job<Y> Do(X x);
-    private sealed class State : Work {
-      private Scheduler sr;
-      private BindTask<X, Y> yJ;
-      private Cont<Y> yK;
+    sealed class State : Work {
+      readonly Scheduler sr;
+      readonly BindTask<X, Y> yJ;
+      Cont<Y> yK;
+
       internal State(Scheduler sr, BindTask<X, Y> yJ, Cont<Y> yK) {
         this.sr = sr;
         this.yJ = yJ;
@@ -59,10 +60,11 @@ namespace Hopac.Core {
     public Job<Y> InternalInit(Task uT) { this.uT = uT; return this; }
     ///
     public abstract Job<Y> Do();
-    private sealed class State : Work {
-      private Scheduler sr;
-      private BindTask<Y> yJ;
-      private Cont<Y> yK;
+    sealed class State : Work {
+      readonly Scheduler sr;
+      readonly BindTask<Y> yJ;
+      Cont<Y> yK;
+
       internal State(Scheduler sr, BindTask<Y> yJ, Cont<Y> yK) {
         this.sr = sr;
         this.yJ = yJ;
@@ -96,9 +98,10 @@ namespace Hopac.Core {
   }
 
   internal sealed class TaskToJobAwaiter<X> : Work {
-    private Task<X> xT;
-    private Cont<X> xK;
-    private Scheduler sr;
+    readonly Task<X> xT;
+    readonly Cont<X> xK;
+    readonly Scheduler sr;
+
     [MethodImpl(AggressiveInlining.Flag)]
     public TaskToJobAwaiter(Task<X> xT, Cont<X> xK, Scheduler sr) {
       this.xT = xT;
@@ -113,10 +116,12 @@ namespace Hopac.Core {
     }
     internal override void DoWork(ref Worker wr) {
       var xT = this.xT;
-      if (TaskStatus.Faulted == xT.Status)
-        xK.DoHandle(ref wr, xT.Exception);
-      else
+      if (xT.IsCompletedSuccessfully)
         xK.DoCont(ref wr, xT.Result);
+      else {
+        xT.Wait();
+        xK.DoHandle(ref wr, xT.Exception);
+      }
     }
     public void Ready() {
       Worker.ContinueOnThisThread(this.sr, this);
@@ -136,10 +141,59 @@ namespace Hopac.Core {
     }
   }
 
+  internal sealed class ValueTaskToJobAwaiter<X> : Work {
+    readonly ConfiguredValueTaskAwaitable<X>.ConfiguredValueTaskAwaiter xA;
+    readonly Cont<X> xK;
+    readonly Scheduler sr;
+
+    public ValueTaskToJobAwaiter(ConfiguredValueTaskAwaitable<X>.ConfiguredValueTaskAwaiter xA, Cont<X> xK, Scheduler sr) {
+      this.xA = xA;
+      this.xK = xK;
+      this.sr = sr;
+    }
+
+    internal override Proc GetProc(ref Worker wr) {
+      return xK.GetProc(ref wr);
+    }
+
+    internal override void DoHandle(ref Worker wr, Exception e) {
+      xK.DoHandle(ref wr, e);
+    }
+
+    internal override void DoWork(ref Worker wr) {
+      var xA = this.xA;
+      try {
+        xK.DoCont(ref wr, xA.GetResult());
+      }
+      catch (Exception e) {
+        xK.DoHandle(ref wr, e);
+      }
+    }
+
+    public void Ready() {
+      Worker.ContinueOnThisThread(sr, this);
+    }
+  }
+
+  public abstract class ValueTaskToJob<X> : Job<X> {
+    public abstract ValueTask<X> Start();
+
+    internal override void DoJob(ref Worker wr, Cont<X> xK) {
+      var xVT = this.Start();
+      if (xVT.IsCompletedSuccessfully)
+        Cont.Do(xK, ref wr, xVT.Result);
+      else {
+        var a = xVT.ConfigureAwait(false).GetAwaiter();
+        a.UnsafeOnCompleted(new ValueTaskToJobAwaiter<X>(a, xK, wr.Scheduler).Ready);
+      }
+    }
+  }
+
   internal sealed class TaskToJobAwaiter : Work {
-    private Task uT;
-    private Cont<Unit> uK;
-    private Scheduler sr;
+    readonly Task uT;
+    readonly Cont<Unit> uK;
+    readonly Scheduler sr;
+
     [MethodImpl(AggressiveInlining.Flag)]
     public TaskToJobAwaiter(Task uT, Cont<Unit> uK, Scheduler sr) {
       this.uT = uT;
@@ -154,15 +208,16 @@ namespace Hopac.Core {
     }
     internal override void DoWork(ref Worker wr) {
       var uT = this.uT;
-      if (TaskStatus.Faulted == uT.Status)
-        uK.DoHandle(ref wr, uT.Exception);
+      if (uT.IsCompletedSuccessfully) {
+        uK.DoWork(ref wr);
+      }
       else {
         uT.Wait();
-        uK.DoWork(ref wr);
+        uK.DoHandle(ref wr, uT.Exception);
       }
     }
     internal void Ready() {
-      Worker.ContinueOnThisThread(this.sr, this);
+      Worker.ContinueOnThisThread(sr, this);
     }
   }
 
@@ -176,6 +231,56 @@ namespace Hopac.Core {
         Work.Do(uK, ref wr);
       else
         uT.ConfigureAwait(false).GetAwaiter().UnsafeOnCompleted(new TaskToJobAwaiter(uT, uK, wr.Scheduler).Ready);
+    }
+  }
+  
+  internal sealed class ValueTaskToJobAwaiter : Work {
+    readonly ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter xA;
+    readonly Cont<Unit> uK;
+    readonly Scheduler sr;
+
+    [MethodImpl(AggressiveInlining.Flag)]
+    public ValueTaskToJobAwaiter(ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter xA, Cont<Unit> uK, Scheduler sr) {
+      this.xA = xA;
+      this.uK = uK;
+      this.sr = sr;
+    }
+
+    internal override Proc GetProc(ref Worker wr) {
+      return uK.GetProc(ref wr);
+    }
+
+    internal override void DoHandle(ref Worker wr, Exception e) {
+      uK.DoHandle(ref wr, e);
+    }
+
+    internal override void DoWork(ref Worker wr) {
+      var xA = this.xA;
+      try {
+        xA.GetResult();
+        uK.DoWork(ref wr);
+      }
+      catch (Exception e) {
+        uK.DoHandle(ref wr, e);
+      }
+    }
+
+    internal void Ready() {
+      Worker.ContinueOnThisThread(sr, this);
+    }
+  }
+
+  public abstract class ValueTaskToJob : Job<Unit> {
+    ///
+    public abstract ValueTask Start();
+    internal override void DoJob(ref Worker wr, Cont<Unit> uK) {
+      var uVT = Start();
+      if (uVT.IsCompletedSuccessfully)
+        Work.Do(uK, ref wr);
+      else {
+        var a = uVT.ConfigureAwait(false).GetAwaiter();
+        a.UnsafeOnCompleted(new ValueTaskToJobAwaiter(a, uK, wr.Scheduler).Ready);
+      }
     }
   }
 

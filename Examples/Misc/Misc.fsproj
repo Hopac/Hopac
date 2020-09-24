@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Examples</RootNamespace>
     <AssemblyName>Examples</AssemblyName>
-    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <Name>Misc</Name>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugSymbols>true</DebugSymbols>

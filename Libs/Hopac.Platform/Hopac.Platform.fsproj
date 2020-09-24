@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.2</TargetFrameworks>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>true</Optimize>
@@ -21,7 +21,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Targetframework)' == 'netstandard2.0' ">
+  <PropertyGroup Condition=" '$(Targetframework)' == 'netcoreapp2.2' ">
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
   <ItemGroup>

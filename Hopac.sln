@@ -75,7 +75,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-F
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
-		run = run
 		appveyor.yml = appveyor.yml
 		.travis.yml = .travis.yml
 	EndProjectSection

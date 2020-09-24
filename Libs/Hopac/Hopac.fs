@@ -4,7 +4,6 @@ namespace Hopac
 
 open System
 open System.Collections.Generic
-open System.Diagnostics
 open System.Runtime.CompilerServices
 open System.Threading
 open System.Threading.Tasks
@@ -389,8 +388,6 @@ open Infixes
 ////////////////////////////////////////////////////////////////////////////////
 
 module Scheduler =
-  open System.Reflection
-
   type Create =
     {Foreground: option<bool>
      IdleHandler: option<Job<int>>
@@ -1467,22 +1464,36 @@ module Job =
   let inline fromTask (u2xT: unit -> Task<'x>) =
     {new TaskToJob<_> () with
       override xJ'.Start () = u2xT ()} :> Job<'x>
+  let inline fromValueTask (u2xVT: unit -> ValueTask<'x>) =
+    {new ValueTaskToJob<_>() with
+      override xVT'.Start () = u2xVT ()} :> Job<'x>
   let inline fromUnitTask (u2uT: unit -> Task) =
     {new TaskToJob () with
       override xJ'.Start () = u2uT ()} :> Job<unit>
+  let inline fromUnitValueTask (u2uVT: unit -> ValueTask) =
+    {new ValueTaskToJob () with
+      override xVT'.Start () = u2uVT ()} :> Job<unit>
 
   let inline liftTask x2yT x = fromTask ^ fun () -> x2yT x
   let inline liftUnitTask x2uT x = fromUnitTask ^ fun () -> x2uT x
 
   let inline awaitTask (xT: Task<'x>) = fromTask ^ fun () -> xT
+  let inline awaitValueTask (xVT: ValueTask<'x>) = fromValueTask ^ fun () -> xVT
   let inline awaitUnitTask (uT: Task) = fromUnitTask ^ fun () -> uT
+  let inline awaitUnitValueTask (xVT: ValueTask) = fromUnitValueTask ^ fun () -> xVT
 
   let inline bindTask (x2yJ: 'x -> #Job<'y>) (xT: Task<'x>) =
-    {new BindTask<'x, 'y> () with
+    { new BindTask<'x, 'y> () with
       override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xT)
+  let inline bindValueTask (x2yJ: 'x -> #Job<'y>) (xVT: ValueTask<'x>) =
+    { new BindTask<'x, 'y> () with
+      override yJ'.Do (x) = upcast x2yJ x}.InternalInit(xVT.AsTask())
   let inline bindUnitTask (u2xJ: unit -> #Job<'x>) (uT: Task) =
-    {new BindTask<'x> () with
+    { new BindTask<'x> () with
       override xJ'.Do () = upcast u2xJ ()}.InternalInit(uT)
+  let inline bindUnitValueTask (u2xJ: unit -> #Job<'x>) (uVT: ValueTask) =
+    { new BindTask<'x> () with
+      override xJ'.Do () = upcast u2xJ ()}.InternalInit(uVT.AsTask())
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -2180,6 +2191,8 @@ type JobBuilder () =
     Job.bindAsync x2yJ xA
   member inline __.Bind (xT: Task<'x>, x2yJ: 'x -> Job<'y>) =
     Job.bindTask x2yJ xT
+  member inline __.Bind (xVT: ValueTask<'x>, x2yJ: 'x -> Job<'y>) =
+    Job.bindValueTask x2yJ xVT
   member inline __.Bind (xJ: Job<'x>, x2yJ: 'x -> Job<'y>) = xJ >>= x2yJ
   member inline __.Combine (uJ: Job<unit>, u2xJ: unit -> Job<'x>) = uJ >>= u2xJ
   member inline __.Delay (u2xJ: unit -> Job<'x>) = u2xJ
@@ -2189,6 +2202,7 @@ type JobBuilder () =
   member inline __.ReturnFrom (xO: IObservable<'x>) = xO.onceAlt :> Job<_>
   member inline __.ReturnFrom (xA: Async<'x>) = Job.fromAsync xA
   member inline __.ReturnFrom (xT: Task<'x>) = Job.awaitTask xT
+  member inline __.ReturnFrom (xVT: ValueTask<'x>) = Job.awaitValueTask xVT
   member inline __.ReturnFrom (xJ: Job<'x>) = xJ
   member inline __.Run (u2xJ: unit -> Job<'x>) = Job.delay u2xJ
   member inline __.TryFinally (u2xJ: unit -> Job<'x>, u2u: unit -> unit) =

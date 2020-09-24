@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.0;net471</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <Tailcalls>true</Tailcalls>
@@ -26,7 +26,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Targetframework)' == 'netcoreapp2.0' ">
+  <PropertyGroup Condition=" '$(Targetframework)' == 'netcoreapp2.2' ">
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
   <ItemGroup>

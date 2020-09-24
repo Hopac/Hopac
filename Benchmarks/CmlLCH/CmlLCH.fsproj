@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>BufferedCh</RootNamespace>
     <AssemblyName>CmlLCH</AssemblyName>
-    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>CmlLCH</Name>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
