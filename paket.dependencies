@@ -2,7 +2,7 @@ source https://api.nuget.org/v3/index.json
 storage: none
 
 clitool dotnet-mergenupkg
-nuget FSharp.Core ~> 4.5.2
+nuget FSharp.Core >= 4.5.2
 
 group Tests
   source https://api.nuget.org/v3/index.json
@@ -11,7 +11,7 @@ group Tests
 
 group Benchmarks
   source https://api.nuget.org/v3/index.json
-  nuget FSharp.Core ~> 4.5.2
+  nuget FSharp.Core >= 4.5.2
   nuget System.Reactive
 
 group Build
