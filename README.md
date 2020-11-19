@@ -21,7 +21,8 @@ Furthermore, you'll find a large number of examples in (./Examples)[./Examples].
 
 ## Release / publish
 
-Build the `Hopac` project and publish the `nupkg` file in `/Libs/Hopac/bin/Release/*.nupkg`.
+Build the `Hopac` project and publish the `nupkg` file in `/Libs/Hopac/bin/Release/*.nupkg`. Your commits are tested
+on AppVeyor when you send PR:s and push to `master`.
 
 Update docs
 -----------
