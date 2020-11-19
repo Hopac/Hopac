@@ -1,10 +1,11 @@
 image: Visual Studio 2019
 
 artifacts:
-  - path: /Libs/Hopac/bin/Release/*.nupkg
+- path: /Libs/Hopac/bin/Release/*.nupkg
 
 build_script:
-  - cmd: dotnet build Hopac.sln -c Release
+- cmd: git submodule update --init
+- cmd: dotnet build Hopac.sln -c Release
 
 deploy:
   - provider: NuGet
