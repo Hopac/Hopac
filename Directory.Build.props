@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RepositoryUrl>https://github.com/Hopac/Hopac</RepositoryUrl>
+    <FsDocsLicenseLink>https://github.com/Hopac/Hopac/blob/master/LICENSE.md</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://github.com/Hopac/Hopac/blob/master/RELEASE_NOTES.md</FsDocsReleaseNotesLink>
+    <FsDocsLogoLink>https://avatars2.githubusercontent.com/u/10173903</FsDocsLogoLink>
+    <PackageIcon>logo.png</PackageIcon>
+  </PropertyGroup>
+      <ItemGroup>
+        <None Include="../../Docs/logo.png" Pack="true" Visible="false" PackagePath=""/>
+    </ItemGroup>
+</Project>

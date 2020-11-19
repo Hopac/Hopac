@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -17,11 +17,10 @@ Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# wit
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Copyright>© 2016 Vesa Karvonen, 2018 Open Source Contributors</Copyright>
     <PackageTags>F# documentation fsi html</PackageTags>
-    <PackageIconUrl>https://avatars2.githubusercontent.com/u/10173903</PackageIconUrl>
     <Version>0.4.1</Version>
-  
+
 </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="Util.fs" />
     <Compile Include="Hopac.fsi" />
@@ -71,5 +70,5 @@ Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# wit
       <Pack>true</Pack>
     </Content>
   </ItemGroup>
-  
+
 </Project>

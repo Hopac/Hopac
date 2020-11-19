@@ -7,11 +7,11 @@
 // smaller and slightly different subset should suffice, but then there would be
 // some important semantics that could not be implemented precisely.
 
-#I "../Libs/Hopac.Core/bin/Release"
-#I "../Libs/Hopac/bin/Release"
-#I "../Libs/Hopac.Platform/bin/Release"
-#I "../Libs/Hopac.Bench/bin/Release"
-#I "../Libs/Hopac.Experimental/bin/Release"
+#I "../Libs/Hopac.Core/bin/Release/netstandard2.0"
+#I "../Libs/Hopac/bin/Release/netstandard2.0"
+#I "../Libs/Hopac.Platform/bin/Release/netstandard2.0"
+#I "../Libs/Hopac.Bench/bin/Release/netstandard2.0"
+#I "../Libs/Hopac.Experimental/bin/Release/netstandard2.0"
 
 #r "Hopac.Core.dll"
 #r "Hopac.dll"
