@@ -27,10 +27,17 @@ on AppVeyor when you send PR:s and push to `master`.
 Update docs
 -----------
 
-You need the FsiRefGen git submodule for this. If it’s not already up to date, run:
+Build documentation and API Reference into `output` folder
 
 ```
-git submodule update --init
+dotnet tool restore
+dotnet fsdocs build
 ```
 
-TODO: Describe commands needed to update docs
+Run locally
+
+```
+dotnet fsdocs watch
+```
+
+TODO: Describe commands needed to push updated docs

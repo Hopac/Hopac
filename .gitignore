@@ -10,3 +10,7 @@ bin
 obj
 packages
 paket.exe
+.fsdocs/
+.ionide/
+tmp/
+output/
