@@ -1,23 +1,14 @@
-platform: Any CPU
-image: Visual Studio 2017
-environment:
-  global:
-    CONFIGS: Debug
-    HOPAC_STRONG_NAME: 1
-    CYG_ROOT: C:/cygwin
-    CYG_CACHE: C:/cygwin/var/cache/setup
-    CYG_MIRROR: http://mirrors.kernel.org/sourceware/cygwin/
-    CYG_ARCH: x86
+image: Visual Studio 2019
 
-  matrix:
-    - USE: netcore
-    - USE: net
-
-install:
-  - 'git submodule update --init --recursive'
-  - 'appveyor DownloadFile http://cygwin.com/setup-%CYG_ARCH%.exe -FileName setup.exe'
-  - 'setup.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" >NUL'
-  - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
+artifacts:
+  - path: /Libs/Hopac/bin/Release/*.nupkg
 
 build_script:
-  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && ./run tests"'
+  - cmd: dotnet build Hopac.sln -c Release
+
+deploy:
+  - provider: NuGet
+    api_key:
+      secure: 1gMmeFktWlyajXddEy8CZLias0fRvDxR3eo06FcEK/733JT+p+rUq3ImWj7mV832
+    on:
+      appveyor_repo_tag: true

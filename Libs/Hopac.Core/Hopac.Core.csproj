@@ -1,30 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <RootNamespace>Hopac</RootNamespace>
     <AssemblyName>Hopac.Core</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SignAssembly Condition="'$(StrongNameAssembly)' == 'true'">true</SignAssembly>
     <AssemblyOriginatorKeyFile Condition="'$(StrongNameAssembly)' == 'true'">../../Hopac.snk</AssemblyOriginatorKeyFile>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <NoWarn>420</NoWarn>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <Optimize>true</Optimize>
-    <Version>0.4.1</Version>
   </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>DEBUG;TRACE;TRAMPOLINE</DefineConstants>
   </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>TRACE;AGGRESSIVE_INLINING;TRAMPOLINE</DefineConstants>
   </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>NO_ISTHREADPOOLTHREAD</DefineConstants>
   </PropertyGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
+  </ItemGroup>
+  
 </Project>

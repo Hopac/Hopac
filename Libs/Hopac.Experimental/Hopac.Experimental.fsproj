@@ -1,18 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <OtherFlags Condition=" '$(TargetFramework)' == 'netstandard2.0'">--warnon:1182</OtherFlags>
-    <OtherFlags Condition=" '$(TargetFramework)' == 'net471'">--warnon:1182</OtherFlags>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <GenerateTailCalls>true</GenerateTailCalls>
     <DebugSymbols>true</DebugSymbols>
     <WarningLevel>4</WarningLevel>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <Version>0.4.1</Version>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,7 +17,6 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Util.fs" />
     <Compile Include="DirCh.fsi" />
     <Compile Include="DirCh.fs" />
@@ -40,11 +34,9 @@
     <Compile Include="SelectableQueue.fs" />
     <Compile Include="SwapCh.fsi" />
     <Compile Include="SwapCh.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj" />
     <ProjectReference Include="..\Hopac\Hopac.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

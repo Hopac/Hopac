@@ -1,1 +1,0 @@
-complete -W "-x benchmarks build build_nupkg clean generate_docs pull_submodules publish publish_docs repl restore tests watch" run

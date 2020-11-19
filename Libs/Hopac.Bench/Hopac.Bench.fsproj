@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <Name>Hopac.Bench</Name>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
@@ -6,27 +7,30 @@
     <Tailcalls>true</Tailcalls>
     <DebugSymbols>true</DebugSymbols>
     <GenerateTailCalls>true</GenerateTailCalls>
-    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <WarningLevel>4</WarningLevel>
     <Version>0.4.1</Version>
   </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>TRACE</DefineConstants>
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
+  
   <ItemGroup>
     <Compile Include="Util.fs" />
     <Compile Include="GC.fs" />
     <Compile Include="Async.fs" />
-    <Content Include="paket.references" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj" />
     <ProjectReference Include="..\Hopac\Hopac.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  
 </Project>

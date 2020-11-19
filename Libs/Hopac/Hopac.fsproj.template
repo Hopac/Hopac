@@ -34,7 +34,5 @@ files
     bin/Release/netstandard2.0/Hopac.* ==> lib/netstandard2.0
     ../Hopac.Platform/bin/Release/netstandard2.0/Hopac.Platform.* ==> lib/netstandard2.0
 dependencies
-    framework: net471    
-        FSharp.Core ~> LOCKED:Minor 
     framework: netstandard2.0
-        FSharp.Core ~> LOCKED:Minor 
+        FSharp.Core
