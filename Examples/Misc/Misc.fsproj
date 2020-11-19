@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Examples</RootNamespace>
     <AssemblyName>Examples</AssemblyName>
-    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <Name>Misc</Name>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +22,6 @@
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <Compile Include="Misc.fsi" />
     <Compile Include="Misc.fs" />
     <Compile Include="ActorAndHopacModels.fsi" />
@@ -33,11 +32,9 @@
     <Compile Include="LockServer.fs" />
     <Compile Include="Kismet.fs" />
     <Compile Include="Main.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

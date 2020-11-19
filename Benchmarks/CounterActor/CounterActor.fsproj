@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <WarningLevel>4</WarningLevel>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
@@ -21,13 +21,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CounterActor.fs" />
-    <None Include="App.config" />
     <None Include="README.md" />
-    <None Include="paket.references" />
-    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

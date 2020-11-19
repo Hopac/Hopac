@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <DebugSymbols>true</DebugSymbols>
@@ -19,15 +19,15 @@
     <OtherFlags>--warnon:1182</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <Compile Include="Streams.fs" />
-    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj"/>
+    <PackageReference Include="System.Reactive" Version="4.1.0" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj" />
+  </ItemGroup>
 </Project>

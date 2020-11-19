@@ -10,59 +10,7 @@ programming library for F#.
 
 ## Development
 
-Here is a Bash script to get started:
-
-    git clone --recursive https://github.com/Hopac/Hopac.git
-    cd Hopac && source .env
-    ./run tests
-
-Note the use of `--recursive` option above. Or if you didn't, you can later do
-
-    git submodule update --init
-
-This project is *only* used to build our docs. You can skip it if you're just testing Hopac.
-
-### `run`
-
-The Bash `run` script provides build automation.  You invoke `run` like any
-other Bash command:
-
-    [VARIABLE=value] ./run [COMMAND]
-
-Multiple commands can be specified. For example,
-
-    USE=netcore ./run clean build
-
-performs a clean build using the .NET Core stack.
-
-#### `run` variables
-
- * `CONFIGS` specifies the configuration(s) to operate on:
-   * `CONFIGS='Debug Release'` is the default to build and run both `Debug` and
-     `Release` configs.
-   * `CONFIGS=Debug` to build and run only `Debug` config.
-   * `CONFIGS=Release` to build and run only `Release` config.
-
- * `USE` specifies the stack, which is auto detected by default, to build and run
-  with:
-   * `USE=mono` to use Mono.
-   * `USE=net` to use .NET Framework (only on Windows).
-   * `USE=netcore` to use .NET Core.
-
-#### `run` commands
-
- * `benchmarks` runs all benchmarks.  This may take a *very* long time!
- * `build` builds all the subprojects.
- * `clean` removes generated files.
- * `tests` runs tests.
- * `repl` starts the F# interactive with Hopac libs opened.  (Only works with
-   Mono and .NET at the moment.)
- * `restore` restores dependencies required to build the project.  To build from
-   an IDE like Visual Studio or Xamarin, you need to `./run restore` manually.
- * `generate_docs` generates the Reference manual under `.gh-pages`.
-
-You can run `source run.complete` to get auto completion of `run` commands in
-Bash.
+Check out the repo and use your favorite IDE. The project builds fine in VS and using the `dotnet` CLI.
 
 ## Usage
 
@@ -73,4 +21,15 @@ Furthermore, you'll find a large number of examples in (./Examples)[./Examples].
 
 ## Release / publish
 
-    USE=netcore ./run publish
+Build the `Hopac` project and publish the `nupkg` file in `/Libs/Hopac/bin/Release/*.nupkg`.
+
+Update docs
+-----------
+
+You need the FsiRefGen git submodule for this. If it’s not already up to date, run:
+
+```
+git submodule update --init
+```
+
+TODO: Describe commands needed to update docs

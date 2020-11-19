@@ -1,20 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net471</TargetFrameworks>
-    <ResolveNuGetPackages>false</ResolveNuGetPackages>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <OtherFlags Condition=" '$(TargetFramework)' == 'netstandard2.0'">--warnon:1182</OtherFlags>
-    <OtherFlags Condition=" '$(TargetFramework)' == 'net471'">--warnon:1182</OtherFlags>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <DebugType>Embedded</DebugType>
+    <EmbedAllSources>True</EmbedAllSources>
+    <OtherFlags>--warnon:1182</OtherFlags>
     <NoWarn>FS0044</NoWarn>
+    <Description>Hopac is a library for higher-Order, parallel, asynchronous and concurrent programming in F#.
+
+Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# with the aim of making it easier to write efficient parallel, asynchronous, concurrent and reactive programs. Hopac is licensed under a MIT-style license. See project website for further information.</Description>
+    <PackageProjectUrl>https://github.com/Hopac/Hopac</PackageProjectUrl>
+    <Authors>Vesa Karvonen</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>© 2016 Vesa Karvonen, 2018 Open Source Contributors</Copyright>
+    <PackageTags>F# documentation fsi html</PackageTags>
+    <PackageIconUrl>https://avatars2.githubusercontent.com/u/10173903</PackageIconUrl>
     <Version>0.4.1</Version>
-  </PropertyGroup>
+  
+</PropertyGroup>
+  
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Util.fs" />
     <Compile Include="Hopac.fsi" />
     <Compile Include="Hopac.fs" />
@@ -22,8 +30,46 @@
     <Compile Include="Stream.fs" />
     <Compile Include="TopLevel.fsi" />
     <Compile Include="TopLevel.fs" />
-    <None Include="paket.references" />
-    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="4.5.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Hopac.Core\Hopac.Core.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\Hopac.Platform\Hopac.Platform.fsproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(OutDir)\Hopac.Core.dll">
+      <PackagePath>lib\netstandard2.0\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+    <Content Include="$(OutDir)\Hopac.Core.pdb">
+      <PackagePath>lib\netstandard2.0\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+    <Content Include="$(OutDir)\Hopac.Core.xml">
+      <PackagePath>lib\netstandard2.0\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+    <Content Include="$(OutDir)\Hopac.Platform.dll">
+      <PackagePath>lib\netstandard2.0\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+    <Content Include="$(OutDir)\Hopac.Platform.pdb">
+      <PackagePath>lib\netstandard2.0\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+    <Content Include="$(OutDir)\Hopac.Platform.xml">
+      <PackagePath>lib\netstandard2.0\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+  
 </Project>

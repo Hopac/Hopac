@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net471;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <StartWorkingDirectory>$(MSBuildProjectDirectory)\</StartWorkingDirectory>
     <DebugSymbols>true</DebugSymbols>
@@ -24,13 +24,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Fibonacci.fs" />
-    <None Include="App.config" />
     <None Include="README.md" />
-    <None Include="paket.references" />
-    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj"/>
-    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj"/>
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Bench\Hopac.Bench.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
