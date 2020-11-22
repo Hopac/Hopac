@@ -18,7 +18,7 @@ Inspired by languages like Concurrent ML and Cilk, Hopac is a library for F# wit
     <Copyright>© 2016 Vesa Karvonen, 2018 Open Source Contributors</Copyright>
     <PackageTags>F# documentation fsi html</PackageTags>
     <PackageIconUrl>https://avatars2.githubusercontent.com/u/10173903</PackageIconUrl>
-    <Version>0.4.1</Version>
+    <Version>0.5.0</Version>
   
 </PropertyGroup>
   

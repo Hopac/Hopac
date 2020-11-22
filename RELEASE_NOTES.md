@@ -1,3 +1,6 @@
+#### 0.5.0 - 2020-11-22
+* Support F# 5.0, thanks @cmeeren
+
 #### 0.4.1 - 2018-09-21
 * Optimized `Stream.keepPreceding*` and `Stream.keepFollowing1`.
 * Fix handling of `Task<T>` thrown Exceptions, thanks @hyprhare, @neoeinstein

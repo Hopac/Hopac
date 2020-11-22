@@ -9,7 +9,6 @@
     <GenerateTailCalls>true</GenerateTailCalls>
     <TargetFramework>netstandard2.0</TargetFramework>
     <WarningLevel>4</WarningLevel>
-    <Version>0.4.1</Version>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
