@@ -19,8 +19,6 @@ jobs:
         dotnet-version: 3.1.x
     - name: Restore tools
       run: dotnet tool restore
-    - name: Restore solution
-      run: dotnet restore Hopac.sln
     - name: Build solution
       run: dotnet build Hopac.sln
     - name: Build docs
