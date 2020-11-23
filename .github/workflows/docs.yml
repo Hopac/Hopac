@@ -20,9 +20,9 @@ jobs:
     - name: Restore tools
       run: dotnet tool restore
     - name: Restore solution
-      run: dotnet restore
+      run: dotnet restore Hopac.sln
     - name: Build solution
-      run: dotnet build
+      run: dotnet build Hopac.sln
     - name: Build docs
       run: dotnet fsdocs build
     - name: Deploy to Github Pages
