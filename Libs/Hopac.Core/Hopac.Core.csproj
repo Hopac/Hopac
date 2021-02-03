@@ -24,7 +24,7 @@
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <DefineConstants>NO_ISTHREADPOOLTHREAD</DefineConstants>
+    <DefineConstants>$(DefineConstants);NO_ISTHREADPOOLTHREAD</DefineConstants>
   </PropertyGroup>
   
   <ItemGroup>
