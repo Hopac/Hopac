@@ -530,9 +530,8 @@ module Stream =
       mapJob x2yJ xs
     else
       delay <| fun () ->
-      let inCh, outCh = Ch(), Ch()
+      let inCh, outCh, closeCh = Ch(), Ch(), Ch()
       let mutable usage = 0
-      let mutable closing = false
 
       let rec loop() =
         Alt.choose [
@@ -540,7 +539,8 @@ module Stream =
             | Choice1Of2 y -> usage <- usage - 1
                               Cons (y, loop ())
             | Choice2Of2 e -> raise e
-          (if not closing && usage < degree then
+            
+          if usage < degree then
             inCh ^=> fun x ->
               usage <- usage + 1
               Job.tryInDelay 
@@ -549,15 +549,16 @@ module Stream =
                 (Choice2Of2 >> Ch.give outCh)
               |> Job.queue
               >>= loop
-           else Alt.never())
-          (if closing && usage = 0
-           then Alt.always Nil
-           else Alt.never())
+          else Alt.never()
+          
+          if usage = 0 then
+            closeCh ^=> fun () -> Alt.always Nil
+          else Alt.never()
         ] |> memo
 
       Job.tryIn 
         (xs |> iterJob (Ch.give inCh))
-        (fun () -> closing <- true; Job.unit() )
+        (Ch.give closeCh)
         (fun e  -> outCh *<- Choice2Of2 e)
       |> Job.start >>= loop
 
