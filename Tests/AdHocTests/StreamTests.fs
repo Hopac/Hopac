@@ -56,7 +56,9 @@ let run () =
             timeOutMillis (Math.Abs (x % 10)) >>- fun () ->
             Interlocked.Decrement n |> ignore
             x
-       |> Stream.toList |> run = xs
+       |> Stream.toList 
+       |> run
+       |> List.sort = List.sort xs
      if !m <> 10
      then printfn "Not OK? Effective degree only %d with mapPipelinedJob %d." !m 10
      else printfn "OK, reached effective degree %d with mapPipelinedJob." !m
