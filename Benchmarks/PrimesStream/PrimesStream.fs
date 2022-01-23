@@ -222,7 +222,7 @@ module HopacCh =
     let d = timer.Elapsed
     printf "%7d - %fs\n" ps.[ps.Length-1] d.TotalSeconds
     d
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 
 module AsyncMb =
@@ -237,8 +237,8 @@ module AsyncMb =
       let state = ref init
       let rec loop =
         self.Receive () >>= fun out ->
-        out.Reply (!state)
-        state := step (!state)
+        out.Reply state.Value
+        state.Value <- step state.Value
         loop
       loop
 

@@ -34,11 +34,11 @@ let delayAndRaise (ms: int) ex = Alt.fromTask <| fun ct -> runTask {
 
 let run () =
   do let r = ref 0
-     (delayAndSet 401 r <|> delayAndSet 50 r |> run, !r)
+     (delayAndSet 401 r <|> delayAndSet 50 r |> run, r.Value)
      |> testEq (50, 50)
 
   do let r = ref 0
-     (delayAndSet 50 r <|> delayAndSet 202 r |> run, !r)
+     (delayAndSet 50 r <|> delayAndSet 202 r |> run, r.Value)
      |> testEq (50, 50)
 
   do delayAndSet 150 ^ ref 1

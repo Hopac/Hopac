@@ -51,18 +51,18 @@ module GameTime =
      | _ ->
        Job.unit ()
 
-let CompareBool comparand input onTrue onFalse =
+let CompareBool (comparand: ref<bool>) input onTrue onFalse =
   input >>= fun x ->
-  if !comparand then onTrue x else onFalse x
+  if comparand.Value then onTrue x else onFalse x
 
-let Delay duration start stop finished aborted =
+let Delay (duration: ref<int64>) start stop finished aborted =
   start >>= fun x ->
-      stop                       ^=> aborted
-  <|> GameTime.timeOut !duration ^=> fun () -> finished x
+      stop                            ^=> aborted
+  <|> GameTime.timeOut duration.Value ^=> fun () -> finished x
 
-let Set value target input output =
+let Set value (target: ref<_>) input output =
   input >>= fun x ->
-  target := value
+  target.Value <- value
   output x
 
 let setup () = job {

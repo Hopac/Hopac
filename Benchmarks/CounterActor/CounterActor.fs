@@ -27,11 +27,11 @@ module ChMsg =
     do! Job.foreverServer
          (inCh >>= function
            | Add n ->
-             state := !state + n
+             state.Value <- state.Value + n
              Job.unit ()
            | GetAndReset replyVar ->
-             let was = !state
-             state := 0L
+             let was = state.Value
+             state.Value <- 0L
              replyVar *<= was)
     return CA inCh
   }
@@ -69,11 +69,11 @@ module MbMsg =
     do! Job.foreverServer
          (inMb >>= function
            | Add n ->
-             state := !state + n
+             state.Value <- state.Value + n
              Job.unit ()
            | GetAndReset replyVar ->
-             let was = !state
-             state := 0L
+             let was = state.Value
+             state.Value <- 0L
              replyVar *<= was)
     return CA inMb
   }

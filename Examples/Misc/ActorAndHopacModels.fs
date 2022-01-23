@@ -44,7 +44,7 @@ module HopacModel =
        | Give (giver, x) ->
          if takers.Count > 0 then
            let (taker, r) = takers.Dequeue ()
-           r := Some x
+           r.Value <- Some x
            send giver ()
            send taker ()
            loop ()
@@ -54,7 +54,7 @@ module HopacModel =
        | Take (taker, r) ->
          if givers.Count > 0 then
            let (giver, x) = givers.Dequeue ()
-           r := Some x
+           r.Value <- Some x
            send giver ()
            send taker ()
            loop ()
@@ -71,7 +71,7 @@ module HopacModel =
        let r = ref None
        send (unC xCh) (Take (taker, r))
        receive >>= fun () ->
-       match !r with
+       match r.Value with
         | None -> failwith "Impossible"
         | Some x -> result x)
   let (>>=) (xJ: Job<'x>) (x2yJ: 'x -> Job<'y>) : Job<'y> =

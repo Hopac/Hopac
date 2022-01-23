@@ -28,9 +28,9 @@ let testSyntax (xT: Task<'disposable>)
   with _ -> ()
   try return! Job.awaitUnitTask t
   finally ()
-  let n = ref 1
-  while !n > 0 do
-    n := !n-1
+  let mutable n = 1
+  while n > 0 do
+    n <- n - 1
     return! Job.awaitUnitTask t
 #if !CORECLR
   use xT' = xT
