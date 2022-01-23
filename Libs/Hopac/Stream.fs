@@ -543,7 +543,7 @@ module Stream =
           (if not closing && usage < degree then
             inCh ^=> fun x ->
               usage <- usage + 1
-              Job.tryInDelay 
+              Job.tryInDelay
                 (fun () -> x2yJ x)
                 (Choice1Of2 >> Ch.give outCh)
                 (Choice2Of2 >> Ch.give outCh)
@@ -555,7 +555,7 @@ module Stream =
            else Alt.never())
         ] |> memo
 
-      Job.tryIn 
+      Job.tryIn
         (xs |> iterJob (Ch.give inCh))
         (fun () -> closing <- true; Job.unit() )
         (fun e  -> outCh *<- Choice2Of2 e)
@@ -671,7 +671,7 @@ module Stream =
     let closes = Ch ()
     let raised e =
       key2br.Values
-      |> Seq.iterJob (fun g -> g.var *<=! e) >>=. !main *<=! e >>-! e
+      |> Seq.iterJob (fun g -> g.var *<=! e) >>=. main.Value *<=! e >>-! e
     let rec wrap self xs newK oldK oldC =
            xs ^-> function Cons (x, xs) -> Cons (x, self xs) | Nil -> Nil
       <|>* let rec serve ss =
@@ -692,8 +692,8 @@ module Stream =
                                  let g = {key = k; var = i'}
                                  key2br.Add (k, g)
                                  let i' = IVar ()
-                                 let m = !main
-                                 main := i'
+                                 let m = main.Value
+                                 main.Value <- i'
                                  let close = closes *<+ g
                                  Job.tryInDelay
                                   <| fun () -> newGroup k close <| wrapBr k i
@@ -704,7 +704,7 @@ module Stream =
                       | Nil ->
                         key2br.Values
                         |> Seq.iterJob (fun g -> g.var *<= Nil) >>=.
-                        !main *<= Nil >>-. Nil
+                        main.Value *<= Nil >>-. Nil
                   <| raised
              <|> closes ^=> fun g ->
                    match key2br.TryGetValue g.key with
@@ -726,7 +726,7 @@ module Stream =
        <| fun _ ss y i -> baton *<<= ss >>-. Cons (y, wrapMain i)
        <| fun serve ss _ _ _ -> serve ss
        <| fun serve ss _ -> serve ss
-    wrapMain (!main)
+    wrapMain main.Value
   let groupByFun newGroup keyOf ss =
     groupByJob (fun k uJ xs -> newGroup k uJ xs |> Job.result)
      (keyOf >> Job.result) ss

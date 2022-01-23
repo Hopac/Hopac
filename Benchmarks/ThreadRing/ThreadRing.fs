@@ -34,19 +34,19 @@ module Native =
           Thread (ThreadStart (fun () ->
                     let rec loop () =
                       myEvent.WaitOne () |> ignore
-                      match !counter with
+                      match counter.Value with
                        | 0 ->
                          nextEvent.Set () |> ignore
                          myEvent.Dispose ()
                          meDoneEvent.Set () |> ignore
                        | 1 ->
-                         counter := 0
+                         counter.Value <- 0
                          nextEvent.Set () |> ignore
                          myEvent.WaitOne () |> ignore
                          myEvent.Dispose ()
                          meDoneEvent.Set () |> ignore
                        | n ->
-                         counter := n - 1
+                         counter.Value <- n - 1
                          nextEvent.Set () |> ignore
                          loop ()
                     loop ()))

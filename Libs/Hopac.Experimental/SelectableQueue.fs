@@ -13,9 +13,9 @@ type SelectableQueue<'a> =
 module SelectableQueue =
   let nodes (q: LinkedList<_>) =
     seq {let node = ref q.First
-         while null <> !node do
-           yield !node
-           node := (!node).Next}
+         while null <> node.Value do
+           yield node.Value
+           node.Value <- node.Value.Next}
 
   let create () = Job.delay ^ fun () ->
     let q = {SendCh = Ch (); TakeCh = Ch ()}

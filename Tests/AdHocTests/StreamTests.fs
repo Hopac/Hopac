@@ -52,36 +52,36 @@ let run () =
        |> Stream.mapPipelinedJob 10 ^ fun x ->
             let n' = Interlocked.Increment n
             if n' > 10 then failwithf "Too many in parallel."
-            m := max !m n'
+            m.Value <- max m.Value n'
             timeOutMillis (Math.Abs (x % 10)) >>- fun () ->
             Interlocked.Decrement n |> ignore
             x
        |> Stream.toList |> run = xs
-     if !m <> 10
-     then printfn "Not OK? Effective degree only %d with mapPipelinedJob %d." !m 10
-     else printfn "OK, reached effective degree %d with mapPipelinedJob." !m
+     if m.Value <> 10
+     then printfn "Not OK? Effective degree only %d with mapPipelinedJob %d." m.Value 10
+     else printfn "OK, reached effective degree %d with mapPipelinedJob." m.Value
 
   quick <| fun (toTake: uint8) ->
     let n = ref 0
-    Stream.unfoldFun (fun x -> n := !n + 1 ; Some (x, x+1)) 1
+    Stream.unfoldFun (fun x -> n.Value <- n.Value + 1 ; Some (x, x+1)) 1
     |> Stream.take (int64 toTake) |> Stream.iter |> run
-    !n = int toTake
+    n.Value = int toTake
   quick <| fun (toTake: uint8) ->
     let n = ref 0
-    Stream.unfoldJob (fun x -> Job.thunk <| fun () -> n := !n + 1 ; Some (x, x+1)) 1
+    Stream.unfoldJob (fun x -> Job.thunk <| fun () -> n.Value <- n.Value + 1 ; Some (x, x+1)) 1
     |> Stream.take (int64 toTake) |> Stream.iter |> run
-    !n = int toTake
+    n.Value = int toTake
 
   quick <| fun f (toTake: uint8) ->
     let n = ref 0
-    Stream.iterateFun (fun x -> n := !n + 1 ; f x) 1
+    Stream.iterateFun (fun x -> n.Value <- n.Value + 1 ; f x) 1
     |> Stream.take (int64 toTake) |> Stream.iter |> run
-    !n = max 0 (int toTake - 1)
+    n.Value = max 0 (int toTake - 1)
   quick <| fun f (toTake: uint8) ->
     let n = ref 0
-    Stream.iterateJob (fun x -> Job.thunk <| fun () -> n := !n + 1 ; f x) 1
+    Stream.iterateJob (fun x -> Job.thunk <| fun () -> n.Value <- n.Value + 1 ; f x) 1
     |> Stream.take (int64 toTake) |> Stream.iter |> run
-    !n = max 0 (int toTake - 1)
+    n.Value = max 0 (int toTake - 1)
 
   quick <| fun xs ->
     let s = Stream.ofList xs

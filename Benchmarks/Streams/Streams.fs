@@ -293,13 +293,13 @@ module Rx =
        .SubscribeOn(ThreadPoolScheduler.Instance)
        .Subscribe(fun x ->
          lock result ^ fun () ->
-           result := x
+           result.Value <- x
            Monitor.Pulse result) |> ignore
       lock result ^ fun () ->
-        while !result < 0 do
+        while result.Value < 0 do
           Monitor.Wait result |> ignore
       let stop = timer.Elapsed
-      printfn "r pyramid %d %d = %s, took %A" m n ((!result).ToString ()) stop
+      printfn "r pyramid %d %d = %s, took %A" m n (result.Value.ToString ()) stop
 
   module Diamond =
     let rec repeat n f xs = if n = 0 then xs else repeat (n-1) f (f xs)
@@ -318,13 +318,13 @@ module Rx =
        .SubscribeOn(ThreadPoolScheduler.Instance)
        .Subscribe (fun x ->
          lock result ^ fun () ->
-           result := x
+           result.Value <- x
            Monitor.Pulse result) |> ignore
       lock result ^ fun () ->
-        while !result < 0 do
+        while result.Value < 0 do
           Monitor.Wait result |> ignore
       let stop = timer.Elapsed
-      printfn "r diamond %d %d = %s, took %A" m n ((!result).ToString ()) stop
+      printfn "r diamond %d %d = %s, took %A" m n (result.Value.ToString ()) stop
 
 do for m in [0; 1; 4; 6] do
      for n in [10; 160000; 320000] do

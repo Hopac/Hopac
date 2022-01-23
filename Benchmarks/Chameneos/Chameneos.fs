@@ -44,7 +44,7 @@ module HopacLock =
     val mutable NumMeets: int
     val mutable Waiter: Chameneos
     new (numMeets) = {inherit Lock (); NumMeets = numMeets; Waiter = null}
-  
+
   let bench (colors: array<Color>) numMeets = Job.delay <| fun () ->
     let mp = MeetingPlace (numMeets)
     let resultsMS = Ch ()
@@ -54,10 +54,10 @@ module HopacLock =
        let myMeets = ref 0
        let cont = ref true
        Job.queue
-        (Job.whileDo (fun () -> !cont)
+        (Job.whileDo (fun () -> cont.Value)
           (Lock.duringFun mp (fun () ->
              if 0 = mp.NumMeets then
-               cont := false
+               cont.Value <- false
                null
              else
                match mp.Waiter with
@@ -69,16 +69,16 @@ module HopacLock =
                   mp.NumMeets <- mp.NumMeets - 1
                   other) >>= function
             | null ->
-              if !cont then
+              if cont.Value then
                 me.WakeUp >>- fun otherColor ->
-                myMeets := !myMeets + 1
+                myMeets.Value <- myMeets.Value + 1
                 me.Color <- complement me.Color otherColor
               else
-                resultsMS *<- !myMeets :> Job<_>
+                resultsMS *<- myMeets.Value :> Job<_>
             | other ->
               let otherColor = other.Color
               other.WakeUp *<<= me.Color >>- fun () ->
-              myMeets := !myMeets + 1
+              myMeets.Value <- myMeets.Value + 1
               me.Color <- complement me.Color otherColor))) >>=.
     Seq.foldJob
      (fun sum _ -> resultsMS >>- fun n -> sum+n)
@@ -118,22 +118,22 @@ module HopacMV =
        let myColor = ref myColor
        let cont = ref true
        Job.queue
-        (Job.whileDo (fun () -> !cont)
+        (Job.whileDo (fun () -> cont.Value)
           (meetingPlace >>= function
             | (Empty 0) as state ->
-              cont := false
+              cont.Value <- false
               meetingPlace *<<= state >>=.
-              resultsMS *<- !myMeets
+              resultsMS *<- myMeets.Value
             | Empty n ->
-              meetingPlace *<<= Waiter (n, Chameneos (!myColor, me)) >>=.
+              meetingPlace *<<= Waiter (n, Chameneos (myColor.Value, me)) >>=.
               me >>- fun (Chameneos (otherColor, _)) ->
-              myMeets := !myMeets + 1
-              myColor := complement (!myColor) otherColor
+              myMeets.Value <- myMeets.Value + 1
+              myColor.Value <- complement myColor.Value otherColor
             | Waiter (n, Chameneos (otherColor, other)) ->
-              other *<<= Chameneos (!myColor, me) >>=.
+              other *<<= Chameneos (myColor.Value, me) >>=.
               meetingPlace *<<= Empty (n-1) >>- fun () ->
-              myMeets := !myMeets + 1
-              myColor := complement (!myColor) otherColor))) >>=.
+              myMeets.Value <- myMeets.Value + 1
+              myColor.Value <- complement myColor.Value otherColor))) >>=.
     Seq.foldJob
      (fun sum _ -> resultsMS >>- fun n -> sum+n)
      0
@@ -150,7 +150,7 @@ module HopacMV =
     let d = timer.Elapsed
     printf "%d %d %fs (%d, %d)\n"
       numMeets Environment.ProcessorCount d.TotalSeconds n m
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 
 module HopacAlt =
