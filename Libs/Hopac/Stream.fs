@@ -184,10 +184,10 @@ module Stream =
   let rec guard g xs = xs >>-* function Cons (x, xs) -> Cons (x, guard g xs)
                                       | Nil -> GC.SuppressFinalize g; Nil
 
-  let ofObservableOn ctxt (xO: IObservable<'x>) : Stream<'x> =
+  let ofObservableOn subscribeOn (xO: IObservable<'x>) : Stream<'x> =
     let xs = IVar ()
-    let sub = Subscriber (xs, ctxt)
-    post ctxt <| fun () -> sub.Subscribe xO
+    let sub = Subscriber (xs, subscribeOn)
+    post subscribeOn <| fun () -> sub.Subscribe xO
     guard (Guard (sub)) xs
   let ofObservableOnMain xO = ofObservableOn (Async.getMain ()) xO
   let ofObservable xO = ofObservableOn null xO
@@ -333,7 +333,7 @@ module Stream =
                       | Nil -> nilj
     <|> xs ^=> function Cons (x, xs) -> samplesBefore1 ts x xs | Nil -> nilj
      :> Job<_>
-  and samplesBefore ts xs = samplesBefore0 ts xs |> memo
+  and samplesBefore ticks xs = samplesBefore0 ticks xs |> memo
 
   let rec samplesAfter0 ts xs =
         ts ^=> function Cons (_, ts) -> samplesAfter1 ts xs | Nil -> nilj
@@ -344,7 +344,7 @@ module Stream =
     <|> xs ^=> function Cons (x, xs) -> consj x (samplesAfter ts xs)
                       | Nil -> nilj
      :> Job<_>
-  and samplesAfter ts xs = samplesAfter0 ts xs |> memo
+  and samplesAfter ticks xs = samplesAfter0 ticks xs |> memo
 
   let rec ignoreUntil1 timeout timer x xs =
         timer ^-> fun _ -> Cons (x, ignoreUntil timeout xs)
@@ -365,7 +365,8 @@ module Stream =
     <|> xs ^=> function Cons (_, xs) -> ignoreWhile0 tPJ tP xs
                       | Nil -> nilj
      :> Job<_>
-  let ignoreWhile tP (xs: Stream<_>) = xs >>=* ignoreWhile1 (Promise.start tP)
+  let ignoreWhile timeout (xs: Stream<_>) =
+    xs >>=* ignoreWhile1 (Promise.start timeout)
 
   type [<AbstractClass>] KeepPrecedingFuns<'x, 'y> () =
     abstract First: 'x -> 'y
@@ -458,7 +459,7 @@ module Stream =
 
   let rec pullOnT xs = function Cons (_, ts) -> xs >>- pullOnX ts | Nil -> nilj
   and pullOnX ts = function Cons (x, xs) -> Cons (x, pullOn ts xs) | Nil -> Nil
-  and pullOn ts xs = ts >>=* pullOnT xs
+  and pullOn ticks xs = ticks >>=* pullOnT xs
 
   let rec zipX ys = function Cons (x, xs) -> ys >>- zipY x xs | Nil -> nilj
   and zipY x xs = function Cons (y, ys) -> Cons ((x, y), zip xs ys) | Nil -> Nil
@@ -561,8 +562,8 @@ module Stream =
         (fun e  -> outCh *<- Choice2Of2 e)
       |> Job.start >>= loop
 
-  let mapPipelinedFun (slack: int) (x2y: 'x -> 'y) (xs: Stream<'x>) =
-    mapPipelinedJob slack (Job.lift x2y) xs
+  let mapPipelinedFun (degree: int) (x2y: 'x -> 'y) (xs: Stream<'x>) =
+    mapPipelinedJob degree (Job.lift x2y) xs
 
   let toSeq xs = Job.delay <| fun () ->
     let ys = ResizeArray ()
@@ -584,8 +585,8 @@ module Stream =
     | Completed
     | Error of exn
 
-  let shift tJ (xs: Stream<'x>) : Stream<'x> =
-    let tPJ = Promise.start tJ
+  let shift timeout (xs: Stream<'x>) : Stream<'x> =
+    let tPJ = Promise.start timeout
     let es = Ch<Shift<Promise<_>, 'x>> ()
     let (inc, dec) =
       pull xs <| fun x -> tPJ >>= fun tP -> es *<+ Value (tP, x)
@@ -599,23 +600,23 @@ module Stream =
        | Error e -> raise e
     ds ()
 
-  let rec delayEach tJ xs =
-    xs >>=* function Cons (x, xs) -> tJ >>-. Cons (x, delayEach tJ xs)
+  let rec delayEach timeout xs =
+    xs >>=* function Cons (x, xs) -> timeout >>-. Cons (x, delayEach timeout xs)
                    | Nil -> nilj
 
   let rec afterEach' tPJ = function
     | Cons (x, xs) -> tPJ >>- fun tP -> Cons (x, tP >>=. xs >>=* afterEach' tPJ)
     | Nil -> nilj
-  and afterEach tJ (xs: Stream<_>) = xs >>=* afterEach' (Promise.start tJ)
-  let rec beforeEach tJ xs =
-    tJ >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach tJ xs)
-                           | Nil -> Nil
+  and afterEach timeout (xs: Stream<_>) = xs >>=* afterEach' (Promise.start timeout)
+  let rec beforeEach timeout xs =
+    timeout >>=. xs >>-* function Cons (x, xs) -> Cons (x, beforeEach timeout xs)
+                                | Nil -> Nil
   let rec duringEach' tP tPJ xs =
     tP >>=. tPJ <&> xs >>-* function
      | (tP, Cons (x, xs)) -> Cons (x, duringEach' tP tPJ xs)
      | (_, Nil) -> Nil
-  let duringEach yJ (xs: Stream<_>) =
-    let tPJ = Promise.start yJ
+  let duringEach timeout (xs: Stream<_>) =
+    let tPJ = Promise.start timeout
     tPJ <&> xs >>-* function
      | (tP, Cons (x, xs)) -> Cons (x, duringEach' tP tPJ xs)
      | (_, Nil) -> Nil
@@ -789,11 +790,11 @@ module Stream =
   let generateFuns s (g: GenerateFuns<_, _>) = thunk <| fun () ->
     if g.While s then Cons (g.Select s, generateFuns' s g) else Nil
 
-  let inline generateFun s s2b s2s s2x =
-    generateFuns s {new GenerateFuns<_, _> () with
-     override this.While s = s2b s
-     override this.Next s = s2s s
-     override this.Select s = s2x s}
+  let inline generateFun initial doWhile doNext doSelect =
+    generateFuns initial {new GenerateFuns<_, _> () with
+     override this.While s = doWhile s
+     override this.Next s = doNext s
+     override this.Select s = doSelect s}
 
   let rec iterateJob' f x = f x >>-* fun x -> Cons (x, iterateJob' f x)
   let iterateJob x2xJ x = cons x (iterateJob' x2xJ x)
