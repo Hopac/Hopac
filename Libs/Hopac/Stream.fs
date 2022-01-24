@@ -828,6 +828,31 @@ module Stream =
     if n < 1 then failwith "buffer: n < 1" else
     buffer' 0 (Array.zeroCreate n) xs |> memo
 
+  let rec bufferTime' n (b: ResizeArray<_>) timeOut xs clock =
+        Alt.tryIn xs
+          <| function Cons (x, xs) ->
+                      b.Add x
+                      if b.Count < n
+                      then bufferTime' n b timeOut xs clock
+                      else consj b ^ bufferTime n timeOut xs
+                    | Nil -> consj b nil
+          <| fun e -> consj b ^ error e
+    <|> clock ^=> fun _ ->
+          consj b ^ bufferTime n timeOut xs
+     :> Job<_>
+  and bufferTime n timeOut xs =
+    if n < 1 then failwith "bufferTime: n < 1" else
+    Job.tryIn xs
+     <| function Cons (x, xs) ->
+                 let b = ResizeArray<_> (1)
+                 b.Add x
+                 if n <> 1
+                 then bufferTime' n b timeOut xs ^ memo timeOut
+                 else consj b ^ bufferTime n timeOut xs
+               | Nil -> nilj
+     <| error
+    |> memo
+
   let values (xs: Stream<'x>) : Alt<'x> =
     let vs = Ch ()
     let (inc, dec) =
