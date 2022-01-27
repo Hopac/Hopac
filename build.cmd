@@ -1,0 +1,1 @@
+dotnet build Hopac.sln -c Release
