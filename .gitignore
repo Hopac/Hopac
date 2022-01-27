@@ -3,6 +3,7 @@ paket-files/
 .vs/
 .fake/
 .idea/
+.ionide/
 pkg/
 *.suo
 *.userprefs
