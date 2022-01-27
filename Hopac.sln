@@ -64,6 +64,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6B539F10-F
 		Docs\Programming.md = Docs\Programming.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{AB87930C-1AA8-401C-90F0-5B83E4FBF665}"
+    ProjectSection(SolutionItems) = preProject
+        init.cmd = init.cmd
+        init.sh = init.sh
+        build.cmd = build.cmd
+        build.sh = build.sh
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Root", "Root", "{6B539F10-FF76-4EA2-9A2F-594F387CEEC2}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
