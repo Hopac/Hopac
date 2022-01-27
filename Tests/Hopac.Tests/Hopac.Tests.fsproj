@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsCheck" Version="2.16.4" />
+    <PackageReference Include="Expecto" Version="9.0.4" />
+    <PackageReference Include="Expecto.FsCheck" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Util.fs" />
+    <Compile Include="Hopac.Tests.fs" />
+  </ItemGroup>
+
+</Project>
