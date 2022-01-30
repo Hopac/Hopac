@@ -1,8 +1,8 @@
-#I "Libs/Hopac.Core/bin/Release/netcoreapp2.0"
-#I "Libs/Hopac/bin/Release/netcoreapp2.0"
-#I "Libs/Hopac.Platform/bin/Release/netcoreapp2.0"
-#I "Libs/Hopac.Bench/bin/Release/netcoreapp2.0"
-#I "Libs/Hopac.Experimental/bin/Release/netcoreapp2.0"
+#I "Libs/Hopac.Core/bin/Release/netstandard2.0"
+#I "Libs/Hopac/bin/Release/netstandard2.0"
+#I "Libs/Hopac.Platform/bin/Release/netstandard2.0"
+#I "Libs/Hopac.Bench/bin/Release/netstandard2.0"
+#I "Libs/Hopac.Experimental/bin/Release/netstandard2.0"
 
 #r "Hopac.Core"
 #r "Hopac"
