@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Math.fs" />
+    <Compile Include="Gens.fs" />
     <Compile Include="Util.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
