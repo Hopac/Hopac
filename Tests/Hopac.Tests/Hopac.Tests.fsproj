@@ -16,7 +16,14 @@
     <Compile Include="Math.fs" />
     <Compile Include="Gens.fs" />
     <Compile Include="Util.fs" />
+    <Compile Include="Tests.Job.fs" />
     <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj" />
   </ItemGroup>
 
 </Project>
