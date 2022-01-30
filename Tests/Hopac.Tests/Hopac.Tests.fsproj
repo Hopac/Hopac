@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <Compile Include="Util.fs" />
-    <Compile Include="Hopac.Tests.fs" />
+    <Compile Include="Main.fs" />
   </ItemGroup>
 
 </Project>
