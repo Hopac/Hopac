@@ -4,6 +4,7 @@ open System
 open Expecto
 open Expecto.ExpectoFsCheck
 open FsCheck
+open Expecto.Flip
 open Hopac
 open Hopac.Infixes
 
@@ -31,14 +32,13 @@ let __ = testList "Job" [
       let x = ref 0
       let dummy = new DummyDisposable()
       Job.using dummy Job.result |> run
-      |> fun result ->
-        Expect.equal result dummy "Correct reference returned"
+      |> Expect.equal "Correct reference returned" dummy
 
     testCase "Job.using successfully disposes once" <| fun _ ->
       let x = ref 0
       let counter = new DisposeCounter(x)
       Job.using counter Job.result |> run |> ignore
-      Expect.equal x.Value 1 "Disposal occurred"
+      Expect.equal "Disposal occurred" 1 x.Value
   ]
 
   testList "exceptions" [
@@ -48,7 +48,7 @@ let __ = testList "Job" [
       |> Job.catch >>- function
         | Choice1Of2 _ -> false
         | Choice2Of2 ex -> ex.Message = "error"
-      |> run |> Expect.isTrue <| "Raised exception returned"
+      |> run |> Expect.isTrue "Raised exception returned"
 
     testCase "Job.catch catches multiple exceptions from <*>" <| fun _ ->
       Job.delay (fun () -> raise <| ExpectedExn 1)
@@ -57,7 +57,7 @@ let __ = testList "Job" [
         | Choice1Of2 _ -> [ "No exception found" ]
         | Choice2Of2 ex ->
             getExnDiff [ ExpectedExn 1; ExpectedExn 2 ] ex
-      |> run |> Expect.equal [] <| "Exceptions match exactly"
+      |> run |> Expect.equal "Exceptions match exactly" []
   ]
 
 ]
