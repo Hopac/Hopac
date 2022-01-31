@@ -2,8 +2,6 @@ module Hopac.Tests.Job
 
 open System
 open Expecto
-open Expecto.ExpectoFsCheck
-open FsCheck
 open Expecto.Flip
 open Hopac
 open Hopac.Infixes
@@ -39,6 +37,14 @@ let __ = testList "Job" [
       let counter = new DisposeCounter(x)
       Job.using counter Job.result |> run |> ignore
       Expect.equal "Disposal occurred" 1 x.Value
+
+    testProp "Job.using successfully disposes n times" <|
+      fun (n: SmallInt) ->
+        let n, x = n.si, ref 0
+        [ for _ in 1..n ->
+            Job.using (new DisposeCounter(x)) Job.result ]
+        |> Job.conIgnore |> run
+        Expect.equal (sprintf "%i disposals occurred" n) n x.Value
   ]
 
   testList "exceptions" [
@@ -50,7 +56,7 @@ let __ = testList "Job" [
         | Choice2Of2 ex -> ex.Message = "error"
       |> run |> Expect.isTrue "Raised exception returned"
 
-    testCase "Job.catch catches multiple exceptions from <*>" <| fun _ ->
+    testCase "Job.catch catches both exceptions from <*>" <| fun _ ->
       Job.delay (fun () -> raise <| ExpectedExn 1)
       <*> Job.delay (fun () -> raise <| ExpectedExn 2)
       |> Job.catch >>- function
@@ -58,6 +64,16 @@ let __ = testList "Job" [
         | Choice2Of2 ex ->
             getExnDiff [ ExpectedExn 1; ExpectedExn 2 ] ex
       |> run |> Expect.equal "Exceptions match exactly" []
+
+    testProp "Job.catch catches n exceptions from Job.raises" <|
+      fun (n: SmallInt) ->
+        let n = n.si
+        let expected = [ for i in 1..n -> ExpectedExn i ]
+        [ for i in 1..n -> Job.raises <| ExpectedExn i ]
+        |> Job.conIgnore |> Job.catch >>- function
+          | Choice1Of2 _ -> [ "No exceptions found" ]
+          | Choice2Of2 ex -> getExnDiff expected ex
+        |> run |> Expect.equal "All n exceptions caught" []
   ]
 
 ]

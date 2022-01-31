@@ -86,7 +86,7 @@ let rec getRootCauses (dict: Dictionary<exn, int>)  (ex: exn) =
         getRootCauses dict ex
 
 /// Checks that the root causes nested inside an actual exception
-/// are equivalent to the list of expected exceptions.
+/// are equivalent to the sequence of expected exceptions.
 /// Returns a string list of any differences found
 let getExnDiff expected actual =
   let rootCauses = Dictionary()
