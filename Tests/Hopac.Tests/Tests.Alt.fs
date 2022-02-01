@@ -21,7 +21,7 @@ let __ = testList "Alt" [
       <|> Alt.always () ^->. false
       |> run |> Expect.equal "Fulfilled promise was available" true
 
-    testProp "*<+->- nack is unavailable if client commits" <| fun _ ->
+    testProp "*<+->- nack is unavailable if client alt hasn't cancelled" <| fun _ ->
       let reqCh = Ch()
       reqCh >>= fun (repCh, nack, x) ->
           nack <|> repCh *<- (x + 1)
