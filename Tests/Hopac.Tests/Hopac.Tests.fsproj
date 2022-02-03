@@ -18,6 +18,7 @@
     <Compile Include="Util.fs" />
     <Compile Include="Tests.Job.fs" />
     <Compile Include="Tests.Alt.fs" />
+    <Compile Include="Tests.IVar.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 

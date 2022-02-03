@@ -69,6 +69,9 @@ let etestPropN seed numberOfTests name property =
     name property
 
 
+/// An expected exception with structural equality
+exception ExpectedExn of Id: int
+
 /// Traverses inner exceptions to find root cause exceptions and adds them to
 /// the dictionary, with a count of how many identical root causes were found
 let rec getRootCauses (dict: Dictionary<exn, int>)  (ex: exn) =
@@ -108,3 +111,11 @@ let getExnDiff expected actual =
     if kv.Value <> 0 then
       diffs.Add (sprintf "Found unexpected %A" kv.Key)
   List.ofSeq diffs
+
+/// Checks that the root causes nested inside a Job.catch result
+/// are equivalent to the sequence of expected exceptions.
+/// Returns a string list of any differences found
+let getCaughtExnDiff expected actual =
+  match actual with
+  | Choice1Of2 _ -> [ "No exceptions caught" ]
+  | Choice2Of2 ex -> getExnDiff expected ex

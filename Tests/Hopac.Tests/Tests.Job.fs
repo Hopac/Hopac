@@ -18,9 +18,6 @@ type DisposeCounter (x: int ref) =
       lock typeof<DisposeCounter>
         (fun _ -> x.Value <- x.Value + 1)
 
-/// An expected exception with structural equality
-exception ExpectedExn of Id: int
-
 [<Tests>]
 let __ = testList "Job" [
 
@@ -59,10 +56,7 @@ let __ = testList "Job" [
     testCase "Job.catch catches both exceptions from <*>" <| fun _ ->
       Job.delay (fun () -> raise <| ExpectedExn 1)
       <*> Job.delay (fun () -> raise <| ExpectedExn 2)
-      |> Job.catch >>- function
-        | Choice1Of2 _ -> [ "No exception found" ]
-        | Choice2Of2 ex ->
-            getExnDiff [ ExpectedExn 1; ExpectedExn 2 ] ex
+      |> Job.catch >>- getCaughtExnDiff [ ExpectedExn 1; ExpectedExn 2 ]
       |> run |> Expect.equal "Exceptions match exactly" []
 
     testProp "Job.catch catches n exceptions from Job.raises" <|
@@ -70,9 +64,7 @@ let __ = testList "Job" [
         let n = n.si
         let expected = [ for i in 1..n -> ExpectedExn i ]
         [ for i in 1..n -> Job.raises <| ExpectedExn i ]
-        |> Job.conIgnore |> Job.catch >>- function
-          | Choice1Of2 _ -> [ "No exceptions found" ]
-          | Choice2Of2 ex -> getExnDiff expected ex
+        |> Job.conIgnore |> Job.catch >>- getCaughtExnDiff expected
         |> run |> Expect.equal "All n exceptions caught" []
   ]
 
