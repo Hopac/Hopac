@@ -40,7 +40,7 @@ let __ = testList "IVar" [
         let n = n.si
         seq { for i in 1..n -> IVar i }
         |> Seq.map IVar.read
-        |> Job.conCollect |> run |> List.ofSeq
+        |> Job.conCollect |> run |> List.ofSeq |> List.sort
         |> Expect.equal (sprintf "All %i values" n) [ 1..n ]
   ]
 
