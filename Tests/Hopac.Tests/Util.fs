@@ -72,6 +72,9 @@ let etestPropN seed numberOfTests name property =
 /// An expected exception with structural equality
 exception ExpectedExn of Id: int
 
+/// A known exception with no value
+exception KnownExn
+
 /// Traverses inner exceptions to find root cause exceptions and adds them to
 /// the dictionary, with a count of how many identical root causes were found
 let rec getRootCauses (dict: Dictionary<exn, int>)  (ex: exn) =
