@@ -98,12 +98,19 @@ let getExnDiff expected actual =
   let rootCauses = Dictionary()
   getRootCauses rootCauses actual
   let diffs = ResizeArray<string>()
-  let wasExnFound want =
+  let inline isSameExn (ex1: exn) (ex2: exn) =
+    let inline isBlank () = String.IsNullOrWhiteSpace ex1.Message
+    match ex1 = ex2, ex1.Message = ex2.Message, isBlank () with
+    | true, _, _
+    | _, true, false -> true
+    | _, true, true -> ex1.GetType() = ex2.GetType()
+    | _ -> false
+  let inline wasExnFound want =
     rootCauses.Keys
     |> Seq.exists (fun have ->
         let n = rootCauses.[have]
         if n <= 0 then false
-        elif want = have || want.Message = have.Message then
+        elif isSameExn want have then
           rootCauses.[have] <- n - 1; true
         else false)
   expected
