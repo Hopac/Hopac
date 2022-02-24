@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsCheck" Version="2.16.4" />
+    <PackageReference Include="Expecto" Version="9.0.4" />
+    <PackageReference Include="Expecto.FsCheck" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Math.fs" />
+    <Compile Include="Gens.fs" />
+    <Compile Include="Util.fs" />
+    <Compile Include="Tests.Job.fs" />
+    <Compile Include="Tests.Alt.fs" />
+    <Compile Include="Tests.IVar.fs" />
+    <Compile Include="Tests.MVar.fs" />
+    <Compile Include="Tests.Async.fs" />
+    <Compile Include="Tests.Task.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libs\Hopac\Hopac.fsproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Core\Hopac.Core.csproj" />
+    <ProjectReference Include="..\..\Libs\Hopac.Platform\Hopac.Platform.fsproj" />
+  </ItemGroup>
+
+</Project>
