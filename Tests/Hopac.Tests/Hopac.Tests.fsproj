@@ -20,6 +20,7 @@
     <Compile Include="Tests.Alt.fs" />
     <Compile Include="Tests.IVar.fs" />
     <Compile Include="Tests.MVar.fs" />
+    <Compile Include="Tests.Async.fs" />
     <Compile Include="Tests.Task.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
